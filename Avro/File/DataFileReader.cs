@@ -22,6 +22,7 @@ using System.IO;
 using Avro.Generic;
 using Avro.IO;
 using Avro.Specific;
+using System.Reflection;
 
 namespace Avro.File
 {
@@ -312,7 +313,7 @@ namespace Avro.File
             DatumReader<T> reader = null;
             Type type = typeof(T);
 
-            if (typeof(ISpecificRecord).IsAssignableFrom(type))
+            if (typeof(ISpecificRecord).GetTypeInfo().IsAssignableFrom(type))
             {
                 reader = new SpecificReader<T>(writerSchema, readerSchema);
             }

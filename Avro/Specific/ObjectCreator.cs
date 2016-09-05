@@ -54,7 +54,7 @@ namespace Avro.Specific
 
         private ObjectCreator()
         {
-            execAssembly = System.Reflection.Assembly.GetExecutingAssembly();
+            execAssembly = this.GetType().GetTypeInfo().Assembly;
             entryAssembly = System.Reflection.Assembly.GetEntryAssembly();
             if (entryAssembly != null && execAssembly != entryAssembly) // entryAssembly returns null when running from NUnit
                 diffAssembly = true;

@@ -185,8 +185,14 @@ namespace Avro.Specific
                 {
                     if (IsCandidateCompilationLibrary(library))
                     {
-                        var assembly = Assembly.Load(new AssemblyName(library.Name));
-                        assemblies.Add(assembly);
+                        try
+                        {
+                            var assembly = Assembly.Load(new AssemblyName(library.Name));
+                            assemblies.Add(assembly);
+                        } catch (Exception e)
+                        {
+                            continue;
+                        }
                     }
                 }
                 return assemblies.ToArray();
@@ -194,8 +200,9 @@ namespace Avro.Specific
 
             private static bool IsCandidateCompilationLibrary(RuntimeLibrary compilationLibrary)
             {
-                return compilationLibrary.Name == ("Specify")
-                    || compilationLibrary.Dependencies.Any(d => d.Name.StartsWith("Specify"));
+                return true;
+                //return compilationLibrary.Name == ("Specify")
+                //    || compilationLibrary.Dependencies.Any(d => d.Name.StartsWith("Specify"));
             }
         }
         /// <summary>

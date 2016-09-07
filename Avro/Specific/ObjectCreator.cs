@@ -190,7 +190,7 @@ namespace Avro.Specific
                         {
                             var assembly = Assembly.Load(new AssemblyName(library.Name));
                             assemblies.Add(assembly);
-                        } catch (Exception e)
+                        } catch (Exception)
                         {
                             continue;
                         }

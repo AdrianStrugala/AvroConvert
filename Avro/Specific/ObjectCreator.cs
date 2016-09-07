@@ -20,6 +20,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Reflection;
 using System.Reflection.Emit;
+using Microsoft.Extensions.DependencyModel;
+using System.Linq;
 //using System.Runtime.Loader;
 
 namespace Avro.Specific
@@ -164,7 +166,38 @@ namespace Avro.Specific
             return type;
         }
 
+        /// http://www.michael-whelan.net/replacing-appdomain-in-dotnet-core/
+        /// polyfill
+        public class AppDomain
+        {
+            public static AppDomain CurrentDomain { get; private set; }
 
+            static AppDomain()
+            {
+                CurrentDomain = new AppDomain();
+            }
+
+            public Assembly[] GetAssemblies()
+            {
+                var assemblies = new List<Assembly>();
+                var dependencies = DependencyContext.Default.RuntimeLibraries;
+                foreach (var library in dependencies)
+                {
+                    if (IsCandidateCompilationLibrary(library))
+                    {
+                        var assembly = Assembly.Load(new AssemblyName(library.Name));
+                        assemblies.Add(assembly);
+                    }
+                }
+                return assemblies.ToArray();
+            }
+
+            private static bool IsCandidateCompilationLibrary(RuntimeLibrary compilationLibrary)
+            {
+                return compilationLibrary.Name == ("Specify")
+                    || compilationLibrary.Dependencies.Any(d => d.Name.StartsWith("Specify"));
+            }
+        }
         /// <summary>
         /// Gets the type for the specified schema
         /// </summary>
@@ -282,17 +315,18 @@ namespace Avro.Specific
         /// <returns>Default constructor for the type</returns>
         public CtorDelegate GetConstructor(string name, Schema.Type schemaType, Type type)
         {
-            ConstructorInfo ctorInfo = type.GetConstructor(Type.EmptyTypes);
-            if (ctorInfo == null)
-                throw new AvroException("Class " + name + " has no default constructor");
+            //ConstructorInfo ctorInfo = type.GetConstructor(Type.EmptyTypes);
+            //if (ctorInfo == null)
+            //    throw new AvroException("Class " + name + " has no default constructor");
 
-            DynamicMethod dynMethod = new DynamicMethod("DM$OBJ_FACTORY_" + name, typeof(object), null, type, true);
-            ILGenerator ilGen = dynMethod.GetILGenerator();
-            ilGen.Emit(OpCodes.Nop);
-            ilGen.Emit(OpCodes.Newobj, ctorInfo);
-            ilGen.Emit(OpCodes.Ret);
+            //DynamicMethod dynMethod = new DynamicMethod("DM$OBJ_FACTORY_" + name, typeof(object), null, type, true);
+            //ILGenerator ilGen = dynMethod.GetILGenerator();
+            //ilGen.Emit(OpCodes.Nop);
+            //ilGen.Emit(OpCodes.Newobj, ctorInfo);
+            //ilGen.Emit(OpCodes.Ret);
 
-            return (CtorDelegate)dynMethod.CreateDelegate(ctorType);
+            //return (CtorDelegate)dynMethod.CreateDelegate(ctorType);
+            return () => Activator.CreateInstance(type);
         }
 
         /// <summary>

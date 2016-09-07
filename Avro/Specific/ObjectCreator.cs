@@ -22,6 +22,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using Microsoft.Extensions.DependencyModel;
 using System.Linq;
+using System.Linq.Expressions;
 //using System.Runtime.Loader;
 
 namespace Avro.Specific
@@ -51,7 +52,7 @@ namespace Avro.Specific
         private readonly Assembly entryAssembly;
         private readonly bool diffAssembly;
 
-        public delegate object CtorDelegate();
+        public delegate object CtorDelegate(params object[] args);
         private Type ctorType = typeof(CtorDelegate);
         Dictionary<NameCtorKey, CtorDelegate> ctors;
 
@@ -322,6 +323,8 @@ namespace Avro.Specific
         /// <returns>Default constructor for the type</returns>
         public CtorDelegate GetConstructor(string name, Schema.Type schemaType, Type type)
         {
+
+
             //ConstructorInfo ctorInfo = type.GetConstructor(Type.EmptyTypes);
             //if (ctorInfo == null)
             //    throw new AvroException("Class " + name + " has no default constructor");
@@ -333,7 +336,63 @@ namespace Avro.Specific
             //ilGen.Emit(OpCodes.Ret);
 
             //return (CtorDelegate)dynMethod.CreateDelegate(ctorType);
-            return () => Activator.CreateInstance(type);
+
+            // https://ayende.com/blog/3167/creating-objects-perf-implications
+            // https://social.msdn.microsoft.com/Forums/aspnet/id-ID/7690e23b-0b82-4d93-94bb-0238af8eae1e/sharing-new-up-dgn-expression-tree-di-net-windows-store-win8-app?forum=webdevid
+
+            //return () => Activator.CreateInstance(type);
+
+            return GetCreator(type);
+        }
+
+        public static CtorDelegate GetCreator(Type typ)
+        {
+            var cInfo = typ.GetConstructor(new Type[] { });
+
+            Type type = cInfo.DeclaringType;
+
+            ParameterInfo[] paramsInfo = cInfo.GetParameters();
+
+            // parameter of type object[] named args
+
+            ParameterExpression paramExpr = Expression.Parameter(typeof(object[]), "args");
+
+            var argsExpr = new Expression[paramsInfo.Length];
+
+            // get each arg from object[] args
+
+            // and create SomeType arg expression
+
+            // eg. (int parameterA)
+
+            for (int i = 0; i < paramsInfo.Length; ++i)
+
+            {
+
+                ConstantExpression index = Expression.Constant(i);
+
+                Type argType = paramsInfo[i].ParameterType;
+
+                BinaryExpression accessprExpr = Expression.ArrayIndex(paramExpr, index);
+
+                UnaryExpression castExpr = Expression.Convert(accessprExpr, argType);
+
+                argsExpr[i] = castExpr;
+
+            }
+
+            // new Constructor(param1, param2, ...)
+
+            NewExpression newExpr = Expression.New(cInfo, argsExpr);
+
+            // create lambda in order to compile expression
+
+            LambdaExpression lambda = Expression.Lambda(typeof(CtorDelegate), newExpr, paramExpr);
+
+            var compiledLambda = (CtorDelegate)lambda.Compile();
+
+            return compiledLambda;
+
         }
 
         /// <summary>

@@ -6,7 +6,7 @@
     {
         public static JObject GetStructure(string schemaString)
         {
-            //cut of avro specification substring
+            //cut off avro specification substring
             schemaString = schemaString.Substring(schemaString.IndexOf("{"));
             
             return JObject.Parse(schemaString); ;

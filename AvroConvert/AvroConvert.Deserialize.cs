@@ -1,6 +1,8 @@
 ﻿namespace AvroConvert
 {
+    using System;
     using System.Collections.Generic;
+    using System.Linq;
 
     public static partial class AvroConvert
     {
@@ -8,7 +10,11 @@
         {
             T result = default(T);
 
-            AvroConvert.GetStructure(System.Text.Encoding.UTF8.GetString(avroString));
+            int indexOfStopByte = Array.IndexOf(avroString, new byte());
+            var schemaBytes = avroString.Take(indexOfStopByte).ToArray();
+            var dataBytes = avroString.Skip(indexOfStopByte).ToArray();
+
+            var structure = AvroConvert.GetStructure(System.Text.Encoding.UTF8.GetString(schemaBytes));
 
             return result;
         }
@@ -17,7 +23,12 @@
         {
             List<Dictionary<string, object>> result = new List<Dictionary<string, object>>();
 
-            AvroConvert.GetStructure(System.Text.Encoding.UTF8.GetString(avroString));
+            int indexOfStopByte = Array.IndexOf(avroString, new byte());
+            var schemaBytes = avroString.Take(indexOfStopByte).ToArray();
+            var dataBytes = avroString.Skip(indexOfStopByte).ToArray();
+
+
+            var structure = AvroConvert.GetStructure(System.Text.Encoding.UTF8.GetString(schemaBytes));
 
             return result;
         }

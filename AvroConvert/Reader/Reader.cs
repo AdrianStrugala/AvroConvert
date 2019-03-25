@@ -10,9 +10,9 @@
 
     public class Reader
     {
-        public delegate GenericReader CreateDatumReader(Schema writerSchema, Schema readerSchema);
+        public delegate DataReader CreateDatumReader(Schema writerSchema, Schema readerSchema);
 
-        private GenericReader _reader;
+        private DataReader _reader;
         private IDecoder _decoder, _datumDecoder;
         private Header _header;
         private Codec _codec;
@@ -243,9 +243,9 @@
             _codec = ResolveCodec();
         }
 
-        private static GenericReader CreateDefaultReader(Schema writerSchema, Schema readerSchema)
+        private static DataReader CreateDefaultReader(Schema writerSchema, Schema readerSchema)
         {
-            var reader = new GenericReader(writerSchema, readerSchema);
+            var reader = new DataReader(writerSchema, readerSchema);
 
             return reader;
         }

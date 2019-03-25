@@ -9,16 +9,16 @@ namespace AvroConvert.Reader
 
     public delegate T Reader<T>();
 
-    public sealed class GenericReader
+    public sealed class DataReader
     {
         private readonly DefaultReader reader;
 
-        public GenericReader(Schema writerSchema, Schema readerSchema)
+        public DataReader(Schema writerSchema, Schema readerSchema)
             : this(new DefaultReader(writerSchema, readerSchema))
         {
         }
 
-        public GenericReader(DefaultReader reader)
+        public DataReader(DefaultReader reader)
         {
             this.reader = reader;
         }

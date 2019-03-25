@@ -422,5 +422,6 @@ namespace Avro.File
                 throw new AvroRuntimeException(string.Format("Error ascertaining if data has next block: {0}", e));
             }
         }
+
     }
 }

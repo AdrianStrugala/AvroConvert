@@ -52,12 +52,13 @@
             var sizeOfObjects = binaryDecoder.ReadLong();
 
             var string1 = binaryDecoder.ReadString();
+            var int1 = binaryDecoder.ReadInt();
             var string2 = binaryDecoder.ReadString();
-            var long1 = binaryDecoder.ReadLong();
-
-            var string3 = binaryDecoder.ReadString();
-            var string4 = binaryDecoder.ReadString();
-            var long2 = binaryDecoder.ReadLong();
+            //var long1 = binaryDecoder.ReadLong();
+//
+//            var string3 = binaryDecoder.ReadString();
+//            var string4 = binaryDecoder.ReadString();
+//            var long2 = binaryDecoder.ReadLong();
 
 
             return result;

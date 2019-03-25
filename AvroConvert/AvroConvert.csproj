@@ -8,6 +8,13 @@
   <ItemGroup>
     <None Remove="example.avro" />
     <None Remove="example.snappy.avro" />
+    <None Remove="example2.avro" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="example2.avro">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

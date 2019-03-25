@@ -111,7 +111,8 @@ namespace Avro.Generic
             if (!ReaderSchema.CanRead(WriterSchema))
                 throw new AvroException("Schema mismatch. Reader: " + ReaderSchema + ", writer: " + WriterSchema);
 
-            return (T)Read(reuse, WriterSchema, ReaderSchema, decoder);
+            var xd = Read(reuse, WriterSchema, ReaderSchema, decoder);
+            return (T)xd;
         }
 
         public object Read(object reuse, Schema writerSchema, Schema readerSchema, Decoder d)

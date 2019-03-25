@@ -1,21 +1,3 @@
-/**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 namespace AvroConvert.Reader
 {
     using Avro;
@@ -27,33 +9,15 @@ namespace AvroConvert.Reader
 
     public delegate T Reader<T>();
 
-    /// <summary>
-    /// A general purpose reader of data from avro streams. This can optionally resolve if the reader's and writer's
-    /// schemas are different. This class is a wrapper around DefaultReader and offers a little more type safety. The default reader
-    /// has the flexibility to return any type of object for each read call because the Read() method is generic. This
-    /// class on the other hand can only return a single type because the type is a parameter to the class. Any
-    /// user defined extension should, however, be done to DefaultReader. This class is sealed.
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
     public sealed class GenericReader
     {
         private readonly DefaultReader reader;
 
-        /// <summary>
-        /// Constructs a generic reader for the given schemas using the DefaultReader. If the
-        /// reader's and writer's schemas are different this class performs the resolution.
-        /// </summary>
-        /// <param name="writerSchema">The schema used while generating the data</param>
-        /// <param name="readerSchema">The schema desired by the reader</param>
         public GenericReader(Schema writerSchema, Schema readerSchema)
             : this(new DefaultReader(writerSchema, readerSchema))
         {
         }
 
-        /// <summary>
-        /// Constructs a generic reader by directly using the given DefaultReader
-        /// </summary>
-        /// <param name="reader">The actual reader to use</param>
         public GenericReader(DefaultReader reader)
         {
             this.reader = reader;
@@ -69,46 +33,17 @@ namespace AvroConvert.Reader
         }
     }
 
-    /// <summary>
-    /// The default implementation for the generic reader. It constructs new .NET objects for avro objects on the
-    /// stream and returns the .NET object. Users can directly use this class or, if they want to customize the
-    /// object types for differnt Avro schema types, can derive from this class. There are enough hooks in this
-    /// class to allow customization.
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// <listheader><term>Avro Type</term><description>.NET Type</description></listheader>
-    /// <item><term>null</term><description>null reference</description></item>
-    /// </list>
-    /// </remarks>
     public class DefaultReader
     {
         public Schema ReaderSchema { get; private set; }
         public Schema WriterSchema { get; private set; }
 
-
-        /// <summary>
-        /// Constructs the default reader for the given schemas using the DefaultReader. If the
-        /// reader's and writer's schemas are different this class performs the resolution.
-        /// This default implemenation maps Avro types to .NET types as follows:
-        /// </summary>
-        /// <param name="writerSchema">The schema used while generating the data</param>
-        /// <param name="readerSchema">The schema desired by the reader</param>
         public DefaultReader(Schema writerSchema, Schema readerSchema)
         {
             this.ReaderSchema = readerSchema;
             this.WriterSchema = writerSchema;
         }
 
-        /// <summary>
-        /// Reads an object off the stream.
-        /// </summary>
-        /// <typeparam name="T">The type of object to read. A single schema typically returns an object of a single .NET class.
-        /// The only exception is UnionSchema, which can return a object of different types based on the branch selected.
-        /// </typeparam>
-        /// <param name="reuse">If not null, the implemenation will try to use to return the object</param>
-        /// <param name="decoder">The decoder for deserialization</param>
-        /// <returns></returns>
         public object Read(IDecoder decoder)
         {
             if (!ReaderSchema.CanRead(WriterSchema))
@@ -199,39 +134,19 @@ namespace AvroConvert.Reader
             }
         }
 
-        /// <summary>
-        /// Deserializes a null from the stream.
-        /// </summary>
-        /// <param name="readerSchema">Reader's schema, which should be a NullSchema</param>
-        /// <param name="d">The decoder for deserialization</param>
-        /// <returns></returns>
+
         protected virtual object ReadNull(Schema readerSchema, IDecoder d)
         {
             d.ReadNull();
             return null;
         }
 
-        /// <summary>
-        /// A generic function to read primitive types
-        /// </summary>
-        /// <typeparam name="S">The .NET type to read</typeparam>
-        /// <param name="tag">The Avro type tag for the object on the stream</param>
-        /// <param name="readerSchema">A schema compatible to the Avro type</param>
-        /// <param name="reader">A function that can read the avro type from the stream</param>
-        /// <returns>The primitive type just read</returns>
         protected S Read<S>(Schema.Type tag, Schema readerSchema, Reader<S> reader)
         {
             return reader();
         }
 
-        /// <summary>
-        /// Deserializes a record from the stream.
-        /// </summary>
-        /// <param name="reuse">If not null, a record object that could be reused for returning the result</param>
-        /// <param name="writerSchema">The writer's RecordSchema</param>
-        /// <param name="readerSchema">The reader's schema, must be RecordSchema too.</param>
-        /// <param name="dec">The decoder for deserialization</param>
-        /// <returns>The record object just read</returns>
+
         protected virtual object ReadRecord(RecordSchema writerSchema, Schema readerSchema, IDecoder dec)
         {
             RecordSchema rs = (RecordSchema)readerSchema;
@@ -277,12 +192,6 @@ namespace AvroConvert.Reader
             return rec;
         }
 
-        /// <summary>
-        /// Creates a new record object. Derived classes can override this to return an object of their choice.
-        /// </summary>
-        /// <param name="reuse">If appropriate, will reuse this object instead of constructing a new one</param>
-        /// <param name="readerSchema">The schema the reader is using</param>
-        /// <returns></returns>
         protected virtual object CreateRecord(RecordSchema readerSchema)
         {
             GenericRecord ru =
@@ -290,74 +199,30 @@ namespace AvroConvert.Reader
             return ru;
         }
 
-        /// <summary>
-        /// Used by the default implementation of ReadRecord() to get the existing field of a record object. The derived
-        /// classes can override this to make their own interpretation of the record object.
-        /// </summary>
-        /// <param name="record">The record object to be probed into. This is guaranteed to be one that was returned
-        /// by a previous call to CreateRecord.</param>
-        /// <param name="fieldName">The name of the field to probe.</param>
-        /// <param name="value">The value of the field, if found. Null otherwise.</param>
-        /// <returns>True if and only if a field with the given name is found.</returns>
+
         protected virtual bool TryGetField(object record, string fieldName, int fieldPos, out object value)
         {
             return (record as GenericRecord).TryGetValue(fieldName, out value);
         }
 
-        /// <summary>
-        /// Used by the default implementation of ReadRecord() to add a field to a record object. The derived
-        /// classes can override this to suit their own implementation of the record object.
-        /// </summary>
-        /// <param name="record">The record object to be probed into. This is guaranteed to be one that was returned
-        /// by a previous call to CreateRecord.</param>
-        /// <param name="fieldName">The name of the field to probe.</param>
-        /// <param name="fieldValue">The value to be added for the field</param>
+
         protected virtual void AddField(object record, string fieldName, int fieldPos, object fieldValue)
         {
             (record as GenericRecord).Add(fieldName, fieldValue);
         }
 
-        /// <summary>
-        /// Deserializes a enum. Uses CreateEnum to construct the new enum object.
-        /// </summary>
-        /// <param name="reuse">If appropirate, uses this instead of creating a new enum object.</param>
-        /// <param name="writerSchema">The schema the writer used while writing the enum</param>
-        /// <param name="readerSchema">The schema the reader is using</param>
-        /// <param name="d">The decoder for deserialization.</param>
-        /// <returns>An enum object.</returns>
+
         protected virtual object ReadEnum(EnumSchema writerSchema, Schema readerSchema, IDecoder d)
         {
             EnumSchema es = readerSchema as EnumSchema;
-            return CreateEnum(readerSchema as EnumSchema, writerSchema[d.ReadEnum()]);
+            return new GenericEnum(es, writerSchema[d.ReadEnum()]);
         }
 
-        /// <summary>
-        /// Used by the default implementation of ReadEnum to construct a new enum object.
-        /// </summary>
-        /// <param name="reuse">If appropriate, use this enum object instead of a new one.</param>
-        /// <param name="es">The enum schema used by the reader.</param>
-        /// <param name="symbol">The symbol that needs to be used.</param>
-        /// <returns>The default implemenation returns a GenericEnum.</returns>
-        protected virtual object CreateEnum(EnumSchema es, string symbol)
-        {
-            return new GenericEnum(es, symbol);
-        }
 
-        /// <summary>
-        /// Deserializes an array and returns an array object. It uses CreateArray() and works on it before returning it.
-        /// It also uses GetArraySize(), ResizeArray(), SetArrayElement() and GetArrayElement() methods. Derived classes can
-        /// override these methods to customize their behavior.
-        /// </summary>
-        /// <param name="reuse">If appropriate, uses this instead of creating a new array object.</param>
-        /// <param name="writerSchema">The schema used by the writer.</param>
-        /// <param name="readerSchema">The schema that the reader uses.</param>
-        /// <param name="d">The decoder for deserialization.</param>
-        /// <returns>The deserialized array object.</returns>
         protected virtual object ReadArray(ArraySchema writerSchema, Schema readerSchema, IDecoder d)
         {
-
             ArraySchema rs = (ArraySchema)readerSchema;
-            object result = CreateArray(rs);
+            object result = new object[0];
             int i = 0;
             for (int n = (int)d.ReadArrayStart(); n != 0; n = (int)d.ReadArrayNext())
             {
@@ -371,34 +236,13 @@ namespace AvroConvert.Reader
             return result;
         }
 
-        /// <summary>
-        /// Creates a new array object. The initial size of the object could be anything. The users
-        /// should use GetArraySize() to determine the size. The default implementation creates an <c>object[]</c>.
-        /// </summary>
-        /// <param name="reuse">If appropriate use this instead of creating a new one.</param>
-        /// <returns>An object suitable to deserialize an avro array</returns>
-        protected virtual object CreateArray(ArraySchema rs)
-        {
-            return new object[0];
-        }
 
-        /// <summary>
-        /// Returns the size of the given array object.
-        /// </summary>
-        /// <param name="array">Array object whose size is required. This is guaranteed to be somthing returned by
-        /// a previous call to CreateArray().</param>
-        /// <returns>The size of the array</returns>
         protected virtual int GetArraySize(object array)
         {
             return (array as object[]).Length;
         }
 
-        /// <summary>
-        /// Resizes the array to the new value.
-        /// </summary>
-        /// <param name="array">Array object whose size is required. This is guaranteed to be somthing returned by
-        /// a previous call to CreateArray().</param>
-        /// <param name="n">The new size.</param>
+
         protected virtual void ResizeArray(ref object array, int n)
         {
             object[] o = array as object[];
@@ -406,85 +250,30 @@ namespace AvroConvert.Reader
             array = o;
         }
 
-        /// <summary>
-        /// Assigns a new value to the object at the given index
-        /// </summary>
-        /// <param name="array">Array object whose size is required. This is guaranteed to be somthing returned by
-        /// a previous call to CreateArray().</param>
-        /// <param name="index">The index to reassign to.</param>
-        /// <param name="value">The value to assign.</param>
+
         protected virtual void SetArrayElement(object array, int index, object value)
         {
             object[] a = array as object[];
             a[index] = value;
         }
 
-        /// <summary>
-        /// Returns the element at the given index.
-        /// </summary>
-        /// <param name="array">Array object whose size is required. This is guaranteed to be somthing returned by
-        /// a previous call to CreateArray().</param>
-        /// <param name="index">The index to look into.</param>
-        /// <returns>The object the given index. Null if no object has been assigned to that index.</returns>
-        protected virtual object GetArrayElement(object array, int index)
-        {
-            return (array as object[])[index];
-        }
 
-        /// <summary>
-        /// Deserialized an avro map. The default implemenation creats a new map using CreateMap() and then
-        /// adds elements to the map using AddMapEntry().
-        /// </summary>
-        /// <param name="reuse">If appropriate, use this instead of creating a new map object.</param>
-        /// <param name="writerSchema">The schema the writer used to write the map.</param>
-        /// <param name="readerSchema">The schema the reader is using.</param>
-        /// <param name="d">The decoder for serialization.</param>
-        /// <returns>The deserialized map object.</returns>
         protected virtual object ReadMap(MapSchema writerSchema, Schema readerSchema, IDecoder d)
         {
             MapSchema rs = (MapSchema)readerSchema;
-            object result = CreateMap(rs);
+            Dictionary<string, object> result = new Dictionary<string, object>();
             for (int n = (int)d.ReadMapStart(); n != 0; n = (int)d.ReadMapNext())
             {
                 for (int j = 0; j < n; j++)
                 {
                     string k = d.ReadString();
-                    AddMapEntry(result, k, Read(writerSchema.ValueSchema, rs.ValueSchema, d));
+                    result.Add(k, Read(writerSchema.ValueSchema, rs.ValueSchema, d));
                 }
             }
             return result;
         }
 
-        /// <summary>
-        /// Used by the default implementation of ReadMap() to create a fresh map object. The default
-        /// implementaion of this method returns a IDictionary<string, map>.
-        /// </summary>
-        /// <param name="reuse">If appropriate, use this map object instead of creating a new one.</param>
-        /// <returns>An empty map object.</returns>
-        protected virtual object CreateMap(MapSchema ms)
-        {
-            return new Dictionary<string, object>();
-        }
 
-        /// <summary>
-        /// Adds an entry to the map.
-        /// </summary>
-        /// <param name="map">A map object, which is guaranteed to be one returned by a previous call to CreateMap().</param>
-        /// <param name="key">The key to add.</param>
-        /// <param name="value">The value to add.</param>
-        protected virtual void AddMapEntry(object map, string key, object value)
-        {
-            (map as IDictionary<string, object>).Add(key, value);
-        }
-
-        /// <summary>
-        /// Deserialized an object based on the writer's uninon schema.
-        /// </summary>
-        /// <param name="reuse">If appropriate, uses this object instead of creating a new one.</param>
-        /// <param name="writerSchema">The UnionSchema that the writer used.</param>
-        /// <param name="readerSchema">The schema the reader uses.</param>
-        /// <param name="d">The decoder for serialization.</param>
-        /// <returns>The deserialized object.</returns>
         protected virtual object ReadUnion(UnionSchema writerSchema, Schema readerSchema, IDecoder d)
         {
             int index = d.ReadUnionIndex();
@@ -499,16 +288,6 @@ namespace AvroConvert.Reader
             return Read(ws, readerSchema, d);
         }
 
-        /// <summary>
-        /// Deserializes a fixed object and returns the object. The default implementation uses CreateFixed()
-        /// and GetFixedBuffer() and returns what CreateFixed() returned.
-        /// </summary>
-        /// <param name="reuse">If appropriate, uses this object instead of creating a new one.</param>
-        /// <param name="writerSchema">The FixedSchema the writer used during serialization.</param>
-        /// <param name="readerSchema">The schema that the readr uses. Must be a FixedSchema with the same
-        /// size as the writerSchema.</param>
-        /// <param name="d">The decoder for deserialization.</param>
-        /// <returns>The deserilized object.</returns>
         protected virtual object ReadFixed(FixedSchema writerSchema, Schema readerSchema, IDecoder d)
         {
             FixedSchema rs = (FixedSchema)readerSchema;
@@ -518,32 +297,10 @@ namespace AvroConvert.Reader
                     ", reader: " + readerSchema);
             }
 
-            object ru = CreateFixed(rs);
-            byte[] bb = GetFixedBuffer(ru);
+            object ru = new GenericFixed(rs);
+            byte[] bb = (ru as GenericFixed).Value;
             d.ReadFixed(bb);
             return ru;
-        }
-
-        /// <summary>
-        /// Returns a fixed object.
-        /// </summary>
-        /// <param name="reuse">If appropriate, uses this object instead of creating a new one.</param>
-        /// <param name="rs">The reader's FixedSchema.</param>
-        /// <returns>A fixed object with an appropriate buffer.</returns>
-        protected virtual object CreateFixed(FixedSchema rs)
-        {
-            return new GenericFixed(rs);
-        }
-
-        /// <summary>
-        /// Returns a buffer of appropriate size to read data into.
-        /// </summary>
-        /// <param name="f">The fixed object. It is guaranteed that this is something that has been previously
-        /// returned by CreateFixed</param>
-        /// <returns>A byte buffer of fixed's size.</returns>
-        protected virtual byte[] GetFixedBuffer(object f)
-        {
-            return (f as GenericFixed).Value;
         }
 
         protected virtual void Skip(Schema writerSchema, IDecoder d)

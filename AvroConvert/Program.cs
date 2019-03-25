@@ -14,7 +14,7 @@ namespace AvroConvert
             Console.WriteLine("Hello World!");
 
 
-            var avroString = System.IO.File.ReadAllBytes("example.snappy.avro");
+            var avroString = System.IO.File.ReadAllBytes("example2.avro");
 
 
             AvroConvert.Deserialize(avroString);

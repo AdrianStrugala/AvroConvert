@@ -1,19 +1,19 @@
 ﻿namespace AvroConvert.Reader
 {
-    using Avro;
-    using Avro.File;
-    using Avro.IO;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using Avro;
+    using Avro.File;
+    using Exceptions;
 
     public class Reader
     {
         public delegate GenericReader CreateDatumReader(Schema writerSchema, Schema readerSchema);
 
         private GenericReader _reader;
-        private Decoder _decoder, _datumDecoder;
+        private IDecoder _decoder, _datumDecoder;
         private Header _header;
         private Codec _codec;
         private DataBlock _currentBlock;

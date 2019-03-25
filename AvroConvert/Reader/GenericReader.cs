@@ -63,7 +63,7 @@ namespace AvroConvert.Reader
 
         public Schema ReaderSchema { get { return reader.ReaderSchema; } }
 
-        public object Read(Decoder d)
+        public object Read(IDecoder d)
         {
             return reader.Read(d);
         }
@@ -109,7 +109,7 @@ namespace AvroConvert.Reader
         /// <param name="reuse">If not null, the implemenation will try to use to return the object</param>
         /// <param name="decoder">The decoder for deserialization</param>
         /// <returns></returns>
-        public object Read(Decoder decoder)
+        public object Read(IDecoder decoder)
         {
             if (!ReaderSchema.CanRead(WriterSchema))
                 throw new AvroException("Schema mismatch. Reader: " + ReaderSchema + ", writer: " + WriterSchema);
@@ -118,7 +118,7 @@ namespace AvroConvert.Reader
             return xd;
         }
 
-        public object Read(Schema writerSchema, Schema readerSchema, Decoder d)
+        public object Read(Schema writerSchema, Schema readerSchema, IDecoder d)
         {
             if (readerSchema.Tag == Schema.Type.Union && writerSchema.Tag != Schema.Type.Union)
             {
@@ -205,7 +205,7 @@ namespace AvroConvert.Reader
         /// <param name="readerSchema">Reader's schema, which should be a NullSchema</param>
         /// <param name="d">The decoder for deserialization</param>
         /// <returns></returns>
-        protected virtual object ReadNull(Schema readerSchema, Decoder d)
+        protected virtual object ReadNull(Schema readerSchema, IDecoder d)
         {
             d.ReadNull();
             return null;
@@ -232,7 +232,7 @@ namespace AvroConvert.Reader
         /// <param name="readerSchema">The reader's schema, must be RecordSchema too.</param>
         /// <param name="dec">The decoder for deserialization</param>
         /// <returns>The record object just read</returns>
-        protected virtual object ReadRecord(RecordSchema writerSchema, Schema readerSchema, Decoder dec)
+        protected virtual object ReadRecord(RecordSchema writerSchema, Schema readerSchema, IDecoder dec)
         {
             RecordSchema rs = (RecordSchema)readerSchema;
 
@@ -325,7 +325,7 @@ namespace AvroConvert.Reader
         /// <param name="readerSchema">The schema the reader is using</param>
         /// <param name="d">The decoder for deserialization.</param>
         /// <returns>An enum object.</returns>
-        protected virtual object ReadEnum(EnumSchema writerSchema, Schema readerSchema, Decoder d)
+        protected virtual object ReadEnum(EnumSchema writerSchema, Schema readerSchema, IDecoder d)
         {
             EnumSchema es = readerSchema as EnumSchema;
             return CreateEnum(readerSchema as EnumSchema, writerSchema[d.ReadEnum()]);
@@ -353,7 +353,7 @@ namespace AvroConvert.Reader
         /// <param name="readerSchema">The schema that the reader uses.</param>
         /// <param name="d">The decoder for deserialization.</param>
         /// <returns>The deserialized array object.</returns>
-        protected virtual object ReadArray(ArraySchema writerSchema, Schema readerSchema, Decoder d)
+        protected virtual object ReadArray(ArraySchema writerSchema, Schema readerSchema, IDecoder d)
         {
 
             ArraySchema rs = (ArraySchema)readerSchema;
@@ -440,7 +440,7 @@ namespace AvroConvert.Reader
         /// <param name="readerSchema">The schema the reader is using.</param>
         /// <param name="d">The decoder for serialization.</param>
         /// <returns>The deserialized map object.</returns>
-        protected virtual object ReadMap(MapSchema writerSchema, Schema readerSchema, Decoder d)
+        protected virtual object ReadMap(MapSchema writerSchema, Schema readerSchema, IDecoder d)
         {
             MapSchema rs = (MapSchema)readerSchema;
             object result = CreateMap(rs);
@@ -485,7 +485,7 @@ namespace AvroConvert.Reader
         /// <param name="readerSchema">The schema the reader uses.</param>
         /// <param name="d">The decoder for serialization.</param>
         /// <returns>The deserialized object.</returns>
-        protected virtual object ReadUnion(UnionSchema writerSchema, Schema readerSchema, Decoder d)
+        protected virtual object ReadUnion(UnionSchema writerSchema, Schema readerSchema, IDecoder d)
         {
             int index = d.ReadUnionIndex();
             Schema ws = writerSchema[index];
@@ -509,7 +509,7 @@ namespace AvroConvert.Reader
         /// size as the writerSchema.</param>
         /// <param name="d">The decoder for deserialization.</param>
         /// <returns>The deserilized object.</returns>
-        protected virtual object ReadFixed(FixedSchema writerSchema, Schema readerSchema, Decoder d)
+        protected virtual object ReadFixed(FixedSchema writerSchema, Schema readerSchema, IDecoder d)
         {
             FixedSchema rs = (FixedSchema)readerSchema;
             if (rs.Size != writerSchema.Size)
@@ -546,7 +546,7 @@ namespace AvroConvert.Reader
             return (f as GenericFixed).Value;
         }
 
-        protected virtual void Skip(Schema writerSchema, Decoder d)
+        protected virtual void Skip(Schema writerSchema, IDecoder d)
         {
             switch (writerSchema.Tag)
             {

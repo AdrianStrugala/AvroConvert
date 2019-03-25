@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace AvroConvert
+﻿namespace AvroConvert.Exceptions
 {
+    using System;
+
     public class InvalidAvroHeaderException : Exception
     {
         public InvalidAvroHeaderException()

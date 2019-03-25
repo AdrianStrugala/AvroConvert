@@ -35,7 +35,7 @@ namespace Avro.File
             this.Data = new byte[blockSize];
         }
 
-        internal Stream GetDataAsStream()
+        public Stream GetDataAsStream()
         {
             return new MemoryStream(Data);
         }

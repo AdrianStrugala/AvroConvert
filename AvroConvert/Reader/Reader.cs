@@ -1,36 +1,18 @@
-﻿/**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using Avro.Generic;
-using Avro.IO;
-using Avro.Specific;
-using System.Reflection;
-
-namespace Avro.File
+﻿namespace AvroConvert.Reader
 {
-    public class DataFileReader<T> : IFileReader<T>
-    {
-        public delegate DatumReader<T> CreateDatumReader(Schema writerSchema, Schema readerSchema);
+    using Avro;
+    using Avro.File;
+    using Avro.IO;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
 
-        private DatumReader<T> _reader;
+    public class Reader
+    {
+        public delegate GenericReader CreateDatumReader(Schema writerSchema, Schema readerSchema);
+
+        private GenericReader _reader;
         private Decoder _decoder, _datumDecoder;
         private Header _header;
         private Codec _codec;
@@ -41,78 +23,31 @@ namespace Avro.File
         private byte[] _syncBuffer;
         private long _blockStart;
         private Stream _stream;
-        private Schema _readerSchema;
+        private readonly Schema _readerSchema;
         private readonly CreateDatumReader _datumReaderFactory;
 
-        /// <summary>
-        ///  Open a reader for a file using path
-        /// </summary>
-        /// <param name="path"></param>
-        /// <returns></returns>
-        public static IFileReader<T> OpenReader(string path)
+
+        public static Reader OpenReader(string filePath)
         {
-            return OpenReader(new FileStream(path, FileMode.Open), null);
+            return OpenReader(new FileStream(filePath, FileMode.Open), CreateDefaultReader);
         }
 
-        /// <summary>
-        ///  Open a reader for a file using path and the reader's schema
-        /// </summary>
-        /// <param name="path"></param>
-        /// <returns></returns>
-        public static IFileReader<T> OpenReader(string path, Schema readerSchema)
+        public static Reader OpenReader(Stream inStream)
         {
-            return OpenReader(new FileStream(path, FileMode.Open), readerSchema);
-        }
-
-        /// <summary>
-        ///  Open a reader for a stream
-        /// </summary>
-        /// <param name="inStream"></param>
-        /// <returns></returns>
-        public static IFileReader<T> OpenReader(Stream inStream)
-        {
-            return OpenReader(inStream, null);
-        }
-
-        /// <summary>
-        ///  Open a reader for a stream using the reader's schema
-        /// </summary>
-        /// <param name="inStream"></param>
-        /// <returns></returns>
-        public static IFileReader<T> OpenReader(Stream inStream, Schema readerSchema)
-        {
-            return OpenReader(inStream, readerSchema, CreateDefaultReader);
+            return OpenReader(inStream, CreateDefaultReader);
         }
 
 
-        /// <summary>
-        ///  Open a reader for a stream using the reader's schema and a custom DatumReader
-        /// </summary>
-        /// <param name="inStream"></param>
-        /// <returns></returns>
-        public static IFileReader<T> OpenReader(Stream inStream, Schema readerSchema, CreateDatumReader datumReaderFactory)
+        private static Reader OpenReader(Stream inStream, CreateDatumReader datumReaderFactory)
         {
             if (!inStream.CanSeek)
                 throw new AvroRuntimeException("Not a valid input stream - must be seekable!");
 
-            if (inStream.Length < DataFileConstants.AvroHeader.Length)
-                throw new AvroRuntimeException("Not an Avro data file");
-
-            // verify magic header
-            byte[] magic = new byte[DataFileConstants.AvroHeader.Length];
-            inStream.Seek(0, SeekOrigin.Begin);
-            for (int c = 0; c < magic.Length; c = inStream.Read(magic, c, magic.Length - c)) { }
-            inStream.Seek(0, SeekOrigin.Begin);
-
-            if (magic.SequenceEqual(DataFileConstants.AvroHeader))   // current format
-                return new DataFileReader<T>(inStream, readerSchema, datumReaderFactory);         // (not supporting 1.2 or below, format) 
-
-            throw new AvroRuntimeException("Not an Avro data file");
+            return new Reader(inStream, datumReaderFactory);         // (not supporting 1.2 or below, format)           
         }
 
-        DataFileReader(Stream stream, Schema readerSchema, CreateDatumReader datumReaderFactory)
+        Reader(Stream stream, CreateDatumReader datumReaderFactory)
         {
-            _readerSchema = readerSchema;
             _datumReaderFactory = datumReaderFactory;
             Init(stream);
             BlockFinished();
@@ -141,7 +76,7 @@ namespace Avro.File
             }
             catch (KeyNotFoundException)
             {
-                return null; 
+                return null;
             }
         }
 
@@ -159,7 +94,7 @@ namespace Avro.File
             }
             try
             {
-                return System.Text.Encoding.UTF8.GetString(value);          
+                return System.Text.Encoding.UTF8.GetString(value);
             }
             catch (Exception e)
             {
@@ -180,7 +115,7 @@ namespace Avro.File
         {
             Seek(position);
             // work around an issue where 1.5.4 C stored sync in metadata
-            if ((position == 0) && (GetMeta(DataFileConstants.MetaDataSync) != null)) 
+            if ((position == 0) && (GetMeta(DataFileConstants.MetaDataSync) != null))
             {
                 Init(_stream); // re-init to skip header
                 return;
@@ -219,7 +154,7 @@ namespace Avro.File
             return _stream.Position;
         }
 
-        public IEnumerable<T> NextEntries
+        public IEnumerable<object> NextEntries
         {
             get
             {
@@ -271,18 +206,18 @@ namespace Avro.File
             _decoder = new BinaryDecoder(stream);
             _syncBuffer = new byte[DataFileConstants.SyncSize];
 
-            // read magic 
+            // validate header 
             byte[] firstBytes = new byte[DataFileConstants.AvroHeader.Length];
             try
             {
                 _decoder.ReadFixed(firstBytes);
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                throw new AvroRuntimeException("Not a valid data file!", e);
+                throw new InvalidAvroHeaderException();
             }
             if (!firstBytes.SequenceEqual(DataFileConstants.AvroHeader))
-                throw new AvroRuntimeException("Not a valid data file!");
+                throw new InvalidAvroHeaderException();
 
             // read meta data 
             long len = _decoder.ReadMapStart();
@@ -308,19 +243,10 @@ namespace Avro.File
             _codec = ResolveCodec();
         }
 
-        private static DatumReader<T> CreateDefaultReader(Schema writerSchema, Schema readerSchema)
+        private static GenericReader CreateDefaultReader(Schema writerSchema, Schema readerSchema)
         {
-            DatumReader<T> reader = null;
-            Type type = typeof(T);
+            var reader = new GenericReader(writerSchema, readerSchema);
 
-            if (typeof(ISpecificRecord).GetTypeInfo().IsAssignableFrom(type))
-            {
-                reader = new SpecificReader<T>(writerSchema, readerSchema);
-            }
-            else // generic
-            {
-                reader = new GenericReader<T>(writerSchema, readerSchema);
-            }
             return reader;
         }
 
@@ -329,19 +255,14 @@ namespace Avro.File
             return Codec.CreateCodecFromString(GetMetaString(DataFileConstants.MetaDataCodec));
         }
 
-        public T Next()
-        {
-            return Next(default(T));
-        }
-
-        private T Next(T reuse)
+        private object Next()
         {
             try
             {
                 if (!HasNext())
                     throw new AvroRuntimeException("No more datum objects remaining in block!");
 
-                T result = _reader.Read(reuse, _datumDecoder);
+                var result = _reader.Read(_datumDecoder);
                 if (--_blockRemaining == 0)
                 {
                     BlockFinished();

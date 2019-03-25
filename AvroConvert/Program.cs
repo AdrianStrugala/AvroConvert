@@ -14,15 +14,7 @@ namespace AvroConvert
             Console.WriteLine("Hello World!");
 
 
-            var avroString = System.IO.File.ReadAllBytes("example2.avro");
-
-
-            var reader = DataFileReader<User>.OpenReader(new MemoryStream(avroString), null);
-           var header =  reader.GetHeader();
-
-           var lol = reader.Next();
-
-           var xd = reader.NextEntries;
+            var avroString = System.IO.File.ReadAllBytes("example.snappy.avro");
 
 
             AvroConvert.Deserialize(avroString);

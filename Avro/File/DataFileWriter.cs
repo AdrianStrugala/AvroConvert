@@ -196,7 +196,7 @@ namespace Avro.File
 
         private void WriteHeader()
         {
-            _encoder.WriteFixed(DataFileConstants.Magic);
+            _encoder.WriteFixed(DataFileConstants.AvroHeader);
             WriteMetaData();
             WriteSyncData();
         }

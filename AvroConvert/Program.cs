@@ -13,6 +13,7 @@ namespace AvroConvert
         {
             Console.WriteLine("Hello World!");
 
+            AvroConvert.Serialize(1);
 
             var avroString = System.IO.File.ReadAllBytes("example2.avro");
 

@@ -45,22 +45,22 @@
         }
     }
 
-    [DataContract(Name = "Demo", Namespace = "pubsub.demo")]
+    [DataContract(Name = "Dupa", Namespace = "test.demo")]
     public class Dupa
     {
-        [DataMember(Name = "value")]
+        [DataMember(Name = "cycek")]
         public Cycki cycek { get; set; }
 
-        [DataMember(Name = "d")]
+        [DataMember(Name = "numebr")]
         public int numebr { get; set; }
     }
 
     [DataContract(Name = "Cycek", Namespace = "pubsub.demo")]
     public class Cycki
     {
-        [DataMember(Name = "value")]
+        [DataMember(Name = "lewy")]
         public string lewy { get; set; }
-        [DataMember(Name = "lol")]
+        [DataMember(Name = "prawy")]
         public long prawy { get; set; }
     }
 }

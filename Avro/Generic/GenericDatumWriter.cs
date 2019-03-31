@@ -21,9 +21,6 @@ using Encoder = Avro.IO.Encoder;
 
 namespace Avro.Generic
 {
-    using System.Collections;
-    using System.Reflection;
-
     /// <summary>
     /// PreresolvingDatumWriter for writing data from GenericRecords or primitive types.
     /// <see cref="PreresolvingDatumWriter{T}">For more information about performance considerations for choosing this implementation</see>
@@ -39,11 +36,17 @@ namespace Avro.Generic
 
         protected override void WriteRecordFields(object recordObj, RecordFieldWriter[] writers, Encoder encoder)
         {
-            var content = SplitKeyValues(recordObj);
-
             GenericRecord record = new GenericRecord((RecordSchema)_schema);
-            record.contents = content;
 
+            if (recordObj is Dictionary<string, object> obj)
+            {
+                record.contents = obj;
+            }
+
+            else
+            {
+                record.contents = SplitKeyValues(recordObj);
+            }
 
             foreach (var writer in writers)
             {
@@ -51,37 +54,6 @@ namespace Avro.Generic
             }
         }
 
-        public Dictionary<string, object> SplitKeyValues(object item)
-        {
-            Dictionary<string, object> result = new Dictionary<string, object>();
-
-            ;
-            PropertyInfo[] properties = item.GetType().GetProperties();
-
-            foreach (PropertyInfo prop in properties)
-            {
-                if (typeof(IList).IsAssignableFrom(prop.PropertyType) &&
-                    prop.PropertyType.GetTypeInfo().IsGenericType)
-                {
-                    // We have a List<T> or array
-                    result.Add(prop.Name, SplitKeyValues(prop.GetValue(item)));
-                }
-
-                else if (prop.PropertyType.GetTypeInfo().IsValueType ||
-                         prop.PropertyType == typeof(string))
-                {
-                    // We have a simple type
-
-                    result.Add(prop.Name, prop.GetValue(item));
-                }
-                else
-                {
-                    result.Add(prop.Name, SplitKeyValues(prop.GetValue(item)));
-                }
-            }
-
-            return result;
-        }
 
         protected override void EnsureRecordObject(RecordSchema recordSchema, object value)
         {

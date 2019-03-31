@@ -2,11 +2,6 @@
 
 namespace AvroConvert
 {
-    using System.IO;
-    using System.Text;
-    using Avro;
-    using Avro.File;
-
     class Program
     {
         static void Main(string[] args)
@@ -15,10 +10,10 @@ namespace AvroConvert
 
             AvroConvert.Serialize(1);
 
-            var avroString = System.IO.File.ReadAllBytes("example2.avro");
+            var avroString = System.IO.File.ReadAllBytes("result.avro");
 
 
-            AvroConvert.Deserialize(avroString);
+         var dx =   AvroConvert.Deserialize(avroString);
         }
     }
 

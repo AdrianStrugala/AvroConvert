@@ -16,9 +16,9 @@
 
             var reader = Reader.Reader.OpenReader(new MemoryStream(avroBytes));
 
-      //      var xd = reader.GetEntries.ToList();
+            var xd = reader.GetEntries().ToList();
 
-           // result.Add(xd[0]);
+            // result.Add(xd[0]);
 
             return result;
         }
@@ -27,7 +27,7 @@
         {
             T result = default(T);
 
-            
+
             return result;
         }
 

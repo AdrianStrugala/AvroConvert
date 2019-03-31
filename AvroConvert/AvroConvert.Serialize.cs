@@ -19,15 +19,27 @@
                     lewy = "spoko",
                     prawy = 2137
                 },
-                one = 111111
+                numebr = 111111
             };
 
-           var xd = AvroSerializer.Create<Dupa>().WriterSchema.ToString();
+            Dupa dupa2 = new Dupa
+            {
+                cycek = new Cycki
+                {
+                    lewy = "loko",
+                    prawy = 2137
+                },
+                numebr = 2135
+            };
+
+            var xd = AvroSerializer.Create<Dupa>().WriterSchema.ToString();
             
 
             var writer = DataFileWriter<Dupa>.OpenWriter(new GenericDatumWriter<Dupa>(Schema.Parse(xd)), "result.avro");
             writer.Append(dupa);
+            writer.Append(dupa2);
             writer.Close();
+            
 
             return result;
         }
@@ -40,7 +52,7 @@
         public Cycki cycek { get; set; }
 
         [DataMember(Name = "d")]
-        public int one { get; set; }
+        public int numebr { get; set; }
     }
 
     [DataContract(Name = "Cycek", Namespace = "pubsub.demo")]

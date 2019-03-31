@@ -30,7 +30,7 @@ namespace Avro.Generic
     {
         public RecordSchema Schema { get; private set; }
 
-        private IDictionary<string, object> contents = new Dictionary<string, object>();
+        public IDictionary<string, object> contents = new Dictionary<string, object>();
         public GenericRecord(RecordSchema schema)
         {
             this.Schema = schema;

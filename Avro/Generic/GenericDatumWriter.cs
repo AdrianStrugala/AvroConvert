@@ -21,30 +21,73 @@ using Encoder = Avro.IO.Encoder;
 
 namespace Avro.Generic
 {
+    using System.Collections;
+    using System.Reflection;
+
     /// <summary>
     /// PreresolvingDatumWriter for writing data from GenericRecords or primitive types.
     /// <see cref="PreresolvingDatumWriter{T}">For more information about performance considerations for choosing this implementation</see>
     /// </summary>
     public class GenericDatumWriter<T> : PreresolvingDatumWriter<T>
     {
-        public GenericDatumWriter( Schema schema ) : base(schema, new GenericArrayAccess(), new DictionaryMapAccess())
+        private readonly Schema _schema;
+
+        public GenericDatumWriter(Schema schema) : base(schema, new GenericArrayAccess(), new DictionaryMapAccess())
         {
+            _schema = schema;
         }
 
         protected override void WriteRecordFields(object recordObj, RecordFieldWriter[] writers, Encoder encoder)
         {
-            var record = (GenericRecord) recordObj;
+            var content = SplitKeyValues(recordObj);
+
+            GenericRecord record = new GenericRecord((RecordSchema)_schema);
+            record.contents = content;
+
+
             foreach (var writer in writers)
             {
                 writer.WriteField(record[writer.Field.Name], encoder);
             }
         }
 
-        protected override void EnsureRecordObject( RecordSchema recordSchema, object value )
+        public Dictionary<string, object> SplitKeyValues(object item)
         {
-            if( value == null || !( value is GenericRecord ) || !( ( value as GenericRecord ).Schema.Equals( recordSchema ) ) )
+            Dictionary<string, object> result = new Dictionary<string, object>();
+
+            ;
+            PropertyInfo[] properties = item.GetType().GetProperties();
+
+            foreach (PropertyInfo prop in properties)
             {
-                throw TypeMismatch( value, "record", "GenericRecord" );
+                if (typeof(IList).IsAssignableFrom(prop.PropertyType) &&
+                    prop.PropertyType.GetTypeInfo().IsGenericType)
+                {
+                    // We have a List<T> or array
+                    result.Add(prop.Name, SplitKeyValues(prop.GetValue(item)));
+                }
+
+                else if (prop.PropertyType.GetTypeInfo().IsValueType ||
+                         prop.PropertyType == typeof(string))
+                {
+                    // We have a simple type
+
+                    result.Add(prop.Name, prop.GetValue(item));
+                }
+                else
+                {
+                    result.Add(prop.Name, SplitKeyValues(prop.GetValue(item)));
+                }
+            }
+
+            return result;
+        }
+
+        protected override void EnsureRecordObject(RecordSchema recordSchema, object value)
+        {
+            if (value == null || !(value is GenericRecord) || !((value as GenericRecord).Schema.Equals(recordSchema)))
+            {
+                throw TypeMismatch(value, "record", "GenericRecord");
             }
         }
 
@@ -55,15 +98,15 @@ namespace Avro.Generic
 
         protected override WriteItem ResolveEnum(EnumSchema es)
         {
-            return (v,e) =>
+            return (v, e) =>
                        {
-                            if( v == null || !(v is GenericEnum) || !((v as GenericEnum).Schema.Equals(es)))
-                                throw TypeMismatch(v, "enum", "GenericEnum");
-                            e.WriteEnum(es.Ordinal((v as GenericEnum ).Value));
+                           if (v == null || !(v is GenericEnum) || !((v as GenericEnum).Schema.Equals(es)))
+                               throw TypeMismatch(v, "enum", "GenericEnum");
+                           e.WriteEnum(es.Ordinal((v as GenericEnum).Value));
                        };
         }
 
-        protected override void WriteFixed( FixedSchema es, object value, Encoder encoder )
+        protected override void WriteFixed(FixedSchema es, object value, Encoder encoder)
         {
             if (value == null || !(value is GenericFixed) || !(value as GenericFixed).Schema.Equals(es))
             {
@@ -123,20 +166,20 @@ namespace Avro.Generic
 
         private class GenericArrayAccess : ArrayAccess
         {
-            public void EnsureArrayObject( object value )
+            public void EnsureArrayObject(object value)
             {
-                if( value == null || !( value is Array ) ) throw TypeMismatch( value, "array", "Array" );
+                if (value == null || !(value is Array)) throw TypeMismatch(value, "array", "Array");
             }
 
-            public long GetArrayLength( object value )
+            public long GetArrayLength(object value)
             {
-                return ( (Array) value ).Length;
+                return ((Array)value).Length;
             }
 
             public void WriteArrayValues(object array, WriteItem valueWriter, Encoder encoder)
             {
-                var arrayInstance = (Array) array;
-                for(int i = 0; i < arrayInstance.Length; i++)
+                var arrayInstance = (Array)array;
+                for (int i = 0; i < arrayInstance.Length; i++)
                 {
                     encoder.StartItem();
                     valueWriter(arrayInstance.GetValue(i), encoder);

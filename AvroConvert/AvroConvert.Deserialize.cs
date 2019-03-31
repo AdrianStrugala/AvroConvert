@@ -16,7 +16,7 @@
 
             var reader = Reader.Reader.OpenReader(new MemoryStream(avroBytes));
 
-            var xd = reader.GetEntries.ToList();
+      //      var xd = reader.GetEntries.ToList();
 
            // result.Add(xd[0]);
 

@@ -1,12 +1,12 @@
 ﻿namespace AvroConvert.Reader
 {
+    using Avro;
+    using Avro.File;
+    using Exceptions;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using Avro;
-    using Avro.File;
-    using Exceptions;
 
     public class Reader
     {
@@ -154,15 +154,17 @@
             return _stream.Position;
         }
 
-        public IEnumerable<object> NextEntries
+        public IEnumerable<object> GetEntries()
         {
-            get
+            var result = new List<object>();
+            long remainingBlocks = GetRemainingBlocksCount();
+
+            for (int i = 0; i < remainingBlocks; i++)
             {
-                while (HasNext())
-                {
-                    yield return Next();
-                }
+                result.Add(Next());
             }
+
+            return result;
         }
 
         public bool HasNext()
@@ -171,9 +173,6 @@
             {
                 if (_blockRemaining == 0)
                 {
-                    // TODO: Check that the (block) stream is not partially read
-                    /*if (_datumDecoder != null) 
-                    { }*/
                     if (HasNextBlock())
                     {
                         _currentBlock = NextRawBlock(_currentBlock);
@@ -182,6 +181,28 @@
                     }
                 }
                 return _blockRemaining != 0;
+            }
+            catch (Exception e)
+            {
+                throw new AvroRuntimeException(string.Format("Error fetching next object from block: {0}", e));
+            }
+        }
+
+        public long GetRemainingBlocksCount()
+        {
+            try
+            {
+                if (_blockRemaining == 0)
+                {
+                    if (HasNextBlock())
+                    {
+                        _currentBlock = NextRawBlock(_currentBlock);
+                        _currentBlock.Data = _codec.Decompress(_currentBlock.Data);
+                        _datumDecoder = new BinaryDecoder(_currentBlock.GetDataAsStream());
+                    }
+                }
+
+                return _blockRemaining;
             }
             catch (Exception e)
             {
@@ -259,9 +280,6 @@
         {
             try
             {
-                if (!HasNext())
-                    throw new AvroRuntimeException("No more datum objects remaining in block!");
-
                 var result = _reader.Read(_datumDecoder);
                 if (--_blockRemaining == 0)
                 {
@@ -305,16 +323,6 @@
             return reuse;
         }
 
-        private bool DataLeft()
-        {
-            long currentPosition = _stream.Position;
-            if (_stream.ReadByte() != -1)
-                _stream.Position = currentPosition;
-            else
-                return false;
-
-            return true;
-        }
 
         private bool HasNextBlock()
         {
@@ -325,12 +333,12 @@
                     return true;
 
                 // check to ensure still data to read 
-                if (!DataLeft())
+                if (_stream.Position == _stream.Length)
                     return false;
 
                 _blockRemaining = _decoder.ReadLong();      // read block count
                 _blockSize = _decoder.ReadLong();           // read block size
-                if (_blockSize > System.Int32.MaxValue || _blockSize < 0)
+                if (_blockSize > int.MaxValue || _blockSize < 0)
                 {
                     throw new AvroRuntimeException("Block size invalid or too large for this " +
                                                    "implementation: " + _blockSize);

@@ -1,6 +1,5 @@
 ﻿namespace AvroConvert
 {
-    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -17,8 +16,9 @@
 
             var reader = Reader.Reader.OpenReader(new MemoryStream(avroBytes));
 
-            var xd = reader.NextEntries.ToList();
+            var xd = reader.GetEntries.ToList();
 
+           // result.Add(xd[0]);
 
             return result;
         }

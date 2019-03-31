@@ -24,7 +24,7 @@
             //Arrange
 
             //Act
-            string schema = AvroConvert.GetSchemaAsString(_avroBytes);
+            string schema = AvroConvert.GetSchema(_avroBytes);
 
             //Assert
             Assert.Equal(_example2schema, schema);
@@ -36,7 +36,7 @@
             //Arrange
 
             //Act
-            string schema = AvroConvert.GetSchemaAsString(new MemoryStream(_avroBytes));
+            string schema = AvroConvert.GetSchema(new MemoryStream(_avroBytes));
 
             //Assert
             Assert.Equal(_example2schema, schema);
@@ -48,43 +48,7 @@
             //Arrange
 
             //Act
-            string schema = AvroConvert.GetSchemaAsString("example.avro");
-
-            //Assert
-            Assert.NotNull(schema);
-        }
-
-        [Fact]
-        public void GetSchemaAsJObject_ValidBytes_SchemaIsReturned()
-        {
-            //Arrange
-
-            //Act
-            JObject schema = AvroConvert.GetSchemaAsJObject(_avroBytes);
-
-            //Assert
-            Assert.Equal(JObject.Parse(_example2schema), schema);
-        }
-
-        [Fact]
-        public void GetSchemaAsJObject_ValidStream_SchemaIsReturned()
-        {
-            //Arrange
-
-            //Act
-            JObject schema = AvroConvert.GetSchemaAsJObject(new MemoryStream(_avroBytes));
-
-            //Assert
-            Assert.Equal(JObject.Parse(_example2schema), schema);
-        }
-
-        [Fact]
-        public void GetSchemaAsJObject_ValidFile_SchemaIsReturned()
-        {
-            //Arrange
-
-            //Act
-            JObject schema = AvroConvert.GetSchemaAsJObject("example.avro");
+            string schema = AvroConvert.GetSchema("example.avro");
 
             //Assert
             Assert.NotNull(schema);

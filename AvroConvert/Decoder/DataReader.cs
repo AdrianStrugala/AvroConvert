@@ -49,8 +49,8 @@ namespace AvroConvert.Reader
             if (!ReaderSchema.CanRead(WriterSchema))
                 throw new AvroException("Schema mismatch. Reader: " + ReaderSchema + ", writer: " + WriterSchema);
 
-            var xd = Read(WriterSchema, ReaderSchema, decoder);
-            return xd;
+            var result = Read(WriterSchema, ReaderSchema, decoder);
+            return result;
         }
 
         public object Read(Schema writerSchema, Schema readerSchema, IDecoder d)
@@ -59,12 +59,7 @@ namespace AvroConvert.Reader
             {
                 readerSchema = findBranch(readerSchema as UnionSchema, writerSchema);
             }
-            /*
-            if (!readerSchema.CanRead(writerSchema))
-            {
-                throw new AvroException("Schema mismatch. Reader: " + readerSchema + ", writer: " + writerSchema);
-            }
-            */
+
             switch (writerSchema.Tag)
             {
                 case Schema.Type.Null:
@@ -147,11 +142,11 @@ namespace AvroConvert.Reader
         }
 
 
-        protected virtual object ReadRecord(RecordSchema writerSchema, Schema readerSchema, IDecoder dec)
+        protected virtual GenericRecord ReadRecord(RecordSchema writerSchema, Schema readerSchema, IDecoder dec)
         {
             RecordSchema rs = (RecordSchema)readerSchema;
 
-            object rec = CreateRecord(rs);
+            GenericRecord result = CreateRecord(rs);
             foreach (Field wf in writerSchema)
             {
                 try
@@ -160,8 +155,8 @@ namespace AvroConvert.Reader
                     if (rs.TryGetFieldAlias(wf.Name, out rf))
                     {
                         object obj = null;
-                        TryGetField(rec, wf.Name, rf.Pos, out obj);
-                        AddField(rec, wf.Name, rf.Pos, Read(wf.Schema, rf.Schema, dec));
+                        TryGetField(result, wf.Name, rf.Pos, out obj);
+                        AddField(result, wf.Name, rf.Pos, Read(wf.Schema, rf.Schema, dec));
                     }
                     else
                         Skip(wf.Schema, dec);
@@ -185,14 +180,14 @@ namespace AvroConvert.Reader
                 defaultStream.Position = 0; // reset for reading
 
                 object obj = null;
-                TryGetField(rec, rf.Name, rf.Pos, out obj);
-                AddField(rec, rf.Name, rf.Pos, Read(rf.Schema, rf.Schema, defaultDecoder));
+                TryGetField(result, rf.Name, rf.Pos, out obj);
+                AddField(result, rf.Name, rf.Pos, Read(rf.Schema, rf.Schema, defaultDecoder));
             }
 
-            return rec;
+            return result;
         }
 
-        protected virtual object CreateRecord(RecordSchema readerSchema)
+        protected virtual GenericRecord CreateRecord(RecordSchema readerSchema)
         {
             GenericRecord ru =
                 new GenericRecord(readerSchema);

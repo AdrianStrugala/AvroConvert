@@ -1,16 +1,15 @@
 ﻿namespace AvroConvert
 {
-    using System.Runtime.Serialization;
     using Avro;
-    using Avro.File;
-    using Avro.Generic;
+    using Encoder;
     using Microsoft.Hadoop.Avro;
+    using System.IO;
+    using System.Runtime.Serialization;
 
     public static partial class AvroConvert
     {
-        public static string Serialize(object obj)
+        public static byte[] Serialize(object obj)
         {
-            string result = "";
 
             Dupa dupa = new Dupa
             {
@@ -33,13 +32,32 @@
             };
 
             var xd = AvroSerializer.Create<Dupa>().WriterSchema.ToString();
-            
 
-            var writer = DataFileWriter<Dupa>.OpenWriter(new GenericDatumWriter<Dupa>(Schema.Parse(xd)), "result.avro");
+            MemoryStream resultStream = new MemoryStream();
+            var writer = Writer.OpenWriter(new GenericDatumWriter(Schema.Parse(xd)), resultStream);
+
+
             writer.Append(dupa);
             writer.Append(dupa2);
+
+
+            var writer2 = Encoder.Writer.OpenWriter(new Encoder.GenericDatumWriter(Schema.Parse(xd)), "result.avro");
+            writer2.Append(dupa);
+            writer2.Append(dupa2);
+            writer2.Close();
+
+            //            using (MemoryStream ms = new MemoryStream())
+            //            {
+            //                resultStream.CopyTo(ms);
+            //
+            //                var xd3 = resultStream;
+            //
+            //                return ms.ToArray();
+            //            }
+
+            var result = resultStream.ToArray();
+
             writer.Close();
-            
 
             return result;
         }

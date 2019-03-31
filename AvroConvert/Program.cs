@@ -8,12 +8,12 @@ namespace AvroConvert
         {
             Console.WriteLine("Hello World!");
 
-            AvroConvert.Serialize(1);
+            var serialized = AvroConvert.Serialize(1);
 
             var avroString = System.IO.File.ReadAllBytes("result.avro");
 
 
-         var dx =   AvroConvert.Deserialize(avroString);
+            var dx = AvroConvert.Deserialize(serialized);
         }
     }
 

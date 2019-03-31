@@ -1,20 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using Avro.IO;
-using Avro.Generic;
-
-namespace Avro.File
+﻿namespace AvroConvert.Encoder
 {
-    public class DataFileWriter<T> : IFileWriter<T>
+    using Avro;
+    using Avro.File;
+    using Avro.IO;
+    using System;
+    using System.Collections.Generic;
+    using System.Globalization;
+    using System.IO;
+
+    public class Writer
     {
         private Schema _schema;
         private Codec _codec;
         private Stream _stream;
         private MemoryStream _blockStream;
         private Encoder _encoder, _blockEncoder;
-        private DatumWriter<T> _writer;
+        private GenericDatumWriter _writer;
 
         private byte[] _syncData;
         private bool _isOpen;
@@ -23,39 +24,19 @@ namespace Avro.File
         private int _syncInterval;
         private IDictionary<string, byte[]> _metaData;
 
-        /// <summary>
-        /// Open a new writer instance to write  
-        /// to a file path, using a Null codec
-        /// </summary>
-        /// <param name="writer"></param>
-        /// <param name="path"></param>
-        /// <returns></returns>
-        public static IFileWriter<T> OpenWriter(DatumWriter<T> writer, string path)
+
+        public static Writer OpenWriter(GenericDatumWriter writer, string path)
         {
             return OpenWriter(writer, new FileStream(path, FileMode.Create), Codec.CreateCodec(Codec.Type.Null));
         }
 
-        /// <summary>
-        /// Open a new writer instance to write  
-        /// to an output stream, using a Null codec
-        /// </summary>
-        /// <param name="writer"></param>
-        /// <param name="outStream"></param>
-        /// <returns></returns>
-        public static IFileWriter<T> OpenWriter(DatumWriter<T> writer, Stream outStream)
+        public static Writer OpenWriter(GenericDatumWriter writer, Stream outStream)
         {
             return OpenWriter(writer, outStream, Codec.CreateCodec(Codec.Type.Null));
         }
 
-        /// <summary>
-        /// Open a new writer instance to write  
-        /// to a file path with a specified codec
-        /// </summary>
-        /// <param name="writer"></param>
-        /// <param name="path"></param>
-        /// <param name="codec"></param>
-        /// <returns></returns>
-        public static IFileWriter<T> OpenWriter(DatumWriter<T> writer, string path, Codec codec)
+
+        public static Writer OpenWriter(GenericDatumWriter writer, string path, Codec codec)
         {
             return OpenWriter(writer, new FileStream(path, FileMode.Create), codec);
         }
@@ -68,12 +49,12 @@ namespace Avro.File
         /// <param name="outStream"></param>
         /// <param name="codec"></param>
         /// <returns></returns>
-        public static IFileWriter<T> OpenWriter(DatumWriter<T> writer, Stream outStream, Codec codec)
+        public static Writer OpenWriter(GenericDatumWriter writer, Stream outStream, Codec codec)
         {
-            return new DataFileWriter<T>(writer).Create(writer.Schema, outStream, codec);
+            return new Writer(writer).Create(writer.Schema, outStream, codec);
         }
 
-        DataFileWriter(DatumWriter<T> writer)
+        Writer(GenericDatumWriter writer)
         {
             _writer = writer;
             _syncInterval = DataFileConstants.DefaultSyncInterval;
@@ -126,7 +107,7 @@ namespace Avro.File
             _syncInterval = syncInterval;
         }
 
-        public void Append(T datum) 
+        public void Append(object datum)
         {
             AssertOpen();
             EnsureHeader();
@@ -202,7 +183,7 @@ namespace Avro.File
             if (!_isOpen) throw new AvroRuntimeException("Cannot complete operation: avro file/stream not open");
         }
 
-        private IFileWriter<T> Create(Schema schema, Stream outStream, Codec codec)
+        private Writer Create(Schema schema, Stream outStream, Codec codec)
         {
             _codec = codec;
             _stream = outStream;
@@ -221,7 +202,7 @@ namespace Avro.File
             //SetMetaInternal(DataFileConstants.MetaDataSync, _syncData); - Avro 1.5.4 C
             SetMetaInternal(DataFileConstants.MetaDataCodec, GetByteValue(_codec.GetName()));
             SetMetaInternal(DataFileConstants.MetaDataSchema, GetByteValue(_schema.ToString()));
-            
+
             // write metadata 
             int size = _metaData.Count;
             _encoder.WriteInt(size);
@@ -245,9 +226,9 @@ namespace Avro.File
             return _blockStream.Position;
         }
 
-        private void WriteBlock() 
-        { 
-            if (_blockCount > 0) 
+        private void WriteBlock()
+        {
+            if (_blockCount > 0)
             {
                 byte[] dataToWrite = _blockStream.ToArray();
 
@@ -256,10 +237,10 @@ namespace Avro.File
 
                 // write data 
                 _encoder.WriteBytes(_codec.Compress(dataToWrite));
-                    
+
                 // write sync marker 
                 _encoder.WriteFixed(_syncData);
-            
+
                 // reset / re-init block
                 _blockCount = 0;
                 _blockStream = new MemoryStream();
@@ -284,7 +265,7 @@ namespace Avro.File
         {
             _metaData.Add(key, value);
         }
-  
+
         private byte[] GetByteValue(string value)
         {
             return System.Text.Encoding.UTF8.GetBytes(value);

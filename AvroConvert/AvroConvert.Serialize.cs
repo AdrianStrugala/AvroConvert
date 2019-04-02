@@ -2,7 +2,6 @@
 {
     using Avro;
     using Encoder;
-    using Microsoft.Hadoop.Avro;
     using System;
     using System.Collections;
     using System.Collections.Generic;
@@ -13,20 +12,17 @@
     {
         public static byte[] Serialize(object obj)
         {
+            //TODO refactor this to reuse as much as possible
             MemoryStream resultStream = new MemoryStream();
 
-            Type[] typeArguments;
-            if (obj.GetType().TryGetInterfaceGenericParameters(typeof(IEnumerable<>), out typeArguments))
+
+            if (obj.GetType().TryGetInterfaceGenericParameters(typeof(IEnumerable<>)))
             {
+                //serialize IEnumerable
+
                 var ienumerableObj = obj as IList;
-                var innerType = typeArguments.FirstOrDefault();
 
-                var createMethod = typeof(AvroSerializer).GetMethod("Create", new Type[0]);
-                var createGenericMethod = createMethod.MakeGenericMethod(innerType);
-                dynamic avroSerializer = createGenericMethod.Invoke(ienumerableObj[0], null);
-
-                var schema = avroSerializer.GetType().GetProperty("WriterSchema").GetValue(avroSerializer, null).ToString();
-
+                string schema = AvroConvert.GenerateSchema(ienumerableObj[0]);
 
                 var writer = Writer.OpenWriter(new GenericDatumWriter(Schema.Parse(schema)), resultStream);
 
@@ -38,13 +34,9 @@
                 writer.Close();
 
             }
-            else
+            else //serialize single object
             {
-                var createMethod = typeof(AvroSerializer).GetMethod("Create", new Type[0]);
-                var createGenericMethod = createMethod.MakeGenericMethod(obj.GetType());
-                dynamic avroSerializer = createGenericMethod.Invoke(obj, null);
-
-                var schema = avroSerializer.GetType().GetProperty("WriterSchema").GetValue(avroSerializer, null).ToString();
+                string schema = AvroConvert.GenerateSchema(obj);
                 var writer = Writer.OpenWriter(new GenericDatumWriter(Schema.Parse(schema)), resultStream);
                 writer.Append(obj);
                 writer.Close();
@@ -54,13 +46,10 @@
             return result;
         }
 
-        public static bool TryGetInterfaceGenericParameters(this Type type, Type @interface, out Type[] typeParameters)
+        public static bool TryGetInterfaceGenericParameters(this Type type, Type @interface)
         {
-            typeParameters = null;
-
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == @interface)
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
             {
-                typeParameters = type.GetGenericArguments();
                 return true;
             }
 
@@ -68,7 +57,6 @@
             if (implements == null)
                 return false;
 
-            typeParameters = implements.GetGenericArguments();
             return true;
         }
     }

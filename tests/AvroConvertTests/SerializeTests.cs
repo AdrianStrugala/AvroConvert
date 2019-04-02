@@ -7,7 +7,7 @@
     public class SerializeTests
     {
         [Fact]
-        public void Serialize_SomeObject_NoExceptionIsThrown()
+        public void Serialize_InputIsList_NoExceptionIsThrown()
         {
             //Arrange
             Dupa dupa = new Dupa
@@ -41,7 +41,59 @@
             Assert.NotNull(result);
         }
 
+        [Fact]
+        public void Serialize_InputIsArray_NoExceptionIsThrown()
+        {
+            //Arrange
+            Dupa dupa = new Dupa
+            {
+                cycek = new Cycki
+                {
+                    lewy = "spoko",
+                    prawy = 2137
+                },
+                numebr = 111111
+            };
+
+            Dupa dupa2 = new Dupa
+            {
+                cycek = new Cycki
+                {
+                    lewy = "loko",
+                    prawy = 2137
+                },
+                numebr = 2135
+            };
+
+            Dupa[] dupas = new Dupa[2];
+            dupas[0] = dupa;
+            dupas[1] = dupa2;
+
+            //Act
+            var result = AvroConvert.AvroConvert.Serialize(dupas);
+
+            //Assert
+            Assert.NotNull(result);
+        }
+
+
+        [Fact]
+        public void Serialize_InputIsObject_NoExceptionIsThrown()
+        {
+            //Arrange
+            User user = new User();
+            user.name = "Krzys";
+            user.favorite_color = "yellow";
+            user.favorite_number = null;
+
+            //Act
+            var result = AvroConvert.AvroConvert.Serialize(user);
+
+            //Assert
+            Assert.NotNull(result);
+        }
     }
+
 
 
     class User

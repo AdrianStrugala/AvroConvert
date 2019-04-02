@@ -10,8 +10,6 @@
     {
         public static byte[] Serialize(object obj)
         {
-            //TODO
-            //distinguish if list
 
             var createMethod = typeof(AvroSerializer).GetMethod("Create", new Type[0]);
             var createGenericMethod = createMethod.MakeGenericMethod(obj.GetType());

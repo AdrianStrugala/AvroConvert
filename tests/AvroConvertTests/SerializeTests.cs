@@ -1,6 +1,7 @@
 ﻿namespace AvroConvertTests
 {
     using System.Collections.Generic;
+    using System.Reflection.Emit;
     using System.Runtime.Serialization;
     using Xunit;
 
@@ -90,7 +91,7 @@
             var result = AvroConvert.AvroConvert.Serialize(user);
 
             //Assert
-            Assert.NotNull(result);
+            Assert.NotNull(result);            
         }
     }
 

@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace AvroConvert
+﻿namespace AvroConvert
 {
-    using System.Runtime.Serialization;
+    using System;
 
     class Program
     {

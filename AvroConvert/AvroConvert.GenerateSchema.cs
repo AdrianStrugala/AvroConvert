@@ -10,8 +10,17 @@
     {
         public static string GenerateSchema(object obj)
         {
-            var prop = new DeepCloner.GetFastDeepClonerProperties(typeof(test)).First();
-            prop.Attributes.Add(new JsonIgnoreAttribute());
+            var inputObject = new InputObject();
+            inputObject.input = obj;
+
+
+     //       var lol = DeepCloner.GetFastDeepClonerFields(inputObject.GetType());
+
+            var prop = DeepCloner.GetFastDeepClonerProperties(inputObject.GetType());
+            // prop.Attributes.Add(new JsonIgnoreAttribute());
+
+
+            //    obj.GetType().CustomAttributes
 
             var createMethod = typeof(AvroSerializer).GetMethod("Create", new Type[0]);
             var createGenericMethod = createMethod.MakeGenericMethod(obj.GetType());
@@ -20,6 +29,11 @@
             string result = avroSerializer.GetType().GetProperty("WriterSchema").GetValue(avroSerializer, null).ToString();
 
             return result;
+        }
+
+        class InputObject
+        {
+            public object input { get; set; }
         }
     }
 }

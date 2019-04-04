@@ -74,3 +74,4 @@ Avro/obj/Avro.csproj.nuget.g.props
 Avro/obj/Avro.csproj.nuget.cache
 tests/AvroConvertTests/obj/AvroConvertTests.csproj.nuget.cache
 Avro/obj/Avro.csproj.nuget.g.targets
+.vs/Avro/DesignTimeBuild/.dtbcache

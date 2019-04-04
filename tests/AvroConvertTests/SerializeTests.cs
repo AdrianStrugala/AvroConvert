@@ -83,9 +83,9 @@
         {
             //Arrange
             User user = new User();
-            user.name = "Krzys";
-            user.favorite_color = "yellow";
-            user.favorite_number = null;
+//            user.name = "Krzys";
+//            user.favorite_color = "yellow";
+//            user.favorite_number = null;
 
             //Act
             var result = AvroConvert.AvroConvert.Serialize(user);
@@ -97,11 +97,15 @@
 
 
 
-    class User
+    public class User
     {
-        public string name { get; set; }
-        public int? favorite_number { get; set; }
-        public string favorite_color { get; set; }
+        public User()
+        {
+            
+        }
+//        public string name { get; set; }
+//        public int? favorite_number { get; set; }
+//        public string favorite_color { get; set; }
     }
 
     [DataContract(Name = "Dupa", Namespace = "test.demo")]

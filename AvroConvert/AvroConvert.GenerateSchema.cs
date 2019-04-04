@@ -2,15 +2,13 @@
 {
     using Microsoft.Hadoop.Avro;
     using System;
-    using System.Collections;
     using System.Collections.Generic;
     using System.ComponentModel;
     using System.Dynamic;
     using System.Linq;
     using System.Reflection;
+    using System.Reflection.Emit;
     using System.Runtime.Serialization;
-    using FastDeepCloner;
-    using Newtonsoft.Json;
 
     public static partial class AvroConvert
     {
@@ -21,15 +19,34 @@
 
             AttributeCollection attributes = TypeDescriptor.GetAttributes(obj);
 
-            var xd = new DataContractAttribute();
-            xd.Name = "User";
-            xd.Namespace = "water";
+            var dataContractAttribute = new DataContractAttribute();
+            dataContractAttribute.Name = "User";
+            dataContractAttribute.Namespace = "water";
 
-            TypeDescriptor.AddAttributes(obj.GetType(), xd);
-            TypeDescriptor.AddAttributes(obj, xd);
+            TypeDescriptor.AddAttributes(obj.GetType(), dataContractAttribute);
+            TypeDescriptor.AddAttributes(obj, dataContractAttribute);
 
 
             AttributeCollection attributes2 = TypeDescriptor.GetAttributes(obj);
+
+
+            //            var constructor = typeof(EntityElementIdAttribute).GetConstructors().First();
+            //            var customAttributeBuilder = new CustomAttributeBuilder(constructor, new object[] { id });
+            //
+            //            typeBuilder.SetCustomAttribute(customAttributeBuilder);
+
+
+
+//            TypeBuilder tb = mb.DefineType(
+//                "MyDynamicType",
+//                TypeAttributes.Public);
+//
+//            // Add a private field of type int (Int32).
+//            FieldBuilder fbNumber = tb.DefineField(
+//                "m_number",
+//                typeof(int),
+//                FieldAttributes.Private);
+
 
             //            var inputObject = new InputObject();
             //            inputObject.input = obj;
@@ -45,21 +62,61 @@
 
             //    obj.GetType().CustomAttributes
 
-            var type = obj.GetType();
+            var yp34 = obj.GetType();
+            
 
-            var xd1 = (object) type == (object) typeof(IntPtr);
-            var xd2 = (object) type == (object) typeof(UIntPtr);
-            var xd3 = (object) type == (object) typeof(object);
-            var xd4 = type.ContainsGenericParameters();
+            var aName = new System.Reflection.AssemblyName("SomeNamespace");
+            var ab =  AssemblyBuilder.DefineDynamicAssembly(yp34.Assembly.GetName(),
+                  AssemblyBuilderAccess.Run);
+            var mb = ab.DefineDynamicModule(aName.Name);
+            var tb = mb.DefineType(yp34.Name, System.Reflection.TypeAttributes.Public, yp34);
+
+           // var attrCtorParams = new Type[] { typeof(string) };
+           var attrCtorInfo = typeof(DataContractAttribute).GetConstructor(new Type[]{});
+
+            var sth2 = typeof(DataContractAttribute).GetProperties();
+
+            var attrBuilder = new CustomAttributeBuilder(attrCtorInfo, new string[]{}, sth2.Where(p => p.Name == "Name").ToArray(), new string[]{"User"});
+           
+            tb.SetCustomAttribute(attrBuilder);
+
+            //   tb.SetCustomAttribute(dataContractAttribute);
+
+
+            //
+            //          var ab =  AssemblyBuilder.DefineDynamicAssembly(yp34.Assembly.GetName(),
+            //                AssemblyBuilderAccess.Run);
+            //
+            //
+            //          ModuleBuilder tb2 = ab.DefineDynamicModule("Temp");
+            //
+            //          TypeBuilder tb3 = tb2.
+
+            // For a single-module assembly, the module name is usually
+            // the assembly name plus an extension.
+            //            ModuleBuilder mb =
+            //                ab.DefineDynamicModule(aName.Name, aName.Name + ".dll");
+            //
+            //            TypeBuilder tb = mb.DefineType(
+            //                "MyDynamicType",
+            //                TypeAttributes.Public);
+
+            var newType = tb.CreateType();
+            var instance = Activator.CreateInstance(newType);
+
+            var xd1 = yp34 == (object)typeof(IntPtr);
+            var xd2 = yp34 == (object)typeof(UIntPtr);
+            var xd3 = yp34 == (object)typeof(object);
+            var xd4 = yp34.ContainsGenericParameters();
             // return true;
 
-            var lol2 = CustomAttributeExtensions.GetCustomAttributes((MemberInfo) type.GetTypeInfo());
+            var lol2 = CustomAttributeExtensions.GetCustomAttributes(newType.GetTypeInfo());
 
-            DataContractAttribute contractAttribute = (DataContractAttribute)Enumerable.SingleOrDefault<DataContractAttribute>(Enumerable.OfType<DataContractAttribute>((IEnumerable)CustomAttributeExtensions.GetCustomAttributes((MemberInfo)type.GetTypeInfo(), false)));
+//            DataContractAttribute contractAttribute = Enumerable.OfType<DataContractAttribute>(CustomAttributeExtensions.GetCustomAttributes(yp34.GetTypeInfo(), false)).SingleOrDefault<DataContractAttribute>();
 
             var createMethod = typeof(AvroSerializer).GetMethod("Create", new Type[0]);
-            var createGenericMethod = createMethod.MakeGenericMethod(obj.GetType());
-            dynamic avroSerializer = createGenericMethod.Invoke(obj, null);
+            var createGenericMethod = createMethod.MakeGenericMethod(instance.GetType());
+            dynamic avroSerializer = createGenericMethod.Invoke(instance, null);
 
             string result = avroSerializer.GetType().GetProperty("WriterSchema").GetValue(avroSerializer, null).ToString();
 

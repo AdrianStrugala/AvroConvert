@@ -10,12 +10,24 @@
     {
         public static string GenerateSchema(object obj)
         {
-            var objType = obj.GetType();
+            var inMemoryInstance = AddDataContractAttributeToObjClass(obj);
 
+            var createMethod = typeof(AvroSerializer).GetMethod("Create", new Type[0]);
+            var createGenericMethod = createMethod.MakeGenericMethod(inMemoryInstance.GetType());
+            dynamic avroSerializer = createGenericMethod.Invoke(inMemoryInstance, null);
+
+            string result = avroSerializer.GetType().GetProperty("WriterSchema").GetValue(avroSerializer, null).ToString();
+
+            return result;
+        }
+
+        private static object AddDataContractAttributeToObjClass(object obj)
+        {
+            var objType = obj.GetType();
 
             var assemblyName = new System.Reflection.AssemblyName("InMemory");
             var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(objType.Assembly.GetName(),
-                  AssemblyBuilderAccess.Run);
+                AssemblyBuilderAccess.Run);
 
             var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name);
             var typeBuilder = moduleBuilder.DefineType(objType.Name, System.Reflection.TypeAttributes.Public, objType);
@@ -30,13 +42,8 @@
             var inMemoryType = typeBuilder.CreateType();
             var inMemoryInstance = Activator.CreateInstance(inMemoryType);
 
-            var createMethod = typeof(AvroSerializer).GetMethod("Create", new Type[0]);
-            var createGenericMethod = createMethod.MakeGenericMethod(inMemoryInstance.GetType());
-            dynamic avroSerializer = createGenericMethod.Invoke(inMemoryInstance, null);
-
-            string result = avroSerializer.GetType().GetProperty("WriterSchema").GetValue(avroSerializer, null).ToString();
-
-            return result;
+            return inMemoryInstance;
         }
+
     }
 }

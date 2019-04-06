@@ -6,6 +6,7 @@
     using System.Linq;
     using System.Reflection;
     using System.Reflection.Emit;
+    using System.Reflection.Metadata;
     using System.Runtime.Serialization;
 
     public static partial class AvroConvert
@@ -27,8 +28,8 @@
         {
             var inMemoryInstance = AddCustomAttributeToObject<DataContractAttribute>(objType);
 
-             PropertyInfo[] properties = inMemoryInstance.GetType().GetProperties();
-           var clonerProperties = DeepCloner.GetFastDeepClonerProperties(inMemoryInstance.GetType());
+            PropertyInfo[] properties = inMemoryInstance.GetType().GetProperties();
+            var clonerProperties = DeepCloner.GetFastDeepClonerProperties(inMemoryInstance.GetType());
 
             //            var prop = 
             //            prop.Attributes.Add(new JsonIgnoreAttribute());
@@ -37,10 +38,10 @@
             {
                 var clonedAttribute = clonerProperties.Single(n => n.Name == prop.Name);
                 clonedAttribute.Attributes.Add(new DataMemberAttribute());
-               //   prop.SetValue(inMemoryInstance, AddCustomAttributeToObject<DataMemberAttribute>(prop.PropertyType));
-               prop.SetValue(inMemoryInstance, clonedAttribute);
+                prop.SetValue(inMemoryInstance, AddCustomAttributeToObject<DataMemberAttribute>(prop.PropertyType));
+                // prop.SetValue(inMemoryInstance, clonedAttribute.GetValue());
 
-             //   prop.Attributes.Add(new DataMemberAttribute());
+                //   prop.Attributes.Add(new DataMemberAttribute());
 
                 if (!(prop.PropertyType.GetTypeInfo().IsValueType ||
                       prop.PropertyType == typeof(string)))
@@ -51,12 +52,12 @@
                     prop.SetValue(inMemoryInstance, AddAvroRequiredAttributesToObject(prop.PropertyType));
                 }
 
-              //  PropertyInfo originalProp = inMemoryInstance.GetType().GetProperty(prop.Name);
-           //     PropertyInfo originalProp = inMemoryInstance.GetType().GetProperty(prop.Name);
+                //  PropertyInfo originalProp = inMemoryInstance.GetType().GetProperty(prop.Name);
+                //     PropertyInfo originalProp = inMemoryInstance.GetType().GetProperty(prop.Name);
 
-           //     inMemoryInstance.GetType().pro
+                //     inMemoryInstance.GetType().pro
 
-           //     originalProp.SetValue(inMemoryInstance, prop.GetValue(inMemoryInstance), null);
+                //     originalProp.SetValue(inMemoryInstance, prop.GetValue(inMemoryInstance), null);
             }
 
 
@@ -68,11 +69,29 @@
         private static object AddCustomAttributeToObject<T>(Type objType)
         {
             var assemblyName = new System.Reflection.AssemblyName("InMemory");
-            var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(objType.Assembly.GetName(),
+            var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName,
                 AssemblyBuilderAccess.Run);
 
             var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name);
-            var typeBuilder = moduleBuilder.DefineType(objType.Name, System.Reflection.TypeAttributes.Public, objType);
+
+            TypeBuilder typeBuilder;
+
+            if (objType.GetTypeInfo().IsValueType ||
+                objType == typeof(string))
+            {
+                var assembly = typeof(string).Assembly;
+
+                var valueBase = assembly.GetType("string");
+              //  valueBase.a &= ~TypeAttributes.Sealed;
+
+                typeBuilder =
+                    moduleBuilder.DefineType(objType.Name, System.Reflection.TypeAttributes.Public, objType);
+            }
+            else
+            {
+                typeBuilder =
+                    moduleBuilder.DefineType(objType.Name, System.Reflection.TypeAttributes.Public, objType);
+            }
 
             var attributeConstructor = typeof(T).GetConstructor(new Type[] { });
             var attributeProperties = typeof(T).GetProperties();
@@ -81,9 +100,17 @@
 
             typeBuilder.SetCustomAttribute(attributeBuilder);
 
+            var constructorBuilder = typeBuilder.DefineConstructor(MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.RTSpecialName | MethodAttributes.SpecialName, CallingConventions.Standard, Type.EmptyTypes);
+            var ilGenerator = constructorBuilder.GetILGenerator();
+            ilGenerator.Emit(OpCodes.Ret);
+
             var inMemoryType = typeBuilder.CreateType();
             var inMemoryInstance = Activator.CreateInstance(inMemoryType);
 
+            if (objType == typeof(string))
+            {
+                return (string)inMemoryInstance;
+            }
             return inMemoryInstance;
         }
     }

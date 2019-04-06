@@ -1,5 +1,6 @@
 ﻿namespace AvroConvert
 {
+    using FastDeepCloner;
     using Microsoft.Hadoop.Avro;
     using System;
     using System.Linq;
@@ -26,11 +27,20 @@
         {
             var inMemoryInstance = AddCustomAttributeToObject<DataContractAttribute>(objType);
 
-            PropertyInfo[] properties = inMemoryInstance.GetType().GetProperties();
+             PropertyInfo[] properties = inMemoryInstance.GetType().GetProperties();
+           var clonerProperties = DeepCloner.GetFastDeepClonerProperties(inMemoryInstance.GetType());
 
-            foreach (PropertyInfo prop in properties)
+            //            var prop = 
+            //            prop.Attributes.Add(new JsonIgnoreAttribute());
+
+            foreach (var prop in properties)
             {
-                prop.SetValue(inMemoryInstance, AddCustomAttributeToObject<DataMemberAttribute>(prop.PropertyType));
+                var clonedAttribute = clonerProperties.Single(n => n.Name == prop.Name);
+                clonedAttribute.Attributes.Add(new DataMemberAttribute());
+               //   prop.SetValue(inMemoryInstance, AddCustomAttributeToObject<DataMemberAttribute>(prop.PropertyType));
+               prop.SetValue(inMemoryInstance, clonedAttribute);
+
+             //   prop.Attributes.Add(new DataMemberAttribute());
 
                 if (!(prop.PropertyType.GetTypeInfo().IsValueType ||
                       prop.PropertyType == typeof(string)))
@@ -40,10 +50,20 @@
                     prop.SetValue(inMemoryInstance, AddCustomAttributeToObject<DataContractAttribute>(prop.PropertyType));
                     prop.SetValue(inMemoryInstance, AddAvroRequiredAttributesToObject(prop.PropertyType));
                 }
+
+              //  PropertyInfo originalProp = inMemoryInstance.GetType().GetProperty(prop.Name);
+           //     PropertyInfo originalProp = inMemoryInstance.GetType().GetProperty(prop.Name);
+
+           //     inMemoryInstance.GetType().pro
+
+           //     originalProp.SetValue(inMemoryInstance, prop.GetValue(inMemoryInstance), null);
             }
+
 
             return inMemoryInstance;
         }
+
+
 
         private static object AddCustomAttributeToObject<T>(Type objType)
         {
@@ -65,6 +85,6 @@
             var inMemoryInstance = Activator.CreateInstance(inMemoryType);
 
             return inMemoryInstance;
-        }       
+        }
     }
 }

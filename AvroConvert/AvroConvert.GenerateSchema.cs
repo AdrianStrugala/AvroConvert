@@ -2,8 +2,6 @@
 {
     using Microsoft.Hadoop.Avro;
     using System;
-    using System.Collections;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
     using System.Reflection.Emit;
@@ -13,32 +11,7 @@
     {
         public static string GenerateSchema(object obj)
         {
-            var inMemoryInstance = AddCustomAttributeToObject<DataContractAttribute>(obj);
-
-
-            PropertyInfo[] properties = inMemoryInstance.GetType().GetProperties();
-
-            foreach (PropertyInfo prop in properties)
-            {
-                if (typeof(IList).IsAssignableFrom(prop.PropertyType) &&
-                    prop.PropertyType.GetTypeInfo().IsGenericType)
-                {
-                    // We have a List<T> or array
-                    result.Add(prop.Name, SplitKeyValues(prop.GetValue(item)));
-                }
-
-                else if (prop.PropertyType.GetTypeInfo().IsValueType ||
-                         prop.PropertyType == typeof(string))
-                {
-                    // We have a simple type
-
-                    result.Add(prop.Name, prop.GetValue(item));
-                }
-                else
-                {
-                    result.Add(prop.Name, SplitKeyValues(prop.GetValue(item)));
-                }
-            }
+            object inMemoryInstance = AddAvroRequiredAttributesToObject(obj.GetType());
 
             var createMethod = typeof(AvroSerializer).GetMethod("Create", new Type[0]);
             var createGenericMethod = createMethod.MakeGenericMethod(inMemoryInstance.GetType());
@@ -49,10 +22,31 @@
             return result;
         }
 
-        private static object AddCustomAttributeToObject<T>(object obj)
+        private static object AddAvroRequiredAttributesToObject(Type objType)
         {
-            var objType = obj.GetType();
+            var inMemoryInstance = AddCustomAttributeToObject<DataContractAttribute>(objType);
 
+            PropertyInfo[] properties = inMemoryInstance.GetType().GetProperties();
+
+            foreach (PropertyInfo prop in properties)
+            {
+                prop.SetValue(inMemoryInstance, AddCustomAttributeToObject<DataMemberAttribute>(prop.PropertyType));
+
+                if (!(prop.PropertyType.GetTypeInfo().IsValueType ||
+                      prop.PropertyType == typeof(string)))
+                {
+                    //Its complex type
+
+                    prop.SetValue(inMemoryInstance, AddCustomAttributeToObject<DataContractAttribute>(prop.PropertyType));
+                    prop.SetValue(inMemoryInstance, AddAvroRequiredAttributesToObject(prop.PropertyType));
+                }
+            }
+
+            return inMemoryInstance;
+        }
+
+        private static object AddCustomAttributeToObject<T>(Type objType)
+        {
             var assemblyName = new System.Reflection.AssemblyName("InMemory");
             var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(objType.Assembly.GetName(),
                 AssemblyBuilderAccess.Run);
@@ -71,7 +65,6 @@
             var inMemoryInstance = Activator.CreateInstance(inMemoryType);
 
             return inMemoryInstance;
-        }
-
+        }       
     }
 }

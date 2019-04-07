@@ -7,6 +7,7 @@
     using System.Reflection;
     using System.Reflection.Emit;
     using System.Reflection.Metadata;
+    using System.Runtime.InteropServices;
     using System.Runtime.Serialization;
 
     public static partial class AvroConvert
@@ -36,11 +37,12 @@
 
             foreach (var prop in properties)
             {
-                var clonedAttribute = clonerProperties.Single(n => n.Name == prop.Name);
-                clonedAttribute.Attributes.Add(new DataMemberAttribute());
-                prop.SetValue(inMemoryInstance, AddCustomAttributeToObject<DataMemberAttribute>(prop.PropertyType));
+            //    var clonedAttribute = clonerProperties.Single(n => n.Name == prop.Name);
+            //    clonedAttribute.Attributes.Add(new DataMemberAttribute());
+            //    prop.SetValue(inMemoryInstance, AddCustomAttributeToObject<DataMemberAttribute>(prop.PropertyType));
                 // prop.SetValue(inMemoryInstance, clonedAttribute.GetValue());
 
+              //  properties.Append(AddCustomAttributeToObject<DataMemberAttribute>(prop.PropertyType).GetType().);
                 //   prop.Attributes.Add(new DataMemberAttribute());
 
                 if (!(prop.PropertyType.GetTypeInfo().IsValueType ||
@@ -51,6 +53,7 @@
                     prop.SetValue(inMemoryInstance, AddCustomAttributeToObject<DataContractAttribute>(prop.PropertyType));
                     prop.SetValue(inMemoryInstance, AddAvroRequiredAttributesToObject(prop.PropertyType));
                 }
+                
 
                 //  PropertyInfo originalProp = inMemoryInstance.GetType().GetProperty(prop.Name);
                 //     PropertyInfo originalProp = inMemoryInstance.GetType().GetProperty(prop.Name);
@@ -81,17 +84,27 @@
             {
                 var assembly = typeof(string).Assembly;
 
+                var sth = objType.Attributes;
+                
+
                 var valueBase = assembly.GetType("string");
               //  valueBase.a &= ~TypeAttributes.Sealed;
 
                 typeBuilder =
-                    moduleBuilder.DefineType(objType.Name, System.Reflection.TypeAttributes.Public, objType);
+                    moduleBuilder.DefineType(objType.Name, System.Reflection.TypeAttributes.Public);
             }
             else
             {
                 typeBuilder =
                     moduleBuilder.DefineType(objType.Name, System.Reflection.TypeAttributes.Public, objType);
             }
+
+//            PropertyInfo[] properties = objType.GetProperties();
+//            foreach (var prop in properties)
+//            {
+//                typeBuilder.DefineProperty(prop.Name, PropertyAttributes.None, typeof(void), Type.EmptyTypes);
+//                typeBuilder.defa
+//            }
 
             var attributeConstructor = typeof(T).GetConstructor(new Type[] { });
             var attributeProperties = typeof(T).GetProperties();
@@ -107,10 +120,7 @@
             var inMemoryType = typeBuilder.CreateType();
             var inMemoryInstance = Activator.CreateInstance(inMemoryType);
 
-            if (objType == typeof(string))
-            {
-                return (string)inMemoryInstance;
-            }
+
             return inMemoryInstance;
         }
     }

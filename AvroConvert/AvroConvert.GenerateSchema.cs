@@ -6,8 +6,6 @@
     using System.Linq;
     using System.Reflection;
     using System.Reflection.Emit;
-    using System.Reflection.Metadata;
-    using System.Runtime.InteropServices;
     using System.Runtime.Serialization;
 
     public static partial class AvroConvert
@@ -37,12 +35,12 @@
 
             foreach (var prop in properties)
             {
-            //    var clonedAttribute = clonerProperties.Single(n => n.Name == prop.Name);
-            //    clonedAttribute.Attributes.Add(new DataMemberAttribute());
-            //    prop.SetValue(inMemoryInstance, AddCustomAttributeToObject<DataMemberAttribute>(prop.PropertyType));
+                //    var clonedAttribute = clonerProperties.Single(n => n.Name == prop.Name);
+                //    clonedAttribute.Attributes.Add(new DataMemberAttribute());
+                //    prop.SetValue(inMemoryInstance, AddCustomAttributeToObject<DataMemberAttribute>(prop.PropertyType));
                 // prop.SetValue(inMemoryInstance, clonedAttribute.GetValue());
 
-              //  properties.Append(AddCustomAttributeToObject<DataMemberAttribute>(prop.PropertyType).GetType().);
+                //  properties.Append(AddCustomAttributeToObject<DataMemberAttribute>(prop.PropertyType).GetType().);
                 //   prop.Attributes.Add(new DataMemberAttribute());
 
                 if (!(prop.PropertyType.GetTypeInfo().IsValueType ||
@@ -53,7 +51,7 @@
                     prop.SetValue(inMemoryInstance, AddCustomAttributeToObject<DataContractAttribute>(prop.PropertyType));
                     prop.SetValue(inMemoryInstance, AddAvroRequiredAttributesToObject(prop.PropertyType));
                 }
-                
+
 
                 //  PropertyInfo originalProp = inMemoryInstance.GetType().GetProperty(prop.Name);
                 //     PropertyInfo originalProp = inMemoryInstance.GetType().GetProperty(prop.Name);
@@ -85,10 +83,10 @@
                 var assembly = typeof(string).Assembly;
 
                 var sth = objType.Attributes;
-                
 
-                var valueBase = assembly.GetType("string");
-              //  valueBase.a &= ~TypeAttributes.Sealed;
+
+//                var valueBase = assembly.GetType("string");
+//                  valueBase.typea &= ~TypeAttributes.Sealed;
 
                 typeBuilder =
                     moduleBuilder.DefineType(objType.Name, System.Reflection.TypeAttributes.Public);
@@ -96,15 +94,17 @@
             else
             {
                 typeBuilder =
-                    moduleBuilder.DefineType(objType.Name, System.Reflection.TypeAttributes.Public, objType);
+                    moduleBuilder.DefineType(objType.Name, System.Reflection.TypeAttributes.Public);
             }
 
-//            PropertyInfo[] properties = objType.GetProperties();
-//            foreach (var prop in properties)
-//            {
-//                typeBuilder.DefineProperty(prop.Name, PropertyAttributes.None, typeof(void), Type.EmptyTypes);
-//                typeBuilder.defa
-//            }
+            PropertyInfo[] properties = objType.GetProperties();
+            foreach (var prop in properties)
+            {
+                typeBuilder.DefineProperty(prop.Name, PropertyAttributes.None, typeof(void), Type.EmptyTypes);
+                //                typeBuilder.defa
+                typeBuilder.DefineField(prop.Name,
+                    typeof(string), FieldAttributes.Public);
+            }
 
             var attributeConstructor = typeof(T).GetConstructor(new Type[] { });
             var attributeProperties = typeof(T).GetProperties();
@@ -117,7 +117,9 @@
             var ilGenerator = constructorBuilder.GetILGenerator();
             ilGenerator.Emit(OpCodes.Ret);
 
-            var inMemoryType = typeBuilder.CreateType();
+
+            var inMemoryType = typeBuilder.CreateType();            
+
             var inMemoryInstance = Activator.CreateInstance(inMemoryType);
 
 

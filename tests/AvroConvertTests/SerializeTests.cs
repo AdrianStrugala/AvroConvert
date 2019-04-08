@@ -91,8 +91,6 @@
             //Act
             var result = AvroConvert.AvroConvert.Serialize(user);
 
-            var xd = AvroConvert.AvroConvert.Deserialize(result);
-
             //Assert
             Assert.NotNull(result);
         }

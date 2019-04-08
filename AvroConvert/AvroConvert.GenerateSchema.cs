@@ -12,9 +12,9 @@
     {
         public static string GenerateSchema(object obj)
         {
-            object lól = SthWorkinmg(obj.GetType());
+            object inMemoryInstance = SthWorkinmg(obj.GetType());
 
-            object inMemoryInstance = AddAvroRequiredAttributesToObject(obj.GetType());
+        //    object inMemoryInstance = AddAvroRequiredAttributesToObject(obj.GetType());
 
             var createMethod = typeof(AvroSerializer).GetMethod("Create", new Type[0]);
             var createGenericMethod = createMethod.MakeGenericMethod(inMemoryInstance.GetType());
@@ -143,15 +143,26 @@
             foreach (var prop in properties)
             {
 
-                TypeBuilder childBuilder = typeBuilder.DefineNestedType(prop.PropertyType.Name, TypeAttributes.NestedPublic);
-                PropertyBuilder propertyBuilder = typeBuilder.DefineProperty(prop.Name, PropertyAttributes.None, childBuilder, null);
+                //  TypeBuilder childBuilder = typeBuilder.DefineNestedType(prop.PropertyType.Name, TypeAttributes.NestedPublic);
+                //   PropertyBuilder propertyBuilder = typeBuilder.DefineProperty(prop.Name, PropertyAttributes.None, childBuilder, null);
+                PropertyBuilder propertyBuilder = typeBuilder.DefineProperty(prop.Name, PropertyAttributes.None, prop.PropertyType, null);
+
+
+                var attributeConstructor = typeof(DataMemberAttribute).GetConstructor(new Type[] { });
+                var attributeProperties = typeof(DataMemberAttribute).GetProperties();
+
+                var attributeBuilder = new CustomAttributeBuilder(attributeConstructor, new string[] { }, attributeProperties.Where(p => p.Name == "Name").ToArray(), new object[] { prop.Name });
+
+                propertyBuilder.SetCustomAttribute(attributeBuilder);
 
                 // Define field
-                FieldBuilder fieldBuilder = typeBuilder.DefineField(prop.Name, childBuilder, FieldAttributes.Public);
+                //   FieldBuilder fieldBuilder = typeBuilder.DefineField(prop.Name, childBuilder, FieldAttributes.Public);
+                FieldBuilder fieldBuilder = typeBuilder.DefineField(prop.Name, prop.PropertyType, FieldAttributes.Public);
                 // Define "getter" for MyChild property
+                //   MethodBuilder getterBuilder = typeBuilder.DefineMethod("get_" + prop.Name,
                 MethodBuilder getterBuilder = typeBuilder.DefineMethod("get_" + prop.Name,
                     MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig,
-                    childBuilder,
+                    prop.PropertyType,
                     Type.EmptyTypes);
                 ILGenerator getterIL = getterBuilder.GetILGenerator();
                 getterIL.Emit(OpCodes.Ldarg_0);
@@ -159,10 +170,11 @@
                 getterIL.Emit(OpCodes.Ret);
 
                 // Define "setter" for MyChild property
+                //     MethodBuilder setterBuilder = typeBuilder.DefineMethod("set_" + prop.Name,
                 MethodBuilder setterBuilder = typeBuilder.DefineMethod("set_" + prop.Name,
                     MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig,
                     null,
-                    new Type[] { childBuilder });
+                    new Type[] { prop.PropertyType });
                 ILGenerator setterIL = setterBuilder.GetILGenerator();
                 setterIL.Emit(OpCodes.Ldarg_0);
                 setterIL.Emit(OpCodes.Ldarg_1);
@@ -173,6 +185,12 @@
                 propertyBuilder.SetSetMethod(setterBuilder);
             }
 
+            var dataContractAttributeConstructor = typeof(DataContractAttribute).GetConstructor(new Type[] { });
+            var dataContractAttributeProperties = typeof(DataContractAttribute).GetProperties();
+
+            var dataContractAttributeBuilder = new CustomAttributeBuilder(dataContractAttributeConstructor, new string[] { }, dataContractAttributeProperties.Where(p => p.Name == "Name").ToArray(), new object[] { objType.Name });
+
+            typeBuilder.SetCustomAttribute(dataContractAttributeBuilder);
 
             var inMemoryType = typeBuilder.CreateType();
 

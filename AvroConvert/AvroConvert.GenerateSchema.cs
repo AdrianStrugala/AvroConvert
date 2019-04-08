@@ -12,7 +12,7 @@
     {
         public static string GenerateSchema(object obj)
         {
-            object inMemoryInstance = SthWorkinmg(obj.GetType());
+            object inMemoryInstance = SthWorkinmg(obj);
 
             //    object inMemoryInstance = AddAvroRequiredAttributesToObject(obj.GetType());
 
@@ -129,8 +129,9 @@
             return inMemoryInstance;
         }
 
-        private static object SthWorkinmg(Type objType)
+        private static object SthWorkinmg(object obj)
         {
+            Type objType = obj.GetType();
             var assemblyName = new System.Reflection.AssemblyName("InMemory");
             var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName,
                 AssemblyBuilderAccess.Run);
@@ -193,6 +194,12 @@
 
                 propertyBuilder.SetGetMethod(getterBuilder);
                 propertyBuilder.SetSetMethod(setterBuilder);
+
+                if (!(prop.PropertyType.GetTypeInfo().IsValueType ||
+                      prop.PropertyType == typeof(string)))
+                {
+                    prop.SetValue(obj, SthWorkinmg(prop.GetValue(obj)));
+                }
             }
 
             var dataContractAttributeConstructor = typeof(DataContractAttribute).GetConstructor(new Type[] { });

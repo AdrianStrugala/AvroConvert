@@ -143,10 +143,17 @@
 
             foreach (var prop in properties)
             {
+                Type properType = prop.PropertyType;
 
+                if (!(properType.GetTypeInfo().IsValueType ||
+                      properType == typeof(string)))
+                {
+                    properType = SthWorkinmg(prop.GetValue(obj)).GetType();
+
+                }
                 //  TypeBuilder childBuilder = typeBuilder.DefineNestedType(prop.PropertyType.Name, TypeAttributes.NestedPublic);
                 //   PropertyBuilder propertyBuilder = typeBuilder.DefineProperty(prop.Name, PropertyAttributes.None, childBuilder, null);
-                PropertyBuilder propertyBuilder = typeBuilder.DefineProperty(prop.Name, PropertyAttributes.None, prop.PropertyType, null);
+                PropertyBuilder propertyBuilder = typeBuilder.DefineProperty(prop.Name, PropertyAttributes.None, properType, null);
 
 
                 var attributeConstructor = typeof(DataMemberAttribute).GetConstructor(new Type[] { });
@@ -157,7 +164,7 @@
                 propertyBuilder.SetCustomAttribute(attributeBuilder);
 
                 //Is nullable 
-                if (Nullable.GetUnderlyingType(prop.PropertyType) != null)
+                if (Nullable.GetUnderlyingType(properType) != null)
                 {
 
                     var nullableAttributeConstructor = typeof(NullableSchemaAttribute).GetConstructor(new Type[] { });
@@ -168,12 +175,12 @@
 
                 // Define field
                 //   FieldBuilder fieldBuilder = typeBuilder.DefineField(prop.Name, childBuilder, FieldAttributes.Public);
-                FieldBuilder fieldBuilder = typeBuilder.DefineField(prop.Name, prop.PropertyType, FieldAttributes.Public);
+                FieldBuilder fieldBuilder = typeBuilder.DefineField(prop.Name, properType, FieldAttributes.Public);
                 // Define "getter" for MyChild property
                 //   MethodBuilder getterBuilder = typeBuilder.DefineMethod("get_" + prop.Name,
                 MethodBuilder getterBuilder = typeBuilder.DefineMethod("get_" + prop.Name,
                     MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig,
-                    prop.PropertyType,
+                    properType,
                     Type.EmptyTypes);
                 ILGenerator getterIL = getterBuilder.GetILGenerator();
                 getterIL.Emit(OpCodes.Ldarg_0);
@@ -185,7 +192,7 @@
                 MethodBuilder setterBuilder = typeBuilder.DefineMethod("set_" + prop.Name,
                     MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig,
                     null,
-                    new Type[] { prop.PropertyType });
+                    new Type[] { properType });
                 ILGenerator setterIL = setterBuilder.GetILGenerator();
                 setterIL.Emit(OpCodes.Ldarg_0);
                 setterIL.Emit(OpCodes.Ldarg_1);
@@ -195,11 +202,7 @@
                 propertyBuilder.SetGetMethod(getterBuilder);
                 propertyBuilder.SetSetMethod(setterBuilder);
 
-                if (!(prop.PropertyType.GetTypeInfo().IsValueType ||
-                      prop.PropertyType == typeof(string)))
-                {
-                    prop.SetValue(obj, SthWorkinmg(prop.GetValue(obj)));
-                }
+
             }
 
             var dataContractAttributeConstructor = typeof(DataContractAttribute).GetConstructor(new Type[] { });

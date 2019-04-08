@@ -14,7 +14,7 @@
         {
             object inMemoryInstance = SthWorkinmg(obj.GetType());
 
-        //    object inMemoryInstance = AddAvroRequiredAttributesToObject(obj.GetType());
+            //    object inMemoryInstance = AddAvroRequiredAttributesToObject(obj.GetType());
 
             var createMethod = typeof(AvroSerializer).GetMethod("Create", new Type[0]);
             var createGenericMethod = createMethod.MakeGenericMethod(inMemoryInstance.GetType());
@@ -154,6 +154,16 @@
                 var attributeBuilder = new CustomAttributeBuilder(attributeConstructor, new string[] { }, attributeProperties.Where(p => p.Name == "Name").ToArray(), new object[] { prop.Name });
 
                 propertyBuilder.SetCustomAttribute(attributeBuilder);
+
+                //Is nullable 
+                if (Nullable.GetUnderlyingType(prop.PropertyType) != null)
+                {
+
+                    var nullableAttributeConstructor = typeof(NullableSchemaAttribute).GetConstructor(new Type[] { });
+                    var nullableAttributeBuilder = new CustomAttributeBuilder(nullableAttributeConstructor, new string[] { }, new PropertyInfo[] { }, new object[] { });
+
+                    propertyBuilder.SetCustomAttribute(nullableAttributeBuilder);
+                }
 
                 // Define field
                 //   FieldBuilder fieldBuilder = typeBuilder.DefineField(prop.Name, childBuilder, FieldAttributes.Public);

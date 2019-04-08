@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Reflection.Emit;
     using System.Runtime.Serialization;
+    using Microsoft.Hadoop.Avro;
     using Xunit;
 
     public class SerializeTests
@@ -98,10 +99,12 @@
     }
 
 
-
+      [DataContract(Name = "Dupa", Namespace = "test.demo")]
     public class User
     {
         public string name { get; set; }
+        [DataMember(Name = "favorite_number")]
+        [NullableSchema]
         public int? favorite_number { get; set; }
         public string favorite_color { get; set; }
     }

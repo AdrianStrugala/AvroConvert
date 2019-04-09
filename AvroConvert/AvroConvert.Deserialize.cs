@@ -8,24 +8,39 @@
 
     public static partial class AvroConvert
     {
-        public static Dictionary<string, object> Deserialize(byte[] avroBytes)
+        public static List<Dictionary<string, object>> Deserialize(byte[] avroBytes)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            List<Dictionary<string, object>> result = new List<Dictionary<string, object>>();
 
             var reader = Reader.Reader.OpenReader(new MemoryStream(avroBytes));
 
             List<dynamic> readResult = reader.GetEntries().ToList();
 
-            result = readResult[0];
+            foreach (var read in readResult)
+            {
+                result.Add(read);
+            }
+
             return result;
         }
 
         public static T Deserialize<T>(byte[] avroBytes)
         {
+            T result;
             var deserialized = Deserialize(avroBytes);
 
             Mapper.Initialize(cfg => { });
-            T result = Mapper.Map<T>(deserialized);
+
+            if (typeof(T).TryGetInterfaceGenericParameters(typeof(IEnumerable<>)))
+            {
+                result = Mapper.Map<T>(deserialized);
+            }
+            else
+            {
+                result = Mapper.Map<T>(deserialized[0]);
+            }
+
+            Mapper.Reset();
 
             return result;
         }

@@ -142,7 +142,7 @@ namespace AvroConvert.Reader
         }
 
 
-        protected virtual GenericRecord ReadRecord(RecordSchema writerSchema, Schema readerSchema, IDecoder dec)
+        protected virtual IDictionary<string, object> ReadRecord(RecordSchema writerSchema, Schema readerSchema, IDecoder dec)
         {
             RecordSchema rs = (RecordSchema)readerSchema;
 
@@ -184,7 +184,7 @@ namespace AvroConvert.Reader
                 AddField(result, rf.Name, rf.Pos, Read(rf.Schema, rf.Schema, defaultDecoder));
             }
 
-            return result;
+            return result.contents;
         }
 
         protected virtual GenericRecord CreateRecord(RecordSchema readerSchema)

@@ -1,22 +1,22 @@
 ﻿namespace AvroConvert
 {
+    using AutoMapper;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using AutoMapper;
 
 
     public static partial class AvroConvert
     {
-        public static List<Dictionary<string, object>> Deserialize(byte[] avroBytes)
+        public static Dictionary<string, object> Deserialize(byte[] avroBytes)
         {
-            List<Dictionary<string, object>> result = new List<Dictionary<string, object>>();
+            Dictionary<string, object> result = new Dictionary<string, object>();
 
             var reader = Reader.Reader.OpenReader(new MemoryStream(avroBytes));
 
             List<dynamic> readResult = reader.GetEntries().ToList();
 
-            result = readResult[0].contents;
+            result = readResult[0];
             return result;
         }
 

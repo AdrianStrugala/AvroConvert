@@ -14,22 +14,18 @@
 
             var reader = Reader.Reader.OpenReader(new MemoryStream(avroBytes));
 
-            var xd = reader.GetEntries().ToList();
+            List<dynamic> readResult = reader.GetEntries().ToList();
 
-
+            result = readResult[0].contents;
             return result;
         }
 
         public static T Deserialize<T>(byte[] avroBytes)
         {
-            T result = default(T);
+            var deserialized = Deserialize(avroBytes);
 
-            var reader = Reader.Reader.OpenReader(new MemoryStream(avroBytes));
-
-            List<dynamic> readResult = reader.GetEntries().ToList();
             Mapper.Initialize(cfg => { });
-
-            result = Mapper.Map<T>(readResult[0].contents);
+            T result = Mapper.Map<T>(deserialized);
 
             return result;
         }

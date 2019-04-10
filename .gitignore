@@ -51,10 +51,10 @@
 .vs/Avro/v15/Server/sqlite3/storage.ide-shm
 .vs/Avro/v15/Server/sqlite3/storage.ide
 .vs/Avro/v15/Server/sqlite3/db.lock
-AvroConvert/obj/**/**
-AvroConvert/obj/**
-AvroConvert/bin/**
-AvroConvert/bin/**/**
+**/obj/**/**
+**/obj/**
+**/bin/**
+**/bin/**/**
 .vs/Avro/v16/Server/sqlite3/db.lock
 .vs/Avro/v16/Server/sqlite3/storage.ide
 .vs/Avro/v16/Server/sqlite3/storage.ide-shm
@@ -63,12 +63,6 @@ Avro/obj/Avro.csproj.nuget.cache
 Avro/obj/Avro.csproj.nuget.dgspec.json
 Avro/obj/Avro.csproj.nuget.g.props
 Avro/obj/project.assets.json
-tests/AvroConvertTests/obj/AvroConvertTests.csproj.nuget.cache
-tests/AvroConvertTests/obj/AvroConvertTests.csproj.nuget.dgspec.json
-tests/AvroConvertTests/obj/AvroConvertTests.csproj.nuget.g.props
-tests/AvroConvertTests/obj/project.assets.json
-UpgradeLog2.htm
-UpgradeLog3.htm
 Avro/obj/project.assets.json
 Avro/obj/Avro.csproj.nuget.g.props
 Avro/obj/Avro.csproj.nuget.cache

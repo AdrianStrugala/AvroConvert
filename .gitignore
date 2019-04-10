@@ -46,7 +46,6 @@
 *.vspscc
 .builds
 *.dotCover
-*.nupkg
 .vs/Avro/v15/Server/sqlite3/storage.ide-wal
 .vs/Avro/v15/Server/sqlite3/storage.ide-shm
 .vs/Avro/v15/Server/sqlite3/storage.ide
@@ -59,13 +58,5 @@
 .vs/Avro/v16/Server/sqlite3/storage.ide
 .vs/Avro/v16/Server/sqlite3/storage.ide-shm
 .vs/Avro/v16/Server/sqlite3/storage.ide-wal
-Avro/obj/Avro.csproj.nuget.cache
-Avro/obj/Avro.csproj.nuget.dgspec.json
-Avro/obj/Avro.csproj.nuget.g.props
-Avro/obj/project.assets.json
-Avro/obj/project.assets.json
-Avro/obj/Avro.csproj.nuget.g.props
-Avro/obj/Avro.csproj.nuget.cache
-tests/AvroConvertTests/obj/AvroConvertTests.csproj.nuget.cache
 Avro/obj/Avro.csproj.nuget.g.targets
 .vs/Avro/DesignTimeBuild/.dtbcache

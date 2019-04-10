@@ -45,7 +45,6 @@
                       properType == typeof(string)))
                 {
                     properType = DecorateObjectWithAvroAttributes(prop.GetValue(obj)).GetType();
-
                 }
 
                 //mimic property 
@@ -53,7 +52,6 @@
 
                 var attributeConstructor = typeof(DataMemberAttribute).GetConstructor(new Type[] { });
                 var attributeProperties = typeof(DataMemberAttribute).GetProperties();
-
                 var attributeBuilder = new CustomAttributeBuilder(attributeConstructor, new string[] { }, attributeProperties.Where(p => p.Name == "Name").ToArray(), new object[] { prop.Name });
 
                 propertyBuilder.SetCustomAttribute(attributeBuilder);
@@ -97,13 +95,11 @@
 
             var dataContractAttributeConstructor = typeof(DataContractAttribute).GetConstructor(new Type[] { });
             var dataContractAttributeProperties = typeof(DataContractAttribute).GetProperties();
-
             var dataContractAttributeBuilder = new CustomAttributeBuilder(dataContractAttributeConstructor, new string[] { }, dataContractAttributeProperties.Where(p => p.Name == "Name").ToArray(), new object[] { objType.Name });
 
             typeBuilder.SetCustomAttribute(dataContractAttributeBuilder);
 
             var inMemoryType = typeBuilder.CreateType();
-
             var inMemoryInstance = Activator.CreateInstance(inMemoryType);
 
             return inMemoryInstance;

@@ -1,6 +1,5 @@
 ﻿namespace AvroConvert
 {
-    using FastDeepCloner;
     using Microsoft.Hadoop.Avro;
     using System;
     using System.Linq;

@@ -9,7 +9,7 @@
     <Version>0.1.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Description>Small and fast library for serializing c# objects to avro format and vice versa</Description>
-    <PackageLicenseExpression>Apache Software Foundation</PackageLicenseExpression>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>

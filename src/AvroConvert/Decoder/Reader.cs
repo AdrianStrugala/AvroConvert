@@ -1,12 +1,12 @@
-﻿namespace AvroConvert.Reader
+﻿namespace AvroConvert.Decoder
 {
-    using Avro;
-    using Avro.File;
-    using Exceptions;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using Avro;
+    using Avro.File;
+    using global::AvroConvert.Exceptions;
 
     public class Reader
     {

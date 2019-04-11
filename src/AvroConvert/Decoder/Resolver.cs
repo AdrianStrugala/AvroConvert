@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace AvroConvert.Reader
+namespace AvroConvert.Decoder
 {
     using System;
     using System.Collections.Generic;

@@ -1,10 +1,12 @@
-﻿namespace Avro.Generic
+﻿namespace AvroConvert.Encoder
 {
     using System;
     using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using Avro;
+    using Avro.Generic;
     using Encoder = Avro.IO.Encoder;
 
     public abstract class IEncoder
@@ -138,7 +140,8 @@
                     prop.PropertyType.GetTypeInfo().IsGenericType)
                 {
                     // We have a List<T> or array
-                    result.Add(prop.Name, SplitKeyValues(prop.GetValue(item)));
+                    result.Add(prop.Name, prop.GetValue(item));
+                    // result.Add(prop.Name, SplitKeyValues(prop.GetValue(item)));
                 }
 
                 else if (prop.PropertyType.GetTypeInfo().IsValueType ||

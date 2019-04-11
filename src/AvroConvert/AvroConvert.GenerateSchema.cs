@@ -2,6 +2,7 @@
 {
     using Microsoft.Hadoop.Avro;
     using System;
+    using System.Collections;
     using System.Linq;
     using System.Reflection;
     using System.Reflection.Emit;
@@ -34,62 +35,29 @@
             var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name);
             TypeBuilder typeBuilder = moduleBuilder.DefineType(objType.Name, System.Reflection.TypeAttributes.Public);
 
-            PropertyInfo[] properties = objType.GetProperties();
-            foreach (var prop in properties)
+
+
+            if (typeof(IList).IsAssignableFrom(objType) &&
+                objType.GetTypeInfo().IsGenericType)
             {
-                Type properType = prop.PropertyType;
-
-                //if complex type - use recurrence
-                if (!(properType.GetTypeInfo().IsValueType ||
-                      properType == typeof(string)))
+                // We have a List<T> or array
+                FieldInfo[] fields = objType.GetFields();
+                foreach (var field in fields)
                 {
-                    properType = DecorateObjectWithAvroAttributes(prop.GetValue(obj)).GetType();
+                    Type fieldType = field.FieldType;
+
+                    typeBuilder = AddPropertyToTypeBuilder(typeBuilder, fieldType, field.Name, null);
                 }
-
-                //mimic property 
-                PropertyBuilder propertyBuilder = typeBuilder.DefineProperty(prop.Name, PropertyAttributes.None, properType, null);
-
-                var attributeConstructor = typeof(DataMemberAttribute).GetConstructor(new Type[] { });
-                var attributeProperties = typeof(DataMemberAttribute).GetProperties();
-                var attributeBuilder = new CustomAttributeBuilder(attributeConstructor, new string[] { }, attributeProperties.Where(p => p.Name == "Name").ToArray(), new object[] { prop.Name });
-
-                propertyBuilder.SetCustomAttribute(attributeBuilder);
-
-                //Is nullable 
-                if (Nullable.GetUnderlyingType(properType) != null)
+            }
+            else
+            {
+                PropertyInfo[] properties = objType.GetProperties();
+                foreach (var prop in properties)
                 {
-                    var nullableAttributeConstructor = typeof(NullableSchemaAttribute).GetConstructor(new Type[] { });
-                    var nullableAttributeBuilder = new CustomAttributeBuilder(nullableAttributeConstructor, new string[] { }, new PropertyInfo[] { }, new object[] { });
+                    Type properType = prop.PropertyType;
 
-                    propertyBuilder.SetCustomAttribute(nullableAttributeBuilder);
+                    typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name, prop.GetValue(obj));
                 }
-
-                // Define field
-                FieldBuilder fieldBuilder = typeBuilder.DefineField(prop.Name, properType, FieldAttributes.Public);
-
-                // Define "getter" for MyChild property
-                MethodBuilder getterBuilder = typeBuilder.DefineMethod("get_" + prop.Name,
-                    MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig,
-                    properType,
-                    Type.EmptyTypes);
-                ILGenerator getterIL = getterBuilder.GetILGenerator();
-                getterIL.Emit(OpCodes.Ldarg_0);
-                getterIL.Emit(OpCodes.Ldfld, fieldBuilder);
-                getterIL.Emit(OpCodes.Ret);
-
-                // Define "setter" for MyChild property
-                MethodBuilder setterBuilder = typeBuilder.DefineMethod("set_" + prop.Name,
-                    MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig,
-                    null,
-                    new Type[] { properType });
-                ILGenerator setterIL = setterBuilder.GetILGenerator();
-                setterIL.Emit(OpCodes.Ldarg_0);
-                setterIL.Emit(OpCodes.Ldarg_1);
-                setterIL.Emit(OpCodes.Stfld, fieldBuilder);
-                setterIL.Emit(OpCodes.Ret);
-
-                propertyBuilder.SetGetMethod(getterBuilder);
-                propertyBuilder.SetSetMethod(setterBuilder);
             }
 
             var dataContractAttributeConstructor = typeof(DataContractAttribute).GetConstructor(new Type[] { });
@@ -102,6 +70,62 @@
             var inMemoryInstance = Activator.CreateInstance(inMemoryType);
 
             return inMemoryInstance;
+        }
+
+        private static TypeBuilder AddPropertyToTypeBuilder(TypeBuilder typeBuilder, Type properType, string name, object value = null)
+        {
+            //if complex type - use recurrence
+            if (!(properType.GetTypeInfo().IsValueType ||
+                 properType == typeof(string) || value == null))
+            {
+                properType = DecorateObjectWithAvroAttributes(value).GetType();
+            }
+
+            //mimic property 
+            PropertyBuilder propertyBuilder = typeBuilder.DefineProperty(name, PropertyAttributes.None, properType, null);
+
+            var attributeConstructor = typeof(DataMemberAttribute).GetConstructor(new Type[] { });
+            var attributeProperties = typeof(DataMemberAttribute).GetProperties();
+            var attributeBuilder = new CustomAttributeBuilder(attributeConstructor, new string[] { }, attributeProperties.Where(p => p.Name == "Name").ToArray(), new object[] { name });
+
+            propertyBuilder.SetCustomAttribute(attributeBuilder);
+
+            //Is nullable 
+            if (Nullable.GetUnderlyingType(properType) != null)
+            {
+                var nullableAttributeConstructor = typeof(NullableSchemaAttribute).GetConstructor(new Type[] { });
+                var nullableAttributeBuilder = new CustomAttributeBuilder(nullableAttributeConstructor, new string[] { }, new PropertyInfo[] { }, new object[] { });
+
+                propertyBuilder.SetCustomAttribute(nullableAttributeBuilder);
+            }
+
+            // Define field
+            FieldBuilder fieldBuilder = typeBuilder.DefineField(name, properType, FieldAttributes.Public);
+
+            // Define "getter" for MyChild property
+            MethodBuilder getterBuilder = typeBuilder.DefineMethod("get_" + name,
+                MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig,
+                properType,
+                Type.EmptyTypes);
+            ILGenerator getterIL = getterBuilder.GetILGenerator();
+            getterIL.Emit(OpCodes.Ldarg_0);
+            getterIL.Emit(OpCodes.Ldfld, fieldBuilder);
+            getterIL.Emit(OpCodes.Ret);
+
+            // Define "setter" for MyChild property
+            MethodBuilder setterBuilder = typeBuilder.DefineMethod("set_" + name,
+                MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig,
+                null,
+                new Type[] { properType });
+            ILGenerator setterIL = setterBuilder.GetILGenerator();
+            setterIL.Emit(OpCodes.Ldarg_0);
+            setterIL.Emit(OpCodes.Ldarg_1);
+            setterIL.Emit(OpCodes.Stfld, fieldBuilder);
+            setterIL.Emit(OpCodes.Ret);
+
+            propertyBuilder.SetGetMethod(getterBuilder);
+            propertyBuilder.SetSetMethod(setterBuilder);
+            return typeBuilder;
         }
     }
 }

@@ -2,7 +2,7 @@
 {
     using System.Collections.Generic;
     using Xunit;
-
+    using AvroConvert;
     public class SerializeTests
     {
         [Fact]
@@ -34,7 +34,7 @@
             someTestClasses.Add(someTestClass2);
 
             //Act
-            var result = AvroConvert.AvroConvert.Serialize(someTestClasses);
+            var result = AvroConvert.Serialize(someTestClasses);
 
             //Assert
             Assert.NotNull(result);
@@ -69,7 +69,7 @@
             someTestClasses[1] = dupa2;
 
             //Act
-            var result = AvroConvert.AvroConvert.Serialize(someTestClasses);
+            var result = AvroConvert.Serialize(someTestClasses);
 
             //Assert
             Assert.NotNull(result);
@@ -86,16 +86,23 @@
             user.favorite_number = null;
 
             //Act
-            var result = AvroConvert.AvroConvert.Serialize(user);
+            var result = AvroConvert.Serialize(user);
 
             //Assert
             Assert.NotNull(result);
         }
 
         [Fact]
-        public void Serialize_SomeOneDefinedAvroAttributes_DefinedAreTaken()
+        public void Serialize_ClassHasConstructorFillingProperty_NoExceptionIsThrown()
         {
+            //Arrange
+            ClassWithConstructorPopulatingProperty testClass = new ClassWithConstructorPopulatingProperty();
 
+            //Act
+            var result = AvroConvert.Serialize(testClass);
+
+            //Assert
+            Assert.NotNull(result);
         }
     }
 }

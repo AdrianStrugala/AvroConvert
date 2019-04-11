@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using Decoder;
 
 
     public static partial class AvroConvert
@@ -12,7 +13,7 @@
         {
             List<Dictionary<string, object>> result = new List<Dictionary<string, object>>();
 
-            var reader = Reader.Reader.OpenReader(new MemoryStream(avroBytes));
+            var reader = Reader.OpenReader(new MemoryStream(avroBytes));
 
             List<dynamic> readResult = reader.GetEntries().ToList();
 

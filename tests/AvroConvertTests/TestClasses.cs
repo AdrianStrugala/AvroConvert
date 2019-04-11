@@ -1,5 +1,6 @@
 ﻿namespace AvroConvertTests
 {
+    using System.Collections.Generic;
     using System.Runtime.Serialization;
     using Microsoft.Hadoop.Avro;
 
@@ -30,5 +31,16 @@
         public string justSomeProperty { get; set; }
 
         public long andLongProperty { get; set; }
+    }
+
+    public class ClassWithConstructorPopulatingProperty
+    {
+        public List<int> someList { get; set; }
+
+        public ClassWithConstructorPopulatingProperty()
+        {
+            someList = new List<int>();
+        }
+
     }
 }

@@ -1,7 +1,7 @@
-﻿namespace AvroConvert
+﻿namespace Avro
 {
-    using Constants;
     using System.IO;
+    using Constants;
     using Decoder;
 
     public static partial class AvroConvert

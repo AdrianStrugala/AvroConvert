@@ -16,10 +16,11 @@
  * limitations under the License.
  */
 
-using System;
-
-namespace Avro.Specific
+namespace AvroOld.Specific
 {
+    using System;
+    using Schema;
+
     public abstract class SpecificException : Exception, ISpecificRecord
     {
         public abstract Schema Schema { get; }

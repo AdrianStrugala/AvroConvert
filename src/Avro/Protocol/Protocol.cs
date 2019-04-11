@@ -15,15 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
-namespace Avro
+namespace AvroOld.Protocol
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Text;
+    using CodeGen;
+    using Newtonsoft.Json.Linq;
+    using Schema;
+
     public class Protocol
     {
         /// <summary>

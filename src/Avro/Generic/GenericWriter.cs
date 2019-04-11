@@ -15,12 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-using System;
-using System.Collections.Generic;
-using Avro.IO;
 
-namespace Avro.Generic
+namespace AvroOld.Generic
 {
+    using System;
+    using System.Collections.Generic;
+    using IO;
+    using Schema;
+
     public delegate void Writer<T>(T t);
     /// <summary>
     /// A typesafe wrapper around DefaultWriter. While a specific object of DefaultWriter

@@ -1,15 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28729.10
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.168
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvroConvertTests", "tests\AvroConvertTests\AvroConvertTests.csproj", "{B566FDF6-7D7F-4391-95D7-8166E0227B66}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{CCBD5998-CCF4-48BA-B80E-716F68613375}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvroConvert", "src\AvroConvert\AvroConvert.csproj", "{6D7BC559-A191-426D-AE26-B2050C1583D5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avro", "src\AvroConvert\Avro.csproj", "{6D7BC559-A191-426D-AE26-B2050C1583D5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Avro", "src\Avro\Avro.csproj", "{E902B366-F27B-4BAA-A15C-65A01CFF9867}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvroOld", "src\Avro\AvroOld.csproj", "{E902B366-F27B-4BAA-A15C-65A01CFF9867}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

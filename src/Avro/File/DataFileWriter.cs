@@ -1,12 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using Avro.IO;
-using Avro.Generic;
-
-namespace Avro.File
+﻿namespace AvroOld.File
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Globalization;
+    using System.IO;
+    using CodeGen;
+    using Generic;
+    using IO;
+    using Schema;
+
     public class DataFileWriter<T> : IFileWriter<T>
     {
         private Schema _schema;

@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-namespace AvroConvert.Generic
+namespace Avro.Generic
 {
+    using System.Collections.Generic;
+    using System.IO;
     using Decoder;
     using Encoder;
     using Schema;
-    using System.Collections.Generic;
-    using System.IO;
 
     /// <summary>
     /// A general purpose reader of data from avro streams. This reader analyzes and resolves the reader and writer schemas

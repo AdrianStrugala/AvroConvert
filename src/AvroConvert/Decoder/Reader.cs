@@ -1,12 +1,12 @@
-﻿namespace AvroConvert.Decoder
+﻿namespace Avro.Decoder
 {
-    using Exceptions;
-    using Schema;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using Constants;
+    using Exceptions;
+    using Schema;
     using Codec = Constants.Codec;
 
     public class Reader

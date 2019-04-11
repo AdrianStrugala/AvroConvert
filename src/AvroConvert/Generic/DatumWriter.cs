@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace AvroConvert.Generic
+namespace Avro.Generic
 {
     using Encoder;
     using Schema;

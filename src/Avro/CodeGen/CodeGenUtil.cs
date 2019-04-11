@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace Avro
+﻿namespace AvroOld.CodeGen
 {
+    using System.Collections.Generic;
+    using System.Text;
+
     public class CodeGenUtil
     {
         private static readonly CodeGenUtil instance = new CodeGenUtil();

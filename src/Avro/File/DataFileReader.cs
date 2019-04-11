@@ -15,17 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using Avro.Generic;
-using Avro.IO;
-using Avro.Specific;
-using System.Reflection;
 
-namespace Avro.File
+namespace AvroOld.File
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Reflection;
+    using CodeGen;
+    using Generic;
+    using IO;
+    using Schema;
+    using Specific;
+
     public class DataFileReader<T> : IFileReader<T>
     {
         public delegate DatumReader<T> CreateDatumReader(Schema writerSchema, Schema readerSchema);

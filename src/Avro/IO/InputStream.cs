@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 
-using System;
-using System.IO;
-
-namespace Avro.IO
+namespace AvroOld.IO
 {
+    using System;
+    using System.IO;
+
     public abstract class InputStream : Stream
     {
         public override void Flush()

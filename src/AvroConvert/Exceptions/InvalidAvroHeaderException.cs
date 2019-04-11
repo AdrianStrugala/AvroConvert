@@ -1,4 +1,4 @@
-﻿namespace AvroConvert.Exceptions
+﻿namespace Avro.Exceptions
 {
     using System;
 

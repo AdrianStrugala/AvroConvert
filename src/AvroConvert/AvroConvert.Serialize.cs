@@ -1,11 +1,12 @@
-﻿namespace AvroConvert
+﻿namespace Avro
 {
-    using Encoder;
     using System;
     using System.Collections;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using Encoder;
+    using global::AvroConvert.Encoder;
 
     public static partial class AvroConvert
     {

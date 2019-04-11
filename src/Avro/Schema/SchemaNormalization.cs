@@ -16,12 +16,12 @@
  * limitations under the License.
  */
 
-using System.Collections.Generic;
-using System.Text;
-using System;
-
-namespace Avro
+namespace AvroOld.Schema
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Text;
+
     /// <summary>
     /// Collection of static methods for generating the cannonical form of schemas.
     /// </summary>

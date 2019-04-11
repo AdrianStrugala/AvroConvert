@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace AvroConvert.Schema
+namespace Avro.Schema
 {
     using System;
     using Newtonsoft.Json.Linq;

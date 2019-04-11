@@ -15,17 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.IO;
-using Avro;
-using Avro.IO;
-using Avro.Generic;
 
-namespace Avro.Specific
+namespace AvroOld.Specific
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using CodeGen;
+    using Generic;
+    using IO;
+    using Schema;
+
     /// <summary>
     /// Reader wrapper class for reading data and storing into specific classes
     /// </summary>
@@ -264,7 +264,7 @@ namespace Avro.Specific
         protected virtual string getTargetType(Schema schema)
         {
             bool nEnum = false;
-            string type = Avro.CodeGen.getType(schema, false, ref nEnum);
+            string type = CodeGen.getType(schema, false, ref nEnum);
             if (schema.Tag == Schema.Type.Array)
             {
                 type = type.Remove(0, 6);              // remove IList<

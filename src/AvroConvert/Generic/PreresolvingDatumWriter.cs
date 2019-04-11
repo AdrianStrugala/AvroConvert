@@ -1,12 +1,12 @@
-﻿namespace AvroConvert.Generic
+﻿namespace Avro.Generic
 {
-    using Encoder;
-    using Schema;
     using System;
     using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using Encoder;
+    using Schema;
 
     /// <summary>
     /// A general purpose writer of data from avro streams. This writer analyzes the writer schema

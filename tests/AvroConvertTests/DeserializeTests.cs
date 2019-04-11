@@ -1,5 +1,6 @@
 ﻿namespace AvroConvertTests
 {
+    using Avro;
     using AvroConvert;
     using Xunit;
 

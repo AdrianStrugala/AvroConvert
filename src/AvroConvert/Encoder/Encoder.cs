@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace AvroConvert.Encoder
+namespace Avro.Encoder
 {
     public interface Encoder
     {

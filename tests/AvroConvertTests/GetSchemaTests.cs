@@ -3,6 +3,7 @@
     using AvroConvert;
     using Newtonsoft.Json.Linq;
     using System.IO;
+    using Avro;
     using Xunit;
 
     public class GetSchemaTests

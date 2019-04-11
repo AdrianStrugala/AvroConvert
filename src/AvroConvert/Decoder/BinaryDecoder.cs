@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace AvroConvert.Decoder
+namespace Avro.Decoder
 {
     using System;
     using System.IO;

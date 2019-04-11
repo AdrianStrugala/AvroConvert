@@ -15,13 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-using System;
-using System.Collections.Generic;
-using Avro.IO;
-using System.IO;
 
-namespace Avro.Generic
+namespace AvroOld.Generic
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using IO;
+    using Schema;
+
     public delegate T Reader<T>();
 
     /// <summary>

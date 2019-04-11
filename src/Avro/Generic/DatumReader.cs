@@ -15,12 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-using System;
-using System.Collections.Generic;
-using Avro.IO;
 
-namespace Avro.Generic
+namespace AvroOld.Generic
 {
+    using IO;
+    using Schema;
+
     public interface DatumReader<T>
     {
         Schema ReaderSchema { get; }

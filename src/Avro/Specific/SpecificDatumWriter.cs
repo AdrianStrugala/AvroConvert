@@ -15,14 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-using System;
-using System.Collections;
-using Avro.Generic;
-using Encoder = Avro.IO.Encoder;
-using System.Reflection;
 
-namespace Avro.Specific
+using Encoder = AvroOld.IO.Encoder;
+
+namespace AvroOld.Specific
 {
+    using System;
+    using System.Collections;
+    using System.Reflection;
+    using Generic;
+    using Schema;
+
     /// <summary>
     /// PreresolvingDatumWriter for writing data from ISpecificRecord classes.
     /// <see cref="PreresolvingDatumWriter{T}">For more information about performance considerations for choosing this implementation</see>

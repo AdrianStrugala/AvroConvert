@@ -1,4 +1,4 @@
-﻿namespace AvroConvert.Constants
+﻿namespace Avro.Constants
 {
     public class DataFileConstants
     {

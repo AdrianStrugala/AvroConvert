@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using Encoder = Avro.IO.Encoder;
+﻿using Encoder = AvroOld.IO.Encoder;
 
-namespace Avro.Generic
+namespace AvroOld.Generic
 {
+    using System;
+    using System.Collections;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Reflection;
+    using Schema;
 
     /// <summary>
     /// A general purpose writer of data from avro streams. This writer analyzes the writer schema

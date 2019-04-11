@@ -1,4 +1,4 @@
-﻿namespace AvroConvert.Encoder
+﻿namespace Avro.Encoder
 {
     using System;
     using System.Collections;

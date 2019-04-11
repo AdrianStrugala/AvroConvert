@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace AvroConvert.Constants
+namespace Avro.Constants
 {
     using System.Collections.Generic;
     using Schema;

@@ -16,12 +16,12 @@
  * limitations under the License.
  */
 
-namespace AvroConvert.Generic
+namespace Avro.Generic
 {
-    using Encoder;
-    using Schema;
     using System;
     using System.Collections.Generic;
+    using Encoder;
+    using Schema;
 
     public delegate void Writer<T>(T t);
     /// <summary>

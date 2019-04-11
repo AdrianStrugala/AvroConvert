@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace Avro
+﻿namespace AvroOld.CodeGen
 {
+    using Schema;
+
     public class CodeGen
     {
         internal static string getType(Schema schema, bool nullible, ref bool nullibleEnum)

@@ -15,12 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-using System.Collections.Generic;
-using System.IO;
+
+
 //using System.Linq;
 
-namespace Avro.IO
+namespace AvroOld.IO
 {
+    using System.Collections.Generic;
+    using System.IO;
+
     public class ByteBufferOutputStream : OutputStream
     {
         public const int BUFFER_SIZE = 8192;

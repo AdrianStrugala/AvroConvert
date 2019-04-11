@@ -1,12 +1,12 @@
-﻿namespace AvroConvert
+﻿namespace Avro
 {
-    using Microsoft.Hadoop.Avro;
     using System;
     using System.Collections;
     using System.Linq;
     using System.Reflection;
     using System.Reflection.Emit;
     using System.Runtime.Serialization;
+    using Microsoft.Hadoop.Avro;
 
     public static partial class AvroConvert
     {

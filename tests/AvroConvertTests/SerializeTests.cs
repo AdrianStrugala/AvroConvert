@@ -1,6 +1,7 @@
 ﻿namespace AvroConvertTests
 {
     using System.Collections.Generic;
+    using Avro;
     using Xunit;
     using AvroConvert;
     public class SerializeTests

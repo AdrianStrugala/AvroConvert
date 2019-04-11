@@ -1,11 +1,10 @@
-﻿namespace AvroConvert
+﻿namespace Avro
 {
-    using AutoMapper;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using AutoMapper;
     using Decoder;
-
 
     public static partial class AvroConvert
     {

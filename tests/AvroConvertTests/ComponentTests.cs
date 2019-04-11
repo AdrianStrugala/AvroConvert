@@ -1,6 +1,7 @@
 ﻿namespace AvroConvertTests
 {
     using System.Collections.Generic;
+    using Avro;
     using Xunit;
 
     public class ComponentTests
@@ -15,9 +16,9 @@
             user.favorite_number = null;
 
             //Act
-            var serialized = AvroConvert.AvroConvert.Serialize(user);
+            var serialized = AvroConvert.Serialize(user);
 
-            var deserialized = AvroConvert.AvroConvert.Deserialize<User>(serialized);
+            var deserialized = global::Avro.AvroConvert.Deserialize<User>(serialized);
 
             //Assert
             Assert.NotNull(serialized);
@@ -56,8 +57,8 @@
             someTestClasses[1] = dupa2;
 
             //Act
-            var serialized = AvroConvert.AvroConvert.Serialize(someTestClasses);
-            var deserialized = AvroConvert.AvroConvert.Deserialize<List<SomeTestClass>>(serialized);
+            var serialized = global::Avro.AvroConvert.Serialize(someTestClasses);
+            var deserialized = global::Avro.AvroConvert.Deserialize<List<SomeTestClass>>(serialized);
 
             //Assert
             Assert.NotNull(deserialized);

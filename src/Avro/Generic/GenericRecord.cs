@@ -15,14 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Avro;
 
-namespace Avro.Generic
+namespace AvroOld.Generic
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Text;
+    using Schema;
+
     /// <summary>
     /// The default type used by GenericReader and GenericWriter for RecordSchema.
     /// </summary>

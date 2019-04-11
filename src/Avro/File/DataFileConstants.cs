@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace Avro.File
+namespace AvroOld.File
 {
     public class DataFileConstants
     {

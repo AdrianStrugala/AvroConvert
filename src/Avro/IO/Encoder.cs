@@ -15,11 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-using System;
-using System.Collections.Generic;
-using System.IO;
 
-namespace Avro.IO
+namespace AvroOld.IO
 {
     public interface Encoder
     {

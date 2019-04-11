@@ -15,14 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-using System;
-using System.Collections.Generic;
-using System.Text;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
 
-namespace Avro
+namespace AvroOld.Schema
 {
+    using System;
+    using System.Collections.Generic;
+    using Newtonsoft.Json.Linq;
+
     /// <summary>
     /// Class for union schemas
     /// </summary>

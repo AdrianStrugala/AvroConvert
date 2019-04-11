@@ -18,43 +18,41 @@
 
 namespace AvroConvert.Constants
 {
-    using Avro.File;
-
-    abstract public class Codec
+    public abstract class Codec
     {
         /// <summary>
         /// Compress data using implemented codec
         /// </summary>
         /// <param name="uncompressedData"></param>
         /// <returns></returns>
-        abstract public byte[] Compress(byte[] uncompressedData);
+        public abstract byte[] Compress(byte[] uncompressedData);
 
         /// <summary>
         /// Decompress data using implemented codec
         /// </summary>
         /// <param name="compressedData"></param>
         /// <returns></returns>
-        abstract public byte[] Decompress(byte[] compressedData);
+        public abstract byte[] Decompress(byte[] compressedData);
 
         /// <summary>
         /// Name of this codec type
         /// </summary>
         /// <returns></returns>
-        abstract public string GetName();
+        public abstract string GetName();
 
         /// <summary>
         ///  Codecs must implement an equals() method
         /// </summary>
         /// <param name="other"></param>
         /// <returns></returns>
-        abstract public override bool Equals(object other);
+        public abstract override bool Equals(object other);
 
         /// <summary>
         /// Codecs must implement a HashCode() method that is
         /// consistent with Equals
         /// </summary>
         /// <returns></returns>
-        abstract public override int GetHashCode();
+        public abstract override int GetHashCode();
 
         /// <summary>
         /// Codec types
@@ -93,7 +91,7 @@ namespace AvroConvert.Constants
         {
             switch (codecType)
             {
-                case Avro.File.DataFileConstants.DeflateCodec:
+                case DataFileConstants.DeflateCodec:
                     return new DeflateCodec();
                 default:
                     return new NullCodec();

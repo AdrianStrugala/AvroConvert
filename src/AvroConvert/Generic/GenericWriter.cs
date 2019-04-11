@@ -15,12 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-using System;
-using System.Collections.Generic;
-using Avro.IO;
 
-namespace Avro.Generic
+namespace AvroConvert.Generic
 {
+    using Encoder;
+    using Schema;
+    using System;
+    using System.Collections.Generic;
+
     public delegate void Writer<T>(T t);
     /// <summary>
     /// A typesafe wrapper around DefaultWriter. While a specific object of DefaultWriter
@@ -388,7 +390,7 @@ namespace Avro.Generic
 
         protected AvroException TypeMismatch(object obj, string schemaType, string type)
         {
-            return new AvroException(type + " required to write against " + schemaType + " schema but found " + (null == obj ? "null" : obj.GetType().ToString()) );
+            return new AvroException(type + " required to write against " + schemaType + " schema but found " + (null == obj ? "null" : obj.GetType().ToString()));
         }
 
         private void error(Schema schema, Object value)

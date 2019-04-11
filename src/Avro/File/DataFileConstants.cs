@@ -22,7 +22,7 @@ namespace Avro.File
     {
         public const string MetaDataSync = "avro.sync";
         public const string MetaDataCodec = "avro.codec";
-        public const string MetaDataSchema = "avro.schema";
+        public const string MetaDataSchema = "Schema";
         public const string NullCodec = "null";
         public const string DeflateCodec = "deflate";
         public const string MetaDataReserved = "avro";

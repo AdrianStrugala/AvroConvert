@@ -1,6 +1,5 @@
 ﻿namespace AvroConvert
 {
-    using Avro;
     using Encoder;
     using System;
     using System.Collections;
@@ -24,7 +23,7 @@
 
                 string schema = AvroConvert.GenerateSchema(ienumerableObj[0]);
 
-                var writer = Writer.OpenWriter(new GenericDatumWriter(Schema.Parse(schema)), resultStream);
+                var writer = Writer.OpenWriter(new GenericDatumWriter(Schema.Schema.Parse(schema)), resultStream);
 
                 foreach (var @object in ienumerableObj)
                 {
@@ -37,7 +36,7 @@
             else //serialize single object
             {
                 string schema = AvroConvert.GenerateSchema(obj);
-                var writer = Writer.OpenWriter(new GenericDatumWriter(Schema.Parse(schema)), resultStream);
+                var writer = Writer.OpenWriter(new GenericDatumWriter(Schema.Schema.Parse(schema)), resultStream);
                 writer.Append(obj);
                 writer.Close();
             }

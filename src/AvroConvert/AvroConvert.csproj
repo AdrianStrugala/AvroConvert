@@ -39,8 +39,4 @@
     <PackageReference Include="System.Reflection.Emit" Version="4.3.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Avro\Avro.csproj" />
-  </ItemGroup>
-
 </Project>

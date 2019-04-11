@@ -106,7 +106,7 @@ namespace Avro.Specific
 
         protected override bool UnionBranchMatches( Schema sc, object obj )
         {
-            if (obj == null && sc.Tag != Avro.Schema.Type.Null) return false;
+            if (obj == null && sc.Tag != Schema.Type.Null) return false;
             switch (sc.Tag)
             {
                 case Schema.Type.Null:

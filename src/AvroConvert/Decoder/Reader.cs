@@ -1,13 +1,13 @@
 ﻿namespace AvroConvert.Decoder
 {
+    using Exceptions;
+    using Schema;
     using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using Avro;
-    using Avro.File;
-    using global::AvroConvert.Exceptions;
-    using Codec = global::AvroConvert.Constants.Codec;
+    using Constants;
+    using Codec = Constants.Codec;
 
     public class Reader
     {
@@ -116,7 +116,7 @@
         {
             Seek(position);
             // work around an issue where 1.5.4 C stored sync in metadata
-            if ((position == 0) && (GetMeta(DataFileConstants.MetaDataSync) != null))
+            if ((position == 0) && (GetMeta(DataFileConstants.SyncMetadataKey) != null))
             {
                 Init(_stream); // re-init to skip header
                 return;
@@ -260,7 +260,7 @@
             _decoder.ReadFixed(_header.SyncData);
 
             // parse schema and set codec 
-            _header.Schema = Schema.Parse(GetMetaString(DataFileConstants.MetaDataSchema));
+            _header.Schema = Schema.Parse(GetMetaString(DataFileConstants.SchemaMetadataKey));
             _reader = _datumReaderFactory(_header.Schema, _readerSchema ?? _header.Schema);
             _codec = ResolveCodec();
         }
@@ -274,7 +274,7 @@
 
         private Codec ResolveCodec()
         {
-            return Codec.CreateCodecFromString(GetMetaString(DataFileConstants.MetaDataCodec));
+            return Codec.CreateCodecFromString(GetMetaString(DataFileConstants.CodecMetadataKey));
         }
 
         private object Next()

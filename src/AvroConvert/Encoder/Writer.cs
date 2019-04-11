@@ -1,12 +1,12 @@
 ﻿namespace AvroConvert.Encoder
 {
-    using Avro;
-    using Avro.IO;
     using System;
     using System.Collections.Generic;
     using System.Globalization;
     using System.IO;
     using Constants;
+    using Exceptions;
+    using Schema;
 
     public class Writer
     {

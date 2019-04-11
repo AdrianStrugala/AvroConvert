@@ -1,31 +1,12 @@
-﻿/**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-using System;
-using System.Collections.Generic;
-using Encoder = Avro.IO.Encoder;
-
-namespace Avro.Generic
+﻿namespace AvroConvert.Encoder
 {
-    /// <summary>
-    /// PreresolvingDatumWriter for writing data from GenericRecords or primitive types.
-    /// <see cref="PreresolvingDatumWriter{T}">For more information about performance considerations for choosing this implementation</see>
-    /// </summary>
-    public class GenericDatumWriter<T> : PreresolvingDatumWriter<T>
+    using Generic;
+    using Schema;
+    using System;
+    using System.Collections.Generic;
+
+
+    public class GenericDatumWriter : IEncoder
     {
         private readonly Schema _schema;
 
@@ -87,6 +68,7 @@ namespace Avro.Generic
             GenericFixed ba = (GenericFixed)value;
             encoder.WriteFixed(ba.Value);
         }
+
 
         /*
          * FIXME: This method of determining the Union branch has problems. If the data is IDictionary<string, object>

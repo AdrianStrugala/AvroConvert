@@ -16,37 +16,20 @@
  * limitations under the License.
  */
 
-namespace AvroConvert.Constants
+namespace AvroConvert.Schema
 {
-    public class NullCodec : Codec
+    /// <summary>
+    /// Base class for all unnamed schemas
+    /// </summary>
+    public abstract class UnnamedSchema : Schema
     {
-        public NullCodec() { }
-
-        public override byte[] Compress(byte[] uncompressedData)
+        protected UnnamedSchema(Type type, PropertyMap props) : base(type, props)
         {
-            return uncompressedData;
         }
 
-        public override byte[] Decompress(byte[] compressedData)
+        public override string Name
         {
-            return compressedData;
-        }
-
-        public override string GetName()
-        {
-            return DataFileConstants.NullCodec;
-        }
-
-        public override bool Equals(object other)
-        {
-            if (this == other)
-                return true;
-            return (this.GetType().Name == other.GetType().Name);
-        }
-
-        public override int GetHashCode()
-        {
-            return DataFileConstants.NullCodecHash;
+            get { return Tag.ToString().ToLower(); }
         }
     }
 }

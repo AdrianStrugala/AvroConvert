@@ -18,35 +18,22 @@
 
 namespace AvroConvert.Constants
 {
-    public class NullCodec : Codec
+    using System.Collections.Generic;
+    using Schema;
+
+    public class Header
     {
-        public NullCodec() { }
+        private IDictionary<string, byte[]> _metaData;
+        private byte[] _syncData;
 
-        public override byte[] Compress(byte[] uncompressedData)
-        {
-            return uncompressedData;
-        }
+        public IDictionary<string, byte[]> MetaData { get { return _metaData; }}
+        public byte[] SyncData { get { return _syncData; }}
+        public Schema Schema { get; set; }
 
-        public override byte[] Decompress(byte[] compressedData)
+        public Header()
         {
-            return compressedData;
-        }
-
-        public override string GetName()
-        {
-            return DataFileConstants.NullCodec;
-        }
-
-        public override bool Equals(object other)
-        {
-            if (this == other)
-                return true;
-            return (this.GetType().Name == other.GetType().Name);
-        }
-
-        public override int GetHashCode()
-        {
-            return DataFileConstants.NullCodecHash;
+            _metaData = new Dictionary<string, byte[]>();
+            _syncData = new byte[16];
         }
     }
 }

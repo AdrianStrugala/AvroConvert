@@ -1,14 +1,19 @@
-﻿namespace AvroConvert.Encoder
+﻿namespace AvroConvert.Generic
 {
+    using Encoder;
+    using Schema;
     using System;
     using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
-    using Generic;
-    using Schema;
 
-    public abstract class IEncoder
+    /// <summary>
+    /// A general purpose writer of data from avro streams. This writer analyzes the writer schema
+    /// when constructed so that writes can be more efficient. Once constructed, a writer can be reused or shared among threads
+    /// to avoid incurring more resolution costs.
+    /// </summary>
+    public abstract class PreresolvingDatumWriter<T> : DatumWriter<T>
     {
         public Schema Schema { get; private set; }
 
@@ -20,12 +25,12 @@
 
         private readonly Dictionary<RecordSchema, WriteItem> _recordWriters = new Dictionary<RecordSchema, WriteItem>();
 
-        public void Write(object datum, Encoder encoder)
+        public void Write(T datum, Encoder encoder)
         {
             _writer(datum, encoder);
         }
 
-        protected IEncoder(Schema schema, ArrayAccess arrayAccess, MapAccess mapAccess)
+        protected PreresolvingDatumWriter(Schema schema, ArrayAccess arrayAccess, MapAccess mapAccess)
         {
             Schema = schema;
             _arrayAccess = arrayAccess;
@@ -131,62 +136,27 @@
         {
             Dictionary<string, object> result = new Dictionary<string, object>();
 
-            Type objType = item.GetType();
+            PropertyInfo[] properties = item.GetType().GetProperties();
 
-            if (typeof(IList).IsAssignableFrom(objType) &&
-                objType.GetTypeInfo().IsGenericType)
+            foreach (PropertyInfo prop in properties)
             {
-                // We have a List<T> or array
-                FieldInfo[] fields = objType.GetFields();
-                foreach (var field in fields)
+                if (typeof(IList).IsAssignableFrom(prop.PropertyType) &&
+                    prop.PropertyType.GetTypeInfo().IsGenericType)
                 {
-                    if (typeof(IList).IsAssignableFrom(field.FieldType) &&
-                        field.FieldType.GetTypeInfo().IsGenericType)
-                    {
-                        // We have a List<T> or array
-                        result.Add(field.Name, field.GetValue(item));
-                        // result.Add(prop.Name, SplitKeyValues(prop.GetValue(item)));
-                    }
-
-                    else if (field.FieldType.GetTypeInfo().IsValueType ||
-                             field.FieldType == typeof(string))
-                    {
-                        // We have a simple type
-
-                        result.Add(field.Name, field.GetValue(item));
-                    }
-                    else
-                    {
-                        result.Add(field.Name, SplitKeyValues(field.GetValue(item)));
-                    }
+                    // We have a List<T> or array
+                    result.Add(prop.Name, SplitKeyValues(prop.GetValue(item)));
                 }
 
-            }
-            else
-            {
-                PropertyInfo[] properties = objType.GetProperties();
-
-                foreach (PropertyInfo prop in properties)
+                else if (prop.PropertyType.GetTypeInfo().IsValueType ||
+                         prop.PropertyType == typeof(string))
                 {
-                    if (typeof(IList).IsAssignableFrom(prop.PropertyType) &&
-                        prop.PropertyType.GetTypeInfo().IsGenericType)
-                    {
-                        // We have a List<T> or array
-                        result.Add(prop.Name, prop.GetValue(item));
-                        // result.Add(prop.Name, SplitKeyValues(prop.GetValue(item)));
-                    }
+                    // We have a simple type
 
-                    else if (prop.PropertyType.GetTypeInfo().IsValueType ||
-                             prop.PropertyType == typeof(string))
-                    {
-                        // We have a simple type
-
-                        result.Add(prop.Name, prop.GetValue(item));
-                    }
-                    else
-                    {
-                        result.Add(prop.Name, SplitKeyValues(prop.GetValue(item)));
-                    }
+                    result.Add(prop.Name, prop.GetValue(item));
+                }
+                else
+                {
+                    result.Add(prop.Name, SplitKeyValues(prop.GetValue(item)));
                 }
             }
 

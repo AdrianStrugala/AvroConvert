@@ -20,7 +20,7 @@ namespace AvroConvert.Decoder
 {
     using System;
     using System.IO;
-    using Avro;
+    using Schema;
 
     /// <summary>
     /// IDecoder for Avro binary format

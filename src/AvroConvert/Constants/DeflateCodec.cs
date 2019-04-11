@@ -62,7 +62,7 @@ namespace AvroConvert.Constants
 
         public override string GetName()
         {
-            return Avro.File.DataFileConstants.DeflateCodec;
+            return DataFileConstants.DeflateCodec;
         }
 
         public override bool Equals(object other)
@@ -74,7 +74,7 @@ namespace AvroConvert.Constants
 
         public override int GetHashCode()
         {
-            return Avro.File.DataFileConstants.DeflateCodecHash;
+            return DataFileConstants.DeflateCodecHash;
         }
     }
 }

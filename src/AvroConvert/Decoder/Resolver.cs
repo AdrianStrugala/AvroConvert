@@ -20,9 +20,9 @@ namespace AvroConvert.Decoder
 {
     using System;
     using System.Collections.Generic;
-    using Avro;
-    using Avro.IO;
+    using Encoder;
     using Newtonsoft.Json.Linq;
+    using Schema;
 
     static class Resolver
     {

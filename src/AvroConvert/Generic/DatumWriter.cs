@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,37 +16,14 @@
  * limitations under the License.
  */
 
-namespace AvroConvert.Constants
+namespace AvroConvert.Generic
 {
-    public class NullCodec : Codec
+    using Encoder;
+    using Schema;
+
+    public interface DatumWriter<T>
     {
-        public NullCodec() { }
-
-        public override byte[] Compress(byte[] uncompressedData)
-        {
-            return uncompressedData;
-        }
-
-        public override byte[] Decompress(byte[] compressedData)
-        {
-            return compressedData;
-        }
-
-        public override string GetName()
-        {
-            return DataFileConstants.NullCodec;
-        }
-
-        public override bool Equals(object other)
-        {
-            if (this == other)
-                return true;
-            return (this.GetType().Name == other.GetType().Name);
-        }
-
-        public override int GetHashCode()
-        {
-            return DataFileConstants.NullCodecHash;
-        }
+        Schema Schema { get; }
+        void Write(T datum, Encoder encoder);
     }
 }

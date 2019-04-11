@@ -1,11 +1,11 @@
 namespace AvroConvert.Decoder
 {
+    using Generic;
+    using Schema;
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using Avro;
-    using Avro.Generic;
-    using Avro.IO;
+    using Encoder;
 
     public delegate T Reader<T>();
 

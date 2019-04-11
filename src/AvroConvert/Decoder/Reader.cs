@@ -7,6 +7,7 @@
     using Avro;
     using Avro.File;
     using global::AvroConvert.Exceptions;
+    using Codec = global::AvroConvert.Constants.Codec;
 
     public class Reader
     {

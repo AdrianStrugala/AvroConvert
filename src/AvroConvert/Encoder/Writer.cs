@@ -1,12 +1,12 @@
 ﻿namespace AvroConvert.Encoder
 {
     using Avro;
-    using Avro.File;
     using Avro.IO;
     using System;
     using System.Collections.Generic;
     using System.Globalization;
     using System.IO;
+    using Constants;
 
     public class Writer
     {
@@ -200,8 +200,8 @@
             // Add sync, code & schema to metadata
             GenerateSyncData();
             //SetMetaInternal(DataFileConstants.MetaDataSync, _syncData); - Avro 1.5.4 C
-            SetMetaInternal(DataFileConstants.MetaDataCodec, GetByteValue(_codec.GetName()));
-            SetMetaInternal(DataFileConstants.MetaDataSchema, GetByteValue(_schema.ToString()));
+            SetMetaInternal(DataFileConstants.CodecMetadataKey, GetByteValue(_codec.GetName()));
+            SetMetaInternal(DataFileConstants.SchemaMetadataKey, GetByteValue(_schema.ToString()));
 
             // write metadata 
             int size = _metaData.Count;

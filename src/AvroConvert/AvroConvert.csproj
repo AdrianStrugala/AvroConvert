@@ -6,7 +6,7 @@
     <Authors>Adrian Strugala</Authors>
     <AssemblyVersion>0.1.0.0</AssemblyVersion>
     <FileVersion>0.1.0.0</FileVersion>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Description>Small and fast library for serializing c# objects to avro format and vice versa</Description>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>

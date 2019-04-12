@@ -138,28 +138,28 @@
             {
                 // We have a List<T> or array
 
-                foreach (var internalItem in (IList)item)
-                {
-                    if (typeof(IList).IsAssignableFrom(internalItem.GetType()) &&
-                        internalItem.GetType().GetTypeInfo().IsGenericType)
-                    {
-                        // We have a List<T> or array
-                        result.Add(nameof(internalItem), internalItem);
-                        // result.Add(prop.Name, SplitKeyValues(prop.GetValue(item)));
-                    }
-
-                    else if (internalItem.GetType().GetTypeInfo().IsValueType ||
-                             internalItem.GetType() == typeof(string))
-                    {
-                        // We have a simple type
-
-                        result.Add(nameof(internalItem), internalItem);
-                    }
-                    else
-                    {
-                        result.Add(nameof(internalItem), SplitKeyValues(internalItem));
-                    }
-                }
+//                foreach (var internalItem in (IList)item)
+//                {
+//                    if (typeof(IList).IsAssignableFrom(internalItem.GetType()) &&
+//                        internalItem.GetType().GetTypeInfo().IsGenericType)
+//                    {
+//                        // We have a List<T> or array
+//                        result.Add(nameof(internalItem), SplitKeyValues(internalItem));
+//                        // result.Add(prop.Name, SplitKeyValues(prop.GetValue(item)));
+//                    }
+//
+//                    else if (internalItem.GetType().GetTypeInfo().IsValueType ||
+//                             internalItem.GetType() == typeof(string))
+//                    {
+//                        // We have a simple type
+//
+//                        result.Add(nameof(internalItem), internalItem);
+//                    }
+//                    else
+//                    {
+//                        result.Add(nameof(internalItem), SplitKeyValues(internalItem));
+//                    }
+//                }
 
             }
             else
@@ -172,8 +172,8 @@
                         prop.PropertyType.GetTypeInfo().IsGenericType)
                     {
                         // We have a List<T> or array
-                        result.Add(prop.Name, prop.GetValue(item));
-                        // result.Add(prop.Name, SplitKeyValues(prop.GetValue(item)));
+                        // result.Add(prop.Name, prop.GetValue(item));
+                        result.Add(prop.Name, GetSplittedList((IList)prop.GetValue(item)));
                     }
 
                     else if (prop.PropertyType.GetTypeInfo().IsValueType ||
@@ -191,6 +191,33 @@
             }
 
             return result;
+        }
+
+        IList GetSplittedList(IList list)
+        {
+            if (list.Count == 0)
+            {
+                return list;
+            }
+
+            var itemToCheck = list[0];
+
+            if (itemToCheck.GetType().GetTypeInfo().IsValueType ||
+                itemToCheck is string)
+            {
+                return list;
+            }
+            else
+            {
+                List<object> result = new List<object>();
+
+                foreach (var item in list)
+                {
+                    result.Add(SplitKeyValues(item));
+                }
+
+                return result;
+            }
         }
 
         protected abstract void WriteRecordFields(object record, RecordFieldWriter[] writers, Encoder encoder);

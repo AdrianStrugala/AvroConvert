@@ -72,7 +72,7 @@
         }
 
         [Fact]
-        public void Serialize_ClassHasConstructorFillingProperty_NoExceptionIsThrown()
+        public void Serialize_ObjectContainsLists_ResultIsTheSameAsInput()
         {
             //Arrange
             ClassWithConstructorPopulatingProperty

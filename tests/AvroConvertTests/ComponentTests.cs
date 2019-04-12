@@ -1,11 +1,18 @@
 ﻿namespace AvroConvertTests
 {
     using System.Collections.Generic;
+    using AutoFixture;
     using Avro;
     using Xunit;
 
     public class ComponentTests
     {
+        private readonly Fixture _fixture;
+
+        public ComponentTests()
+        {
+            _fixture = new Fixture();
+        }
         [Fact]
         public void Serialize_ThenDeserialize_ObjectsAreEqual()
         {
@@ -62,6 +69,26 @@
 
             //Assert
             Assert.NotNull(deserialized);
+        }
+
+        [Fact]
+        public void Serialize_ClassHasConstructorFillingProperty_NoExceptionIsThrown()
+        {
+            //Arrange
+            ClassWithConstructorPopulatingProperty
+                testClass = _fixture.Create<ClassWithConstructorPopulatingProperty>();
+
+            //Act
+
+            var result = AvroConvert.Serialize(testClass);
+
+            var deserialized = AvroConvert.Deserialize<ClassWithConstructorPopulatingProperty>(result);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.NotEmpty(deserialized.nestedList);
+            Assert.NotEmpty(deserialized.someList);
         }
     }
 }

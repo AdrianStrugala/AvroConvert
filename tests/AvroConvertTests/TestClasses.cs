@@ -37,6 +37,8 @@
     {
         public List<int> someList { get; set; }
 
+        public List<NestedTestClass> nestedList { get; set; }
+
         public ClassWithConstructorPopulatingProperty()
         {
             someList = new List<int>();

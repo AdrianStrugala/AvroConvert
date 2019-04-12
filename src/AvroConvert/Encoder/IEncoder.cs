@@ -137,27 +137,27 @@
                 objType.GetTypeInfo().IsGenericType)
             {
                 // We have a List<T> or array
-                FieldInfo[] fields = objType.GetFields();
-                foreach (var field in fields)
+
+                foreach (var internalItem in (IList)item)
                 {
-                    if (typeof(IList).IsAssignableFrom(field.FieldType) &&
-                        field.FieldType.GetTypeInfo().IsGenericType)
+                    if (typeof(IList).IsAssignableFrom(internalItem.GetType()) &&
+                        internalItem.GetType().GetTypeInfo().IsGenericType)
                     {
                         // We have a List<T> or array
-                        result.Add(field.Name, field.GetValue(item));
+                        result.Add(nameof(internalItem), internalItem);
                         // result.Add(prop.Name, SplitKeyValues(prop.GetValue(item)));
                     }
 
-                    else if (field.FieldType.GetTypeInfo().IsValueType ||
-                             field.FieldType == typeof(string))
+                    else if (internalItem.GetType().GetTypeInfo().IsValueType ||
+                             internalItem.GetType() == typeof(string))
                     {
                         // We have a simple type
 
-                        result.Add(field.Name, field.GetValue(item));
+                        result.Add(nameof(internalItem), internalItem);
                     }
                     else
                     {
-                        result.Add(field.Name, SplitKeyValues(field.GetValue(item)));
+                        result.Add(nameof(internalItem), SplitKeyValues(internalItem));
                     }
                 }
 

@@ -1,12 +1,12 @@
 ﻿namespace Avro
 {
+    using Microsoft.Hadoop.Avro;
     using System;
     using System.Collections;
     using System.Linq;
     using System.Reflection;
     using System.Reflection.Emit;
     using System.Runtime.Serialization;
-    using Microsoft.Hadoop.Avro;
 
     public static partial class AvroConvert
     {
@@ -33,7 +33,7 @@
                 AssemblyBuilderAccess.Run);
 
             var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name);
-            TypeBuilder typeBuilder = moduleBuilder.DefineType(objType.Name, System.Reflection.TypeAttributes.Public);
+            TypeBuilder typeBuilder;
 
 
 
@@ -41,20 +41,26 @@
                 objType.GetTypeInfo().IsGenericType)
             {
                 // We have a List<T> or array
-                FieldInfo[] fields = objType.GetFields();
-                foreach (var field in fields)
-                {
-                    Type fieldType = field.FieldType;
+                PropertyInfo[] fields = objType.GetProperties();
+                Type fieldType = fields[2].PropertyType;
 
-                    typeBuilder = AddPropertyToTypeBuilder(typeBuilder, fieldType, field.Name, null);
-                }
+                var tempArray = Array.CreateInstance(fieldType, 1);
+                objType = tempArray.GetType();
+
+                typeBuilder = moduleBuilder.DefineType(objType.Name, System.Reflection.TypeAttributes.Public);
+
+
+                typeBuilder = AddPropertyToTypeBuilder(typeBuilder, fieldType, fields[2].Name, null);
             }
             else
             {
+                typeBuilder = moduleBuilder.DefineType(objType.Name, System.Reflection.TypeAttributes.Public);
+
                 PropertyInfo[] properties = objType.GetProperties();
                 foreach (var prop in properties)
                 {
                     Type properType = prop.PropertyType;
+
 
                     typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name, prop.GetValue(obj));
                 }

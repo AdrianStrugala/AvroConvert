@@ -42,15 +42,20 @@
             {
                 // We have a List<T> or array
                 PropertyInfo[] fields = objType.GetProperties();
-                Type fieldType = fields[2].PropertyType;
+                Type listedType = fields[2].PropertyType;
 
-                var tempArray = Array.CreateInstance(fieldType, 1);
-                objType = tempArray.GetType();
+                var listedObject = Activator.CreateInstance(listedType);
+                var avroListedObject = DecorateObjectWithAvroAttributes(listedObject);
 
+                // var tempArray = Array.CreateInstance(listedType, 1);
+                // objType = tempArray.GetType();
+
+                typeBuilder = moduleBuilder.DefineType(avroListedObject.GetType().Name, System.Reflection.TypeAttributes.Public);
+
+                objType = typeBuilder.MakeArrayType();
                 typeBuilder = moduleBuilder.DefineType(objType.Name, System.Reflection.TypeAttributes.Public);
 
-
-                typeBuilder = AddPropertyToTypeBuilder(typeBuilder, fieldType, fields[2].Name, null);
+             //   typeBuilder = AddPropertyToTypeBuilder(typeBuilder, objType, fields[2].Name, null);
             }
             else
             {
@@ -82,7 +87,7 @@
         {
             //if complex type - use recurrence
             if (!(properType.GetTypeInfo().IsValueType ||
-                 properType == typeof(string) || value == null))
+             properType == typeof(string) || value == null))
             {
                 properType = DecorateObjectWithAvroAttributes(value).GetType();
             }

@@ -1,7 +1,9 @@
 ﻿namespace AvroConvert.Encoder
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
+    using System.Linq;
     using Avro.Encoder;
     using Avro.Generic;
     using Avro.Schema;
@@ -121,9 +123,19 @@
 
         private class GenericArrayAccess : ArrayAccess
         {
-            public void EnsureArrayObject(object value)
+            public object EnsureArrayObject(object value)
             {
-                if (value == null || !(value is Array)) throw TypeMismatch(value, "array", "Array");
+
+                IList enumerable = value as IList;
+                object[] result = new object[enumerable.Count];
+
+                for (int i = 0; i < enumerable.Count; i++)
+                {
+                    result[i] = enumerable[i];
+                }
+
+                return result;
+                //if (value == null || !(value is Array)) throw TypeMismatch(value, "array", "Array");
             }
 
             public long GetArrayLength(object value)

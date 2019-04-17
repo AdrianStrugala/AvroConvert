@@ -138,28 +138,28 @@
             {
                 // We have a List<T> or array
 
-//                foreach (var internalItem in (IList)item)
-//                {
-//                    if (typeof(IList).IsAssignableFrom(internalItem.GetType()) &&
-//                        internalItem.GetType().GetTypeInfo().IsGenericType)
-//                    {
-//                        // We have a List<T> or array
-//                        result.Add(nameof(internalItem), SplitKeyValues(internalItem));
-//                        // result.Add(prop.Name, SplitKeyValues(prop.GetValue(item)));
-//                    }
-//
-//                    else if (internalItem.GetType().GetTypeInfo().IsValueType ||
-//                             internalItem.GetType() == typeof(string))
-//                    {
-//                        // We have a simple type
-//
-//                        result.Add(nameof(internalItem), internalItem);
-//                    }
-//                    else
-//                    {
-//                        result.Add(nameof(internalItem), SplitKeyValues(internalItem));
-//                    }
-//                }
+                //                foreach (var internalItem in (IList)item)
+                //                {
+                //                    if (typeof(IList).IsAssignableFrom(internalItem.GetType()) &&
+                //                        internalItem.GetType().GetTypeInfo().IsGenericType)
+                //                    {
+                //                        // We have a List<T> or array
+                //                        result.Add(nameof(internalItem), SplitKeyValues(internalItem));
+                //                        // result.Add(prop.Name, SplitKeyValues(prop.GetValue(item)));
+                //                    }
+                //
+                //                    else if (internalItem.GetType().GetTypeInfo().IsValueType ||
+                //                             internalItem.GetType() == typeof(string))
+                //                    {
+                //                        // We have a simple type
+                //
+                //                        result.Add(nameof(internalItem), internalItem);
+                //                    }
+                //                    else
+                //                    {
+                //                        result.Add(nameof(internalItem), SplitKeyValues(internalItem));
+                //                    }
+                //                }
 
             }
             else
@@ -262,7 +262,7 @@
 
         private void WriteArray(WriteItem itemWriter, object array, Encoder encoder)
         {
-            _arrayAccess.EnsureArrayObject(array);
+            array = _arrayAccess.EnsureArrayObject(array);
             long l = _arrayAccess.GetArrayLength(array);
             encoder.WriteArrayStart();
             encoder.SetItemCount(l);
@@ -371,7 +371,7 @@
             /// it throws an exception. The default implementation checks if the value is an array.
             /// </summary>
             /// <param name="value"></param>
-            void EnsureArrayObject(object value);
+            object EnsureArrayObject(object value);
 
             /// <summary>
             /// Returns the length of an array. The default implementation requires the object

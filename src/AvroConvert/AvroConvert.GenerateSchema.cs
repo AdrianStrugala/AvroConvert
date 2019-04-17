@@ -37,8 +37,7 @@
 
 
 
-            if (typeof(IList).IsAssignableFrom(objType) &&
-                objType.GetTypeInfo().IsGenericType)
+            if (typeof(IList).IsAssignableFrom(objType))
             {
                 // We have a List<T> or array
                 PropertyInfo[] fields = objType.GetProperties();
@@ -50,12 +49,21 @@
                 // var tempArray = Array.CreateInstance(listedType, 1);
                 // objType = tempArray.GetType();
 
-                typeBuilder = moduleBuilder.DefineType(avroListedObject.GetType().Name, System.Reflection.TypeAttributes.Public);
+                TypeBuilder internalTypeBuilder = moduleBuilder.DefineType(avroListedObject.GetType().Name, System.Reflection.TypeAttributes.Public);
+                var dataContractAttributeConstructor2 = typeof(DataContractAttribute).GetConstructor(new Type[] { });
+                var dataContractAttributeProperties2 = typeof(DataContractAttribute).GetProperties();
+                var dataContractAttributeBuilder2 = new CustomAttributeBuilder(dataContractAttributeConstructor2, new string[] { }, dataContractAttributeProperties2.Where(p => p.Name == "Name").ToArray(), new object[] { objType.Name });
 
-                objType = typeBuilder.MakeArrayType();
+                internalTypeBuilder.SetCustomAttribute(dataContractAttributeBuilder2);
+
+                var internalType = internalTypeBuilder.CreateType();
+
+                objType = internalTypeBuilder.MakeArrayType();
+                // var tempArray = Array.CreateInstance(internalType, 1);
+                // objType = tempArray.GetType();
                 typeBuilder = moduleBuilder.DefineType(objType.Name, System.Reflection.TypeAttributes.Public);
 
-             //   typeBuilder = AddPropertyToTypeBuilder(typeBuilder, objType, fields[2].Name, null);
+                typeBuilder = AddPropertyToTypeBuilder(typeBuilder, objType, fields[2].Name, null);
             }
             else
             {
@@ -69,8 +77,9 @@
 
                     typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name, prop.GetValue(obj));
                 }
-            }
 
+
+            }
             var dataContractAttributeConstructor = typeof(DataContractAttribute).GetConstructor(new Type[] { });
             var dataContractAttributeProperties = typeof(DataContractAttribute).GetProperties();
             var dataContractAttributeBuilder = new CustomAttributeBuilder(dataContractAttributeConstructor, new string[] { }, dataContractAttributeProperties.Where(p => p.Name == "Name").ToArray(), new object[] { objType.Name });

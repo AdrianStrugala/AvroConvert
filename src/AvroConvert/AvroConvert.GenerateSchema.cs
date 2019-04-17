@@ -44,26 +44,28 @@
                 Type listedType = fields[2].PropertyType;
 
                 var listedObject = Activator.CreateInstance(listedType);
-                var avroListedObject = DecorateObjectWithAvroAttributes(listedObject);
+               // var avroListedObject = DecorateObjectWithAvroAttributes(listedObject);
 
                 // var tempArray = Array.CreateInstance(listedType, 1);
                 // objType = tempArray.GetType();
 
-                TypeBuilder internalTypeBuilder = moduleBuilder.DefineType(avroListedObject.GetType().Name, System.Reflection.TypeAttributes.Public);
-                var dataContractAttributeConstructor2 = typeof(DataContractAttribute).GetConstructor(new Type[] { });
-                var dataContractAttributeProperties2 = typeof(DataContractAttribute).GetProperties();
-                var dataContractAttributeBuilder2 = new CustomAttributeBuilder(dataContractAttributeConstructor2, new string[] { }, dataContractAttributeProperties2.Where(p => p.Name == "Name").ToArray(), new object[] { objType.Name });
-
-                internalTypeBuilder.SetCustomAttribute(dataContractAttributeBuilder2);
-
-                var internalType = internalTypeBuilder.CreateType();
-
-                objType = internalTypeBuilder.MakeArrayType();
-                // var tempArray = Array.CreateInstance(internalType, 1);
-                // objType = tempArray.GetType();
+//                TypeBuilder internalTypeBuilder = moduleBuilder.DefineType(listedType.Name, System.Reflection.TypeAttributes.Public);
+//                var dataContractAttributeConstructor2 = typeof(DataContractAttribute).GetConstructor(new Type[] { });
+//                var dataContractAttributeProperties2 = typeof(DataContractAttribute).GetProperties();
+//                var dataContractAttributeBuilder2 = new CustomAttributeBuilder(dataContractAttributeConstructor2, new string[] { }, dataContractAttributeProperties2.Where(p => p.Name == "Name").ToArray(), new object[] { objType.Name });
+//
+//                internalTypeBuilder.SetCustomAttribute(dataContractAttributeBuilder2);
+//
+//                var internalType = internalTypeBuilder.CreateType();
+//
+//                objType = internalTypeBuilder.MakeArrayType();
+                 var tempArray = Array.CreateInstance(listedType, 1);
+                 objType = tempArray.GetType();
                 typeBuilder = moduleBuilder.DefineType(objType.Name, System.Reflection.TypeAttributes.Public);
 
                 typeBuilder = AddPropertyToTypeBuilder(typeBuilder, objType, fields[2].Name, null);
+
+            //    typeBuilder.DefineProperty(fields[0].Name, PropertyAttributes.None, fields[0].PropertyType, null);
             }
             else
             {

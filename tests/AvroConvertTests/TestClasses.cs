@@ -38,7 +38,6 @@
         public List<int> someList { get; set; }
 
       //  public List<NestedTestClass> nestedList { get; set; }
-        public int[] realArray { get; set; }
 
         public ClassWithConstructorPopulatingProperty()
         {

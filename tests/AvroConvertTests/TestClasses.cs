@@ -1,8 +1,8 @@
 ﻿namespace AvroConvertTests
 {
+    using Microsoft.Hadoop.Avro;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
-    using Microsoft.Hadoop.Avro;
 
 
     [DataContract(Name = "User", Namespace = "user")]
@@ -37,11 +37,11 @@
     {
         public List<int> someList { get; set; }
 
-      //  public List<NestedTestClass> nestedList { get; set; }
+        public List<NestedTestClass> nestedList { get; set; }
 
         public ClassWithConstructorPopulatingProperty()
         {
-      //      someList = new List<int>();
+            someList = new List<int>();
         }
 
     }

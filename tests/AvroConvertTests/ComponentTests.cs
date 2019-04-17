@@ -1,8 +1,8 @@
 ﻿namespace AvroConvertTests
 {
-    using System.Collections.Generic;
     using AutoFixture;
     using Avro;
+    using System.Collections.Generic;
     using Xunit;
 
     public class ComponentTests
@@ -87,8 +87,8 @@
             //Assert
             Assert.NotNull(result);
             Assert.NotNull(deserialized);
-            //  Assert.NotEmpty(deserialized.nestedList);
             Assert.Equal(testClass.someList.Count, deserialized.someList.Count);
+            Assert.Equal(testClass.nestedList.Count, deserialized.nestedList.Count);
         }
     }
 }

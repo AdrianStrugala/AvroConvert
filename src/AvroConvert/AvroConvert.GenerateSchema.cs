@@ -76,8 +76,25 @@
                 {
                     Type properType = prop.PropertyType;
 
+                    if (typeof(IList).IsAssignableFrom(properType))
+                    {          
+                        // We have a List<T> or array
+                        PropertyInfo[] fields = properType.GetProperties();
+                        Type listedType = fields[2].PropertyType;
 
-                    typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name, prop.GetValue(obj));
+                        var listedObject = Activator.CreateInstance(listedType);
+                        var tempArray = Array.CreateInstance(listedType, 1);
+                        var newType = tempArray.GetType();
+                      //  typeBuilder = moduleBuilder.DefineType(objType.Name, System.Reflection.TypeAttributes.Public);
+
+                        typeBuilder = AddPropertyToTypeBuilder(typeBuilder, newType, prop.Name, null);
+
+                    }
+                    else
+                    {
+                        typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name, prop.GetValue(obj));
+                    }
+                     
                 }
 
 

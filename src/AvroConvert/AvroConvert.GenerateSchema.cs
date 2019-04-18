@@ -168,7 +168,8 @@
             propertyBuilder.SetCustomAttribute(attributeBuilder);
 
             //Is nullable 
-            if (Nullable.GetUnderlyingType(properType) != null)
+            if (Nullable.GetUnderlyingType(properType) != null ||
+                properType == typeof(string))
             {
                 var nullableAttributeConstructor = typeof(NullableSchemaAttribute).GetConstructor(new Type[] { });
                 var nullableAttributeBuilder = new CustomAttributeBuilder(nullableAttributeConstructor, new string[] { }, new PropertyInfo[] { }, new object[] { });

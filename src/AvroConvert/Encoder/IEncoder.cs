@@ -132,61 +132,25 @@
             Dictionary<string, object> result = new Dictionary<string, object>();
 
             Type objType = item.GetType();
+            PropertyInfo[] properties = objType.GetProperties();
 
-            if (typeof(IList).IsAssignableFrom(objType) &&
-                objType.GetTypeInfo().IsGenericType)
+            foreach (PropertyInfo prop in properties)
             {
-                // We have a List<T> or array
-
-                //                foreach (var internalItem in (IList)item)
-                //                {
-                //                    if (typeof(IList).IsAssignableFrom(internalItem.GetType()) &&
-                //                        internalItem.GetType().GetTypeInfo().IsGenericType)
-                //                    {
-                //                        // We have a List<T> or array
-                //                        result.Add(nameof(internalItem), SplitKeyValues(internalItem));
-                //                        // result.Add(prop.Name, SplitKeyValues(prop.GetValue(item)));
-                //                    }
-                //
-                //                    else if (internalItem.GetType().GetTypeInfo().IsValueType ||
-                //                             internalItem.GetType() == typeof(string))
-                //                    {
-                //                        // We have a simple type
-                //
-                //                        result.Add(nameof(internalItem), internalItem);
-                //                    }
-                //                    else
-                //                    {
-                //                        result.Add(nameof(internalItem), SplitKeyValues(internalItem));
-                //                    }
-                //                }
-
-            }
-            else
-            {
-                PropertyInfo[] properties = objType.GetProperties();
-
-                foreach (PropertyInfo prop in properties)
+                if (typeof(IList).IsAssignableFrom(prop.PropertyType))
                 {
-                    if (typeof(IList).IsAssignableFrom(prop.PropertyType) &&
-                        prop.PropertyType.GetTypeInfo().IsGenericType)
-                    {
-                        // We have a List<T> or array
-                        // result.Add(prop.Name, prop.GetValue(item));
-                        result.Add(prop.Name, GetSplittedList((IList)prop.GetValue(item)));
-                    }
+                    // We have a List<T> or array
+                    result.Add(prop.Name, GetSplittedList((IList)prop.GetValue(item)));
+                }
 
-                    else if (prop.PropertyType.GetTypeInfo().IsValueType ||
-                             prop.PropertyType == typeof(string))
-                    {
-                        // We have a simple type
-
-                        result.Add(prop.Name, prop.GetValue(item));
-                    }
-                    else
-                    {
-                        result.Add(prop.Name, SplitKeyValues(prop.GetValue(item)));
-                    }
+                else if (prop.PropertyType.GetTypeInfo().IsValueType ||
+                         prop.PropertyType == typeof(string))
+                {
+                    // We have a simple type
+                    result.Add(prop.Name, prop.GetValue(item));
+                }
+                else
+                {
+                    result.Add(prop.Name, SplitKeyValues(prop.GetValue(item)));
                 }
             }
 

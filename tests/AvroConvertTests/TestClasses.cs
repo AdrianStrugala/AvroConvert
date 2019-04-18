@@ -1,5 +1,6 @@
 ﻿namespace AvroConvertTests
 {
+    using System;
     using Microsoft.Hadoop.Avro;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
@@ -58,5 +59,10 @@
     public class ClassWithArray
     {
         public int[] theArray { get; set; }
+    }
+
+    public class ClassWithGuid
+    {
+        public Guid theGuid { get; set; }
     }
 }

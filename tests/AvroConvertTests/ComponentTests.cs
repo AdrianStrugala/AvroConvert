@@ -128,5 +128,24 @@
             Assert.NotNull(deserialized);
             Assert.Equal(testClass.theArray.Length, deserialized.theArray.Length);
         }
+
+        [Fact]
+        public void Serialize_ObjectContainsGuid_ResultIsTheSameAsInput()
+        {
+            //Arrange
+            ClassWithGuid
+                testClass = _fixture.Create<ClassWithGuid>();
+
+            //Act
+
+            var result = AvroConvert.Serialize(testClass);
+
+            var deserialized = AvroConvert.Deserialize<ClassWithGuid>(result);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(testClass.theGuid, deserialized.theGuid);
+        }
     }
 }

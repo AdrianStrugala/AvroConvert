@@ -107,6 +107,7 @@
             Assert.NotNull(result);
             Assert.NotNull(deserialized);
             Assert.Equal(testClass.nestedList.Count, deserialized.nestedList.Count);
+            Assert.Equal(testClass.stringProperty, deserialized.stringProperty);
         }
 
         [Fact]

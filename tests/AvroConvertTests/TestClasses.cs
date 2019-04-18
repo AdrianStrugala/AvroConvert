@@ -36,6 +36,7 @@
     public class ClassWithConstructorPopulatingProperty
     {
         public List<NestedTestClass> nestedList { get; set; }
+        public string stringProperty { get; set; }
 
         public ClassWithConstructorPopulatingProperty()
         {

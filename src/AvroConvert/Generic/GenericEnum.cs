@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace Avro.Generic
+namespace EhwarSoft.Avro.Generic
 {
     using Schema;
 

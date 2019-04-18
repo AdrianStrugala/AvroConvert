@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace Avro.Schema
+namespace EhwarSoft.Avro.Schema
 {
     public class SchemaParseException:AvroException
     {

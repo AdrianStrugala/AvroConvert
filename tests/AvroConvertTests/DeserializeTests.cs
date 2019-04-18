@@ -1,7 +1,6 @@
 ﻿namespace AvroConvertTests
 {
-    using Avro;
-    using AvroConvert;
+    using EhwarSoft.Avro;
     using Xunit;
 
     public class DeserializeTests

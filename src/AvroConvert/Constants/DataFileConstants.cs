@@ -1,4 +1,4 @@
-﻿namespace Avro.Constants
+﻿namespace EhwarSoft.Avro.Constants
 {
     public class DataFileConstants
     {

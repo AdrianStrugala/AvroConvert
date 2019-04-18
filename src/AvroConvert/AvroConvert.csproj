@@ -1,4 +1,28 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <Authors>Adrian Strugala</Authors>
+    <AssemblyVersion>0.5.0.0</AssemblyVersion>
+    <FileVersion>0.5.0.0</FileVersion>
+    <Version>0.5.0</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Description>Small and fast library for serializing c# objects to avro format and vice versa</Description>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <ApplicationIcon />
+    <StartupObject />
+    <Product>AvroConvert</Product>
+    <PackageId>AvroConvert</PackageId>
+    <RepositoryUrl>https://github.com/AdrianStrugala/AvroConvert</RepositoryUrl>
+    <AssemblyName>EhwarSoft.Avro</AssemblyName>
+    <RootNamespace>EhwarSoft.Avro</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Hadoop.Avro-Core" Version="1.1.19" />
+    <PackageReference Include="System.Reflection.Emit" Version="4.3.0" />
+  </ItemGroup>
+
 </Project>

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace Avro.Encoder
+namespace EhwarSoft.Avro.Encoder
 {
     using System;
     using System.IO;

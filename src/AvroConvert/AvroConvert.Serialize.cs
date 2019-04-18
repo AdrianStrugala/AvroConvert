@@ -1,4 +1,4 @@
-﻿namespace Avro
+﻿namespace EhwarSoft.Avro
 {
     using System;
     using System.Collections;
@@ -6,7 +6,6 @@
     using System.IO;
     using System.Linq;
     using Encoder;
-    using global::AvroConvert.Encoder;
 
     public static partial class AvroConvert
     {

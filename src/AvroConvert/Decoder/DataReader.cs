@@ -1,4 +1,4 @@
-namespace Avro.Decoder
+namespace EhwarSoft.Avro.Decoder
 {
     using System;
     using System.Collections.Generic;

@@ -1,8 +1,8 @@
 ﻿namespace AvroConvertTests
 {
     using AutoFixture;
-    using Avro;
     using System.Collections.Generic;
+    using EhwarSoft.Avro;
     using Xunit;
 
     public class ComponentTests
@@ -25,7 +25,7 @@
             //Act
             var serialized = AvroConvert.Serialize(user);
 
-            var deserialized = global::Avro.AvroConvert.Deserialize<User>(serialized);
+            var deserialized = global::EhwarSoft.Avro.AvroConvert.Deserialize<User>(serialized);
 
             //Assert
             Assert.NotNull(serialized);
@@ -64,8 +64,8 @@
             someTestClasses[1] = dupa2;
 
             //Act
-            var serialized = global::Avro.AvroConvert.Serialize(someTestClasses);
-            var deserialized = global::Avro.AvroConvert.Deserialize<List<SomeTestClass>>(serialized);
+            var serialized = global::EhwarSoft.Avro.AvroConvert.Serialize(someTestClasses);
+            var deserialized = global::EhwarSoft.Avro.AvroConvert.Deserialize<List<SomeTestClass>>(serialized);
 
             //Assert
             Assert.NotNull(deserialized);

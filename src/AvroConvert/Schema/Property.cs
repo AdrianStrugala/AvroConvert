@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace Avro.Schema
+namespace EhwarSoft.Avro.Schema
 {
     using System.Collections.Generic;
     using Newtonsoft.Json;

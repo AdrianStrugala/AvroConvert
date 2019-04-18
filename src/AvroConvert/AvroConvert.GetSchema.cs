@@ -1,4 +1,4 @@
-﻿namespace Avro
+﻿namespace EhwarSoft.Avro
 {
     using System.IO;
     using Constants;

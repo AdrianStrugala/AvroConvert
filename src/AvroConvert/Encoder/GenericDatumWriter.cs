@@ -1,13 +1,10 @@
-﻿namespace AvroConvert.Encoder
+﻿namespace EhwarSoft.Avro.Encoder
 {
     using System;
     using System.Collections;
     using System.Collections.Generic;
-    using System.Linq;
-    using Avro.Encoder;
-    using Avro.Generic;
-    using Avro.Schema;
-
+    using Generic;
+    using Schema;
 
     public class GenericDatumWriter : IEncoder
     {

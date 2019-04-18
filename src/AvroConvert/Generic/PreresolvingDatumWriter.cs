@@ -1,4 +1,4 @@
-﻿namespace Avro.Generic
+﻿namespace EhwarSoft.Avro.Generic
 {
     using System;
     using System.Collections;

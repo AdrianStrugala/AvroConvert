@@ -1,4 +1,4 @@
-﻿namespace Avro
+﻿namespace EhwarSoft.Avro
 {
     using System;
     using System.Collections;
@@ -180,7 +180,7 @@
             // Define field
             FieldBuilder fieldBuilder = typeBuilder.DefineField(name, properType, FieldAttributes.Public);
 
-            // Define "getter" for MyChild property
+            // Define "getter" for property
             MethodBuilder getterBuilder = typeBuilder.DefineMethod("get_" + name,
                 MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig,
                 properType,
@@ -191,7 +191,7 @@
             getterIL.Emit(OpCodes.Ret);
 
 
-            // Define "setter" for MyChild property
+            // Define "setter" for property
             MethodBuilder setterBuilder = typeBuilder.DefineMethod("set_" + name,
                 MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig,
                 null,
@@ -204,6 +204,7 @@
 
             propertyBuilder.SetGetMethod(getterBuilder);
             propertyBuilder.SetSetMethod(setterBuilder);
+
             return typeBuilder;
         }
     }

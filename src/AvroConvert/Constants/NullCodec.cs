@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace Avro.Constants
+namespace EhwarSoft.Avro.Constants
 {
     public class NullCodec : Codec
     {

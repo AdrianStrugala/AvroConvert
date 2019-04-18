@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace Avro.Exceptions
+namespace EhwarSoft.Avro.Exceptions
 {
     using System;
 

@@ -1,4 +1,4 @@
-﻿namespace Avro.Exceptions
+﻿namespace EhwarSoft.Avro.Exceptions
 {
     using System;
 

@@ -1,4 +1,4 @@
-﻿namespace Avro.Encoder
+﻿namespace EhwarSoft.Avro.Encoder
 {
     using System;
     using System.Collections.Generic;
@@ -6,7 +6,6 @@
     using System.IO;
     using Constants;
     using Exceptions;
-    using global::AvroConvert.Encoder;
     using Schema;
 
     public class Writer

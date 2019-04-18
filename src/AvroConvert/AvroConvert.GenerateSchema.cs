@@ -1,12 +1,12 @@
 ﻿namespace EhwarSoft.Avro
 {
+    using Microsoft.Hadoop.Avro;
     using System;
     using System.Collections;
     using System.Linq;
     using System.Reflection;
     using System.Reflection.Emit;
     using System.Runtime.Serialization;
-    using Microsoft.Hadoop.Avro;
 
     public static partial class AvroConvert
     {
@@ -34,7 +34,7 @@
         {
             //generate in memory assembly with mimic type
             Type objType = obj.GetType();
-            
+
 
             TypeBuilder typeBuilder = moduleBuilder.DefineType(objType.Name, System.Reflection.TypeAttributes.Public);
 
@@ -146,11 +146,16 @@
 
         private static TypeBuilder AddPropertyToTypeBuilder(TypeBuilder typeBuilder, Type properType, string name, ModuleBuilder moduleBuilder, object value = null)
         {
+            if (typeof(IList).IsAssignableFrom(properType))
+            {
+                //ignore
+            }
+
             //if complex type - use recurrence
-            if (!(properType.GetTypeInfo().IsValueType ||
-                properType == typeof(string) || value == null
-                )
+            else if (!(properType.GetTypeInfo().IsValueType ||
+            properType == typeof(string)
             )
+        )
             {
                 properType = DecorateObjectWithAvroAttributes(properType, moduleBuilder).GetType();
             }
@@ -201,7 +206,7 @@
 
             propertyBuilder.SetGetMethod(getterBuilder);
             propertyBuilder.SetSetMethod(setterBuilder);
-            
+
 
             return typeBuilder;
         }

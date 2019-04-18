@@ -1,4 +1,4 @@
-[![NuGet version (AvroConvert)](https://errlog.io/blog/images/nuget-package-logo.png)](https://www.nuget.org/packages/AvroConvert)
+Nuget: (https://www.nuget.org/packages/AvroConvert)
 
 # AvroConvert
 Small and fast library for serializing c# objects to avro format and vice versa

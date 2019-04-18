@@ -35,11 +35,20 @@
 
     public class ClassWithConstructorPopulatingProperty
     {
-        public List<int> someList { get; set; }
-
         public List<NestedTestClass> nestedList { get; set; }
 
         public ClassWithConstructorPopulatingProperty()
+        {
+            nestedList = new List<NestedTestClass>();
+        }
+
+    }
+
+    public class ClassWithSimpleList
+    {
+        public List<int> someList { get; set; }
+
+        public ClassWithSimpleList()
         {
             someList = new List<int>();
         }

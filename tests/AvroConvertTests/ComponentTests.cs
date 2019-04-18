@@ -75,6 +75,25 @@
         public void Serialize_ObjectContainsLists_ResultIsTheSameAsInput()
         {
             //Arrange
+            ClassWithSimpleList
+                testClass = _fixture.Create<ClassWithSimpleList>();
+
+            //Act
+
+            var result = AvroConvert.Serialize(testClass);
+
+            var deserialized = AvroConvert.Deserialize<ClassWithSimpleList>(result);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(testClass.someList.Count, deserialized.someList.Count);
+        }
+
+        [Fact]
+        public void Serialize_ObjectContainsComplexLists_ResultIsTheSameAsInput()
+        {
+            //Arrange
             ClassWithConstructorPopulatingProperty
                 testClass = _fixture.Create<ClassWithConstructorPopulatingProperty>();
 
@@ -87,7 +106,6 @@
             //Assert
             Assert.NotNull(result);
             Assert.NotNull(deserialized);
-            Assert.Equal(testClass.someList.Count, deserialized.someList.Count);
             Assert.Equal(testClass.nestedList.Count, deserialized.nestedList.Count);
         }
     }

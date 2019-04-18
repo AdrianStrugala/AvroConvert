@@ -66,9 +66,7 @@
                     if (typeof(IList).IsAssignableFrom(properType))
                     {
                         var field = properType.GetProperties()[2];
-                        var propValue = prop.GetValue(obj) as IList;
-                        var fieldValue = propValue[0];
-                        var avroFieldType = DecorateObjectWithAvroAttributes(fieldValue).GetType();
+                        var avroFieldType = DecorateObjectWithAvroAttributes(field.PropertyType).GetType();
 
 
                         var avroArray = Array.CreateInstance(avroFieldType, 1);
@@ -153,11 +151,11 @@
         {
             //if complex type - use recurrence
             if (!(properType.GetTypeInfo().IsValueType ||
-                properType == typeof(string) //|| value == null
+                properType == typeof(string) || value == null
                 )
             )
             {
-                properType = DecorateObjectWithAvroAttributes(value).GetType();
+                properType = DecorateObjectWithAvroAttributes(properType).GetType();
             }
 
             //mimic property 

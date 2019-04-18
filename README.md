@@ -1,4 +1,4 @@
-[![NuGet version (AvroConvert)](https://img.shields.io/nuget/v/Newtonsoft.Json.svg?style=flat-square)](https://www.nuget.org/packages/AvroConvert)
+[![NuGet version (AvroConvert)](https://www.nuget.org/packages/AvroConvert)
 
 # AvroConvert
 Small and fast library for serializing c# objects to avro format and vice versa

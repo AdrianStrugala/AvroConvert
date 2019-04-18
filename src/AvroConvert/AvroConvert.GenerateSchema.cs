@@ -12,7 +12,13 @@
     {
         public static string GenerateSchema(object obj)
         {
-            object inMemoryInstance = DecorateObjectWithAvroAttributes(obj);
+            var assemblyName = new System.Reflection.AssemblyName("InMemory");
+            var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName,
+                AssemblyBuilderAccess.RunAndCollect);
+
+            var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name);
+
+            object inMemoryInstance = DecorateObjectWithAvroAttributes(obj, moduleBuilder);
 
             //invoke Create method of AvroSerializer
             var createMethod = typeof(AvroSerializer).GetMethod("Create", new Type[0]);
@@ -24,15 +30,12 @@
             return result;
         }
 
-        private static object DecorateObjectWithAvroAttributes(object obj)
+        private static object DecorateObjectWithAvroAttributes(object obj, ModuleBuilder moduleBuilder)
         {
             //generate in memory assembly with mimic type
             Type objType = obj.GetType();
-            var assemblyName = new System.Reflection.AssemblyName("InMemory");
-            var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName,
-                AssemblyBuilderAccess.Run);
+            
 
-            var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name);
             TypeBuilder typeBuilder = moduleBuilder.DefineType(objType.Name, System.Reflection.TypeAttributes.Public);
 
             if (typeof(IList).IsAssignableFrom(objType) &&
@@ -66,18 +69,18 @@
                     if (typeof(IList).IsAssignableFrom(properType))
                     {
                         var field = properType.GetProperties()[2];
-                        var avroFieldType = DecorateObjectWithAvroAttributes(field.PropertyType).GetType();
+                        var avroFieldType = DecorateObjectWithAvroAttributes(field.PropertyType, moduleBuilder).GetType();
 
 
                         var avroArray = Array.CreateInstance(avroFieldType, 1);
                         properType = avroArray.GetType();
 
-                        typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name, null);
+                        typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name, moduleBuilder, null);
                     }
 
                     else
                     {
-                        typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name, prop.GetValue(obj));
+                        typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name, moduleBuilder, prop.GetValue(obj));
                     }
                 }
             }
@@ -94,14 +97,8 @@
             return inMemoryInstance;
         }
 
-        private static object DecorateObjectWithAvroAttributes(Type objType)
+        private static object DecorateObjectWithAvroAttributes(Type objType, ModuleBuilder moduleBuilder)
         {
-            //generate in memory assembly with mimic type
-            var assemblyName = new System.Reflection.AssemblyName("InMemory");
-            var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName,
-                AssemblyBuilderAccess.Run);
-
-            var moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name);
             TypeBuilder typeBuilder = moduleBuilder.DefineType(objType.Name, System.Reflection.TypeAttributes.Public);
 
             if (typeof(IList).IsAssignableFrom(objType) &&
@@ -119,18 +116,18 @@
                     if (typeof(IList).IsAssignableFrom(properType))
                     {
                         var field = properType.GetProperties()[2];
-                        var avroFieldType = DecorateObjectWithAvroAttributes(field.PropertyType).GetType();
+                        var avroFieldType = DecorateObjectWithAvroAttributes(field.PropertyType, moduleBuilder).GetType();
 
 
                         var avroArray = Array.CreateInstance(avroFieldType, 1);
                         properType = avroArray.GetType();
 
-                        typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name, null);
+                        typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name, moduleBuilder, null);
                     }
 
                     else
                     {
-                        typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name, null);
+                        typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name, moduleBuilder, null);
                     }
                 }
             }
@@ -147,7 +144,7 @@
             return inMemoryInstance;
         }
 
-        private static TypeBuilder AddPropertyToTypeBuilder(TypeBuilder typeBuilder, Type properType, string name, object value = null)
+        private static TypeBuilder AddPropertyToTypeBuilder(TypeBuilder typeBuilder, Type properType, string name, ModuleBuilder moduleBuilder, object value = null)
         {
             //if complex type - use recurrence
             if (!(properType.GetTypeInfo().IsValueType ||
@@ -155,7 +152,7 @@
                 )
             )
             {
-                properType = DecorateObjectWithAvroAttributes(properType).GetType();
+                properType = DecorateObjectWithAvroAttributes(properType, moduleBuilder).GetType();
             }
 
             //mimic property 
@@ -204,6 +201,7 @@
 
             propertyBuilder.SetGetMethod(getterBuilder);
             propertyBuilder.SetSetMethod(setterBuilder);
+            
 
             return typeBuilder;
         }

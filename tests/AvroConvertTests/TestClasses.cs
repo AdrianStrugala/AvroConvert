@@ -52,6 +52,10 @@
         {
             someList = new List<int>();
         }
+    }
 
+    public class ClassWithArray
+    {
+        public int[] theArray { get; set; }
     }
 }

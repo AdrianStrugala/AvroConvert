@@ -108,5 +108,24 @@
             Assert.NotNull(deserialized);
             Assert.Equal(testClass.nestedList.Count, deserialized.nestedList.Count);
         }
+
+        [Fact]
+        public void Serialize_ObjectContainsArray_ResultIsTheSameAsInput()
+        {
+            //Arrange
+            ClassWithArray
+                testClass = _fixture.Create<ClassWithArray>();
+
+            //Act
+
+            var result = AvroConvert.Serialize(testClass);
+
+            var deserialized = AvroConvert.Deserialize<ClassWithArray>(result);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(testClass.theArray.Length, deserialized.theArray.Length);
+        }
     }
 }

@@ -38,7 +38,11 @@ namespace EhwarSoft.Avro.Generic
 
         public object this[string fieldName]
         {
-            get { return contents[fieldName]; }
+            get
+            {
+                object value;
+                return contents.TryGetValue(fieldName, out value) ? value : null;
+            }
         }
 
         public void Add(string fieldName, object fieldValue)

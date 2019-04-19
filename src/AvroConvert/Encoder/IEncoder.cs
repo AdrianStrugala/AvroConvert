@@ -139,18 +139,63 @@
                 if (typeof(IList).IsAssignableFrom(prop.PropertyType))
                 {
                     // We have a List<T> or array
-                    result.Add(prop.Name, GetSplittedList((IList)prop.GetValue(item)));
+                    dynamic value = null;
+                    try
+                    {
+                        value = prop.GetValue(item);
+                    }
+                    catch (Exception)
+                    {
+                        //no value
+                    }
+
+                    if (value != null)
+                    {
+                        result.Add(prop.Name, GetSplittedList((IList)value));
+                    }
+                    else
+                    {
+                        result.Add(prop.Name, null);
+                    }
+
                 }
 
                 else if (prop.PropertyType.GetTypeInfo().IsValueType ||
                          prop.PropertyType == typeof(string))
                 {
                     // We have a simple type
-                    result.Add(prop.Name, prop.GetValue(item));
+                    dynamic value = null;
+                    try
+                    {
+                        value = prop.GetValue(item);
+                    }
+                    catch (Exception)
+                    {
+                        //no value
+                    }
+                    result.Add(prop.Name, value);
                 }
                 else
                 {
-                    result.Add(prop.Name, SplitKeyValues(prop.GetValue(item)));
+                    dynamic value = null;
+                    try
+                    {
+                        value = prop.GetValue(item);
+                    }
+                    catch (Exception)
+                    {
+                        //no value
+                    }
+
+                    if (value != null)
+                    {
+                        result.Add(prop.Name, SplitKeyValues(value));
+                    }
+                    else
+                    {
+                        result.Add(prop.Name, null);
+                    }
+
                 }
             }
 

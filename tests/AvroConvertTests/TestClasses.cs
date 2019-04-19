@@ -37,11 +37,13 @@
     public class ClassWithConstructorPopulatingProperty
     {
         public List<NestedTestClass> nestedList { get; set; }
+        public List<ClassWithSimpleList> anotherList { get; set; }
         public string stringProperty { get; set; }
 
         public ClassWithConstructorPopulatingProperty()
         {
             nestedList = new List<NestedTestClass>();
+            anotherList = new List<ClassWithSimpleList>();
         }
 
     }

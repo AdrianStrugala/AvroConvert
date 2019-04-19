@@ -131,6 +131,11 @@
         {
             Dictionary<string, object> result = new Dictionary<string, object>();
 
+            if (item == null)
+            {
+                return result;
+            }
+
             Type objType = item.GetType();
             PropertyInfo[] properties = objType.GetProperties();
 

@@ -59,7 +59,11 @@
 
                         typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name);
                     }
-
+                    else if (properType == typeof(Guid))
+                    {
+                        properType = typeof(string);
+                        typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name);
+                    }
                     else
                     {
                         typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name);

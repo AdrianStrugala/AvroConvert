@@ -280,6 +280,11 @@
         /// <param name="encoder">The encoder for serialization</param>
         private void WriteUnion(UnionSchema unionSchema, Schema[] branchSchemas, WriteItem[] branchWriters, object value, Encoder encoder)
         {
+            if (value is Guid)
+            {
+                value = value.ToString();
+            }
+
             int index = ResolveUnion(unionSchema, branchSchemas, value);
             encoder.WriteUnionIndex(index);
             branchWriters[index](value, encoder);

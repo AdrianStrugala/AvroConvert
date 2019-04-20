@@ -1,12 +1,12 @@
 ﻿namespace EhwarSoft.Avro.Encoder
 {
+    using Generic;
+    using Schema;
     using System;
     using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
-    using Generic;
-    using Schema;
 
     public abstract class IEncoder
     {
@@ -153,7 +153,7 @@
                     {
                         //no value
                     }
-
+                    //TODO make soft get value as method
                     if (value != null)
                     {
                         result.Add(prop.Name, GetSplittedList((IList)value));
@@ -214,10 +214,10 @@
                 return list;
             }
 
-            var itemToCheck = list[0];
+            var typeToCheck = list.GetType().GetProperties()[2].PropertyType;
 
-            if (itemToCheck.GetType().GetTypeInfo().IsValueType ||
-                itemToCheck is string)
+            if (typeToCheck.GetTypeInfo().IsValueType ||
+                typeToCheck == typeof(string))
             {
                 return list;
             }
@@ -227,7 +227,7 @@
 
                 foreach (var item in list)
                 {
-                    result.Add(SplitKeyValues(item));
+                    result.Add(item != null ? SplitKeyValues(item) : null);
                 }
 
                 return result;

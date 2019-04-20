@@ -64,8 +64,8 @@
             someTestClasses[1] = dupa2;
 
             //Act
-            var serialized = global::EhwarSoft.Avro.AvroConvert.Serialize(someTestClasses);
-            var deserialized = global::EhwarSoft.Avro.AvroConvert.Deserialize<List<SomeTestClass>>(serialized);
+            var serialized = AvroConvert.Serialize(someTestClasses);
+            var deserialized = AvroConvert.Deserialize<List<SomeTestClass>>(serialized);
 
             //Assert
             Assert.NotNull(deserialized);

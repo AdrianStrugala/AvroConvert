@@ -34,6 +34,12 @@
 
         private static object DecorateObjectWithAvroAttributes(Type objType)
         {
+            var existingType = _moduleBuilder.GetType(objType.Name);
+            if (existingType != null)
+            {
+                return Activator.CreateInstance(existingType);
+            }
+
             TypeBuilder typeBuilder = _moduleBuilder.DefineType(objType.Name, System.Reflection.TypeAttributes.Public);
 
             if (typeof(IList).IsAssignableFrom(objType) &&
@@ -106,7 +112,7 @@
 
             propertyBuilder.SetCustomAttribute(attributeBuilder);
 
-            //Is nullable 
+            //Add nullable attribute
             if (Nullable.GetUnderlyingType(properType) != null ||
                 properType == typeof(string))
             {

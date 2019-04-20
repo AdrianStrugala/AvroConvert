@@ -1,11 +1,18 @@
 ﻿namespace AvroConvertTests
 {
+    using AutoFixture;
+    using EhwarSoft.Avro;
     using System.Collections.Generic;
     using Xunit;
-    using EhwarSoft.Avro;
 
     public class SerializeTests
     {
+        private readonly Fixture _fixture;
+
+        public SerializeTests()
+        {
+            _fixture = new Fixture();
+        }
         [Fact]
         public void Serialize_InputIsList_NoExceptionIsThrown()
         {
@@ -98,6 +105,24 @@
         {
             //Arrange
             ClassWithConstructorPopulatingProperty testClass = new ClassWithConstructorPopulatingProperty();
+
+            //Act
+            var result = AvroConvert.Serialize(testClass);
+
+            //Assert
+            Assert.NotNull(result);
+        }
+
+        [Fact]
+        public void Serialize_VeryComplexClass_NoExceptionIsThrown()
+        {
+            //Arrange
+            VeryComplexClass
+                testClass = _fixture.Create<VeryComplexClass>();
+
+            testClass.ClassesWithArray[0] = null;
+            testClass.simpleClass.name = null;
+            testClass.anotherClass.nestedList[1] = null;
 
             //Act
             var result = AvroConvert.Serialize(testClass);

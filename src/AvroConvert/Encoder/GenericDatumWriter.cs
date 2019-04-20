@@ -1,10 +1,10 @@
 ﻿namespace EhwarSoft.Avro.Encoder
 {
+    using Generic;
+    using Schema;
     using System;
     using System.Collections;
     using System.Collections.Generic;
-    using Generic;
-    using Schema;
 
     public class GenericDatumWriter : IEncoder
     {
@@ -122,7 +122,10 @@
         {
             public object EnsureArrayObject(object value)
             {
-
+                if (value == null)
+                {
+                    return null;
+                }
                 IList enumerable = value as IList;
                 object[] result = new object[enumerable.Count];
 
@@ -137,7 +140,7 @@
 
             public long GetArrayLength(object value)
             {
-                return ((Array)value).Length;
+                return ((Array)value)?.Length ?? 0;
             }
 
             public void WriteArrayValues(object array, WriteItem valueWriter, Encoder encoder)

@@ -127,6 +127,8 @@
             //Act
             var result = AvroConvert.Serialize(testClass);
 
+            var xd = AvroConvert.Deserialize<VeryComplexClass>(result);
+
             //Assert
             Assert.NotNull(result);
         }

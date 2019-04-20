@@ -145,11 +145,18 @@
 
             public void WriteArrayValues(object array, WriteItem valueWriter, Encoder encoder)
             {
-                var arrayInstance = (Array)array;
-                for (int i = 0; i < arrayInstance.Length; i++)
+                if (array == null)
                 {
-                    encoder.StartItem();
-                    valueWriter(arrayInstance.GetValue(i), encoder);
+                    valueWriter(null, encoder);
+                }
+                else
+                {
+                    var arrayInstance = (Array)array;
+                    for (int i = 0; i < arrayInstance.Length; i++)
+                    {
+                        encoder.StartItem();
+                        valueWriter(arrayInstance.GetValue(i), encoder);
+                    }
                 }
             }
         }

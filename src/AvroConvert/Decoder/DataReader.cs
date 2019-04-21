@@ -156,7 +156,15 @@ namespace EhwarSoft.Avro.Decoder
                     {
                         object obj = null;
                         TryGetField(result, wf.Name, rf.Pos, out obj);
-                        AddField(result, wf.Name, rf.Pos, Read(wf.Schema, rf.Schema, dec));
+                        if (obj == null)
+                        {
+                            AddField(result, wf.Name, rf.Pos, null);
+                        }
+                        else
+                        {
+                            AddField(result, wf.Name, rf.Pos, Read(wf.Schema, rf.Schema, dec));
+                        }
+                       
                     }
                     else
                         Skip(wf.Schema, dec);

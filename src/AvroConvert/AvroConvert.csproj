@@ -14,7 +14,7 @@
     <StartupObject />
     <Product>AvroConvert</Product>
     <PackageId>AvroConvert</PackageId>
-    <RepositoryUrl>https://github.com/AdrianStrugala/AvroConvert</RepositoryUrl>
+    <RepositoryUrl>https://github.com/AdrianStrugala/EhwarSofr.Avro</RepositoryUrl>
     <AssemblyName>EhwarSoft.Avro</AssemblyName>
     <RootNamespace>EhwarSoft.Avro</RootNamespace>
   </PropertyGroup>

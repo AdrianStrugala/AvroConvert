@@ -1,11 +1,11 @@
 namespace EhwarSoft.Avro.Decoder
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
     using Encoder;
     using Generic;
     using Schema;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
 
     public delegate T Reader<T>();
 
@@ -156,15 +156,8 @@ namespace EhwarSoft.Avro.Decoder
                     {
                         object obj = null;
                         TryGetField(result, wf.Name, rf.Pos, out obj);
-                        if (obj == null)
-                        {
-                            AddField(result, wf.Name, rf.Pos, null);
-                        }
-                        else
-                        {
-                            AddField(result, wf.Name, rf.Pos, Read(wf.Schema, rf.Schema, dec));
-                        }
-                       
+
+                        AddField(result, wf.Name, rf.Pos, Read(wf.Schema, rf.Schema, dec));
                     }
                     else
                         Skip(wf.Schema, dec);

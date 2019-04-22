@@ -90,16 +90,15 @@
         /// <param name="writer">The writer which should be used to write the given type.</param>
         protected void Write<S>(object value, Schema.Type tag, Writer<S> writer)
         {
+
             if (value == null)
             {
-                WriteNull(null, null);
+                value = default(S);
             }
-            else
-            {
-                if (!(value is S)) throw TypeMismatch(value, tag.ToString(), typeof(S).ToString());
-                writer((S)value);
-            }
-       
+
+            if (!(value is S)) throw TypeMismatch(value, tag.ToString(), typeof(S).ToString());
+            writer((S)value);
+
         }
 
 

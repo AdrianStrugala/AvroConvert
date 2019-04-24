@@ -40,40 +40,31 @@
                 return Activator.CreateInstance(existingType);
             }
 
-            TypeBuilder typeBuilder = _moduleBuilder.DefineType(objType.Name, System.Reflection.TypeAttributes.Public);
+            TypeBuilder typeBuilder = _moduleBuilder.DefineType(objType.Name, TypeAttributes.Public);
 
-            if (typeof(IList).IsAssignableFrom(objType) &&
-                objType.GetTypeInfo().IsGenericType)
+            PropertyInfo[] properties = objType.GetProperties();
+            foreach (var prop in properties)
             {
-                //ignore for now
-            }
-            else
-            {
-                PropertyInfo[] properties = objType.GetProperties();
-                foreach (var prop in properties)
+                Type properType = prop.PropertyType;
+
+                if (typeof(IList).IsAssignableFrom(properType))
                 {
-                    Type properType = prop.PropertyType;
+                    var field = properType.GetProperties()[2];
+                    var avroFieldType = DecorateObjectWithAvroAttributes(field.PropertyType).GetType();
 
-                    if (typeof(IList).IsAssignableFrom(properType))
-                    {
-                        var field = properType.GetProperties()[2];
-                        var avroFieldType = DecorateObjectWithAvroAttributes(field.PropertyType).GetType();
+                    var avroArray = Array.CreateInstance(avroFieldType, 1);
+                    properType = avroArray.GetType();
 
-
-                        var avroArray = Array.CreateInstance(avroFieldType, 1);
-                        properType = avroArray.GetType();
-
-                        typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name);
-                    }
-                    else if (properType == typeof(Guid))
-                    {
-                        properType = typeof(string);
-                        typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name);
-                    }
-                    else
-                    {
-                        typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name);
-                    }
+                    typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name);
+                }
+                else if (properType == typeof(Guid))
+                {
+                    properType = typeof(string);
+                    typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name);
+                }
+                else
+                {
+                    typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name);
                 }
             }
 
@@ -90,7 +81,7 @@
         {
             if (typeof(IList).IsAssignableFrom(properType))
             {
-                //ignore
+                //Do not add properties of IList
             }
 
             //if complex type - use recurrence

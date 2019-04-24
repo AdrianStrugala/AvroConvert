@@ -14,7 +14,7 @@
 
         public static string GenerateSchema(object obj)
         {
-            var assemblyName = new System.Reflection.AssemblyName("InMemory");
+            var assemblyName = new AssemblyName("InMemory");
             var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName,
                 AssemblyBuilderAccess.RunAndCollect);
 
@@ -77,11 +77,8 @@
                 }
             }
 
-            var dataContractAttributeConstructor = typeof(DataContractAttribute).GetConstructor(new Type[] { });
-            var dataContractAttributeProperties = typeof(DataContractAttribute).GetProperties();
-            var dataContractAttributeBuilder = new CustomAttributeBuilder(dataContractAttributeConstructor, new string[] { }, dataContractAttributeProperties.Where(p => p.Name == "Name").ToArray(), new object[] { objType.Name });
-
-            typeBuilder.SetCustomAttribute(dataContractAttributeBuilder);
+            var attributeBuilder = GenerateCustomAttributeBuilder<DataContractAttribute>(objType.Name);
+            typeBuilder.SetCustomAttribute(attributeBuilder);
 
             var inMemoryType = typeBuilder.CreateType();
             var inMemoryInstance = Activator.CreateInstance(inMemoryType);
@@ -106,10 +103,7 @@
             //mimic property 
             PropertyBuilder propertyBuilder = typeBuilder.DefineProperty(name, PropertyAttributes.None, properType, null);
 
-            var attributeConstructor = typeof(DataMemberAttribute).GetConstructor(new Type[] { });
-            var attributeProperties = typeof(DataMemberAttribute).GetProperties();
-            var attributeBuilder = new CustomAttributeBuilder(attributeConstructor, new string[] { }, attributeProperties.Where(p => p.Name == "Name").ToArray(), new object[] { name });
-
+            var attributeBuilder = GenerateCustomAttributeBuilder<DataMemberAttribute>(name);
             propertyBuilder.SetCustomAttribute(attributeBuilder);
 
             //Add nullable attribute
@@ -151,6 +145,15 @@
 
 
             return typeBuilder;
+        }
+
+        private static CustomAttributeBuilder GenerateCustomAttributeBuilder<T>(string name)
+        {
+            var attributeConstructor = typeof(T).GetConstructor(new Type[] { });
+            var attributeProperties = typeof(T).GetProperties();
+            var attributeBuilder = new CustomAttributeBuilder(attributeConstructor, new string[] { }, attributeProperties.Where(p => p.Name == "Name").ToArray(), new object[] { name });
+
+            return attributeBuilder;
         }
     }
 }

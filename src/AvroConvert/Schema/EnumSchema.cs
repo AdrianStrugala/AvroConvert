@@ -197,7 +197,7 @@ namespace EhwarSoft.Avro.Schema
             if (!that.SchemaName.Equals(SchemaName))
                 if (!InAliases(that.SchemaName)) return false;
 
-            // we defer checking of symbols. Writer may have a symbol missing from the reader, 
+            // we defer checking of symbols. Encoder may have a symbol missing from the reader, 
             // but if writer never used the missing symbol, then reader should still be able to read the data
 
             return true;

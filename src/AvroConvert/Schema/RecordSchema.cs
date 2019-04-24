@@ -286,7 +286,7 @@ namespace EhwarSoft.Avro.Schema
                             }
 
                     if (f2 == null && f.DefaultValue != null)
-                        continue;         // Writer field missing, reader has default.
+                        continue;         // Encoder field missing, reader has default.
 
                     if (f2 != null && f.Schema.CanRead(f2.Schema)) continue;    // Both fields exist and are compatible.
                     return false;

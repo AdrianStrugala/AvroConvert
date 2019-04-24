@@ -32,7 +32,7 @@ namespace EhwarSoft.Avro.Decoder
         /// <param name="enc">encoder to use for writing</param>
         /// <param name="schema">schema object for the current field</param>
         /// <param name="jtok">default value as JToken</param>
-        public static void EncodeDefaultValue(Encoder enc, Schema schema, JToken jtok)
+        public static void EncodeDefaultValue(IWriter enc, Schema schema, JToken jtok)
         {
             if (null == jtok) return;
 

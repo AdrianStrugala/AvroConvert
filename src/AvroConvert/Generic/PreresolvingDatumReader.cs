@@ -225,7 +225,7 @@ namespace EhwarSoft.Avro.Generic
                 if (writerSchema.Contains(rf.Name)) continue;
 
                 var defaultStream = new MemoryStream();
-                var defaultEncoder = new BinaryEncoder(defaultStream);
+                var defaultEncoder = new Writer(defaultStream);
 
                 defaultStream.Position = 0; // reset for writing
                 Resolver.EncodeDefaultValue(defaultEncoder, rf.Schema, rf.DefaultValue);
@@ -353,7 +353,7 @@ namespace EhwarSoft.Avro.Generic
         {
             if (readerSchema.Size != writerSchema.Size)
             {
-                throw new AvroException("Size mismatch between reader and writer fixed schemas. Writer: " + writerSchema +
+                throw new AvroException("Size mismatch between reader and writer fixed schemas. Encoder: " + writerSchema +
                     ", reader: " + readerSchema);
             }
             var fixedAccess = GetFixedAccess(readerSchema);

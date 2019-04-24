@@ -8,11 +8,11 @@
     using System.Linq;
     using System.Reflection;
 
-    public abstract class IEncoder
+    public abstract class AbstractEncoder
     {
         public Schema Schema { get; private set; }
 
-        protected delegate void WriteItem(Object value, Encoder encoder);
+        protected delegate void WriteItem(object value, IWriter encoder);
 
         private readonly WriteItem _writer;
         private readonly ArrayAccess _arrayAccess;
@@ -20,12 +20,12 @@
 
         private readonly Dictionary<RecordSchema, WriteItem> _recordWriters = new Dictionary<RecordSchema, WriteItem>();
 
-        public void Write(object datum, Encoder encoder)
+        public void Write(object datum, IWriter encoder)
         {
             _writer(datum, encoder);
         }
 
-        protected IEncoder(Schema schema, ArrayAccess arrayAccess, MapAccess mapAccess)
+        protected AbstractEncoder(Schema schema, ArrayAccess arrayAccess, MapAccess mapAccess)
         {
             Schema = schema;
             _arrayAccess = arrayAccess;
@@ -76,7 +76,7 @@
         /// </summary>
         /// <param name="value">The object to be serialized using null schema</param>
         /// <param name="encoder">The encoder to use while serialization</param>
-        protected void WriteNull(object value, Encoder encoder)
+        protected void WriteNull(object value, IWriter encoder)
         {
             if (value != null) throw TypeMismatch(value, "null", "null");
         }
@@ -256,7 +256,7 @@
             }
         }
 
-        protected abstract void WriteRecordFields(object record, RecordFieldWriter[] writers, Encoder encoder);
+        protected abstract void WriteRecordFields(object record, RecordFieldWriter[] writers, IWriter encoder);
 
 
         protected class RecordFieldWriter
@@ -274,7 +274,7 @@
         /// <param name="fieldName">The name of the field in the record</param>
         /// <param name="fieldPos">The position of field in the record</param>
         /// <returns></returns>
-        protected abstract void WriteField(object record, string fieldName, int fieldPos, WriteItem writer, Encoder encoder);
+        protected abstract void WriteField(object record, string fieldName, int fieldPos, WriteItem writer, IWriter encoder);
 
         /// <summary>
         /// Serializes an enumeration.
@@ -296,7 +296,7 @@
             return (d, e) => WriteArray(itemWriter, d, e);
         }
 
-        private void WriteArray(WriteItem itemWriter, object array, Encoder encoder)
+        private void WriteArray(WriteItem itemWriter, object array, IWriter encoder)
         {
             array = _arrayAccess.EnsureArrayObject(array);
             long l = _arrayAccess.GetArrayLength(array);
@@ -319,7 +319,7 @@
         /// <param name="schema">The MapSchema for serialization</param>
         /// <param name="value">The value to be serialized</param>
         /// <param name="encoder">The encoder for serialization</param>
-        protected void WriteMap(WriteItem itemWriter, object value, Encoder encoder)
+        protected void WriteMap(WriteItem itemWriter, object value, IWriter encoder)
         {
             _mapAccess.EnsureMapObject(value);
             encoder.WriteMapStart();
@@ -350,7 +350,7 @@
         /// <param name="us">The UnionSchema to resolve against</param>
         /// <param name="value">The value to be serialized</param>
         /// <param name="encoder">The encoder for serialization</param>
-        private void WriteUnion(UnionSchema unionSchema, Schema[] branchSchemas, WriteItem[] branchWriters, object value, Encoder encoder)
+        private void WriteUnion(UnionSchema unionSchema, Schema[] branchSchemas, WriteItem[] branchWriters, object value, IWriter encoder)
         {
             int index = ResolveUnion(unionSchema, branchSchemas, value);
             encoder.WriteUnionIndex(index);
@@ -381,7 +381,7 @@
         /// <param name="es">The schema for serialization</param>
         /// <param name="value">The value to be serialized</param>
         /// <param name="encoder">The encoder for serialization</param>
-        protected abstract void WriteFixed(FixedSchema es, object value, Encoder encoder);
+        protected abstract void WriteFixed(FixedSchema es, object value, IWriter encoder);
 
         protected static AvroException TypeMismatch(object obj, string schemaType, string type)
         {
@@ -428,7 +428,7 @@
             /// <param name="value">The array object</param>
             /// <param name="index">The index to look for</param>
             /// <returns>The array element at the index</returns>
-            void WriteArrayValues(object array, WriteItem valueWriter, Encoder encoder);
+            void WriteArrayValues(object array, WriteItem valueWriter, IWriter encoder);
         }
 
         protected interface MapAccess
@@ -456,7 +456,7 @@
             /// </summary>
             /// <param name="value">The map object whose size is desired</param>
             /// <returns>The contents of the given map object</returns>
-            void WriteMapValues(object map, WriteItem valueWriter, Encoder encoder);
+            void WriteMapValues(object map, WriteItem valueWriter, IWriter encoder);
         }
 
         protected class DictionaryMapAccess : MapAccess
@@ -471,7 +471,7 @@
                 return ((IDictionary)value).Count;
             }
 
-            public void WriteMapValues(object map, WriteItem valueWriter, Encoder encoder)
+            public void WriteMapValues(object map, WriteItem valueWriter, IWriter encoder)
             {
                 foreach (DictionaryEntry entry in ((IDictionary)map))
                 {

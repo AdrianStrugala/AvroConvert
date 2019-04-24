@@ -15,7 +15,7 @@
             MemoryStream resultStream = new MemoryStream();
 
 
-            if (obj.GetType().TryGetInterfaceGenericParameters(typeof(IEnumerable<>)))
+            if (typeof(IList).IsAssignableFrom(obj.GetType()))
             {
                 //serialize IEnumerable
 
@@ -23,7 +23,7 @@
 
                 string schema = AvroConvert.GenerateSchema(ienumerableObj[0]);
 
-                var writer = Writer.OpenWriter(new GenericDatumWriter(Schema.Schema.Parse(schema)), resultStream);
+                var writer = Encoder.Encoder.OpenWriter(new GenericDatumWriter(Schema.Schema.Parse(schema)), resultStream);
 
                 foreach (var @object in ienumerableObj)
                 {
@@ -36,7 +36,7 @@
             else //serialize single object
             {
                 string schema = AvroConvert.GenerateSchema(obj);
-                var writer = Writer.OpenWriter(new GenericDatumWriter(Schema.Schema.Parse(schema)), resultStream);
+                var writer = Encoder.Encoder.OpenWriter(new GenericDatumWriter(Schema.Schema.Parse(schema)), resultStream);
                 writer.Append(obj);
                 writer.Close();
             }

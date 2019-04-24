@@ -169,7 +169,7 @@ namespace EhwarSoft.Avro.Decoder
             }
 
             var defaultStream = new MemoryStream();
-            var defaultEncoder = new BinaryEncoder(defaultStream);
+            var defaultEncoder = new Writer(defaultStream);
             var defaultDecoder = new BinaryDecoder(defaultStream);
             foreach (Field rf in rs)
             {
@@ -289,7 +289,7 @@ namespace EhwarSoft.Avro.Decoder
             FixedSchema rs = (FixedSchema)readerSchema;
             if (rs.Size != writerSchema.Size)
             {
-                throw new AvroException("Size mismatch between reader and writer fixed schemas. Writer: " + writerSchema +
+                throw new AvroException("Size mismatch between reader and writer fixed schemas. Encoder: " + writerSchema +
                     ", reader: " + readerSchema);
             }
 

@@ -6,7 +6,7 @@
     using System.Collections;
     using System.Collections.Generic;
 
-    public class GenericDatumWriter : IEncoder
+    public class GenericDatumWriter : AbstractEncoder
     {
         private readonly Schema _schema;
 
@@ -15,7 +15,7 @@
             _schema = schema;
         }
 
-        protected override void WriteRecordFields(object recordObj, RecordFieldWriter[] writers, Encoder encoder)
+        protected override void WriteRecordFields(object recordObj, RecordFieldWriter[] writers, IWriter encoder)
         {
             GenericRecord record = new GenericRecord((RecordSchema)_schema);
 
@@ -44,7 +44,7 @@
             }
         }
 
-        protected override void WriteField(object record, string fieldName, int fieldPos, WriteItem writer, Encoder encoder)
+        protected override void WriteField(object record, string fieldName, int fieldPos, WriteItem writer, IWriter encoder)
         {
             writer(((GenericRecord)record)[fieldName], encoder);
         }
@@ -59,7 +59,7 @@
                        };
         }
 
-        protected override void WriteFixed(FixedSchema es, object value, Encoder encoder)
+        protected override void WriteFixed(FixedSchema es, object value, IWriter encoder)
         {
             if (value == null || !(value is GenericFixed) || !(value as GenericFixed).Schema.Equals(es))
             {
@@ -143,7 +143,7 @@
                 return ((Array)value)?.Length ?? 0;
             }
 
-            public void WriteArrayValues(object array, WriteItem valueWriter, Encoder encoder)
+            public void WriteArrayValues(object array, WriteItem valueWriter, IWriter encoder)
             {
                 if (array == null)
                 {

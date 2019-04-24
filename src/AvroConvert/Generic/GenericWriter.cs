@@ -50,7 +50,7 @@ namespace EhwarSoft.Avro.Generic
         /// </summary>
         /// <param name="value">The value to be serialized</param>
         /// <param name="encoder">The encoder to use for serializing</param>
-        public void Write(T value, Encoder encoder)
+        public void Write(T value, IWriter encoder)
         {
             writer.Write(value, encoder);
         }
@@ -75,7 +75,7 @@ namespace EhwarSoft.Avro.Generic
             this.Schema = schema;
         }
 
-        public void Write<T>(T value, Encoder encoder)
+        public void Write<T>(T value, IWriter encoder)
         {
             Write(Schema, value, encoder);
         }
@@ -87,7 +87,7 @@ namespace EhwarSoft.Avro.Generic
         /// <param name="schema">The schema to use for serializing</param>
         /// <param name="value">The value to be serialized</param>
         /// <param name="encoder">The encoder to use during serialization</param>
-        public virtual void Write(Schema schema, object value, Encoder encoder)
+        public virtual void Write(Schema schema, object value, IWriter encoder)
         {
             switch (schema.Tag)
             {
@@ -145,7 +145,7 @@ namespace EhwarSoft.Avro.Generic
         /// </summary>
         /// <param name="value">The object to be serialized using null schema</param>
         /// <param name="encoder">The encoder to use while serialization</param>
-        protected virtual void WriteNull(object value, Encoder encoder)
+        protected virtual void WriteNull(object value, IWriter encoder)
         {
             if (value != null) throw TypeMismatch(value, "null", "null");
         }
@@ -169,9 +169,9 @@ namespace EhwarSoft.Avro.Generic
         /// </summary>
         /// <param name="schema">The RecordSchema to use for serialization</param>
         /// <param name="value">The value to be serialized</param>
-        /// <param name="encoder">The Encoder for serialization</param>
+        /// <param name="encoder">The IWriter for serialization</param>
 
-        protected virtual void WriteRecord(RecordSchema schema, object value, Encoder encoder)
+        protected virtual void WriteRecord(RecordSchema schema, object value, IWriter encoder)
         {
             EnsureRecordObject(schema, value);
             foreach (Field field in schema)
@@ -216,8 +216,8 @@ namespace EhwarSoft.Avro.Generic
         /// </summary>
         /// <param name="es">The EnumSchema for serialization</param>
         /// <param name="value">Value to be written</param>
-        /// <param name="encoder">Encoder for serialization</param>
-        protected virtual void WriteEnum(EnumSchema es, object value, Encoder encoder)
+        /// <param name="encoder">IWriter for serialization</param>
+        protected virtual void WriteEnum(EnumSchema es, object value, IWriter encoder)
         {
             if (value == null || !(value is GenericEnum) || !((value as GenericEnum).Schema.Equals(es)))
                 throw TypeMismatch(value, "enum", "GenericEnum");
@@ -232,7 +232,7 @@ namespace EhwarSoft.Avro.Generic
         /// <param name="schema">The ArraySchema for serialization</param>
         /// <param name="value">The value being serialized</param>
         /// <param name="encoder">The encoder for serialization</param>
-        protected virtual void WriteArray(ArraySchema schema, object value, Encoder encoder)
+        protected virtual void WriteArray(ArraySchema schema, object value, IWriter encoder)
         {
             EnsureArrayObject(value);
             long l = GetArrayLength(value);
@@ -290,7 +290,7 @@ namespace EhwarSoft.Avro.Generic
         /// <param name="schema">The MapSchema for serialization</param>
         /// <param name="value">The value to be serialized</param>
         /// <param name="encoder">The encoder for serialization</param>
-        protected virtual void WriteMap(MapSchema schema, object value, Encoder encoder)
+        protected virtual void WriteMap(MapSchema schema, object value, IWriter encoder)
         {
             EnsureMapObject(value);
             IDictionary<string, object> vv = (IDictionary<string, object>)value;
@@ -347,7 +347,7 @@ namespace EhwarSoft.Avro.Generic
         /// <param name="us">The UnionSchema to resolve against</param>
         /// <param name="value">The value to be serialized</param>
         /// <param name="encoder">The encoder for serialization</param>
-        protected virtual void WriteUnion(UnionSchema us, object value, Encoder encoder)
+        protected virtual void WriteUnion(UnionSchema us, object value, IWriter encoder)
         {
             int index = ResolveUnion(us, value);
             encoder.WriteUnionIndex(index);
@@ -378,7 +378,7 @@ namespace EhwarSoft.Avro.Generic
         /// <param name="es">The schema for serialization</param>
         /// <param name="value">The value to be serialized</param>
         /// <param name="encoder">The encoder for serialization</param>
-        protected virtual void WriteFixed(FixedSchema es, object value, Encoder encoder)
+        protected virtual void WriteFixed(FixedSchema es, object value, IWriter encoder)
         {
             if (value == null || !(value is GenericFixed) || !(value as GenericFixed).Schema.Equals(es))
             {

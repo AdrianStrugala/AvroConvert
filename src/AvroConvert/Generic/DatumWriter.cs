@@ -24,6 +24,6 @@ namespace EhwarSoft.Avro.Generic
     public interface DatumWriter<T>
     {
         Schema Schema { get; }
-        void Write(T datum, Encoder encoder);
+        void Write(T datum, IWriter encoder);
     }
 }

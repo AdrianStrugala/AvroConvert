@@ -147,5 +147,23 @@
             Assert.NotNull(deserialized);
             Assert.Equal(testClass.theGuid, deserialized.theGuid);
         }
+
+        [Fact]
+        public void Serialize_ObjectIsDictionary_ResultIsTheSameAsInput()
+        {
+            //Arrange
+            Dictionary<int, string> dictionary = _fixture.Create<Dictionary<int, string>>();
+
+            //Act
+
+            var result = AvroConvert.Serialize(dictionary);
+
+            var deserialized = AvroConvert.Deserialize<Dictionary<int, string>>(result);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(dictionary, deserialized);
+        }
     }
 }

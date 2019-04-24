@@ -113,8 +113,7 @@
             propertyBuilder.SetCustomAttribute(attributeBuilder);
 
             //Add nullable attribute
-            if (Nullable.GetUnderlyingType(properType) != null ||
-                properType == typeof(string))
+            if (Nullable.GetUnderlyingType(properType) != null)
             {
                 var nullableAttributeConstructor = typeof(NullableSchemaAttribute).GetConstructor(new Type[] { });
                 var nullableAttributeBuilder = new CustomAttributeBuilder(nullableAttributeConstructor, new string[] { }, new PropertyInfo[] { }, new object[] { });

@@ -50,7 +50,7 @@
                 case Schema.Type.Double:
                     return (v, e) => Write<double>(v, schema.Tag, e.WriteDouble);
                 case Schema.Type.String:
-                    return (v, e) => Write<string>(v, schema.Tag, e.WriteString);
+                    return (v, e) => WriteString(v, e.WriteString);
                 case Schema.Type.Bytes:
                     return (v, e) => Write<byte[]>(v, schema.Tag, e.WriteBytes);
                 case Schema.Type.Error:
@@ -99,6 +99,21 @@
             if (!(value is S)) throw TypeMismatch(value, tag.ToString(), typeof(S).ToString());
             writer((S)value);
 
+        }
+
+        protected void WriteString(object value, Writer<string> writer)
+        {
+            if (value == null)
+            {
+                value = string.Empty;
+            }
+
+            if (value is Guid)
+            {
+                value = value.ToString();
+            }
+
+            writer((string)value);
         }
 
 
@@ -337,11 +352,6 @@
         /// <param name="encoder">The encoder for serialization</param>
         private void WriteUnion(UnionSchema unionSchema, Schema[] branchSchemas, WriteItem[] branchWriters, object value, Encoder encoder)
         {
-            if (value is Guid)
-            {
-                value = value.ToString();
-            }
-
             int index = ResolveUnion(unionSchema, branchSchemas, value);
             encoder.WriteUnionIndex(index);
             branchWriters[index](value, encoder);

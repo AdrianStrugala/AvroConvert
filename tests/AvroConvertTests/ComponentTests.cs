@@ -36,7 +36,7 @@
         }
 
         [Fact]
-        public void SerializeList_ThenDeserialize_ListsAreEqual()
+        public void SerializeClassWithList_ThenDeserialize_ListsAreEqual()
         {
             //Arrange
             SomeTestClass someTestClass = new SomeTestClass
@@ -149,16 +149,52 @@
         }
 
         [Fact]
-        public void Serialize_ObjectIsDictionary_ResultIsTheSameAsInput()
+        public void Serialize_ObjectIsList_ResultIsTheSameAsInput()
         {
             //Arrange
-            Dictionary<int, string> dictionary = _fixture.Create<Dictionary<int, string>>();
+            List<int> dictionary = _fixture.Create<List<int>>();
 
             //Act
 
             var result = AvroConvert.Serialize(dictionary);
 
-            var deserialized = AvroConvert.Deserialize<Dictionary<int, string>>(result);
+            var deserialized = AvroConvert.Deserialize<List<int>>(result);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(dictionary, deserialized);
+        }
+
+        [Fact]
+        public void Serialize_ObjectIsDictionary_ResultIsTheSameAsInput()
+        {
+            //Arrange
+            Dictionary<int, int> dictionary = _fixture.Create<Dictionary<int, int>>();
+
+            //Act
+
+            var result = AvroConvert.Serialize(dictionary);
+
+            var deserialized = AvroConvert.Deserialize<Dictionary<int, int>>(result);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(dictionary, deserialized);
+        }
+
+        [Fact]
+        public void Serialize_ObjectIsAvroMap_ResultIsTheSameAsInput()
+        {
+            //Arrange
+            Dictionary<string, int> dictionary = _fixture.Create<Dictionary<string, int>>();
+
+            //Act
+
+            var result = AvroConvert.Serialize(dictionary);
+
+            var deserialized = AvroConvert.Deserialize<Dictionary<string, int>>(result);
 
             //Assert
             Assert.NotNull(result);

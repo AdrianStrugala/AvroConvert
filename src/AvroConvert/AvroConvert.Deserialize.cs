@@ -1,5 +1,7 @@
 ﻿namespace EhwarSoft.Avro
 {
+    using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -34,7 +36,7 @@
             T result;
             var deserialized = Deserialize(avroBytes);
 
-            if (typeof(T).TryGetInterfaceGenericParameters(typeof(IEnumerable<>)))
+            if (typeof(IList).IsAssignableFrom(typeof(T)))
             {
                 result = Mapper.Map<T>(deserialized);
             }

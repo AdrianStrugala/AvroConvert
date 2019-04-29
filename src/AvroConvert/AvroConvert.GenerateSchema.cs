@@ -36,7 +36,49 @@
         {
             var existingType = _moduleBuilder.GetType(objType.Name);
 
+            if (objType.IsArray && objType.FullName.EndsWith("[]"))
+            {
+                string fullName = objType.FullName.Substring(0, objType.FullName.Length - 2);
+                var field = Type.GetType($"{fullName},{objType.Assembly.GetName().Name}");
 
+                var avroFieldType = DecorateObjectWithAvroAttributes(field).GetType();
+
+                var avroArray = Array.CreateInstance(avroFieldType, 1);
+                objType = avroArray.GetType();
+
+                typeBuilder = AddPropertyToTypeBuilder(typeBuilder, objType, prop.Name);
+            }
+
+            else if (typeof(IList).IsAssignableFrom(objType))
+            {
+                var field = objType.GetProperties()[2];
+                var avroFieldType = DecorateObjectWithAvroAttributes(field.PropertyType).GetType();
+
+                var avroArray = Array.CreateInstance(avroFieldType, 1);
+                objType = avroArray.GetType();
+
+                typeBuilder = AddPropertyToTypeBuilder(typeBuilder, objType, prop.Name);
+            }
+
+            else if (objType == typeof(Guid))
+            {
+                objType = typeof(string);
+                typeBuilder = AddPropertyToTypeBuilder(typeBuilder, objType, prop.Name);
+            }
+
+            else if (!(objType.GetTypeInfo().IsValueType ||
+                       objType == typeof(string)))
+            {
+                //complex type
+                objType = DecorateObjectWithAvroAttributes(objType).GetType();
+                typeBuilder = AddPropertyToTypeBuilder(typeBuilder, objType, prop.Name);
+            }
+
+            else
+            {
+                //simple type
+                typeBuilder = AddPropertyToTypeBuilder(typeBuilder, objType, prop.Name);
+            }
 
             if (typeof(IDictionary).IsAssignableFrom(objType) || objType.GetTypeInfo().IsValueType)
             {

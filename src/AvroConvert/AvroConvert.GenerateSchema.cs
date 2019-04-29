@@ -16,7 +16,7 @@
         {
             var assemblyName = new AssemblyName("InMemory");
             var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName,
-                AssemblyBuilderAccess.RunAndCollect);
+                AssemblyBuilderAccess.Run);
 
             _moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name);
 
@@ -35,25 +35,39 @@
         private static object DecorateObjectWithAvroAttributes(Type objType)
         {
             var existingType = _moduleBuilder.GetType(objType.Name);
-            if (existingType != null)
-            {
-                return Activator.CreateInstance(existingType);
-            }
-
-            TypeBuilder typeBuilder = _moduleBuilder.DefineType(objType.Name, TypeAttributes.Public);
 
             if (typeof(IDictionary).IsAssignableFrom(objType) || objType.GetTypeInfo().IsValueType)
             {
                 return Activator.CreateInstance(objType);
             }
+
+            else if (existingType != null)
+            {
+                return Activator.CreateInstance(existingType);
+            }
+
             else
             {
+                TypeBuilder typeBuilder = _moduleBuilder.DefineType(objType.Name, TypeAttributes.Public);
                 PropertyInfo[] properties = objType.GetProperties();
                 foreach (var prop in properties)
                 {
                     Type properType = prop.PropertyType;
 
-                    if (typeof(IList).IsAssignableFrom(properType))
+                    if (properType.IsArray && properType.FullName.EndsWith("[]"))
+                    {
+                        string fullName = properType.FullName.Substring(0, properType.FullName.Length - 2);
+                        var field = Type.GetType(string.Format("{0},{1}", fullName, properType.Assembly.GetName().Name));
+
+                        var avroFieldType = DecorateObjectWithAvroAttributes(field).GetType();
+
+                        var avroArray = Array.CreateInstance(avroFieldType, 1);
+                        properType = avroArray.GetType();
+
+                        typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name);
+                    }
+
+                    else if (typeof(IList).IsAssignableFrom(properType))
                     {
                         var field = properType.GetProperties()[2];
                         var avroFieldType = DecorateObjectWithAvroAttributes(field.PropertyType).GetType();
@@ -63,25 +77,28 @@
 
                         typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name);
                     }
+
                     else if (properType == typeof(Guid))
                     {
                         properType = typeof(string);
                         typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name);
                     }
+
                     else
                     {
                         typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name);
                     }
                 }
+
+
+                var attributeBuilder = GenerateCustomAttributeBuilder<DataContractAttribute>(objType.Name);
+                typeBuilder.SetCustomAttribute(attributeBuilder);
+
+                var inMemoryType = typeBuilder.CreateType();
+                var inMemoryInstance = Activator.CreateInstance(inMemoryType);
+
+                return inMemoryInstance;
             }
-
-            var attributeBuilder = GenerateCustomAttributeBuilder<DataContractAttribute>(objType.Name);
-            typeBuilder.SetCustomAttribute(attributeBuilder);
-
-            var inMemoryType = typeBuilder.CreateType();
-            var inMemoryInstance = Activator.CreateInstance(inMemoryType);
-
-            return inMemoryInstance;
         }
 
         private static TypeBuilder AddPropertyToTypeBuilder(TypeBuilder typeBuilder, Type properType, string name)

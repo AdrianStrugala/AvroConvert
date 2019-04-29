@@ -8,9 +8,9 @@
 
     public static partial class AvroConvert
     {
-        public static List<Dictionary<string, object>> Deserialize(byte[] avroBytes)
+        public static List<object> Deserialize(byte[] avroBytes)
         {
-            List<Dictionary<string, object>> result = new List<Dictionary<string, object>>();
+            var result = new List<object>();
 
             var reader = Reader.OpenReader(new MemoryStream(avroBytes));
 

@@ -5,6 +5,7 @@
     using System.Collections.Generic;
     using Xunit;
 
+    [Collection("MemoryBasedTests")]
     public class SerializeTests
     {
         private readonly Fixture _fixture;

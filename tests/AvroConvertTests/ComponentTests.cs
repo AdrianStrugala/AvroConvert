@@ -5,6 +5,7 @@
     using EhwarSoft.Avro;
     using Xunit;
 
+    [Collection("MemoryBasedTests")]
     public class ComponentTests
     {
         private readonly Fixture _fixture;

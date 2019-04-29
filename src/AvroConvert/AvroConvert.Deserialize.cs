@@ -8,6 +8,11 @@
 
     public static partial class AvroConvert
     {
+        static AvroConvert()
+        {
+            Mapper.Initialize(cfg => { });
+        }
+
         public static List<object> Deserialize(byte[] avroBytes)
         {
             var result = new List<object>();
@@ -29,8 +34,6 @@
             T result;
             var deserialized = Deserialize(avroBytes);
 
-            Mapper.Initialize(cfg => { });
-
             if (typeof(T).TryGetInterfaceGenericParameters(typeof(IEnumerable<>)))
             {
                 result = Mapper.Map<T>(deserialized);
@@ -39,8 +42,6 @@
             {
                 result = Mapper.Map<T>(deserialized[0]);
             }
-
-            Mapper.Reset();
 
             return result;
         }

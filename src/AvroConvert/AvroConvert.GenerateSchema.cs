@@ -42,7 +42,7 @@
 
             TypeBuilder typeBuilder = _moduleBuilder.DefineType(objType.Name, TypeAttributes.Public);
 
-            if (typeof(IDictionary).IsAssignableFrom(objType))
+            if (typeof(IDictionary).IsAssignableFrom(objType) || objType.GetTypeInfo().IsValueType)
             {
                 return Activator.CreateInstance(objType);
             }

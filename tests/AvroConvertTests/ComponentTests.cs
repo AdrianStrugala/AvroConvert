@@ -185,6 +185,25 @@
             Assert.Equal(dictionary, deserialized);
         }
 
+
+        [Fact]
+        public void Serialize_ObjectIsArray_ResultIsTheSameAsInput()
+        {
+            //Arrange
+            int[] array = _fixture.Create<int[]>();
+
+            //Act
+
+            var result = AvroConvert.Serialize(array);
+
+            var deserialized = AvroConvert.Deserialize<int[]>(result);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(array, deserialized);
+        }
+
         [Fact]
         public void Serialize_ObjectIsAvroMap_ResultIsTheSameAsInput()
         {

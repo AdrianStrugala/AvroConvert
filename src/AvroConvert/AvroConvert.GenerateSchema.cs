@@ -36,6 +36,8 @@
         {
             var existingType = _moduleBuilder.GetType(objType.Name);
 
+
+
             if (typeof(IDictionary).IsAssignableFrom(objType) || objType.GetTypeInfo().IsValueType)
             {
                 return Activator.CreateInstance(objType);
@@ -57,7 +59,7 @@
                     if (properType.IsArray && properType.FullName.EndsWith("[]"))
                     {
                         string fullName = properType.FullName.Substring(0, properType.FullName.Length - 2);
-                        var field = Type.GetType(string.Format("{0},{1}", fullName, properType.Assembly.GetName().Name));
+                        var field = Type.GetType($"{fullName},{properType.Assembly.GetName().Name}");
 
                         var avroFieldType = DecorateObjectWithAvroAttributes(field).GetType();
 
@@ -84,8 +86,17 @@
                         typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name);
                     }
 
+                    else if (!(properType.GetTypeInfo().IsValueType ||
+                               properType == typeof(string)))
+                    {
+                        //complex type
+                        properType = DecorateObjectWithAvroAttributes(properType).GetType();
+                        typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name);
+                    }
+
                     else
                     {
+                        //simple type
                         typeBuilder = AddPropertyToTypeBuilder(typeBuilder, properType, prop.Name);
                     }
                 }
@@ -103,18 +114,6 @@
 
         private static TypeBuilder AddPropertyToTypeBuilder(TypeBuilder typeBuilder, Type properType, string name)
         {
-            if (typeof(IList).IsAssignableFrom(properType) && !typeof(IDictionary).IsAssignableFrom(properType))
-            {
-                //Do not add properties of IList
-            }
-
-            //if complex type - use recurrence
-            else if (!(properType.GetTypeInfo().IsValueType ||
-            properType == typeof(string)))
-            {
-                properType = DecorateObjectWithAvroAttributes(properType).GetType();
-            }
-
             //mimic property 
             PropertyBuilder propertyBuilder = typeBuilder.DefineProperty(name, PropertyAttributes.None, properType, null);
 

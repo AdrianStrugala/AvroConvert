@@ -20,7 +20,7 @@
 
             _moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name);
 
-            Type inMemoryType = DecorateObjectWithAvroAttributes(obj.GetType());
+            Type inMemoryType = ConvertToAvroType(obj.GetType());
             var inMemoryInstance = Activator.CreateInstance(inMemoryType);
 
             //invoke Create method of AvroSerializer
@@ -34,7 +34,7 @@
             return result;
         }
 
-        private static Type DecorateObjectWithAvroAttributes(Type objType)
+        private static Type ConvertToAvroType(Type objType)
         {
             var existingType = _moduleBuilder.GetType(objType.Name);
             if (existingType != null)
@@ -42,15 +42,12 @@
                 return existingType;
             }
 
-
-            TypeBuilder typeBuilder = _moduleBuilder.DefineType(objType.Name, TypeAttributes.Public);
-
             if (objType.IsArray && objType.FullName.EndsWith("[]"))
             {
                 string fullName = objType.FullName.Substring(0, objType.FullName.Length - 2);
                 var field = Type.GetType($"{fullName},{objType.Assembly.GetName().Name}");
 
-                var avroFieldType = DecorateObjectWithAvroAttributes(field);
+                var avroFieldType = ConvertToAvroType(field);
 
                 var avroArray = Array.CreateInstance(avroFieldType, 1);
                 objType = avroArray.GetType();
@@ -59,10 +56,16 @@
             else if (typeof(IList).IsAssignableFrom(objType))
             {
                 var field = objType.GetProperties()[2];
-                var avroFieldType = DecorateObjectWithAvroAttributes(field.PropertyType);
+                var avroFieldType = ConvertToAvroType(field.PropertyType);
 
                 var avroArray = Array.CreateInstance(avroFieldType, 1);
                 objType = avroArray.GetType();
+            }
+
+            else if (typeof(IDictionary).IsAssignableFrom(objType))
+            {
+                //TODO: decorate also value field
+
             }
 
             else if (objType == typeof(Guid))
@@ -73,34 +76,29 @@
             else if (!(objType.GetTypeInfo().IsValueType ||
                        objType == typeof(string)))
             {
-                //complex type          
+                //complex type 
+                TypeBuilder typeBuilder = _moduleBuilder.DefineType(objType.Name, TypeAttributes.Public);
+
                 PropertyInfo[] properties = objType.GetProperties();
                 foreach (var prop in properties)
                 {
                     var propertyType = prop.PropertyType;
-                    propertyType = DecorateObjectWithAvroAttributes(propertyType);
+                    propertyType = ConvertToAvroType(propertyType);
                     typeBuilder = AddPropertyToTypeBuilder(typeBuilder, propertyType, prop.Name);
                 }
+
+                var attributeBuilder = GenerateCustomAttributeBuilder<DataContractAttribute>(objType.Name);
+                typeBuilder.SetCustomAttribute(attributeBuilder);
+
+                objType = typeBuilder.CreateType();
             }
 
             else
             {
                 //simple type
-               // return objType;
             }
 
-            //            if (typeof(IDictionary).IsAssignableFrom(objType) || objType.GetTypeInfo().IsValueType)
-            //            {
-            //                return Activator.CreateInstance(objType);
-            //            }
-            //
-
-
-
-            var attributeBuilder = GenerateCustomAttributeBuilder<DataContractAttribute>(objType.Name);
-            typeBuilder.SetCustomAttribute(attributeBuilder);
-
-            return typeBuilder.CreateType();
+            return objType;
         }
 
 

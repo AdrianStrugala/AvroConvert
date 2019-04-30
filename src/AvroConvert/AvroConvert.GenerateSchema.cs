@@ -77,7 +77,7 @@
                 PropertyInfo[] properties = objType.GetProperties();
                 foreach (var prop in properties)
                 {
-                    typeBuilder = AddPropertyToTypeBuilder(typeBuilder, objType, prop.Name);
+                    typeBuilder = AddPropertyToTypeBuilder(typeBuilder, prop.PropertyType, prop.Name);
                 }
             }
 

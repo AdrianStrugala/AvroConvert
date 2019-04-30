@@ -72,12 +72,13 @@
             else if (!(objType.GetTypeInfo().IsValueType ||
                        objType == typeof(string)))
             {
-                //complex type
-                objType = DecorateObjectWithAvroAttributes(objType).GetType();
+                //complex type          
                 PropertyInfo[] properties = objType.GetProperties();
                 foreach (var prop in properties)
                 {
-                    typeBuilder = AddPropertyToTypeBuilder(typeBuilder, prop.PropertyType, prop.Name);
+                    var propertyType = prop.PropertyType;
+                    propertyType = DecorateObjectWithAvroAttributes(propertyType).GetType();
+                    typeBuilder = AddPropertyToTypeBuilder(typeBuilder, propertyType, prop.Name);
                 }
             }
 

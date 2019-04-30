@@ -35,13 +35,14 @@
 
         private static object DecorateObjectWithAvroAttributes(Type objType)
         {
-            TypeBuilder typeBuilder = _moduleBuilder.DefineType(objType.Name, TypeAttributes.Public);
             var existingType = _moduleBuilder.GetType(objType.Name);
-
             if (existingType != null)
             {
                 return Activator.CreateInstance(existingType);
             }
+
+
+            TypeBuilder typeBuilder = _moduleBuilder.DefineType(objType.Name, TypeAttributes.Public);          
 
             if (objType.IsArray && objType.FullName.EndsWith("[]"))
             {

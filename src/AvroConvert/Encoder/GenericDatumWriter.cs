@@ -128,46 +128,22 @@
         {
             public object EnsureArrayObject(object value)
             {
-                int length = 0;
-
                 if (value == null)
                 {
                     return null;
                 }
 
-                if (value is OrderedDictionary dictionary)
+                IList list = value as IList;
+                int length = list.Count;
+
+                object[] result = new object[length];
+
+                for (int i = 0; i < length; i++)
                 {
-                    length = dictionary.Count;
-
-                    object[] result = new object[length];
-
-                    for (int i = 0; i < length; i++)
-                    {
-//                        KeyValue keyValue= new KeyValue();
-//                        keyValue.Key = dictionary.Keys.;
-//
-//                        result[i] = dictionary.Values
-                    }
-
-                    return result;
-                }
-                else
-                {
-                    IList list = value as IList;
-                    length = list.Count;
-
-                    object[] result = new object[length];
-
-                    for (int i = 0; i < length; i++)
-                    {
-                        result[i] = list[i];
-                    }
-
-                    return result;
+                    result[i] = list[i];
                 }
 
-
-                //if (value == null || !(value is Array)) throw TypeMismatch(value, "array", "Array");
+                return result;
             }
 
             public long GetArrayLength(object value)
@@ -192,5 +168,11 @@
                 }
             }
         }
+    }
+
+    public class KeyValue
+    {
+        public object Key;
+        public object Value;
     }
 }

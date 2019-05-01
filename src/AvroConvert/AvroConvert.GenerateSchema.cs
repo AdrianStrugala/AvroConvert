@@ -3,10 +3,12 @@
     using Microsoft.Hadoop.Avro;
     using System;
     using System.Collections;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
     using System.Reflection.Emit;
     using System.Runtime.Serialization;
+    using Exceptions;
 
     public static partial class AvroConvert
     {
@@ -64,8 +66,16 @@
 
             else if (typeof(IDictionary).IsAssignableFrom(objType))
             {
-                //TODO: decorate also value field
+                Type keyType = objType.GetGenericArguments()[0];
 
+                if (keyType != typeof(string))
+                {
+                    throw new AvroNotSupportedException("Avro supports Dictionaries only as [string] as a key type");
+
+                    //TODO Handle this is some other way
+                }
+
+                //TODO: decorate also value field
             }
 
             else if (objType == typeof(Guid))

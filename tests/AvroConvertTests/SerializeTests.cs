@@ -119,9 +119,10 @@
         {
             //Arrange
             VeryComplexClass
-                testClass = _fixture.Create<VeryComplexClass>();
+                testClass = 
+                    _fixture.Create<VeryComplexClass>();
 
-            testClass.ClassesWithArray[0] = null;
+                //  testClass.ClassesWithArray[0] = null;
 //            testClass.simpleClass.name = null;
 //            testClass.anotherClass.nestedList[1] = null;
 

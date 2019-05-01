@@ -5,6 +5,7 @@
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.Collections.Specialized;
 
     public class GenericDatumWriter : AbstractEncoder
     {
@@ -44,7 +45,8 @@
             }
         }
 
-        protected override void WriteField(object record, string fieldName, int fieldPos, WriteItem writer, IWriter encoder)
+        protected override void WriteField(object record, string fieldName, int fieldPos, WriteItem writer,
+            IWriter encoder)
         {
             writer(((GenericRecord)record)[fieldName], encoder);
         }
@@ -52,11 +54,11 @@
         protected override WriteItem ResolveEnum(EnumSchema es)
         {
             return (v, e) =>
-                       {
-                           if (v == null || !(v is GenericEnum) || !((v as GenericEnum).Schema.Equals(es)))
-                               throw TypeMismatch(v, "enum", "GenericEnum");
-                           e.WriteEnum(es.Ordinal((v as GenericEnum).Value));
-                       };
+            {
+                if (v == null || !(v is GenericEnum) || !((v as GenericEnum).Schema.Equals(es)))
+                    throw TypeMismatch(v, "enum", "GenericEnum");
+                e.WriteEnum(es.Ordinal((v as GenericEnum).Value));
+            };
         }
 
         protected override void WriteFixed(FixedSchema es, object value, IWriter encoder)
@@ -65,6 +67,7 @@
             {
                 throw TypeMismatch(value, "fixed", "GenericFixed");
             }
+
             GenericFixed ba = (GenericFixed)value;
             encoder.WriteFixed(ba.Value);
         }
@@ -100,19 +103,22 @@
                 case Schema.Type.Error:
                 case Schema.Type.Record:
                     //return obj is GenericRecord && (obj as GenericRecord).Schema.Equals(s);
-                    return obj is GenericRecord && (obj as GenericRecord).Schema.SchemaName.Equals((sc as RecordSchema).SchemaName);
+                    return obj is GenericRecord &&
+                           (obj as GenericRecord).Schema.SchemaName.Equals((sc as RecordSchema).SchemaName);
                 case Schema.Type.Enumeration:
                     //return obj is GenericEnum && (obj as GenericEnum).Schema.Equals(s);
-                    return obj is GenericEnum && (obj as GenericEnum).Schema.SchemaName.Equals((sc as EnumSchema).SchemaName);
+                    return obj is GenericEnum &&
+                           (obj as GenericEnum).Schema.SchemaName.Equals((sc as EnumSchema).SchemaName);
                 case Schema.Type.Array:
                     return obj is Array && !(obj is byte[]);
                 case Schema.Type.Map:
                     return obj is IDictionary<string, object>;
                 case Schema.Type.Union:
-                    return false;   // Union directly within another union not allowed!
+                    return false; // Union directly within another union not allowed!
                 case Schema.Type.Fixed:
                     //return obj is GenericFixed && (obj as GenericFixed).Schema.Equals(s);
-                    return obj is GenericFixed && (obj as GenericFixed).Schema.SchemaName.Equals((sc as FixedSchema).SchemaName);
+                    return obj is GenericFixed &&
+                           (obj as GenericFixed).Schema.SchemaName.Equals((sc as FixedSchema).SchemaName);
                 default:
                     throw new AvroException("Unknown schema type: " + sc.Tag);
             }
@@ -122,19 +128,45 @@
         {
             public object EnsureArrayObject(object value)
             {
+                int length = 0;
+
                 if (value == null)
                 {
                     return null;
                 }
-                IList enumerable = value as IList;
-                object[] result = new object[enumerable.Count];
 
-                for (int i = 0; i < enumerable.Count; i++)
+                if (value is OrderedDictionary dictionary)
                 {
-                    result[i] = enumerable[i];
+                    length = dictionary.Count;
+
+                    object[] result = new object[length];
+
+                    for (int i = 0; i < length; i++)
+                    {
+//                        KeyValue keyValue= new KeyValue();
+//                        keyValue.Key = dictionary.Keys.;
+//
+//                        result[i] = dictionary.Values
+                    }
+
+                    return result;
+                }
+                else
+                {
+                    IList list = value as IList;
+                    length = list.Count;
+
+                    object[] result = new object[length];
+
+                    for (int i = 0; i < length; i++)
+                    {
+                        result[i] = list[i];
+                    }
+
+                    return result;
                 }
 
-                return result;
+
                 //if (value == null || !(value is Array)) throw TypeMismatch(value, "array", "Array");
             }
 

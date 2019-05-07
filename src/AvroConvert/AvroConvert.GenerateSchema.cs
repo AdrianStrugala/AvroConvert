@@ -113,16 +113,16 @@
 
 
 
-        private static TypeBuilder AddPropertyToTypeBuilder(TypeBuilder typeBuilder, Type properType, string name)
+        private static TypeBuilder AddPropertyToTypeBuilder(TypeBuilder typeBuilder, Type propertyType, string name)
         {
             //mimic property 
-            PropertyBuilder propertyBuilder = typeBuilder.DefineProperty(name, PropertyAttributes.None, properType, null);
+            PropertyBuilder propertyBuilder = typeBuilder.DefineProperty(name, PropertyAttributes.None, propertyType, null);
 
             var attributeBuilder = GenerateCustomAttributeBuilder<DataMemberAttribute>(name);
             propertyBuilder.SetCustomAttribute(attributeBuilder);
 
             //Add nullable attribute
-            if (Nullable.GetUnderlyingType(properType) != null)
+            if (Nullable.GetUnderlyingType(propertyType) != null || propertyType == typeof(string))
             {
                 var nullableAttributeConstructor = typeof(NullableSchemaAttribute).GetConstructor(new Type[] { });
                 var nullableAttributeBuilder = new CustomAttributeBuilder(nullableAttributeConstructor, new string[] { }, new PropertyInfo[] { }, new object[] { });
@@ -131,12 +131,12 @@
             }
 
             // Define field
-            FieldBuilder fieldBuilder = typeBuilder.DefineField(name, properType, FieldAttributes.Public);
+            FieldBuilder fieldBuilder = typeBuilder.DefineField(name, propertyType, FieldAttributes.Public);
 
             // Define "getter" for property
             MethodBuilder getterBuilder = typeBuilder.DefineMethod("get_" + name,
                 MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig,
-                properType,
+                propertyType,
                 Type.EmptyTypes);
             ILGenerator getterIL = getterBuilder.GetILGenerator();
             getterIL.Emit(OpCodes.Ldarg_0);
@@ -148,7 +148,7 @@
             MethodBuilder setterBuilder = typeBuilder.DefineMethod("set_" + name,
                 MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig,
                 null,
-                new Type[] { properType });
+                new Type[] { propertyType });
             ILGenerator setterIL = setterBuilder.GetILGenerator();
             setterIL.Emit(OpCodes.Ldarg_0);
             setterIL.Emit(OpCodes.Ldarg_1);

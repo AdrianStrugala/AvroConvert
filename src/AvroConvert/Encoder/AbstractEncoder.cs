@@ -186,7 +186,20 @@
                     }
 
                 }
-
+                else if (prop.PropertyType == typeof(Guid))
+                {
+                    // We have a simple type
+                    dynamic value = null;
+                    try
+                    {
+                        value = prop.GetValue(item);
+                    }
+                    catch (Exception)
+                    {
+                        //no value
+                    }
+                    result.Add(prop.Name, value.ToString());
+                }
                 else if (prop.PropertyType.GetTypeInfo().IsValueType ||
                          prop.PropertyType == typeof(string))
                 {

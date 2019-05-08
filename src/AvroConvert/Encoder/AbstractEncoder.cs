@@ -8,15 +8,15 @@
     using System.Linq;
     using System.Reflection;
 
-    public abstract class AbstractEncoder
+    public abstract partial class AbstractEncoder
     {
         public Schema Schema { get; private set; }
 
-        protected delegate void WriteItem(object value, IWriter encoder);
+        public delegate void WriteItem(object value, IWriter encoder);
 
         private readonly WriteItem _writer;
-        private readonly ArrayAccess _arrayAccess;
-        private readonly MapAccess _mapAccess;
+        private readonly IArrayAccess _arrayAccess;
+        private readonly IMapAccess _mapAccess;
 
         private readonly Dictionary<RecordSchema, WriteItem> _recordWriters = new Dictionary<RecordSchema, WriteItem>();
 
@@ -25,7 +25,7 @@
             _writer(datum, encoder);
         }
 
-        protected AbstractEncoder(Schema schema, ArrayAccess arrayAccess, MapAccess mapAccess)
+        protected AbstractEncoder(Schema schema, IArrayAccess arrayAccess, IMapAccess mapAccess)
         {
             Schema = schema;
             _arrayAccess = arrayAccess;
@@ -269,14 +269,26 @@
             }
         }
 
-        protected abstract void WriteRecordFields(object record, RecordFieldWriter[] writers, IWriter encoder);
-
-
-        protected class RecordFieldWriter
+        public void WriteRecordFields(object recordObj, RecordFieldWriter[] writers, IWriter encoder)
         {
-            public WriteItem WriteField { get; set; }
-            public Field Field { get; set; }
+            GenericRecord record = new GenericRecord((RecordSchema)Schema);
+
+            if (recordObj is Dictionary<string, object> obj)
+            {
+                record.contents = obj;
+            }
+
+            else
+            {
+                record.contents = SplitKeyValues(recordObj);
+            }
+
+            foreach (var writer in writers)
+            {
+                writer.WriteField(record[writer.Field.Name], encoder);
+            }
         }
+
 
         protected abstract void EnsureRecordObject(RecordSchema recordSchema, object value);
 
@@ -408,71 +420,7 @@
 
         protected abstract bool UnionBranchMatches(Schema sc, object obj);
 
-        protected interface EnumAccess
-        {
-            void WriteEnum(object value);
-        }
-
-        protected interface ArrayAccess
-        {
-            /// <summary>
-            /// Checks if the given object is an array. If it is a valid array, this function returns normally. Otherwise,
-            /// it throws an exception. The default implementation checks if the value is an array.
-            /// </summary>
-            /// <param name="value"></param>
-            object EnsureArrayObject(object value);
-
-            /// <summary>
-            /// Returns the length of an array. The default implementation requires the object
-            /// to be an array of objects and returns its length. The defaul implementation
-            /// gurantees that EnsureArrayObject() has been called on the value before this
-            /// function is called.
-            /// </summary>
-            /// <param name="value">The object whose array length is required</param>
-            /// <returns>The array length of the given object</returns>
-            long GetArrayLength(object value);
-
-            /// <summary>
-            /// Returns the element at the given index from the given array object. The default implementation
-            /// requires that the value is an object array and returns the element in that array. The defaul implementation
-            /// gurantees that EnsureArrayObject() has been called on the value before this
-            /// function is called.
-            /// </summary>
-            /// <param name="value">The array object</param>
-            /// <param name="index">The index to look for</param>
-            /// <returns>The array element at the index</returns>
-            void WriteArrayValues(object array, WriteItem valueWriter, IWriter encoder);
-        }
-
-        protected interface MapAccess
-        {
-            /// <summary>
-            /// Checks if the given object is a map. If it is a valid map, this function returns normally. Otherwise,
-            /// it throws an exception. The default implementation checks if the value is an IDictionary<string, object>.
-            /// </summary>
-            /// <param name="value"></param>
-            void EnsureMapObject(object value);
-
-            /// <summary>
-            /// Returns the size of the map object. The default implementation gurantees that EnsureMapObject has been
-            /// successfully called with the given value. The default implementation requires the value
-            /// to be an IDictionary<string, object> and returns the number of elements in it.
-            /// </summary>
-            /// <param name="value">The map object whose size is desired</param>
-            /// <returns>The size of the given map object</returns>
-            long GetMapSize(object value);
-
-            /// <summary>
-            /// Returns the contents of the given map object. The default implementation guarantees that EnsureMapObject
-            /// has been called with the given value. The defualt implementation of this method requires that
-            /// the value is an IDictionary<string, object> and returns its contents.
-            /// </summary>
-            /// <param name="value">The map object whose size is desired</param>
-            /// <returns>The contents of the given map object</returns>
-            void WriteMapValues(object map, WriteItem valueWriter, IWriter encoder);
-        }
-
-        protected class DictionaryMapAccess : MapAccess
+        protected class DictionaryMapAccess : IMapAccess
         {
             public void EnsureMapObject(object value)
             {

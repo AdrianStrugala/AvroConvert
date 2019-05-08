@@ -3,9 +3,7 @@
     using Generic;
     using Schema;
     using System;
-    using System.Collections;
     using System.Collections.Generic;
-    using System.Collections.Specialized;
 
     public class GenericDatumWriter : AbstractEncoder
     {
@@ -16,25 +14,6 @@
             _schema = schema;
         }
 
-        protected override void WriteRecordFields(object recordObj, RecordFieldWriter[] writers, IWriter encoder)
-        {
-            GenericRecord record = new GenericRecord((RecordSchema)_schema);
-
-            if (recordObj is Dictionary<string, object> obj)
-            {
-                record.contents = obj;
-            }
-
-            else
-            {
-                record.contents = SplitKeyValues(recordObj);
-            }
-
-            foreach (var writer in writers)
-            {
-                writer.WriteField(record[writer.Field.Name], encoder);
-            }
-        }
 
 
         protected override void EnsureRecordObject(RecordSchema recordSchema, object value)
@@ -123,56 +102,5 @@
                     throw new AvroException("Unknown schema type: " + sc.Tag);
             }
         }
-
-        private class GenericArrayAccess : ArrayAccess
-        {
-            public object EnsureArrayObject(object value)
-            {
-                if (value == null)
-                {
-                    return null;
-                }
-
-                IList list = value as IList;
-                int length = list.Count;
-
-                object[] result = new object[length];
-
-                for (int i = 0; i < length; i++)
-                {
-                    result[i] = list[i];
-                }
-
-                return result;
-            }
-
-            public long GetArrayLength(object value)
-            {
-                return ((Array)value)?.Length ?? 0;
-            }
-
-            public void WriteArrayValues(object array, WriteItem valueWriter, IWriter encoder)
-            {
-                if (array == null)
-                {
-                    valueWriter(null, encoder);
-                }
-                else
-                {
-                    var arrayInstance = (Array)array;
-                    for (int i = 0; i < arrayInstance.Length; i++)
-                    {
-                        encoder.StartItem();
-                        valueWriter(arrayInstance.GetValue(i), encoder);
-                    }
-                }
-            }
-        }
-    }
-
-    public class KeyValue
-    {
-        public object Key;
-        public object Value;
     }
 }

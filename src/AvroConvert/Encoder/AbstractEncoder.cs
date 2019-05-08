@@ -78,7 +78,7 @@
         /// <param name="encoder">The encoder to use while serialization</param>
         protected void WriteNull(object value, IWriter encoder)
         {
-            if (value != null) throw TypeMismatch(value, "null", "null");
+            if (value != null) throw new AvroException("[Null] required to write against [Null] schema but found " + value.GetType());
         }
 
         /// <summary>
@@ -90,15 +90,14 @@
         /// <param name="writer">The writer which should be used to write the given type.</param>
         protected void Write<S>(object value, Schema.Type tag, Writer<S> writer)
         {
-
             if (value == null)
             {
                 value = default(S);
             }
 
-            if (!(value is S)) throw TypeMismatch(value, tag.ToString(), typeof(S).ToString());
-            writer((S)value);
+            if (!(value is S)) throw new AvroException($"[{ typeof(S)}] required to write against [{tag.ToString()}] schema but found " + value.GetType());
 
+            writer((S)value);
         }
 
         protected void WriteString(object value, Writer<string> writer)
@@ -408,39 +407,11 @@
         /// <param name="encoder">The encoder for serialization</param>
         protected abstract void WriteFixed(FixedSchema es, object value, IWriter encoder);
 
-        protected static AvroException TypeMismatch(object obj, string schemaType, string type)
-        {
-            return new AvroException(type + " required to write against " + schemaType + " schema but found " + (null == obj ? "null" : obj.GetType().ToString()));
-        }
-
         private void error(Schema schema, Object value)
         {
             throw new AvroTypeException("Not a " + schema + ": " + value);
         }
 
         protected abstract bool UnionBranchMatches(Schema sc, object obj);
-
-        protected class DictionaryMapAccess : IMapAccess
-        {
-            public void EnsureMapObject(object value)
-            {
-                if (value == null || !(value is IDictionary)) throw TypeMismatch(value, "map", "IDictionary");
-            }
-
-            public long GetMapSize(object value)
-            {
-                return ((IDictionary)value).Count;
-            }
-
-            public void WriteMapValues(object map, WriteItem valueWriter, IWriter encoder)
-            {
-                foreach (DictionaryEntry entry in ((IDictionary)map))
-                {
-                    encoder.StartItem();
-                    encoder.WriteString(entry.Key.ToString());
-                    valueWriter(entry.Value, encoder);
-                }
-            }
-        }
     }
 }

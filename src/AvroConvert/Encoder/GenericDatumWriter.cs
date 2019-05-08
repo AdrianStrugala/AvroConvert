@@ -20,7 +20,7 @@
         {
             if (value == null || !(value is GenericRecord) || !((value as GenericRecord).Schema.Equals(recordSchema)))
             {
-                throw TypeMismatch(value, "record", "GenericRecord");
+                throw new AvroException("[GenericRecord] required to write against [Record] schema but found " + value.GetType());
             }
         }
 
@@ -32,11 +32,11 @@
 
         protected override WriteItem ResolveEnum(EnumSchema es)
         {
-            return (v, e) =>
+            return (value, e) =>
             {
-                if (v == null || !(v is GenericEnum) || !((v as GenericEnum).Schema.Equals(es)))
-                    throw TypeMismatch(v, "enum", "GenericEnum");
-                e.WriteEnum(es.Ordinal((v as GenericEnum).Value));
+                if (value == null || !(value is GenericEnum) || !((value as GenericEnum).Schema.Equals(es)))
+                    throw new AvroException("[GenericEnum] required to write against [Enum] schema but found " + value.GetType());
+                e.WriteEnum(es.Ordinal((value as GenericEnum).Value));
             };
         }
 
@@ -44,7 +44,7 @@
         {
             if (value == null || !(value is GenericFixed) || !(value as GenericFixed).Schema.Equals(es))
             {
-                throw TypeMismatch(value, "fixed", "GenericFixed");
+                throw new AvroException("[GenericFixed] required to write against [Fixed] schema but found " + value.GetType());
             }
 
             GenericFixed ba = (GenericFixed)value;

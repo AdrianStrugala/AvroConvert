@@ -9,7 +9,7 @@
     {
         private readonly Schema _schema;
 
-        public GenericDatumWriter(Schema schema) : base(schema, new GenericArrayAccess(), new DictionaryMapAccess())
+        public GenericDatumWriter(Schema schema) : base(schema, new ArrayAccess(), new DictionaryMapAccess())
         {
             _schema = schema;
         }

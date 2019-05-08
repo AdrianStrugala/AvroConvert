@@ -3,7 +3,7 @@
     using System;
     using System.Collections;
 
-    public class GenericArrayAccess : IArrayAccess
+    public class ArrayAccess : IArrayAccess
     {
         public object EnsureArrayObject(object value)
         {

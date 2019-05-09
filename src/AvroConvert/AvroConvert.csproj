@@ -12,11 +12,11 @@
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <ApplicationIcon />
     <StartupObject />
-    <Product>AvroConvert</Product>
-    <PackageId>AvroConvert</PackageId>
-    <RepositoryUrl>https://github.com/AdrianStrugala/EhwarSofr.Avro</RepositoryUrl>
-    <AssemblyName>EhwarSoft.Avro</AssemblyName>
-    <RootNamespace>EhwarSoft.Avro</RootNamespace>
+    <Product>EhwarSoft.AvroConvert</Product>
+    <PackageId>EhwarSoft.AvroConvert</PackageId>
+    <RepositoryUrl>https://github.com/AdrianStrugala/EhwarSoft.AvroConvert</RepositoryUrl>
+    <AssemblyName>EhwarSoft.AvroConvert</AssemblyName>
+    <RootNamespace>EhwarSoft.AvroConvert</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

@@ -16,14 +16,14 @@
  * limitations under the License.
  */
 
-namespace EhwarSoft.Avro.Generic
+namespace EhwarSoft.AvroConvert.Generic
 {
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using Decoder;
-    using Encoder;
+    using Read;
     using Schema;
+    using Write;
 
     public delegate T Reader<T>();
 

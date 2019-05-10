@@ -1,8 +1,8 @@
-﻿namespace EhwarSoft.Avro
+﻿namespace EhwarSoft.AvroConvert
 {
     using System.IO;
     using Constants;
-    using Decoder;
+    using Read;
 
     public static partial class AvroConvert
     {

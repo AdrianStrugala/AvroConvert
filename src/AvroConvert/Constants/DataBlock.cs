@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace EhwarSoft.Avro.Constants
+namespace EhwarSoft.AvroConvert.Constants
 {
     using System.IO;
 

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace EhwarSoft.Avro.Decoder
+namespace EhwarSoft.AvroConvert.Read
 {
     using System;
     using System.IO;

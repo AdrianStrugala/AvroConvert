@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-namespace EhwarSoft.Avro.Generic
+namespace EhwarSoft.AvroConvert.Generic
 {
-    using Decoder;
+    using Read;
     using Schema;
 
     public interface DatumReader<T>

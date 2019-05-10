@@ -1,14 +1,13 @@
-﻿namespace EhwarSoft.Avro
+﻿namespace EhwarSoft.AvroConvert
 {
-    using Microsoft.Hadoop.Avro;
     using System;
     using System.Collections;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
     using System.Reflection.Emit;
     using System.Runtime.Serialization;
     using Exceptions;
+    using Microsoft.Hadoop.Avro;
 
     public static partial class AvroConvert
     {

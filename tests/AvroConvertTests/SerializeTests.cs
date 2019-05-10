@@ -1,8 +1,8 @@
 ﻿namespace AvroConvertTests
 {
     using AutoFixture;
-    using EhwarSoft.Avro;
     using System.Collections.Generic;
+    using EhwarSoft.AvroConvert;
     using Xunit;
 
     [Collection("MemoryBasedTests")]

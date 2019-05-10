@@ -16,10 +16,10 @@
  * limitations under the License.
  */
 
-namespace EhwarSoft.Avro.Generic
+namespace EhwarSoft.AvroConvert.Generic
 {
-    using Encoder;
     using Schema;
+    using Write;
 
     public interface DatumWriter<T>
     {

@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 
-namespace EhwarSoft.Avro.Generic
+namespace EhwarSoft.AvroConvert.Generic
 {
     using System;
     using System.Collections.Generic;
-    using Decoder;
+    using Read;
     using Schema;
 
     /// PreresolvingDatumReader for reading data to GenericRecord classes or primitives.

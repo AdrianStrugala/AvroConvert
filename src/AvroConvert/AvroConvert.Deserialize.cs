@@ -1,12 +1,11 @@
-﻿namespace EhwarSoft.Avro
+﻿namespace EhwarSoft.AvroConvert
 {
-    using System;
     using System.Collections;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using AutoMapper;
-    using Decoder;
+    using Read;
 
     public static partial class AvroConvert
     {

@@ -16,13 +16,13 @@
  * limitations under the License.
  */
 
-namespace EhwarSoft.Avro.Decoder
+namespace EhwarSoft.AvroConvert.Read
 {
     using System;
     using System.Collections.Generic;
-    using Encoder;
     using Newtonsoft.Json.Linq;
     using Schema;
+    using Write;
 
     static class Resolver
     {

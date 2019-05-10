@@ -1,7 +1,7 @@
 ﻿namespace AvroConvertTests
 {
     using System.IO;
-    using EhwarSoft.Avro;
+    using EhwarSoft.AvroConvert;
     using Xunit;
 
     public class GetSchemaTests

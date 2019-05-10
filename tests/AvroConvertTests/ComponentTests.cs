@@ -2,7 +2,7 @@
 {
     using AutoFixture;
     using System.Collections.Generic;
-    using EhwarSoft.Avro;
+    using EhwarSoft.AvroConvert;
     using Xunit;
 
     [Collection("MemoryBasedTests")]
@@ -26,7 +26,7 @@
             //Act
             var serialized = AvroConvert.Serialize(user);
 
-            var deserialized = global::EhwarSoft.Avro.AvroConvert.Deserialize<User>(serialized);
+            var deserialized = global::EhwarSoft.AvroConvert.AvroConvert.Deserialize<User>(serialized);
 
             //Assert
             Assert.NotNull(serialized);

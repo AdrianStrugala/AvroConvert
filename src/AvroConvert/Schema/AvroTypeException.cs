@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace EhwarSoft.Avro.Schema
+namespace EhwarSoft.AvroConvert.Schema
 {
     public class AvroTypeException : AvroException
     {

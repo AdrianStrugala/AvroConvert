@@ -1,4 +1,4 @@
-﻿namespace EhwarSoft.Avro.Encoder
+﻿namespace EhwarSoft.AvroConvert.Write
 {
     using System.Collections;
     using Schema;

@@ -16,12 +16,12 @@
  * limitations under the License.
  */
 
-namespace EhwarSoft.Avro.Generic
+namespace EhwarSoft.AvroConvert.Generic
 {
     using System;
     using System.Collections.Generic;
-    using Encoder;
     using Schema;
+    using Write;
 
     /// <summary>
     /// PreresolvingDatumWriter for writing data from GenericRecords or primitive types.

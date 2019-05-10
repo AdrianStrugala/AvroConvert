@@ -1,11 +1,11 @@
-namespace EhwarSoft.Avro.Decoder
+namespace EhwarSoft.AvroConvert.Read
 {
-    using Encoder;
-    using Generic;
-    using Schema;
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using Generic;
+    using Schema;
+    using Write;
 
     public delegate T Reader<T>();
 

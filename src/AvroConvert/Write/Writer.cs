@@ -67,7 +67,7 @@ namespace EhwarSoft.AvroConvert.Write
         public void WriteFloat(float value)
         {
             byte[] buffer = BitConverter.GetBytes(value);
-            if (!BitConverter.IsLittleEndian) Array.Reverse(buffer);
+            if (!BitConverter.IsLittleEndian) System.Array.Reverse(buffer);
             writeBytes(buffer);
         }
         /// <summary>

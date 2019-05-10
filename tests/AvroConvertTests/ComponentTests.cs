@@ -26,7 +26,7 @@
             //Act
             var serialized = AvroConvert.Serialize(user);
 
-            var deserialized = global::EhwarSoft.AvroConvert.AvroConvert.Deserialize<User>(serialized);
+            var deserialized = AvroConvert.Deserialize<User>(serialized);
 
             //Assert
             Assert.NotNull(serialized);

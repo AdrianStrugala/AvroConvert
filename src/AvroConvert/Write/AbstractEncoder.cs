@@ -5,7 +5,10 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using Array;
     using Generic;
+    using Map;
+    using Record;
     using Schema;
 
     public abstract class AbstractEncoder
@@ -360,7 +363,7 @@
                     return obj is GenericEnum &&
                            (obj as GenericEnum).Schema.SchemaName.Equals((sc as EnumSchema).SchemaName);
                 case Schema.Type.Array:
-                    return obj is Array && !(obj is byte[]);
+                    return obj is System.Array && !(obj is byte[]);
                 case Schema.Type.Map:
                     return obj is IDictionary<string, object>;
                 case Schema.Type.Union:

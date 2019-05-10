@@ -1,4 +1,4 @@
-﻿namespace EhwarSoft.AvroConvert.Write
+﻿namespace EhwarSoft.AvroConvert.Write.Array
 {
     using System;
     using System.Collections;

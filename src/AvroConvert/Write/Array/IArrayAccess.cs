@@ -1,4 +1,4 @@
-﻿namespace EhwarSoft.AvroConvert.Write
+﻿namespace EhwarSoft.AvroConvert.Write.Array
 {
     public interface IArrayAccess
     {

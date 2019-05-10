@@ -1,5 +1,7 @@
 ﻿namespace EhwarSoft.AvroConvert.Write
 {
+    using Array;
+    using Map;
     using Schema;
 
     public class GenericDatumWriter : AbstractEncoder

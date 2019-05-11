@@ -11,9 +11,18 @@
     using Record;
     using Schema;
 
-    public abstract class AbstractEncoder
+    public class AbstractEncoder
     {
-        public Schema Schema { get; private set; }
+        public AbstractEncoder(Schema schema)
+        {
+            _schema = schema;
+            _arrayAccess = new ArrayAccess();
+            _mapAccess = new DictionaryMapAccess();
+
+            _writer = ResolveWriter(schema);
+        }
+
+        public readonly Schema _schema;
 
         public delegate void WriteItem(object value, IWriter encoder);
 
@@ -26,14 +35,6 @@
         public void Write(object datum, IWriter encoder)
         {
             _writer(datum, encoder);
-        }
-
-        protected AbstractEncoder(Schema schema, IArrayAccess arrayAccess, IMapAccess mapAccess)
-        {
-            Schema = schema;
-            _arrayAccess = arrayAccess;
-            _mapAccess = mapAccess;
-            _writer = ResolveWriter(schema);
         }
 
         private WriteItem ResolveWriter(Schema schema)
@@ -273,7 +274,7 @@
 
         public void WriteRecordFields(object recordObj, RecordFieldWriter[] writers, IWriter encoder)
         {
-            GenericRecord record = new GenericRecord((RecordSchema)Schema);
+            GenericRecord record = new GenericRecord((RecordSchema)_schema);
 
             if (recordObj is Dictionary<string, object> obj)
             {
@@ -355,11 +356,11 @@
                     return obj is string;
                 case Schema.Type.Error:
                 case Schema.Type.Record:
-                    //return obj is GenericRecord && (obj as GenericRecord).Schema.Equals(s);
+                    //return obj is GenericRecord && (obj as GenericRecord)._schema.Equals(s);
                     return obj is GenericRecord &&
                            (obj as GenericRecord).Schema.SchemaName.Equals((sc as RecordSchema).SchemaName);
                 case Schema.Type.Enumeration:
-                    //return obj is GenericEnum && (obj as GenericEnum).Schema.Equals(s);
+                    //return obj is GenericEnum && (obj as GenericEnum)._schema.Equals(s);
                     return obj is GenericEnum &&
                            (obj as GenericEnum).Schema.SchemaName.Equals((sc as EnumSchema).SchemaName);
                 case Schema.Type.Array:
@@ -369,7 +370,7 @@
                 case Schema.Type.Union:
                     return false; // Union directly within another union not allowed!
                 case Schema.Type.Fixed:
-                    //return obj is GenericFixed && (obj as GenericFixed).Schema.Equals(s);
+                    //return obj is GenericFixed && (obj as GenericFixed)._schema.Equals(s);
                     return obj is GenericFixed &&
                            (obj as GenericFixed).Schema.SchemaName.Equals((sc as FixedSchema).SchemaName);
                 default:

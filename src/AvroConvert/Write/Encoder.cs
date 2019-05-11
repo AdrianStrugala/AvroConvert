@@ -15,7 +15,7 @@
         private Stream _stream;
         private MemoryStream _blockStream;
         private IWriter _encoder, _blockEncoder;
-        private GenericDatumWriter _writer;
+        private AbstractEncoder _writer;
 
         private byte[] _syncData;
         private bool _isOpen;
@@ -25,18 +25,18 @@
         private IDictionary<string, byte[]> _metaData;
 
 
-        public static Encoder OpenWriter(GenericDatumWriter writer, string path)
+        public static Encoder OpenWriter(AbstractEncoder writer, string path)
         {
             return OpenWriter(writer, new FileStream(path, FileMode.Create), Codec.CreateCodec(Codec.Type.Null));
         }
 
-        public static Encoder OpenWriter(GenericDatumWriter writer, Stream outStream)
+        public static Encoder OpenWriter(AbstractEncoder writer, Stream outStream)
         {
             return OpenWriter(writer, outStream, Codec.CreateCodec(Codec.Type.Null));
         }
 
 
-        public static Encoder OpenWriter(GenericDatumWriter writer, string path, Codec codec)
+        public static Encoder OpenWriter(AbstractEncoder writer, string path, Codec codec)
         {
             return OpenWriter(writer, new FileStream(path, FileMode.Create), codec);
         }
@@ -49,12 +49,12 @@
         /// <param name="outStream"></param>
         /// <param name="codec"></param>
         /// <returns></returns>
-        public static Encoder OpenWriter(GenericDatumWriter writer, Stream outStream, Codec codec)
+        public static Encoder OpenWriter(AbstractEncoder writer, Stream outStream, Codec codec)
         {
-            return new Encoder(writer).Create(writer.Schema, outStream, codec);
+            return new Encoder(writer).Create(writer._schema, outStream, codec);
         }
 
-        Encoder(GenericDatumWriter writer)
+        Encoder(AbstractEncoder writer)
         {
             _writer = writer;
             _syncInterval = DataFileConstants.DefaultSyncInterval;

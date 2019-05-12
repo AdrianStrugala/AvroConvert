@@ -11,40 +11,40 @@
     using Constants;
     using Exceptions;
     using Generic;
+    using Helpers;
     using Map;
     using Record;
     using Schema;
 
     public class Encoder : IDisposable
     {
-        private Schema _schema;
-        private Codec _codec;
-        private Stream _stream;
+        private readonly Schema _schema;
+        private readonly Codec _codec;
+        private readonly Stream _stream;
         private MemoryStream _blockStream;
-        private IWriter _encoder, _blockEncoder;
-        //  private Encoder _writer;
-
-
-        public delegate void WriteItem(object value, IWriter encoder);
-
-        private WriteItem _writer;
-        private IArrayAccess _arrayAccess;
-        private IMapAccess _mapAccess;
-
-        private readonly Dictionary<RecordSchema, WriteItem> _recordWriters = new Dictionary<RecordSchema, WriteItem>();
-
+        private readonly IWriter _encoder;
+        private IWriter _blockEncoder;
+        private readonly WriteItem _writer;
+        private readonly IArrayAccess _arrayAccess;
+        private readonly IMapAccess _mapAccess;
         private byte[] _syncData;
         private bool _isOpen;
         private bool _headerWritten;
         private int _blockCount;
         private int _syncInterval;
-        private IDictionary<string, byte[]> _metaData;
+        private readonly Metadata _metadata;
+
+
+        public delegate void WriteItem(object value, IWriter encoder);
+
+        private readonly Dictionary<RecordSchema, WriteItem> _recordWriters = new Dictionary<RecordSchema, WriteItem>();
+
 
         public Encoder(Schema schema, Stream outStream)
         {
             _codec = Codec.CreateCodec(Codec.Type.Null);
             _stream = outStream;
-            _metaData = new Dictionary<string, byte[]>();
+            _metadata = new Metadata();
             _schema = schema;
             _syncInterval = DataFileConstants.DefaultSyncInterval;
 
@@ -61,43 +61,9 @@
             _isOpen = true;
         }
 
-        public bool IsReservedMeta(string key)
-        {
-            return key.StartsWith(DataFileConstants.MetaDataReserved);
-        }
 
-        public void SetMeta(String key, byte[] value)
-        {
-            if (IsReservedMeta(key))
-            {
-                throw new AvroRuntimeException("Cannot set reserved meta key: " + key);
-            }
-            _metaData.Add(key, value);
-        }
 
-        public void SetMeta(String key, long value)
-        {
-            try
-            {
-                SetMeta(key, GetByteValue(value.ToString(CultureInfo.InvariantCulture)));
-            }
-            catch (Exception e)
-            {
-                throw new AvroRuntimeException(e.Message, e);
-            }
-        }
 
-        public void SetMeta(String key, string value)
-        {
-            try
-            {
-                SetMeta(key, GetByteValue(value));
-            }
-            catch (Exception e)
-            {
-                throw new AvroRuntimeException(e.Message, e);
-            }
-        }
 
         public void SetSyncInterval(int syncInterval)
         {
@@ -164,21 +130,19 @@
             if (!_isOpen) throw new AvroRuntimeException("Cannot complete operation: avro file/stream not open");
         }
 
-
-
         private void WriteMetaData()
         {
             // Add sync, code & schema to metadata
             GenerateSyncData();
             //SetMetaInternal(DataFileConstants.MetaDataSync, _syncData); - Avro 1.5.4 C
-            SetMetaInternal(DataFileConstants.CodecMetadataKey, GetByteValue(_codec.GetName()));
-            SetMetaInternal(DataFileConstants.SchemaMetadataKey, GetByteValue(_schema.ToString()));
+            _metadata.ForceAdd(DataFileConstants.CodecMetadataKey, _codec.GetName());
+            _metadata.ForceAdd(DataFileConstants.SchemaMetadataKey, _schema.ToString());
 
             // write metadata 
-            int size = _metaData.Count;
+            int size = _metadata.GetSize();
             _encoder.WriteInt(size);
 
-            foreach (KeyValuePair<String, byte[]> metaPair in _metaData)
+            foreach (KeyValuePair<String, byte[]> metaPair in _metadata.GetValue())
             {
                 _encoder.WriteString(metaPair.Key);
                 _encoder.WriteBytes(metaPair.Value);
@@ -231,17 +195,6 @@
             Random random = new Random();
             random.NextBytes(_syncData);
         }
-
-        private void SetMetaInternal(string key, byte[] value)
-        {
-            _metaData.Add(key, value);
-        }
-
-        private byte[] GetByteValue(string value)
-        {
-            return System.Text.Encoding.UTF8.GetBytes(value);
-        }
-
 
 
         public void Write(object datum, IWriter encoder)

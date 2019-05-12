@@ -48,9 +48,18 @@
             _schema = schema;
             _syncInterval = DataFileConstants.DefaultSyncInterval;
 
-            Init(schema);
-        }
+            _blockCount = 0;
+            _encoder = new Writer(_stream);
+            _blockStream = new MemoryStream();
+            _blockEncoder = new Writer(_blockStream);
 
+            _arrayAccess = new ArrayAccess();
+            _mapAccess = new DictionaryMapAccess();
+
+            _writer = ResolveWriter(schema);
+
+            _isOpen = true;
+        }
 
         public bool IsReservedMeta(string key)
         {
@@ -148,25 +157,6 @@
             _encoder.WriteFixed(DataFileConstants.AvroHeader);
             WriteMetaData();
             WriteSyncData();
-        }
-
-        private void Init(Schema schema)
-        {
-            _blockCount = 0;
-            _encoder = new Writer(_stream);
-            _blockStream = new MemoryStream();
-            _blockEncoder = new Writer(_blockStream);
-
-            if (_codec == null)
-                _codec = Codec.CreateCodec(Codec.Type.Null);
-
-            _schema = schema;
-            _arrayAccess = new ArrayAccess();
-            _mapAccess = new DictionaryMapAccess();
-
-            _writer = ResolveWriter(schema);
-
-            _isOpen = true;
         }
 
         private void AssertOpen()

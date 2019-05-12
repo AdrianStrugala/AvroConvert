@@ -4,7 +4,7 @@
 
     public class RecordFieldWriter
     {
-        public AbstractEncoder.WriteItem WriteField { get; set; }
+        public Encoder.WriteItem WriteField { get; set; }
         public Field Field { get; set; }
     }
 }

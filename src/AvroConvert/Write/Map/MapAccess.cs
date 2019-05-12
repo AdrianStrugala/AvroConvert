@@ -15,7 +15,7 @@
             return ((IDictionary)value).Count;
         }
 
-        public void WriteMapValues(object map, AbstractEncoder.WriteItem valueWriter, IWriter encoder)
+        public void WriteMapValues(object map, Encoder.WriteItem valueWriter, IWriter encoder)
         {
             foreach (DictionaryEntry entry in ((IDictionary)map))
             {

@@ -23,8 +23,11 @@
         /// has been called with the given value. The defualt implementation of this method requires that
         /// the value is an IDictionary<string, object> and returns its contents.
         /// </summary>
+        /// <param name="map"></param>
+        /// <param name="valueWriter"></param>
+        /// <param name="encoder"></param>
         /// <param name="value">The map object whose size is desired</param>
         /// <returns>The contents of the given map object</returns>
-        void WriteMapValues(object map, AbstractEncoder.WriteItem valueWriter, IWriter encoder);
+        void WriteMapValues(object map, Encoder.WriteItem valueWriter, IWriter encoder);
     }
 }

@@ -25,10 +25,13 @@
         /// gurantees that EnsureArrayObject() has been called on the value before this
         /// function is called.
         /// </summary>
+        /// <param name="array"></param>
+        /// <param name="valueWriter"></param>
+        /// <param name="encoder"></param>
         /// <param name="value">The array object</param>
         /// <param name="index">The index to look for</param>
         /// <returns>The array element at the index</returns>
-        void WriteArrayValues(object array, AbstractEncoder.WriteItem valueWriter, IWriter encoder);
+        void WriteArrayValues(object array, Encoder.WriteItem valueWriter, IWriter encoder);
 
     }
 }

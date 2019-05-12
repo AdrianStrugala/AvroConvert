@@ -30,7 +30,7 @@
             return ((Array)value)?.Length ?? 0;
         }
 
-        public void WriteArrayValues(object array, AbstractEncoder.WriteItem valueWriter, IWriter encoder)
+        public void WriteArrayValues(object array, Encoder.WriteItem valueWriter, IWriter encoder)
         {
             if (array == null)
             {

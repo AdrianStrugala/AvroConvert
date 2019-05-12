@@ -15,7 +15,7 @@
     using Record;
     using Schema;
 
-    public class Encoder
+    public class Encoder : IDisposable
     {
         private Schema _schema;
         private Codec _codec;
@@ -148,14 +148,7 @@
             return _stream.Position;
         }
 
-        public void Close()
-        {
-            EnsureHeader();
-            Flush();
-            _stream.Flush();
-            _stream.Dispose();
-            _isOpen = false;
-        }
+
 
         private void WriteHeader()
         {
@@ -719,7 +712,11 @@
 
         public void Dispose()
         {
-            Close();
+            EnsureHeader();
+            Flush();
+            _stream.Flush();
+            _stream.Dispose();
+            _isOpen = false;
         }
     }
 }

@@ -23,22 +23,21 @@
 
                 string schema = AvroConvert.GenerateSchema(ienumerableObj[0]);
 
-                var writer = Encoder.OpenWriter(Schema.Schema.Parse(schema), resultStream);
-
-                foreach (var @object in ienumerableObj)
+                using (var writer = Encoder.OpenWriter(Schema.Schema.Parse(schema), resultStream))
                 {
-                    writer.Append(@object);
+                    foreach (var @object in ienumerableObj)
+                    {
+                        writer.Append(@object);
+                    }
                 }
-
-                writer.Close();
-
             }
             else //serialize single object
             {
                 string schema = AvroConvert.GenerateSchema(obj);
-                var writer = Encoder.OpenWriter(Schema.Schema.Parse(schema), resultStream);
-                writer.Append(obj);
-                writer.Close();
+                using (var writer = Encoder.OpenWriter(Schema.Schema.Parse(schema), resultStream))
+                {
+                    writer.Append(obj);
+                }
             }
 
             var result = resultStream.ToArray();

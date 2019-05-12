@@ -83,7 +83,7 @@
         /// <param name="encoder">The encoder to use while serialization</param>
         protected void WriteNull(object value, IWriter encoder)
         {
-            if (value != null) throw new AvroException("[Null] required to write against [Null] schema but found " + value.GetType());
+            if (value != null) throw new AvroTypeMismatchException("[Null] required to write against [Null] schema but found " + value.GetType());
         }
 
         /// <summary>
@@ -100,7 +100,7 @@
                 value = default(S);
             }
 
-            if (!(value is S)) throw new AvroException($"[{ typeof(S)}] required to write against [{tag.ToString()}] schema but found " + value.GetType());
+            if (!(value is S)) throw new AvroTypeMismatchException($"[{ typeof(S)}] required to write against [{tag.ToString()}] schema but found " + value.GetType());
 
             writer((S)value);
         }
@@ -297,7 +297,7 @@
         {
             if (value == null || !(value is GenericRecord) || !((value as GenericRecord).Schema.Equals(recordSchema)))
             {
-                throw new AvroException("[GenericRecord] required to write against [Record] schema but found " + value.GetType());
+                throw new AvroTypeMismatchException("[GenericRecord] required to write against [Record] schema but found " + value.GetType());
             }
         }
 
@@ -312,7 +312,7 @@
             return (value, e) =>
             {
                 if (value == null || !(value is GenericEnum) || !((value as GenericEnum).Schema.Equals(es)))
-                    throw new AvroException("[GenericEnum] required to write against [Enum] schema but found " + value.GetType());
+                    throw new AvroTypeMismatchException("[GenericEnum] required to write against [Enum] schema but found " + value.GetType());
                 e.WriteEnum(es.Ordinal((value as GenericEnum).Value));
             };
         }

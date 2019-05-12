@@ -40,11 +40,17 @@
         private int _syncInterval;
         private IDictionary<string, byte[]> _metaData;
 
-
-        public static Encoder OpenWriter(Schema schema, Stream outStream)
+        public Encoder(Schema schema, Stream outStream)
         {
-            return new Encoder().Create(schema, outStream);
+            _codec = Codec.CreateCodec(Codec.Type.Null);
+            _stream = outStream;
+            _metaData = new Dictionary<string, byte[]>();
+            _schema = schema;
+            _syncInterval = DataFileConstants.DefaultSyncInterval;
+
+            Init(schema);
         }
+
 
         public bool IsReservedMeta(string key)
         {
@@ -168,18 +174,7 @@
             if (!_isOpen) throw new AvroRuntimeException("Cannot complete operation: avro file/stream not open");
         }
 
-        private Encoder Create(Schema schema, Stream outStream)
-        {
-            _codec = Codec.CreateCodec(Codec.Type.Null);
-            _stream = outStream;
-            _metaData = new Dictionary<string, byte[]>();
-            _schema = schema;
-            _syncInterval = DataFileConstants.DefaultSyncInterval;
 
-            Init(schema);
-
-            return this;
-        }
 
         private void WriteMetaData()
         {

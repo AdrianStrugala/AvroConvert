@@ -23,7 +23,7 @@
 
                 string schema = AvroConvert.GenerateSchema(ienumerableObj[0]);
 
-                using (var writer = Encoder.OpenWriter(Schema.Schema.Parse(schema), resultStream))
+                using (var writer = new Encoder(Schema.Schema.Parse(schema), resultStream))
                 {
                     foreach (var @object in ienumerableObj)
                     {
@@ -34,7 +34,7 @@
             else //serialize single object
             {
                 string schema = AvroConvert.GenerateSchema(obj);
-                using (var writer = Encoder.OpenWriter(Schema.Schema.Parse(schema), resultStream))
+                using (var writer = new Encoder(Schema.Schema.Parse(schema), resultStream))
                 {
                     writer.Append(obj);
                 }

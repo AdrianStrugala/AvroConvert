@@ -41,22 +41,9 @@
         private IDictionary<string, byte[]> _metaData;
 
 
-        /// <summary>
-        /// Open a new writer instance to write
-        /// to an output stream with a specified codec
-        /// </summary>
-        /// <param name="writer"></param>
-        /// <param name="outStream"></param>
-        /// <param name="codec"></param>
-        /// <returns></returns>
         public static Encoder OpenWriter(Schema schema, Stream outStream)
         {
             return new Encoder().Create(schema, outStream);
-        }
-
-        Encoder()
-        {
-            _syncInterval = DataFileConstants.DefaultSyncInterval;
         }
 
         public bool IsReservedMeta(string key)
@@ -187,6 +174,7 @@
             _stream = outStream;
             _metaData = new Dictionary<string, byte[]>();
             _schema = schema;
+            _syncInterval = DataFileConstants.DefaultSyncInterval;
 
             Init(schema);
 

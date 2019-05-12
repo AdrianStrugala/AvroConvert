@@ -6,6 +6,7 @@
     using System.Linq;
     using System.Reflection;
     using Array;
+    using Exceptions;
     using Generic;
     using Map;
     using Record;
@@ -71,7 +72,7 @@
                 case Schema.Type.Union:
                     return ResolveUnion((UnionSchema)schema);
                 default:
-                    return (v, e) => error(schema, v);
+                    return (v, e) => throw new AvroTypeMismatchException($"Tried to write against [{schema}] schema, but found [{v.GetType()}] type");
             }
         }
 
@@ -320,7 +321,7 @@
         {
             if (value == null || !(value is GenericFixed) || !(value as GenericFixed).Schema.Equals(es))
             {
-                throw new AvroException("[GenericFixed] required to write against [Fixed] schema but found " + value.GetType());
+                throw new AvroTypeMismatchException("[GenericFixed] required to write against [Fixed] schema but found " + value.GetType());
             }
 
             GenericFixed ba = (GenericFixed)value;
@@ -468,11 +469,6 @@
                 if (UnionBranchMatches(branchSchemas[i], obj)) return i;
             }
             throw new AvroException("Cannot find a match for " + obj.GetType() + " in " + us);
-        }
-
-        private void error(Schema schema, Object value)
-        {
-            throw new AvroTypeException("Not a " + schema + ": " + value);
         }
     }
 }

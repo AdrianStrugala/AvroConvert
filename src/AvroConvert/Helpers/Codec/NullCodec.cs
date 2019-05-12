@@ -16,24 +16,39 @@
  * limitations under the License.
  */
 
-namespace EhwarSoft.AvroConvert.Constants
+namespace EhwarSoft.AvroConvert.Helpers.Codec
 {
-    using System.Collections.Generic;
-    using Schema;
+    using Constants;
 
-    public class Header
+    public class NullCodec : Codec
     {
-        private IDictionary<string, byte[]> _metaData;
-        private byte[] _syncData;
+        public NullCodec() { }
 
-        public IDictionary<string, byte[]> MetaData { get { return _metaData; }}
-        public byte[] SyncData { get { return _syncData; }}
-        public Schema Schema { get; set; }
-
-        public Header()
+        public override byte[] Compress(byte[] uncompressedData)
         {
-            _metaData = new Dictionary<string, byte[]>();
-            _syncData = new byte[16];
+            return uncompressedData;
+        }
+
+        public override byte[] Decompress(byte[] compressedData)
+        {
+            return compressedData;
+        }
+
+        public override string GetName()
+        {
+            return DataFileConstants.NullCodec;
+        }
+
+        public override bool Equals(object other)
+        {
+            if (this == other)
+                return true;
+            return (this.GetType().Name == other.GetType().Name);
+        }
+
+        public override int GetHashCode()
+        {
+            return DataFileConstants.NullCodecHash;
         }
     }
 }

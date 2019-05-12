@@ -12,6 +12,7 @@
     using Exceptions;
     using Generic;
     using Helpers;
+    using Helpers.Codec;
     using Map;
     using Record;
     using Schema;

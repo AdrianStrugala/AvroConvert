@@ -6,8 +6,9 @@
     using System.Linq;
     using Constants;
     using Exceptions;
+    using Helpers;
     using Schema;
-    using Codec = Constants.Codec;
+    using Codec = Helpers.Codec.Codec;
 
     public class Reader
     {

@@ -16,25 +16,54 @@
  * limitations under the License.
  */
 
-namespace EhwarSoft.AvroConvert.Constants
+namespace EhwarSoft.AvroConvert.Helpers.Codec
 {
-    public class NullCodec : Codec
-    {
-        public NullCodec() { }
+    using System.IO;
+    using System.IO.Compression;
+    using Constants;
 
+    public class DeflateCodec : Codec
+    {
         public override byte[] Compress(byte[] uncompressedData)
         {
-            return uncompressedData;
+            MemoryStream outStream = new MemoryStream();
+
+            using (DeflateStream Compress =
+                        new DeflateStream(outStream,
+                        CompressionMode.Compress))
+            {
+                Compress.Write(uncompressedData, 0, uncompressedData.Length);
+            }
+            return outStream.ToArray();
         }
 
         public override byte[] Decompress(byte[] compressedData)
         {
-            return compressedData;
+            MemoryStream inStream = new MemoryStream(compressedData);
+            MemoryStream outStream = new MemoryStream();
+
+            using (DeflateStream Decompress =
+                        new DeflateStream(inStream,
+                        CompressionMode.Decompress))
+            {
+                CopyTo(Decompress, outStream);
+            }
+            return outStream.ToArray();
+        }
+
+        private static void CopyTo(Stream from, Stream to)
+        {
+            byte[] buffer = new byte[4096];
+            int read;
+            while((read = from.Read(buffer, 0, buffer.Length)) != 0)
+            {
+                to.Write(buffer, 0, read);
+            }
         }
 
         public override string GetName()
         {
-            return DataFileConstants.NullCodec;
+            return DataFileConstants.DeflateCodec;
         }
 
         public override bool Equals(object other)
@@ -46,7 +75,7 @@ namespace EhwarSoft.AvroConvert.Constants
 
         public override int GetHashCode()
         {
-            return DataFileConstants.NullCodecHash;
+            return DataFileConstants.DeflateCodecHash;
         }
     }
 }

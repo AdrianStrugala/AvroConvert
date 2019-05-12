@@ -16,8 +16,10 @@
  * limitations under the License.
  */
 
-namespace EhwarSoft.AvroConvert.Constants
+namespace EhwarSoft.AvroConvert.Helpers.Codec
 {
+    using Constants;
+
     public abstract class Codec
     {
         /// <summary>

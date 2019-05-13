@@ -1,9 +1,8 @@
-﻿namespace EhwarSoft.AvroConvert.Write.Array
+﻿namespace EhwarSoft.AvroConvert.Write.Resolvers
 {
-    using System;
     using System.Collections;
 
-    public class ArrayAccess : IArrayAccess
+    public class Array
     {
         public object EnsureArrayObject(object value)
         {
@@ -27,7 +26,7 @@
 
         public long GetArrayLength(object value)
         {
-            return ((Array)value)?.Length ?? 0;
+            return ((System.Array)value)?.Length ?? 0;
         }
 
         public void WriteArrayValues(object array, Encoder.WriteItem valueWriter, IWriter encoder)
@@ -38,7 +37,7 @@
             }
             else
             {
-                var arrayInstance = (Array)array;
+                var arrayInstance = (System.Array)array;
                 for (int i = 0; i < arrayInstance.Length; i++)
                 {
                     encoder.StartItem();

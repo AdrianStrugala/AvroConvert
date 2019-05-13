@@ -7,15 +7,14 @@
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using Array;
     using Constants;
     using Exceptions;
     using Generic;
     using Helpers;
     using Helpers.Codec;
-    using Map;
-    using Record;
+    using Resolvers;
     using Schema;
+    using Array = System.Array;
 
     public class Encoder : IDisposable
     {
@@ -26,8 +25,8 @@
         private readonly IWriter _encoder;
         private IWriter _blockEncoder;
         private readonly WriteItem _writer;
-        private readonly IArrayAccess _arrayAccess;
-        private readonly IMapAccess _mapAccess;
+        private readonly Resolvers.Array _array;
+        private readonly Map _map;
         private byte[] _syncData;
         private bool _isOpen;
         private bool _headerWritten;
@@ -54,25 +53,12 @@
             _blockStream = new MemoryStream();
             _blockEncoder = new Writer(_blockStream);
 
-            _arrayAccess = new ArrayAccess();
-            _mapAccess = new DictionaryMapAccess();
+            _array = new Resolvers.Array();
+            _map = new Map();
 
             _writer = ResolveWriter(schema);
 
             _isOpen = true;
-        }
-
-
-
-
-
-        public void SetSyncInterval(int syncInterval)
-        {
-            if (syncInterval < 32 || syncInterval > (1 << 30))
-            {
-                throw new AvroRuntimeException("Invalid sync interval value: " + syncInterval);
-            }
-            _syncInterval = syncInterval;
         }
 
         public void Append(object datum)
@@ -117,8 +103,6 @@
             return _stream.Position;
         }
 
-
-
         private void WriteHeader()
         {
             _encoder.WriteFixed(DataFileConstants.AvroHeader);
@@ -135,15 +119,14 @@
         {
             // Add sync, code & schema to metadata
             GenerateSyncData();
-            //SetMetaInternal(DataFileConstants.MetaDataSync, _syncData); - Avro 1.5.4 C
-            _metadata.ForceAdd(DataFileConstants.CodecMetadataKey, _codec.GetName());
-            _metadata.ForceAdd(DataFileConstants.SchemaMetadataKey, _schema.ToString());
+            _metadata.Add(DataFileConstants.CodecMetadataKey, _codec.GetName());
+            _metadata.Add(DataFileConstants.SchemaMetadataKey, _schema.ToString());
 
             // write metadata 
             int size = _metadata.GetSize();
             _encoder.WriteInt(size);
 
-            foreach (KeyValuePair<String, byte[]> metaPair in _metadata.GetValue())
+            foreach (KeyValuePair<string, byte[]> metaPair in _metadata.GetValue())
             {
                 _encoder.WriteString(metaPair.Key);
                 _encoder.WriteBytes(metaPair.Value);
@@ -153,13 +136,8 @@
 
         private void WriteIfBlockFull()
         {
-            if (BufferInUse() >= _syncInterval)
+            if (_blockStream.Position >= _syncInterval)
                 WriteBlock();
-        }
-
-        private long BufferInUse()
-        {
-            return _blockStream.Position;
         }
 
         private void WriteBlock()
@@ -241,11 +219,6 @@
             }
         }
 
-        /// <summary>
-        /// Serializes a "null"
-        /// </summary>
-        /// <param name="value">The object to be serialized using null schema</param>
-        /// <param name="encoder">The encoder to use while serialization</param>
         protected void WriteNull(object value, IWriter encoder)
         {
             if (value != null) throw new AvroTypeMismatchException("[Null] required to write against [Null] schema but found " + value.GetType());
@@ -298,7 +271,7 @@
             {
                 return recordResolver;
             }
-            var writeSteps = new RecordFieldWriter[recordSchema.Fields.Count];
+            var writeSteps = new Record[recordSchema.Fields.Count];
             recordResolver = (v, e) => WriteRecordFields(v, writeSteps, e);
 
             _recordWriters.Add(recordSchema, recordResolver);
@@ -306,7 +279,7 @@
             int index = 0;
             foreach (Field field in recordSchema)
             {
-                var record = new RecordFieldWriter
+                var record = new Record
                 {
                     WriteField = ResolveWriter(field.Schema),
                     Field = field
@@ -438,7 +411,7 @@
             }
         }
 
-        public void WriteRecordFields(object recordObj, RecordFieldWriter[] writers, IWriter encoder)
+        public void WriteRecordFields(object recordObj, Record[] writers, IWriter encoder)
         {
             GenericRecord record = new GenericRecord((RecordSchema)_schema);
 
@@ -560,11 +533,11 @@
 
         private void WriteArray(WriteItem itemWriter, object array, IWriter encoder)
         {
-            array = _arrayAccess.EnsureArrayObject(array);
-            long l = _arrayAccess.GetArrayLength(array);
+            array = _array.EnsureArrayObject(array);
+            long l = _array.GetArrayLength(array);
             encoder.WriteArrayStart();
             encoder.SetItemCount(l);
-            _arrayAccess.WriteArrayValues(array, itemWriter, encoder);
+            _array.WriteArrayValues(array, itemWriter, encoder);
             encoder.WriteArrayEnd();
         }
 
@@ -583,10 +556,10 @@
         /// <param name="encoder">The encoder for serialization</param>
         protected void WriteMap(WriteItem itemWriter, object value, IWriter encoder)
         {
-            _mapAccess.EnsureMapObject(value);
+            _map.EnsureMapObject(value);
             encoder.WriteMapStart();
-            encoder.SetItemCount(_mapAccess.GetMapSize(value));
-            _mapAccess.WriteMapValues(value, itemWriter, encoder);
+            encoder.SetItemCount(_map.GetMapSize(value));
+            _map.WriteMapValues(value, itemWriter, encoder);
             encoder.WriteMapEnd();
         }
 

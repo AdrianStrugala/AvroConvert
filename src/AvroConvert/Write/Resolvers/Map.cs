@@ -1,9 +1,9 @@
-﻿namespace EhwarSoft.AvroConvert.Write.Map
+﻿namespace EhwarSoft.AvroConvert.Write.Resolvers
 {
     using System.Collections;
     using Schema;
 
-    public class DictionaryMapAccess : IMapAccess
+    public class Map
     {
         public void EnsureMapObject(object value)
         {

@@ -1,10 +1,34 @@
 ﻿namespace AvroConvert.Write.Resolvers
 {
     using System.Collections;
+    using Schema;
 
     public class Array
     {
-        public object EnsureArrayObject(object value)
+        private readonly Factory _factory;
+
+        public Array()
+        {
+            _factory = new Factory();
+        }
+
+        public Encoder.WriteItem Resolve(ArraySchema schema)
+        {
+            var itemWriter = _factory.ResolveWriter(schema.ItemSchema);
+            return (d, e) => WriteArray(itemWriter, d, e);
+        }
+
+        private void WriteArray(Encoder.WriteItem itemWriter, object array, IWriter encoder)
+        {
+            array = EnsureArrayObject(array);
+            long l = GetArrayLength(array);
+            encoder.WriteArrayStart();
+            encoder.SetItemCount(l);
+            WriteArrayValues(array, itemWriter, encoder);
+            encoder.WriteArrayEnd();
+        }
+
+        private object EnsureArrayObject(object value)
         {
             if (value == null)
             {
@@ -24,12 +48,12 @@
             return result;
         }
 
-        public long GetArrayLength(object value)
+        private long GetArrayLength(object value)
         {
             return ((System.Array)value)?.Length ?? 0;
         }
 
-        public void WriteArrayValues(object array, Encoder.WriteItem valueWriter, IWriter encoder)
+        private void WriteArrayValues(object array, Encoder.WriteItem valueWriter, IWriter encoder)
         {
             if (array == null)
             {

@@ -4,19 +4,19 @@
     <OutputType>Library</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <Authors>Adrian Strugala</Authors>
-    <AssemblyVersion>0.8.1.0</AssemblyVersion>
-    <FileVersion>0.8.1.0</FileVersion>
-    <Version>0.8.1</Version>
+    <AssemblyVersion>1.0.1.0</AssemblyVersion>
+    <FileVersion>1.0.1.0</FileVersion>
+    <Version>1.0.1</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Description>Small and fast library for serializing c# objects to avro format and vice versa</Description>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <ApplicationIcon />
     <StartupObject />
-    <Product>EhwarSoft.AvroConvert</Product>
-    <PackageId>EhwarSoft.AvroConvert</PackageId>
-    <RepositoryUrl>https://github.com/AdrianStrugala/EhwarSoft.AvroConvert</RepositoryUrl>
-    <AssemblyName>EhwarSoft.AvroConvert</AssemblyName>
-    <RootNamespace>EhwarSoft.AvroConvert</RootNamespace>
+    <Product>AvroConvert</Product>
+    <PackageId>AvroConvert</PackageId>
+    <RepositoryUrl>https://github.com/AdrianStrugala/AvroConvert</RepositoryUrl>
+    <AssemblyName>AvroConvert</AssemblyName>
+    <RootNamespace>AvroConvert</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

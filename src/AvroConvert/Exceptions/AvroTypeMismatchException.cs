@@ -1,4 +1,4 @@
-﻿namespace EhwarSoft.AvroConvert.Exceptions
+﻿namespace AvroConvert.Exceptions
 {
     using System;
 

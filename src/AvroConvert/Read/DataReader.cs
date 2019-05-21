@@ -1,4 +1,4 @@
-namespace EhwarSoft.AvroConvert.Read
+namespace AvroConvert.Read
 {
     using System;
     using System.Collections.Generic;

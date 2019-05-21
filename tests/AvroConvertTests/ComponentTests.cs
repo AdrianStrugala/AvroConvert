@@ -2,7 +2,7 @@
 {
     using AutoFixture;
     using System.Collections.Generic;
-    using EhwarSoft.AvroConvert;
+    using AvroConvert;
     using Xunit;
 
     [Collection("MemoryBasedTests")]

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace EhwarSoft.AvroConvert.Schema
+namespace AvroConvert.Schema
 {
     /// <summary>
     /// Base class for all unnamed schemas

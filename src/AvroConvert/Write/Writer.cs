@@ -1,4 +1,4 @@
-namespace EhwarSoft.AvroConvert.Write
+namespace AvroConvert.Write
 {
     using System;
     using System.IO;

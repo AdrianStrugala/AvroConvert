@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace EhwarSoft.AvroConvert.Generic
+namespace AvroConvert.Generic
 {
     using System;
     using Schema;

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace EhwarSoft.AvroConvert.Exceptions
+namespace AvroConvert.Exceptions
 {
     using System;
 

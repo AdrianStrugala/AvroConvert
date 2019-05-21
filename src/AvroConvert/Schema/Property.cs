@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace EhwarSoft.AvroConvert.Schema
+namespace AvroConvert.Schema
 {
     using System.Collections.Generic;
     using Newtonsoft.Json;

@@ -1,4 +1,4 @@
-﻿namespace EhwarSoft.AvroConvert.Generic
+﻿namespace AvroConvert.Generic
 {
     using System;
     using System.Collections;

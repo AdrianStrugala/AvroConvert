@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace EhwarSoft.AvroConvert.Helpers.Codec
+namespace AvroConvert.Helpers.Codec
 {
     using System.IO;
     using System.IO.Compression;

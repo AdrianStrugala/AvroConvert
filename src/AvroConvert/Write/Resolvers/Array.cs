@@ -1,4 +1,4 @@
-﻿namespace EhwarSoft.AvroConvert.Write.Resolvers
+﻿namespace AvroConvert.Write.Resolvers
 {
     using System.Collections;
 

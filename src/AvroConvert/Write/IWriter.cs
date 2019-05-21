@@ -1,4 +1,4 @@
-namespace EhwarSoft.AvroConvert.Write
+namespace AvroConvert.Write
 {
     public interface IWriter
     {

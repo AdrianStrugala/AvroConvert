@@ -1,10 +1,6 @@
-﻿namespace EhwarSoft.AvroConvert.Helpers
+﻿namespace AvroConvert.Helpers
 {
-    using System;
     using System.Collections.Generic;
-    using System.Globalization;
-    using Constants;
-    using Exceptions;
 
     public class Metadata
     {

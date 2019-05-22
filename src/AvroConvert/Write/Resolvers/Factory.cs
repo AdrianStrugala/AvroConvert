@@ -14,12 +14,14 @@
         private static readonly Array Array;
         private static readonly Map Map;
         private static readonly Null Null;
+        private static readonly String String;
 
         static Factory()
         {
             Array = new Array();
             Null = new Null();
             Map = new Map();
+            String = new String();
         }
         public static Encoder.WriteItem ResolveWriter(Schema schema)
         {
@@ -38,7 +40,7 @@
                 case Schema.Type.Double:
                     return (v, e) => Write<double>(v, schema.Tag, e.WriteDouble);
                 case Schema.Type.String:
-                    return (v, e) => WriteString(v, e.WriteString);
+                    return String.Resolve;
                 case Schema.Type.Bytes:
                     return (v, e) => Write<byte[]>(v, schema.Tag, e.WriteBytes);
                 case Schema.Type.Error:
@@ -59,7 +61,7 @@
             }
         }
 
-  
+
 
         /// <summary>
         /// A generic method to serialize primitive Avro types.
@@ -80,20 +82,6 @@
             writer((S)value);
         }
 
-        private static void WriteString(object value, Writer<string> writer)
-        {
-            if (value == null)
-            {
-                value = string.Empty;
-            }
-
-            if (value is Guid)
-            {
-                value = value.ToString();
-            }
-
-            writer((string)value);
-        }
 
 
         /// <summary>

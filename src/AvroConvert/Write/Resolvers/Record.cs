@@ -29,7 +29,25 @@
 
             return recordResolver;
         }
+        private void WriteRecordFields(object recordObj, WriteStep[] writers, IWriter encoder, RecordSchema schema)
+        {
+            GenericRecord record = new GenericRecord(schema);
 
+            if (recordObj is Dictionary<string, object> obj)
+            {
+                record.contents = obj;
+            }
+
+            else
+            {
+                record.contents = SplitKeyValues(recordObj);
+            }
+
+            foreach (var writer in writers)
+            {
+                writer.WriteField(record[writer.Field.Name], encoder);
+            }
+        }
 
         private Dictionary<string, object> SplitKeyValues(object item)
         {
@@ -45,86 +63,41 @@
 
             foreach (PropertyInfo prop in properties)
             {
-                if (typeof(IList).IsAssignableFrom(prop.PropertyType))
-                {
-                    // We have a List<T> or array
-                    dynamic value = null;
-                    try
-                    {
-                        value = prop.GetValue(item);
-                    }
-                    catch (Exception)
-                    {
-                        //no value
-                    }
-                    //TODO make soft get value as method
-                    if (value != null)
-                    {
-                        result.Add(prop.Name, GetSplittedList((IList)value));
-                    }
-                    else
-                    {
-                        result.Add(prop.Name, null);
-                    }
+                var value = FindValue(prop, item);
 
+                if (value == null)
+                {
+                    result.Add(prop.Name, null);
                 }
+
+                else if (typeof(IList).IsAssignableFrom(prop.PropertyType))
+                {
+                    // We have a List<T> or array                  
+                    result.Add(prop.Name, GetSplitList((IList)value));
+                }
+
                 else if (prop.PropertyType == typeof(Guid))
                 {
-                    // We have a simple type
-                    dynamic value = null;
-                    try
-                    {
-                        value = prop.GetValue(item);
-                    }
-                    catch (Exception)
-                    {
-                        //no value
-                    }
+                    // We have a guid type
                     result.Add(prop.Name, value.ToString());
                 }
+
                 else if (prop.PropertyType.GetTypeInfo().IsValueType ||
                          prop.PropertyType == typeof(string))
                 {
                     // We have a simple type
-                    dynamic value = null;
-                    try
-                    {
-                        value = prop.GetValue(item);
-                    }
-                    catch (Exception)
-                    {
-                        //no value
-                    }
                     result.Add(prop.Name, value);
                 }
                 else
                 {
-                    dynamic value = null;
-                    try
-                    {
-                        value = prop.GetValue(item);
-                    }
-                    catch (Exception)
-                    {
-                        //no value
-                    }
-
-                    if (value != null)
-                    {
-                        result.Add(prop.Name, SplitKeyValues(value));
-                    }
-                    else
-                    {
-                        result.Add(prop.Name, null);
-                    }
-
+                    //complex type
+                    result.Add(prop.Name, SplitKeyValues(value));
                 }
             }
-
             return result;
         }
 
-        private IList GetSplittedList(IList list)
+        private IList GetSplitList(IList list)
         {
             if (list.Count == 0)
             {
@@ -149,24 +122,18 @@
             return result;
         }
 
-        private void WriteRecordFields(object recordObj, WriteStep[] writers, IWriter encoder, RecordSchema schema)
+        private dynamic FindValue(PropertyInfo propertyInfo, object item)
         {
-            GenericRecord record = new GenericRecord(schema);
-
-            if (recordObj is Dictionary<string, object> obj)
+            dynamic value = null;
+            try
             {
-                record.contents = obj;
+                value = propertyInfo.GetValue(item);
             }
-
-            else
+            catch (Exception)
             {
-                record.contents = SplitKeyValues(recordObj);
+                //no value
             }
-
-            foreach (var writer in writers)
-            {
-                writer.WriteField(record[writer.Field.Name], encoder);
-            }
+            return value;
         }
 
         private void EnsureRecordObject(RecordSchema recordSchema, object value)

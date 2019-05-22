@@ -5,16 +5,9 @@
 
     public class Array
     {
-        private readonly Factory _factory;
-
-        public Array()
-        {
-            _factory = new Factory();
-        }
-
         public Encoder.WriteItem Resolve(ArraySchema schema)
         {
-            var itemWriter = _factory.ResolveWriter(schema.ItemSchema);
+            var itemWriter = Factory.ResolveWriter(schema.ItemSchema);
             return (d, e) => WriteArray(itemWriter, d, e);
         }
 

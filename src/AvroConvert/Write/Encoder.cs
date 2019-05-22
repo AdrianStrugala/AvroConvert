@@ -28,8 +28,6 @@
         private int _syncInterval;
         private readonly Metadata _metadata;
 
-        private readonly Factory _factory;
-
 
         public Encoder(Schema schema, Stream outStream)
         {
@@ -44,9 +42,7 @@
             _blockStream = new MemoryStream();
             _blockEncoder = new Writer(_blockStream);
 
-            _factory = new Factory();
-
-            _writer = _factory.ResolveWriter(schema);
+            _writer = Factory.ResolveWriter(schema);
 
             _isOpen = true;
         }

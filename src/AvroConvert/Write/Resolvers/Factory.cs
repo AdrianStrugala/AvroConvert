@@ -9,17 +9,17 @@
     using Generic;
     using Schema;
 
-    public class Factory
+    public static class Factory
     {
-        private Array _array;
-        private Map _map;
+        private static readonly Array _array;
+        private static readonly Map _map;
 
-        public Factory()
+        static Factory()
         {
             _array = new Array();
             _map = new Map();
         }
-        public Encoder.WriteItem ResolveWriter(Schema schema)
+        public static Encoder.WriteItem ResolveWriter(Schema schema)
         {
             switch (schema.Tag)
             {
@@ -49,7 +49,7 @@
                 case Schema.Type.Array:
                     return _array.Resolve((ArraySchema)schema);
                 case Schema.Type.Map:
-                    return ResolveMap((MapSchema)schema);
+                    return _map.Resolve((MapSchema)schema);
                 case Schema.Type.Union:
                     return ResolveUnion((UnionSchema)schema);
                 default:
@@ -57,7 +57,7 @@
             }
         }
 
-        protected void WriteNull(object value, IWriter encoder)
+        private static  void WriteNull(object value, IWriter encoder)
         {
             if (value != null) throw new AvroTypeMismatchException("[Null] required to write against [Null] schema but found " + value.GetType());
         }
@@ -69,7 +69,7 @@
         /// <param name="value">The value to be serialized</param>
         /// <param name="tag">The schema type tag</param>
         /// <param name="writer">The writer which should be used to write the given type.</param>
-        protected void Write<S>(object value, Schema.Type tag, Writer<S> writer)
+        private static void Write<S>(object value, Schema.Type tag, Writer<S> writer)
         {
             if (value == null)
             {
@@ -81,7 +81,7 @@
             writer((S)value);
         }
 
-        protected void WriteString(object value, Writer<string> writer)
+        private static void WriteString(object value, Writer<string> writer)
         {
             if (value == null)
             {
@@ -102,12 +102,12 @@
         /// to extract the field value from the given object.
         /// </summary>
         /// <param name="schema">The RecordSchema to use for serialization</param>
-        private Encoder.WriteItem ResolveRecord(RecordSchema recordSchema)
+        private static Encoder.WriteItem ResolveRecord(RecordSchema recordSchema)
         {
             Encoder.WriteItem recordResolver;
 
             var writeSteps = new Record[recordSchema.Fields.Count];
-            recordResolver = (v, e) => WriteRecordFields(v, writeSteps, e);
+            recordResolver = (v, e) => WriteRecordFields(v, writeSteps, e, recordSchema);
 
 
             int index = 0;
@@ -125,7 +125,7 @@
         }
 
 
-        public Dictionary<string, object> SplitKeyValues(object item)
+        public static Dictionary<string, object> SplitKeyValues(object item)
         {
             Dictionary<string, object> result = new Dictionary<string, object>();
 
@@ -218,7 +218,7 @@
             return result;
         }
 
-        IList GetSplittedList(IList list)
+        static IList GetSplittedList(IList list)
         {
             if (list.Count == 0)
             {
@@ -232,22 +232,20 @@
             {
                 return list;
             }
-            else
+
+            List<object> result = new List<object>();
+
+            foreach (var item in list)
             {
-                List<object> result = new List<object>();
-
-                foreach (var item in list)
-                {
-                    result.Add(item != null ? SplitKeyValues(item) : null);
-                }
-
-                return result;
+                result.Add(item != null ? SplitKeyValues(item) : null);
             }
+
+            return result;
         }
 
-        public void WriteRecordFields(object recordObj, Record[] writers, IWriter encoder)
+        public static void WriteRecordFields(object recordObj, Record[] writers, IWriter encoder, RecordSchema schema)
         {
-            GenericRecord record = new GenericRecord((RecordSchema)_schema);
+            GenericRecord record = new GenericRecord(schema);
 
             if (recordObj is Dictionary<string, object> obj)
             {
@@ -265,7 +263,7 @@
             }
         }
 
-        public void EnsureRecordObject(RecordSchema recordSchema, object value)
+        public static void EnsureRecordObject(RecordSchema recordSchema, object value)
         {
             if (value == null || !(value is GenericRecord) || !((value as GenericRecord).Schema.Equals(recordSchema)))
             {
@@ -273,13 +271,13 @@
             }
         }
 
-        public void WriteField(object record, string fieldName, int fieldPos, Encoder.WriteItem writer,
+        public static void WriteField(object record, string fieldName, int fieldPos, Encoder.WriteItem writer,
             IWriter encoder)
         {
             writer(((GenericRecord)record)[fieldName], encoder);
         }
 
-        public Encoder.WriteItem ResolveEnum(EnumSchema es)
+        public static Encoder.WriteItem ResolveEnum(EnumSchema es)
         {
             return (value, e) =>
             {
@@ -289,7 +287,7 @@
             };
         }
 
-        public void WriteFixed(FixedSchema es, object value, IWriter encoder)
+        public static void WriteFixed(FixedSchema es, object value, IWriter encoder)
         {
             if (value == null || !(value is GenericFixed) || !(value as GenericFixed).Schema.Equals(es))
             {
@@ -306,7 +304,7 @@
          * the data is byte[] and there are fixed and bytes schemas as branches, it choose the first one that matches.
          * Also it does not recognize the arrays of primitive types.
          */
-        public bool UnionBranchMatches(Schema sc, object obj)
+        public static bool UnionBranchMatches(Schema sc, object obj)
         {
             if (obj == null && sc.Tag != Schema.Type.Null) return false;
             switch (sc.Tag)
@@ -351,46 +349,12 @@
             }
         }
 
-        /// <summary>
-        /// Serialized an array. The default implementation calls EnsureArrayObject() to ascertain that the
-        /// given value is an array. It then calls GetArrayLength() and GetArrayElement()
-        /// to access the members of the array and then serialize them.
-        /// </summary>
-        /// <param name="schema">The ArraySchema for serialization</param>
-        /// <param name="value">The value being serialized</param>
-        /// <param name="encoder">The encoder for serialization</param>
-        protected Encoder.WriteItem ResolveArray(ArraySchema schema)
-        {
-            var itemWriter = ResolveWriter(schema.ItemSchema);
-            return (d, e) => WriteArray(itemWriter, d, e);
-        }
 
 
 
-        private Encoder.WriteItem ResolveMap(MapSchema mapSchema)
-        {
-            var itemWriter = ResolveWriter(mapSchema.ValueSchema);
-            return (v, e) => WriteMap(itemWriter, v, e);
-        }
-
-        /// <summary>
-        /// Serialized a map. The default implementation first ensure that the value is indeed a map and then uses
-        /// GetMapSize() and GetMapElements() to access the contents of the map.
-        /// </summary>
-        /// <param name="schema">The MapSchema for serialization</param>
-        /// <param name="value">The value to be serialized</param>
-        /// <param name="encoder">The encoder for serialization</param>
-        protected void WriteMap(Encoder.WriteItem itemWriter, object value, IWriter encoder)
-        {
-            EnsureMapObject(value);
-            encoder.WriteMapStart();
-            encoder.SetItemCount(GetMapSize(value));
-            WriteMapValues(value, itemWriter, encoder);
-            encoder.WriteMapEnd();
-        }
 
 
-        private Encoder.WriteItem ResolveUnion(UnionSchema unionSchema)
+        private static Encoder.WriteItem ResolveUnion(UnionSchema unionSchema)
         {
             var branchSchemas = unionSchema.Schemas.ToArray();
             var branchWriters = new Encoder.WriteItem[branchSchemas.Length];
@@ -411,7 +375,7 @@
         /// <param name="us">The UnionSchema to resolve against</param>
         /// <param name="value">The value to be serialized</param>
         /// <param name="encoder">The encoder for serialization</param>
-        private void WriteUnion(UnionSchema unionSchema, Schema[] branchSchemas, Encoder.WriteItem[] branchWriters, object value, IWriter encoder)
+        private static void WriteUnion(UnionSchema unionSchema, Schema[] branchSchemas, Encoder.WriteItem[] branchWriters, object value, IWriter encoder)
         {
             int index = ResolveUnion(unionSchema, branchSchemas, value);
             encoder.WriteUnionIndex(index);
@@ -426,7 +390,7 @@
         /// <param name="us">The UnionSchema to resolve against</param>
         /// <param name="obj">The object that should be used in matching</param>
         /// <returns></returns>
-        protected int ResolveUnion(UnionSchema us, Schema[] branchSchemas, object obj)
+        private static int ResolveUnion(UnionSchema us, Schema[] branchSchemas, object obj)
         {
             for (int i = 0; i < branchSchemas.Length; i++)
             {

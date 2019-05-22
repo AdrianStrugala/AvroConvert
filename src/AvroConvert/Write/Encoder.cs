@@ -25,7 +25,7 @@
         private bool _isOpen;
         private bool _headerWritten;
         private int _blockCount;
-        private int _syncInterval;
+        private readonly int _syncInterval;
         private readonly Metadata _metadata;
 
 
@@ -56,7 +56,7 @@
 
             try
             {
-                Write(datum, _blockEncoder);
+                _writer(datum, _blockEncoder);
             }
             catch (Exception e)
             {
@@ -74,12 +74,6 @@
                 WriteHeader();
                 _headerWritten = true;
             }
-        }
-
-        public void Flush()
-        {
-            EnsureHeader();
-            Sync();
         }
 
         public long Sync()
@@ -161,18 +155,10 @@
             random.NextBytes(_syncData);
         }
 
-
-        public void Write(object datum, IWriter encoder)
-        {
-            _writer(datum, encoder);
-        }
-
-
-
         public void Dispose()
         {
             EnsureHeader();
-            Flush();
+            Sync();
             _stream.Flush();
             _stream.Dispose();
             _isOpen = false;

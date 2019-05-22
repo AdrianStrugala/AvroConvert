@@ -1,10 +1,7 @@
 ﻿namespace AvroConvert.Write.Resolvers
 {
-    using System;
-    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Reflection;
     using Exceptions;
     using Generic;
     using Schema;
@@ -15,6 +12,7 @@
         private static readonly Map Map;
         private static readonly Null Null;
         private static readonly String String;
+        private static readonly Record Record;
 
         static Factory()
         {
@@ -22,6 +20,7 @@
             Null = new Null();
             Map = new Map();
             String = new String();
+            Record = new Record();
         }
         public static Encoder.WriteItem ResolveWriter(Schema schema)
         {
@@ -45,7 +44,7 @@
                     return (v, e) => Write<byte[]>(v, schema.Tag, e.WriteBytes);
                 case Schema.Type.Error:
                 case Schema.Type.Record:
-                    return ResolveRecord((RecordSchema)schema);
+                    return Record.Resolve((RecordSchema)schema);
                 case Schema.Type.Enumeration:
                     return ResolveEnum(schema as EnumSchema);
                 case Schema.Type.Fixed:
@@ -60,8 +59,6 @@
                     return (v, e) => throw new AvroTypeMismatchException($"Tried to write against [{schema}] schema, but found [{v.GetType()}] type");
             }
         }
-
-
 
         /// <summary>
         /// A generic method to serialize primitive Avro types.
@@ -84,179 +81,7 @@
 
 
 
-        /// <summary>
-        /// Serialized a record using the given RecordSchema. It uses GetField method
-        /// to extract the field value from the given object.
-        /// </summary>
-        /// <param name="schema">The RecordSchema to use for serialization</param>
-        private static Encoder.WriteItem ResolveRecord(RecordSchema recordSchema)
-        {
-            Encoder.WriteItem recordResolver;
 
-            var writeSteps = new Record[recordSchema.Fields.Count];
-            recordResolver = (v, e) => WriteRecordFields(v, writeSteps, e, recordSchema);
-
-
-            int index = 0;
-            foreach (Field field in recordSchema)
-            {
-                var record = new Record
-                {
-                    WriteField = ResolveWriter(field.Schema),
-                    Field = field
-                };
-                writeSteps[index++] = record;
-            }
-
-            return recordResolver;
-        }
-
-
-        public static Dictionary<string, object> SplitKeyValues(object item)
-        {
-            Dictionary<string, object> result = new Dictionary<string, object>();
-
-            if (item == null)
-            {
-                return result;
-            }
-
-            Type objType = item.GetType();
-            PropertyInfo[] properties = objType.GetProperties();
-
-            foreach (PropertyInfo prop in properties)
-            {
-                if (typeof(IList).IsAssignableFrom(prop.PropertyType))
-                {
-                    // We have a List<T> or array
-                    dynamic value = null;
-                    try
-                    {
-                        value = prop.GetValue(item);
-                    }
-                    catch (Exception)
-                    {
-                        //no value
-                    }
-                    //TODO make soft get value as method
-                    if (value != null)
-                    {
-                        result.Add(prop.Name, GetSplittedList((IList)value));
-                    }
-                    else
-                    {
-                        result.Add(prop.Name, null);
-                    }
-
-                }
-                else if (prop.PropertyType == typeof(Guid))
-                {
-                    // We have a simple type
-                    dynamic value = null;
-                    try
-                    {
-                        value = prop.GetValue(item);
-                    }
-                    catch (Exception)
-                    {
-                        //no value
-                    }
-                    result.Add(prop.Name, value.ToString());
-                }
-                else if (prop.PropertyType.GetTypeInfo().IsValueType ||
-                         prop.PropertyType == typeof(string))
-                {
-                    // We have a simple type
-                    dynamic value = null;
-                    try
-                    {
-                        value = prop.GetValue(item);
-                    }
-                    catch (Exception)
-                    {
-                        //no value
-                    }
-                    result.Add(prop.Name, value);
-                }
-                else
-                {
-                    dynamic value = null;
-                    try
-                    {
-                        value = prop.GetValue(item);
-                    }
-                    catch (Exception)
-                    {
-                        //no value
-                    }
-
-                    if (value != null)
-                    {
-                        result.Add(prop.Name, SplitKeyValues(value));
-                    }
-                    else
-                    {
-                        result.Add(prop.Name, null);
-                    }
-
-                }
-            }
-
-            return result;
-        }
-
-        static IList GetSplittedList(IList list)
-        {
-            if (list.Count == 0)
-            {
-                return list;
-            }
-
-            var typeToCheck = list.GetType().GetProperties()[2].PropertyType;
-
-            if (typeToCheck.GetTypeInfo().IsValueType ||
-                typeToCheck == typeof(string))
-            {
-                return list;
-            }
-
-            List<object> result = new List<object>();
-
-            foreach (var item in list)
-            {
-                result.Add(item != null ? SplitKeyValues(item) : null);
-            }
-
-            return result;
-        }
-
-        public static void WriteRecordFields(object recordObj, Record[] writers, IWriter encoder, RecordSchema schema)
-        {
-            GenericRecord record = new GenericRecord(schema);
-
-            if (recordObj is Dictionary<string, object> obj)
-            {
-                record.contents = obj;
-            }
-
-            else
-            {
-                record.contents = SplitKeyValues(recordObj);
-            }
-
-            foreach (var writer in writers)
-            {
-                writer.WriteField(record[writer.Field.Name], encoder);
-            }
-        }
-
-        public static void EnsureRecordObject(RecordSchema recordSchema, object value)
-        {
-            if (value == null || !(value is GenericRecord) || !((value as GenericRecord).Schema.Equals(recordSchema)))
-            {
-                throw new AvroTypeMismatchException("[GenericRecord] required to write against [Record] schema but found " + value.GetType());
-            }
-        }
 
         public static void WriteField(object record, string fieldName, int fieldPos, Encoder.WriteItem writer,
             IWriter encoder)
@@ -335,10 +160,6 @@
                     throw new AvroException("Unknown schema type: " + sc.Tag);
             }
         }
-
-
-
-
 
 
         private static Encoder.WriteItem ResolveUnion(UnionSchema unionSchema)

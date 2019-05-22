@@ -1,6 +1,7 @@
 ﻿namespace AvroConvert.Write.Resolvers
 {
     using System;
+    using Exceptions;
 
     public class String
     {
@@ -14,6 +15,11 @@
             if (value is Guid)
             {
                 value = value.ToString();
+            }
+
+            if (!(value is string))
+            {
+                throw new AvroTypeMismatchException("[String] required to write against [String] schema but found " + value.GetType());
             }
 
             encoder.WriteString((string)value);

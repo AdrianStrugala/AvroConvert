@@ -11,20 +11,22 @@
 
     public static class Factory
     {
-        private static readonly Array _array;
-        private static readonly Map _map;
+        private static readonly Array Array;
+        private static readonly Map Map;
+        private static readonly Null Null;
 
         static Factory()
         {
-            _array = new Array();
-            _map = new Map();
+            Array = new Array();
+            Null = new Null();
+            Map = new Map();
         }
         public static Encoder.WriteItem ResolveWriter(Schema schema)
         {
             switch (schema.Tag)
             {
                 case Schema.Type.Null:
-                    return WriteNull;
+                    return Null.Resolve;
                 case Schema.Type.Boolean:
                     return (v, e) => Write<bool>(v, schema.Tag, e.WriteBoolean);
                 case Schema.Type.Int:
@@ -47,9 +49,9 @@
                 case Schema.Type.Fixed:
                     return (v, e) => WriteFixed(schema as FixedSchema, v, e);
                 case Schema.Type.Array:
-                    return _array.Resolve((ArraySchema)schema);
+                    return Array.Resolve((ArraySchema)schema);
                 case Schema.Type.Map:
-                    return _map.Resolve((MapSchema)schema);
+                    return Map.Resolve((MapSchema)schema);
                 case Schema.Type.Union:
                     return ResolveUnion((UnionSchema)schema);
                 default:
@@ -57,10 +59,7 @@
             }
         }
 
-        private static  void WriteNull(object value, IWriter encoder)
-        {
-            if (value != null) throw new AvroTypeMismatchException("[Null] required to write against [Null] schema but found " + value.GetType());
-        }
+  
 
         /// <summary>
         /// A generic method to serialize primitive Avro types.

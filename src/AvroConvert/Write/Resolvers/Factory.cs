@@ -13,6 +13,7 @@
         private static readonly Null Null;
         private static readonly String String;
         private static readonly Record Record;
+        private static readonly Enum Enum;
 
         static Factory()
         {
@@ -21,6 +22,7 @@
             Map = new Map();
             String = new String();
             Record = new Record();
+            Enum = new Enum();
         }
         public static Encoder.WriteItem ResolveWriter(Schema schema)
         {
@@ -46,7 +48,7 @@
                 case Schema.Type.Record:
                     return Record.Resolve((RecordSchema)schema);
                 case Schema.Type.Enumeration:
-                    return ResolveEnum(schema as EnumSchema);
+                    return Enum.Resolve((EnumSchema)schema);
                 case Schema.Type.Fixed:
                     return (v, e) => WriteFixed(schema as FixedSchema, v, e);
                 case Schema.Type.Array:
@@ -77,26 +79,6 @@
             if (!(value is S)) throw new AvroTypeMismatchException($"[{ typeof(S)}] required to write against [{tag.ToString()}] schema but found " + value.GetType());
 
             writer((S)value);
-        }
-
-
-
-
-
-        public static void WriteField(object record, string fieldName, int fieldPos, Encoder.WriteItem writer,
-            IWriter encoder)
-        {
-            writer(((GenericRecord)record)[fieldName], encoder);
-        }
-
-        public static Encoder.WriteItem ResolveEnum(EnumSchema es)
-        {
-            return (value, e) =>
-            {
-                if (value == null || !(value is GenericEnum) || !((value as GenericEnum).Schema.Equals(es)))
-                    throw new AvroTypeMismatchException("[GenericEnum] required to write against [Enum] schema but found " + value.GetType());
-                e.WriteEnum(es.Ordinal((value as GenericEnum).Value));
-            };
         }
 
         public static void WriteFixed(FixedSchema es, object value, IWriter encoder)

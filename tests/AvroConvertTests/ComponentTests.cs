@@ -70,6 +70,7 @@
 
             //Assert
             Assert.NotNull(deserialized);
+            Assert.Equal(someTestClasses, deserialized);
         }
 
         [Fact]

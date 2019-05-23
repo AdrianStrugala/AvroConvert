@@ -5,7 +5,7 @@
     using System.Collections.Generic;
     using System.Runtime.Serialization;
 
-
+    [Equals]
     [DataContract(Name = "User", Namespace = "user")]
     public class User
     {
@@ -20,6 +20,7 @@
         public string favorite_color { get; set; }
     }
 
+    [Equals]
     public class SomeTestClass
     {
         public NestedTestClass objectProperty { get; set; }
@@ -27,6 +28,7 @@
         public int simpleProperty { get; set; }
     }
 
+    [Equals]
     public class NestedTestClass
     {
         public string justSomeProperty { get; set; }
@@ -34,6 +36,7 @@
         public long andLongProperty { get; set; }
     }
 
+    [Equals]
     public class ClassWithConstructorPopulatingProperty
     {
         public List<NestedTestClass> nestedList { get; set; }
@@ -47,7 +50,7 @@
         }
 
     }
-
+    [Equals]
     public class ClassWithSimpleList
     {
         public List<int> someList { get; set; }
@@ -58,16 +61,19 @@
         }
     }
 
+    [Equals]
     public class ClassWithArray
     {
         public int[] theArray { get; set; }
     }
 
+    [Equals]
     public class ClassWithGuid
     {
         public Guid theGuid { get; set; }
     }
 
+    [Equals]
     public class VeryComplexClass
     {
         public List<ClassWithArray> ClassesWithArray { get; set; }

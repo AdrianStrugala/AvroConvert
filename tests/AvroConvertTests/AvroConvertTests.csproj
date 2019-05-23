@@ -20,6 +20,11 @@
 
   <ItemGroup>
     <PackageReference Include="AutoFixture" Version="4.6.0" />
+    <PackageReference Include="Equals.Fody" Version="2.0.1" />
+    <PackageReference Include="Fody" Version="5.0.6">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Log4Net.AspNetCore" Version="2.2.5" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.6.0" />
@@ -31,6 +36,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\AvroConvert\AvroConvert.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="FodyWeavers.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

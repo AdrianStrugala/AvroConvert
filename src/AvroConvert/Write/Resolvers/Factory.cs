@@ -14,6 +14,7 @@
         private static readonly String String;
         private static readonly Record Record;
         private static readonly Enum Enum;
+        private static readonly Fixed Fixed;
 
         static Factory()
         {
@@ -23,6 +24,7 @@
             String = new String();
             Record = new Record();
             Enum = new Enum();
+            Fixed = new Fixed();
         }
         public static Encoder.WriteItem ResolveWriter(Schema schema)
         {
@@ -50,7 +52,7 @@
                 case Schema.Type.Enumeration:
                     return Enum.Resolve((EnumSchema)schema);
                 case Schema.Type.Fixed:
-                    return (v, e) => WriteFixed(schema as FixedSchema, v, e);
+                    return Fixed.Resolve((FixedSchema)schema);
                 case Schema.Type.Array:
                     return Array.Resolve((ArraySchema)schema);
                 case Schema.Type.Map:
@@ -81,16 +83,6 @@
             writer((S)value);
         }
 
-        public static void WriteFixed(FixedSchema es, object value, IWriter encoder)
-        {
-            if (value == null || !(value is GenericFixed) || !(value as GenericFixed).Schema.Equals(es))
-            {
-                throw new AvroTypeMismatchException("[GenericFixed] required to write against [Fixed] schema but found " + value.GetType());
-            }
-
-            GenericFixed ba = (GenericFixed)value;
-            encoder.WriteFixed(ba.Value);
-        }
 
         /*
          * FIXME: This method of determining the Union branch has problems. If the data is IDictionary<string, object>

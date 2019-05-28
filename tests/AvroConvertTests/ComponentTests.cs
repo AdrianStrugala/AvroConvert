@@ -174,6 +174,24 @@
         public void Serialize_ObjectIsDictionary_ResultIsTheSameAsInput()
         {
             //Arrange
+            Dictionary<string, SomeTestClass> dictionary = _fixture.Create<Dictionary<string, SomeTestClass>>();
+
+            //Act
+
+            var result = AvroConvert.Serialize(dictionary);
+
+            var deserialized = AvroConvert.Deserialize<Dictionary<string, SomeTestClass>>(result);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(dictionary, deserialized);
+        }
+
+        [Fact]
+        public void Serialize_ObjectIsDictionaryOfComplexTypes_ResultIsTheSameAsInput()
+        {
+            //Arrange
             Dictionary<int, int> dictionary = _fixture.Create<Dictionary<int, int>>();
 
             //Act

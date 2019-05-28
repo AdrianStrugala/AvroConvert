@@ -15,17 +15,15 @@
             MemoryStream resultStream = new MemoryStream();
 
 
-            if (typeof(IList).IsAssignableFrom(obj.GetType()))
+            if (obj is IList listObj)
             {
                 //serialize IEnumerable
 
-                var ienumerableObj = obj as IList;
-
-                string schema = AvroConvert.GenerateSchema(ienumerableObj[0]);
+                string schema = AvroConvert.GenerateSchema(listObj[0]);
 
                 using (var writer = new Encoder(Schema.Schema.Parse(schema), resultStream))
                 {
-                    foreach (var @object in ienumerableObj)
+                    foreach (var @object in listObj)
                     {
                         writer.Append(@object);
                     }
@@ -43,21 +41,5 @@
             var result = resultStream.ToArray();
             return result;
         }
-
-        public static bool TryGetInterfaceGenericParameters(this Type type, Type @interface)
-        {
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-            {
-                return true;
-            }
-
-            var implements = type.FindInterfaces((ty, obj) => ty.IsGenericType && ty.GetGenericTypeDefinition() == @interface, null).FirstOrDefault();
-            if (implements == null)
-                return false;
-
-            return true;
-        }
     }
-
-
 }

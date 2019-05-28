@@ -26,7 +26,7 @@
 
             //invoke Create method of AvroSerializer
             var createMethod = typeof(AvroSerializer).GetMethod("Create", new Type[0]);
-            var createGenericMethod = createMethod.MakeGenericMethod(inMemoryInstance.GetType());
+            var createGenericMethod = createMethod.MakeGenericMethod(inMemoryType);
             dynamic avroSerializer = createGenericMethod.Invoke(inMemoryInstance, null);
 
             string result = avroSerializer.GetType().GetProperty("WriterSchema").GetValue(avroSerializer, null)

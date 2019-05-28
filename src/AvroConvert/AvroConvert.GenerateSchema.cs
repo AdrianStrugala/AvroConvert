@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
     using System.Reflection.Emit;
@@ -66,15 +67,16 @@
             else if (typeof(IDictionary).IsAssignableFrom(objType))
             {
                 Type keyType = objType.GetGenericArguments()[0];
+                Type valueType = objType.GetGenericArguments()[1];
 
                 if (keyType != typeof(string))
                 {
                     throw new AvroNotSupportedException("Avro supports Dictionaries only as [string] as a key type");
 
-                    //TODO Handle this is some other way
+                    //TODO Add Handling of not avro map type, but regular dictionary
                 }
 
-                //TODO: decorate also value field
+                objType = typeof(Dictionary<,>).MakeGenericType(keyType, ConvertToAvroType(valueType));
             }
 
             else if (objType == typeof(Guid))

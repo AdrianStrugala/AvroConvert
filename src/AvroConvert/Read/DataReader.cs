@@ -8,11 +8,11 @@ namespace AvroConvert.Read
     using Write;
     using Enum = Models.Enum;
 
-    public delegate T Reader<T>();
+    public delegate T Reader<out T>();
 
     public sealed class DataReader
     {
-        private readonly DefaultReader reader;
+        private readonly DefaultReader _reader;
 
         public DataReader(Schema writerSchema, Schema readerSchema)
             : this(new DefaultReader(writerSchema, readerSchema))
@@ -21,28 +21,24 @@ namespace AvroConvert.Read
 
         public DataReader(DefaultReader reader)
         {
-            this.reader = reader;
+            _reader = reader;
         }
-
-        public Schema WriterSchema { get { return reader.WriterSchema; } }
-
-        public Schema ReaderSchema { get { return reader.ReaderSchema; } }
 
         public object Read(IReader d)
         {
-            return reader.Read(d);
+            return _reader.Read(d);
         }
     }
 
     public class DefaultReader
     {
-        public Schema ReaderSchema { get; private set; }
-        public Schema WriterSchema { get; private set; }
+        public Schema ReaderSchema { get; }
+        public Schema WriterSchema { get; }
 
         public DefaultReader(Schema writerSchema, Schema readerSchema)
         {
-            this.ReaderSchema = readerSchema;
-            this.WriterSchema = writerSchema;
+            ReaderSchema = readerSchema;
+            WriterSchema = writerSchema;
         }
 
         public object Read(IReader reader)
@@ -58,7 +54,7 @@ namespace AvroConvert.Read
         {
             if (readerSchema.Tag == Schema.Type.Union && writerSchema.Tag != Schema.Type.Union)
             {
-                readerSchema = findBranch(readerSchema as UnionSchema, writerSchema);
+                readerSchema = FindBranch(readerSchema as UnionSchema, writerSchema);
             }
 
             switch (writerSchema.Tag)
@@ -147,7 +143,7 @@ namespace AvroConvert.Read
         {
             RecordSchema rs = (RecordSchema)readerSchema;
 
-            Record result = CreateRecord(rs);
+            Record result = new Record(rs);
             foreach (Field wf in writerSchema)
             {
                 try
@@ -181,31 +177,22 @@ namespace AvroConvert.Read
                 defaultStream.Flush();
                 defaultStream.Position = 0; // reset for reading
 
-                object obj = null;
-                TryGetField(result, rf.Name, rf.Pos, out obj);
+                TryGetField(result, rf.Name, rf.Pos, out _);
                 AddField(result, rf.Name, rf.Pos, Read(rf.Schema, rf.Schema, defaultDecoder));
             }
 
             return result.Contents;
         }
 
-        protected virtual Record CreateRecord(RecordSchema readerSchema)
-        {
-            Record ru =
-                new Record(readerSchema);
-            return ru;
-        }
-
-
         protected virtual bool TryGetField(object record, string fieldName, int fieldPos, out object value)
         {
-            return (record as Record).TryGetValue(fieldName, out value);
+            return ((Record)record).TryGetValue(fieldName, out value);
         }
 
 
         protected virtual void AddField(object record, string fieldName, int fieldPos, object fieldValue)
         {
-            (record as Record).Add(fieldName, fieldValue);
+            ((Record)record).Add(fieldName, fieldValue);
         }
 
 
@@ -236,7 +223,7 @@ namespace AvroConvert.Read
 
         protected virtual int GetArraySize(object array)
         {
-            return (array as object[]).Length;
+            return ((object[])array).Length;
         }
 
 
@@ -250,7 +237,7 @@ namespace AvroConvert.Read
 
         protected virtual void SetArrayElement(object array, int index, object value)
         {
-            object[] a = array as object[];
+            object[] a = (object[])array;
             a[index] = value;
         }
 
@@ -276,8 +263,8 @@ namespace AvroConvert.Read
             int index = d.ReadUnionIndex();
             Schema ws = writerSchema[index];
 
-            if (readerSchema is UnionSchema)
-                readerSchema = findBranch(readerSchema as UnionSchema, ws);
+            if (readerSchema is UnionSchema unionSchema)
+                readerSchema = FindBranch(unionSchema, ws);
             else
                 if (!readerSchema.CanRead(ws))
                 throw new AvroException("Schema mismatch. Reader: " + ReaderSchema + ", writer: " + WriterSchema);
@@ -295,7 +282,7 @@ namespace AvroConvert.Read
             }
 
             object ru = new Fixed(rs);
-            byte[] bb = (ru as Fixed).Value;
+            byte[] bb = ((Fixed)ru).Value;
             d.ReadFixed(bb);
             return ru;
         }
@@ -329,17 +316,17 @@ namespace AvroConvert.Read
                     d.SkipBytes();
                     break;
                 case Schema.Type.Record:
-                    foreach (Field f in writerSchema as RecordSchema) Skip(f.Schema, d);
+                    foreach (Field f in (RecordSchema)writerSchema) Skip(f.Schema, d);
                     break;
                 case Schema.Type.Enumeration:
                     d.SkipEnum();
                     break;
                 case Schema.Type.Fixed:
-                    d.SkipFixed((writerSchema as FixedSchema).Size);
+                    d.SkipFixed(((FixedSchema)writerSchema).Size);
                     break;
                 case Schema.Type.Array:
                     {
-                        Schema s = (writerSchema as ArraySchema).ItemSchema;
+                        Schema s = ((ArraySchema)writerSchema).ItemSchema;
                         for (long n = d.ReadArrayStart(); n != 0; n = d.ReadArrayNext())
                         {
                             for (long i = 0; i < n; i++) Skip(s, d);
@@ -348,7 +335,7 @@ namespace AvroConvert.Read
                     break;
                 case Schema.Type.Map:
                     {
-                        Schema s = (writerSchema as MapSchema).ValueSchema;
+                        Schema s = ((MapSchema)writerSchema).ValueSchema;
                         for (long n = d.ReadMapStart(); n != 0; n = d.ReadMapNext())
                         {
                             for (long i = 0; i < n; i++) { d.SkipString(); Skip(s, d); }
@@ -356,14 +343,16 @@ namespace AvroConvert.Read
                     }
                     break;
                 case Schema.Type.Union:
-                    Skip((writerSchema as UnionSchema)[d.ReadUnionIndex()], d);
+                    Skip(((UnionSchema)writerSchema)[d.ReadUnionIndex()], d);
+                    break;
+                case Schema.Type.Error:
                     break;
                 default:
                     throw new AvroException("Unknown schema type: " + writerSchema);
             }
         }
 
-        protected static Schema findBranch(UnionSchema us, Schema s)
+        protected static Schema FindBranch(UnionSchema us, Schema s)
         {
             int index = us.MatchingBranch(s);
             if (index >= 0) return us[index];

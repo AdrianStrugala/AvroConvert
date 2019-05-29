@@ -1,4 +1,4 @@
-﻿namespace AvroOld.CodeGen
+﻿namespace AvroOrigin.CodeGen
 {
     using Schema;
 

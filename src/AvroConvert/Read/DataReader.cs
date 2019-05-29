@@ -6,7 +6,7 @@ namespace AvroConvert.Read
     using Models;
     using Schema;
     using Write;
-    using Enum = global::AvroConvert.Models.Enum;
+    using Enum = Models.Enum;
 
     public delegate T Reader<T>();
 
@@ -28,7 +28,7 @@ namespace AvroConvert.Read
 
         public Schema ReaderSchema { get { return reader.ReaderSchema; } }
 
-        public object Read(IDecoder d)
+        public object Read(IReader d)
         {
             return reader.Read(d);
         }
@@ -45,16 +45,16 @@ namespace AvroConvert.Read
             this.WriterSchema = writerSchema;
         }
 
-        public object Read(IDecoder decoder)
+        public object Read(IReader reader)
         {
             if (!ReaderSchema.CanRead(WriterSchema))
                 throw new AvroException("Schema mismatch. Reader: " + ReaderSchema + ", writer: " + WriterSchema);
 
-            var result = Read(WriterSchema, ReaderSchema, decoder);
+            var result = Read(WriterSchema, ReaderSchema, reader);
             return result;
         }
 
-        public object Read(Schema writerSchema, Schema readerSchema, IDecoder d)
+        public object Read(Schema writerSchema, Schema readerSchema, IReader d)
         {
             if (readerSchema.Tag == Schema.Type.Union && writerSchema.Tag != Schema.Type.Union)
             {
@@ -131,7 +131,7 @@ namespace AvroConvert.Read
         }
 
 
-        protected virtual object ReadNull(Schema readerSchema, IDecoder d)
+        protected virtual object ReadNull(Schema readerSchema, IReader d)
         {
             d.ReadNull();
             return null;
@@ -143,7 +143,7 @@ namespace AvroConvert.Read
         }
 
 
-        protected virtual IDictionary<string, object> ReadRecord(RecordSchema writerSchema, Schema readerSchema, IDecoder dec)
+        protected virtual IDictionary<string, object> ReadRecord(RecordSchema writerSchema, Schema readerSchema, IReader dec)
         {
             RecordSchema rs = (RecordSchema)readerSchema;
 
@@ -171,7 +171,7 @@ namespace AvroConvert.Read
 
             var defaultStream = new MemoryStream();
             var defaultEncoder = new Writer(defaultStream);
-            var defaultDecoder = new BinaryDecoder(defaultStream);
+            var defaultDecoder = new Reader(defaultStream);
             foreach (Field rf in rs)
             {
                 if (writerSchema.Contains(rf.Name)) continue;
@@ -209,14 +209,14 @@ namespace AvroConvert.Read
         }
 
 
-        protected virtual object ReadEnum(EnumSchema writerSchema, Schema readerSchema, IDecoder d)
+        protected virtual object ReadEnum(EnumSchema writerSchema, Schema readerSchema, IReader d)
         {
             EnumSchema es = readerSchema as EnumSchema;
             return new Enum(es, writerSchema[d.ReadEnum()]);
         }
 
 
-        protected virtual object ReadArray(ArraySchema writerSchema, Schema readerSchema, IDecoder d)
+        protected virtual object ReadArray(ArraySchema writerSchema, Schema readerSchema, IReader d)
         {
             ArraySchema rs = (ArraySchema)readerSchema;
             object result = new object[0];
@@ -255,7 +255,7 @@ namespace AvroConvert.Read
         }
 
 
-        protected virtual object ReadMap(MapSchema writerSchema, Schema readerSchema, IDecoder d)
+        protected virtual object ReadMap(MapSchema writerSchema, Schema readerSchema, IReader d)
         {
             MapSchema rs = (MapSchema)readerSchema;
             Dictionary<string, object> result = new Dictionary<string, object>();
@@ -271,7 +271,7 @@ namespace AvroConvert.Read
         }
 
 
-        protected virtual object ReadUnion(UnionSchema writerSchema, Schema readerSchema, IDecoder d)
+        protected virtual object ReadUnion(UnionSchema writerSchema, Schema readerSchema, IReader d)
         {
             int index = d.ReadUnionIndex();
             Schema ws = writerSchema[index];
@@ -285,7 +285,7 @@ namespace AvroConvert.Read
             return Read(ws, readerSchema, d);
         }
 
-        protected virtual object ReadFixed(FixedSchema writerSchema, Schema readerSchema, IDecoder d)
+        protected virtual object ReadFixed(FixedSchema writerSchema, Schema readerSchema, IReader d)
         {
             FixedSchema rs = (FixedSchema)readerSchema;
             if (rs.Size != writerSchema.Size)
@@ -300,7 +300,7 @@ namespace AvroConvert.Read
             return ru;
         }
 
-        protected virtual void Skip(Schema writerSchema, IDecoder d)
+        protected virtual void Skip(Schema writerSchema, IReader d)
         {
             switch (writerSchema.Tag)
             {

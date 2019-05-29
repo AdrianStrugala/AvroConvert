@@ -1,358 +1,294 @@
-﻿namespace AvroConvert.Read
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+namespace AvroConvert.Read
 {
     using System;
-    using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
-    using Constants;
-    using Exceptions;
-    using Helpers;
     using Schema;
-    using Codec = Helpers.Codec.Codec;
 
-    public class Reader
+    /// <summary>
+    /// IDecoder for Avro binary format
+    /// </summary>
+    public class Reader : IReader
     {
-        public delegate DataReader CreateDatumReader(Schema writerSchema, Schema readerSchema);
+        private readonly Stream stream;
 
-        private DataReader _reader;
-        private IDecoder _decoder, _datumDecoder;
-        private Header _header;
-        private Codec _codec;
-        private DataBlock _currentBlock;
-        private long _blockRemaining;
-        private long _blockSize;
-        private bool _availableBlock;
-        private byte[] _syncBuffer;
-        private long _blockStart;
-        private Stream _stream;
-        private readonly Schema _readerSchema;
-        private readonly CreateDatumReader _datumReaderFactory;
-
-
-        public static Reader OpenReader(string filePath)
+        public Reader(Stream stream)
         {
-            return OpenReader(new FileStream(filePath, FileMode.Open), CreateDefaultReader);
+            this.stream = stream;
         }
 
-        public static Reader OpenReader(Stream inStream)
+        /// <summary>
+        /// null is written as zero bytes
+        /// </summary>
+        public void ReadNull()
         {
-            return OpenReader(inStream, CreateDefaultReader);
         }
 
-
-        private static Reader OpenReader(Stream inStream, CreateDatumReader datumReaderFactory)
+        /// <summary>
+        /// a boolean is written as a single byte 
+        /// whose value is either 0 (false) or 1 (true).
+        /// </summary>
+        /// <returns></returns>
+        public bool ReadBoolean()
         {
-            if (!inStream.CanSeek)
-                throw new AvroRuntimeException("Not a valid input stream - must be seekable!");
-
-            return new Reader(inStream, datumReaderFactory);         // (not supporting 1.2 or below, format)           
+            byte b = read();
+            if (b == 0) return false;
+            if (b == 1) return true;
+            throw new AvroException("Not a boolean value in the stream: " + b);
         }
 
-        Reader(Stream stream, CreateDatumReader datumReaderFactory)
+        /// <summary>
+        /// int and long values are written using variable-length, zig-zag coding.
+        /// </summary>
+        /// <param name="?"></param>
+        /// <returns></returns>
+        public int ReadInt()
         {
-            _datumReaderFactory = datumReaderFactory;
-            Init(stream);
-            BlockFinished();
+            return (int)ReadLong();
         }
-
-        public Header GetHeader()
+        /// <summary>
+        /// int and long values are written using variable-length, zig-zag coding.
+        /// </summary>
+        /// <param name="?"></param>
+        /// <returns></returns>
+        public long ReadLong()
         {
-            return _header;
-        }
-
-        public Schema GetSchema()
-        {
-            return _header.Schema;
-        }
-
-        public ICollection<string> GetMetaKeys()
-        {
-            return _header.MetaData.Keys;
-        }
-
-        public byte[] GetMeta(string key)
-        {
-            try
+            byte b = read();
+            ulong n = b & 0x7FUL;
+            int shift = 7;
+            while ((b & 0x80) != 0)
             {
-                return _header.MetaData[key];
+                b = read();
+                n |= (b & 0x7FUL) << shift;
+                shift += 7;
             }
-            catch (KeyNotFoundException)
+            long value = (long)n;
+            return (-(value & 0x01L)) ^ ((value >> 1) & 0x7fffffffffffffffL);
+        }
+
+        /// <summary>
+        /// A float is written as 4 bytes.
+        /// The float is converted into a 32-bit integer using a method equivalent to
+        /// Java's floatToIntBits and then encoded in little-endian format.
+        /// </summary>
+        /// <returns></returns>
+        public float ReadFloat()
+        {
+            byte[] buffer = read(4);
+
+            if (!BitConverter.IsLittleEndian)
+                Array.Reverse(buffer);
+
+            return BitConverter.ToSingle(buffer, 0);
+
+            //int bits = (Stream.ReadByte() & 0xff |
+            //(Stream.ReadByte()) & 0xff << 8 |
+            //(Stream.ReadByte()) & 0xff << 16 |
+            //(Stream.ReadByte()) & 0xff << 24);
+            //return intBitsToFloat(bits);
+        }
+
+        /// <summary>
+        /// A double is written as 8 bytes.
+        /// The double is converted into a 64-bit integer using a method equivalent to
+        /// Java's doubleToLongBits and then encoded in little-endian format.
+        /// </summary>
+        /// <param name="?"></param>
+        /// <returns></returns>
+        public double ReadDouble()
+        {
+            long bits = (stream.ReadByte() & 0xffL) |
+              (stream.ReadByte() & 0xffL) << 8 |
+              (stream.ReadByte() & 0xffL) << 16 |
+              (stream.ReadByte() & 0xffL) << 24 |
+              (stream.ReadByte() & 0xffL) << 32 |
+              (stream.ReadByte() & 0xffL) << 40 |
+              (stream.ReadByte() & 0xffL) << 48 |
+              (stream.ReadByte() & 0xffL) << 56;
+            return BitConverter.Int64BitsToDouble(bits);
+        }
+
+        /// <summary>
+        /// Bytes are encoded as a long followed by that many bytes of data. 
+        /// </summary>
+        /// <returns></returns>
+        public byte[] ReadBytes()
+        {
+            return read(ReadLong());
+        }
+
+        public string ReadString()
+        {
+            int length = ReadInt();
+            byte[] buffer = new byte[length];
+            //TODO: Fix this because it's lame;
+            ReadFixed(buffer);
+            return System.Text.Encoding.UTF8.GetString(buffer);
+        }
+
+        public int ReadEnum()
+        {
+            return ReadInt();
+        }
+
+        public long ReadArrayStart()
+        {
+            return doReadItemCount();
+        }
+
+        public long ReadArrayNext()
+        {
+            return doReadItemCount();
+        }
+
+        public long ReadMapStart()
+        {
+            return doReadItemCount();
+        }
+
+        public long ReadMapNext()
+        {
+            return doReadItemCount();
+        }
+
+        public int ReadUnionIndex()
+        {
+            return ReadInt();
+        }
+
+        public void ReadFixed(byte[] buffer)
+        {
+            ReadFixed(buffer, 0, buffer.Length);
+        }
+
+        public void ReadFixed(byte[] buffer, int start, int length)
+        {
+            Read(buffer, start, length);
+        }
+
+        public void SkipNull()
+        {
+            ReadNull();
+        }
+
+        public void SkipBoolean()
+        {
+            ReadBoolean();
+        }
+
+
+        public void SkipInt()
+        {
+            ReadInt();
+        }
+
+        public void SkipLong()
+        {
+            ReadLong();
+        }
+
+        public void SkipFloat()
+        {
+            Skip(4);
+        }
+
+        public void SkipDouble()
+        {
+            Skip(8);
+        }
+
+        public void SkipBytes()
+        {
+            Skip(ReadLong());
+        }
+
+        public void SkipString()
+        {
+            SkipBytes();
+        }
+
+        public void SkipEnum()
+        {
+            ReadLong();
+        }
+
+        public void SkipUnionIndex()
+        {
+            ReadLong();
+        }
+
+        public void SkipFixed(int len)
+        {
+            Skip(len);
+        }
+
+        // Read p bytes into a new byte buffer
+        private byte[] read(long p)
+        {
+            byte[] buffer = new byte[p];
+            Read(buffer, 0, buffer.Length);
+            return buffer;
+        }
+
+        private static float intBitsToFloat(int value)
+        {
+            return BitConverter.ToSingle(BitConverter.GetBytes(value), 0);
+        }
+
+        private byte read()
+        {
+            int n = stream.ReadByte();
+            if (n >= 0) return (byte)n;
+            throw new AvroException("End of stream reached");
+        }
+
+        private void Read(byte[] buffer, int start, int len)
+        {
+            while (len > 0)
             {
-                return null;
+                int n = stream.Read(buffer, start, len);
+                if (n <= 0) throw new AvroException("End of stream reached");
+                start += n;
+                len -= n;
             }
         }
 
-        public long GetMetaLong(string key)
+        private long doReadItemCount()
         {
-            return long.Parse(GetMetaString(key));
-        }
-
-        public string GetMetaString(string key)
-        {
-            byte[] value = GetMeta(key);
-            if (value == null)
+            long result = ReadLong();
+            if (result < 0)
             {
-                return null;
+                ReadLong(); // Consume byte-count if present
+                result = -result;
             }
-            try
-            {
-                return System.Text.Encoding.UTF8.GetString(value);
-            }
-            catch (Exception e)
-            {
-                throw new AvroRuntimeException(string.Format("Error fetching meta data for key: {0}", key), e);
-            }
-        }
-
-        public void Seek(long position)
-        {
-            _stream.Position = position;
-            _decoder = new BinaryDecoder(_stream);
-            _datumDecoder = null;
-            _blockRemaining = 0;
-            _blockStart = position;
-        }
-
-        public void Sync(long position)
-        {
-            Seek(position);
-            // work around an issue where 1.5.4 C stored sync in metadata
-            if ((position == 0) && (GetMeta(DataFileConstants.SyncMetadataKey) != null))
-            {
-                Init(_stream); // re-init to skip header
-                return;
-            }
-
-            try
-            {
-                bool done = false;
-
-                do // read until sync mark matched
-                {
-                    _decoder.ReadFixed(_syncBuffer);
-                    if (Enumerable.SequenceEqual(_syncBuffer, _header.SyncData))
-                        done = true;
-                    else
-                        _stream.Position = _stream.Position - (DataFileConstants.SyncSize - 1);
-                } while (!done);
-            }
-            catch (Exception) { } // could not find .. default to EOF
-
-            _blockStart = _stream.Position;
-        }
-
-        public bool PastSync(long position)
-        {
-            return ((_blockStart >= position + DataFileConstants.SyncSize) || (_blockStart >= _stream.Length));
-        }
-
-        public long PreviousSync()
-        {
-            return _blockStart;
-        }
-
-        public long Tell()
-        {
-            return _stream.Position;
-        }
-
-        public IEnumerable<object> GetEntries()
-        {
-            var result = new List<object>();
-            long remainingBlocks = GetRemainingBlocksCount();
-
-            for (int i = 0; i < remainingBlocks; i++)
-            {
-                result.Add(Next());
-            }
-
             return result;
         }
 
-        public bool HasNext()
+        private void Skip(int p)
         {
-            try
-            {
-                if (_blockRemaining == 0)
-                {
-                    if (HasNextBlock())
-                    {
-                        _currentBlock = NextRawBlock(_currentBlock);
-                        _currentBlock.Data = _codec.Decompress(_currentBlock.Data);
-                        _datumDecoder = new BinaryDecoder(_currentBlock.GetDataAsStream());
-                    }
-                }
-                return _blockRemaining != 0;
-            }
-            catch (Exception e)
-            {
-                throw new AvroRuntimeException(string.Format("Error fetching next object from block: {0}", e));
-            }
+            stream.Seek(p, SeekOrigin.Current);
         }
 
-        public long GetRemainingBlocksCount()
+        private void Skip(long p)
         {
-            try
-            {
-                if (_blockRemaining == 0)
-                {
-                    if (HasNextBlock())
-                    {
-                        _currentBlock = NextRawBlock(_currentBlock);
-                        _currentBlock.Data = _codec.Decompress(_currentBlock.Data);
-                        _datumDecoder = new BinaryDecoder(_currentBlock.GetDataAsStream());
-                    }
-                }
-
-                return _blockRemaining;
-            }
-            catch (Exception e)
-            {
-                throw new AvroRuntimeException(string.Format("Error fetching next object from block: {0}", e));
-            }
+            stream.Seek(p, SeekOrigin.Current);
         }
-
-        public void Reset()
-        {
-            Init(_stream);
-        }
-
-        public void Dispose()
-        {
-            _stream.Dispose();
-        }
-
-        private void Init(Stream stream)
-        {
-            _stream = stream;
-            _header = new Header();
-            _decoder = new BinaryDecoder(stream);
-            _syncBuffer = new byte[DataFileConstants.SyncSize];
-
-            // validate header 
-            byte[] firstBytes = new byte[DataFileConstants.AvroHeader.Length];
-            try
-            {
-                _decoder.ReadFixed(firstBytes);
-            }
-            catch (Exception)
-            {
-                throw new InvalidAvroHeaderException();
-            }
-            if (!firstBytes.SequenceEqual(DataFileConstants.AvroHeader))
-                throw new InvalidAvroHeaderException();
-
-            // read meta data 
-            long len = _decoder.ReadMapStart();
-            if (len > 0)
-            {
-                do
-                {
-                    for (long i = 0; i < len; i++)
-                    {
-                        string key = _decoder.ReadString();
-                        byte[] val = _decoder.ReadBytes();
-                        _header.MetaData.Add(key, val);
-                    }
-                } while ((len = _decoder.ReadMapNext()) != 0);
-            }
-
-            // read in sync data 
-            _decoder.ReadFixed(_header.SyncData);
-
-            // parse schema and set codec 
-            _header.Schema = Schema.Parse(GetMetaString(DataFileConstants.SchemaMetadataKey));
-            _reader = _datumReaderFactory(_header.Schema, _readerSchema ?? _header.Schema);
-            _codec = ResolveCodec();
-        }
-
-        private static DataReader CreateDefaultReader(Schema writerSchema, Schema readerSchema)
-        {
-            var reader = new DataReader(writerSchema, readerSchema);
-
-            return reader;
-        }
-
-        private Codec ResolveCodec()
-        {
-            return Codec.CreateCodecFromString(GetMetaString(DataFileConstants.CodecMetadataKey));
-        }
-
-        private object Next()
-        {
-            try
-            {
-                var result = _reader.Read(_datumDecoder);
-                if (--_blockRemaining == 0)
-                {
-                    BlockFinished();
-                }
-                return result;
-            }
-            catch (Exception e)
-            {
-                throw new AvroRuntimeException(string.Format("Error fetching next object from block: {0}", e));
-            }
-        }
-
-        private void BlockFinished()
-        {
-            _blockStart = _stream.Position;
-        }
-
-        private DataBlock NextRawBlock(DataBlock reuse)
-        {
-            if (!HasNextBlock())
-                throw new AvroRuntimeException("No data remaining in block!");
-
-            if (reuse == null || reuse.Data.Length < _blockSize)
-            {
-                reuse = new DataBlock(_blockRemaining, _blockSize);
-            }
-            else
-            {
-                reuse.NumberOfEntries = _blockRemaining;
-                reuse.BlockSize = _blockSize;
-            }
-
-            _decoder.ReadFixed(reuse.Data, 0, (int)reuse.BlockSize);
-            _decoder.ReadFixed(_syncBuffer);
-
-            if (!Enumerable.SequenceEqual(_syncBuffer, _header.SyncData))
-                throw new AvroRuntimeException("Invalid sync!");
-
-            _availableBlock = false;
-            return reuse;
-        }
-
-
-        private bool HasNextBlock()
-        {
-            try
-            {
-                // block currently being read 
-                if (_availableBlock)
-                    return true;
-
-                // check to ensure still data to read 
-                if (_stream.Position == _stream.Length)
-                    return false;
-
-                _blockRemaining = _decoder.ReadLong();      // read block count
-                _blockSize = _decoder.ReadLong();           // read block size
-                if (_blockSize > int.MaxValue || _blockSize < 0)
-                {
-                    throw new AvroRuntimeException("Block size invalid or too large for this " +
-                                                   "implementation: " + _blockSize);
-                }
-                _availableBlock = true;
-                return true;
-            }
-            catch (Exception e)
-            {
-                throw new AvroRuntimeException(string.Format("Error ascertaining if data has next block: {0}", e));
-            }
-        }
-
     }
 }

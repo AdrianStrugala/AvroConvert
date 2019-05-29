@@ -18,7 +18,7 @@
         {
             var result = new List<object>();
 
-            var reader = Reader.OpenReader(new MemoryStream(avroBytes));
+            var reader = Decoder.OpenReader(new MemoryStream(avroBytes));
 
             List<dynamic> readResult = reader.GetEntries().ToList();
 

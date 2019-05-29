@@ -4,15 +4,15 @@
 
     public class Enum
     {
-        public EnumSchema Schema { get; private set; }
-        private string value;
+        public EnumSchema Schema { get; }
+        private string _value;
         public string Value
         {
-            get { return value; }
+            get => _value;
             set
             {
                 if (!Schema.Contains(value)) throw new AvroException("Unknown value for enum: " + value + "(" + Schema + ")");
-                this.value = value;
+                _value = value;
             }
         }
 
@@ -25,7 +25,7 @@
         public override bool Equals(object obj)
         {
             if (obj == this) return true;
-            return (obj != null && obj is Enum) ? Value.Equals((obj as Enum).Value) : false;
+            return (obj != null && obj is Enum @enum) && Value.Equals(@enum.Value);
         }
 
         public override int GetHashCode()
@@ -37,6 +37,5 @@
         {
             return "Schema: " + Schema + ", value: " + Value;
         }
-
     }
 }

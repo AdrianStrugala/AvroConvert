@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Text;
     using Schema;
 
@@ -9,20 +10,13 @@
     {
         public RecordSchema Schema { get; }
 
-        public IDictionary<string, object> contents = new Dictionary<string, object>();
+        public IDictionary<string, object> Contents = new Dictionary<string, object>();
         public Record(RecordSchema schema)
         {
-            this.Schema = schema;
+            Schema = schema;
         }
 
-        public object this[string fieldName]
-        {
-            get
-            {
-                object value;
-                return contents.TryGetValue(fieldName, out value) ? value : null;
-            }
-        }
+        public object this[string fieldName] => Contents.TryGetValue(fieldName, out var value) ? value : null;
 
         public void Add(string fieldName, object fieldValue)
         {
@@ -30,7 +24,7 @@
             {
                 // TODO: Use a matcher to verify that object has the right type for the field.
                 //contents.Add(fieldName, fieldValue);
-                contents[fieldName] = fieldValue;
+                Contents[fieldName] = fieldValue;
                 return;
             }
             throw new AvroException("No such field: " + fieldName);
@@ -38,65 +32,61 @@
 
         public bool TryGetValue(string fieldName, out object result)
         {
-            return contents.TryGetValue(fieldName, out result);
+            return Contents.TryGetValue(fieldName, out result);
         }
 
         public override bool Equals(object obj)
         {
             if (this == obj) return true;
-            if (obj != null && obj is Record)
+            if (obj != null && obj is Record other)
             {
-                Record other = obj as Record;
-                return Schema.Equals(other.Schema) && areEqual(contents, other.contents);
+                return Schema.Equals(other.Schema) && AreEqual(Contents, other.Contents);
             }
             return false;
         }
 
-        private static bool areEqual(IDictionary<string, object> d1, IDictionary<string, object> d2)
+        private static bool AreEqual(IDictionary<string, object> d1, IDictionary<string, object> d2)
         {
             if (d1.Count == d2.Count)
             {
-                foreach (KeyValuePair<string, object> kv in d1)
+                foreach (var (key, value) in d1)
                 {
-                    object o;
-                    if (!d2.TryGetValue(kv.Key, out o)) return false;
-                    if (!areEqual(o, kv.Value)) return false;
+                    if (!d2.TryGetValue(key, out var o)) return false;
+                    if (!AreEqual(o, value)) return false;
                 }
                 return true;
             }
             return false;
         }
 
-        private static bool areEqual(object o1, object o2)
+        private static bool AreEqual(object object1, object object2)
         {
-            if (o1 == null) return o2 == null;
-            if (o2 == null) return false;
-            if (o1 is Array)
+            if (object1 == null) return object2 == null;
+            if (object2 == null) return false;
+            switch (object1)
             {
-                if (!(o2 is Array)) return false;
-                return areEqual(o1 as Array, o1 as Array);
+                case Array array1 when !(object2 is Array):
+                    return false;
+                case Array array1:
+                    return AreEqual(array1, array1);
+                case IDictionary<string, object> _ when !(object2 is IDictionary<string, object>):
+                    return false;
+                case IDictionary<string, object> dictionary1:
+                    return AreEqual(dictionary1, dictionary1);
+                default:
+                    return object1.Equals(object2);
             }
-            else if (o1 is IDictionary<string, object>)
-            {
-                if (!(o2 is IDictionary<string, object>)) return false;
-                return areEqual(o1 as IDictionary<string, object>, o1 as IDictionary<string, object>);
-            }
-            return o1.Equals(o2);
         }
 
-        private static bool areEqual(Array a1, Array a2)
+        private static bool AreEqual(Array array1, Array array2)
         {
-            if (a1.Length != a2.Length) return false;
-            for (int i = 0; i < a1.Length; i++)
-            {
-                if (!areEqual(a1.GetValue(i), a2.GetValue(i))) return false;
-            }
-            return true;
+            if (array1.Length != array2.Length) return false;
+            return !array1.Cast<object>().Where((t, i) => !AreEqual(array1.GetValue(i), array2.GetValue(i))).Any();
         }
 
         public override int GetHashCode()
         {
-            return 31 * contents.GetHashCode()/* + 29 * Schema.GetHashCode()*/;
+            return 31 * Contents.GetHashCode()/* + 29 * Schema.GetHashCode()*/;
         }
 
         public override string ToString()
@@ -106,7 +96,7 @@
             sb.Append(Schema);
             sb.Append(", contents: ");
             sb.Append("{ ");
-            foreach (KeyValuePair<string, object> kv in contents)
+            foreach (KeyValuePair<string, object> kv in Contents)
             {
                 sb.Append(kv.Key);
                 sb.Append(": ");

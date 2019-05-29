@@ -186,7 +186,7 @@ namespace AvroConvert.Read
                 AddField(result, rf.Name, rf.Pos, Read(rf.Schema, rf.Schema, defaultDecoder));
             }
 
-            return result.contents;
+            return result.Contents;
         }
 
         protected virtual Record CreateRecord(RecordSchema readerSchema)

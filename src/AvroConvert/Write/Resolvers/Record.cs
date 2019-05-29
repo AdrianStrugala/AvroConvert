@@ -5,7 +5,6 @@
     using System.Collections.Generic;
     using System.Reflection;
     using Exceptions;
-    using Models;
     using Schema;
 
     public class Record
@@ -31,16 +30,16 @@
         }
         private void WriteRecordFields(object recordObj, WriteStep[] writers, IWriter encoder, RecordSchema schema)
         {
-            Models.Record record = new Models.Record(schema);
+            var record = new Models.Record(schema);
 
             if (recordObj is Dictionary<string, object> obj)
             {
-                record.contents = obj;
+                record.Contents = obj;
             }
 
             else
             {
-                record.contents = SplitKeyValues(recordObj);
+                record.Contents = SplitKeyValues(recordObj);
             }
 
             foreach (var writer in writers)

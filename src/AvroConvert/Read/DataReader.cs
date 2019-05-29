@@ -7,6 +7,7 @@ namespace AvroConvert.Read
     using Models;
     using Schema;
     using Write;
+    using Enum = global::AvroConvert.Models.Enum;
 
     public delegate T Reader<T>();
 
@@ -212,7 +213,7 @@ namespace AvroConvert.Read
         protected virtual object ReadEnum(EnumSchema writerSchema, Schema readerSchema, IDecoder d)
         {
             EnumSchema es = readerSchema as EnumSchema;
-            return new GenericEnum(es, writerSchema[d.ReadEnum()]);
+            return new Enum(es, writerSchema[d.ReadEnum()]);
         }
 
 

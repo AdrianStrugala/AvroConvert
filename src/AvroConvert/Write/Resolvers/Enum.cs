@@ -2,6 +2,7 @@
 {
     using Exceptions;
     using Generic;
+    using Models;
     using Schema;
 
     public class Enum
@@ -10,13 +11,13 @@
         {
             return (value, e) =>
             {
-                if (!(value is GenericEnum) || !((GenericEnum)value).Schema.Equals(es))
+                if (!(value is Models.Enum) || !((Models.Enum)value).Schema.Equals(es))
                 {
                     throw new AvroTypeMismatchException(
                         "[GenericEnum] required to write against [Enum] schema but found " + value.GetType());
                 }
 
-                e.WriteEnum(es.Ordinal(((GenericEnum)value).Value));
+                e.WriteEnum(es.Ordinal(((Models.Enum)value).Value));
             };
         }
     }

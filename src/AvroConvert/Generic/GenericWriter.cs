@@ -23,6 +23,7 @@ namespace AvroConvert.Generic
     using Models;
     using Schema;
     using Write;
+    using Enum = global::AvroConvert.Models.Enum;
 
     public delegate void Writer<T>(T t);
     /// <summary>
@@ -220,9 +221,9 @@ namespace AvroConvert.Generic
         /// <param name="encoder">IWriter for serialization</param>
         protected virtual void WriteEnum(EnumSchema es, object value, IWriter encoder)
         {
-            if (value == null || !(value is GenericEnum) || !((value as GenericEnum).Schema.Equals(es)))
+            if (value == null || !(value is Enum) || !((value as Enum).Schema.Equals(es)))
                 throw TypeMismatch(value, "enum", "GenericEnum");
-            encoder.WriteEnum(es.Ordinal((value as GenericEnum).Value));
+            encoder.WriteEnum(es.Ordinal((value as Enum).Value));
         }
 
         /// <summary>
@@ -431,7 +432,7 @@ namespace AvroConvert.Generic
                     return obj is Record && (obj as Record).Schema.SchemaName.Equals((sc as RecordSchema).SchemaName);
                 case Schema.Type.Enumeration:
                     //return obj is GenericEnum && (obj as GenericEnum).Schema.Equals(s);
-                    return obj is GenericEnum && (obj as GenericEnum).Schema.SchemaName.Equals((sc as EnumSchema).SchemaName);
+                    return obj is Enum && (obj as Enum).Schema.SchemaName.Equals((sc as EnumSchema).SchemaName);
                 case Schema.Type.Array:
                     return obj is Array && !(obj is byte[]);
                 case Schema.Type.Map:

@@ -56,8 +56,8 @@
                            (obj as Models.Record).Schema.SchemaName.Equals((sc as RecordSchema).SchemaName);
                 case Schema.Type.Enumeration:
                     //return obj is GenericEnum && (obj as GenericEnum)._schema.Equals(s);
-                    return obj is GenericEnum &&
-                           (obj as GenericEnum).Schema.SchemaName.Equals((sc as EnumSchema).SchemaName);
+                    return obj is Models.Enum &&
+                           (obj as Models.Enum).Schema.SchemaName.Equals((sc as EnumSchema).SchemaName);
                 case Schema.Type.Array:
                     return obj is System.Array && !(obj is byte[]);
                 case Schema.Type.Map:

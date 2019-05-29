@@ -1,5 +1,6 @@
 ﻿namespace AvroConvert.Write.Resolvers
 {
+    using System;
     using System.Collections;
     using Schema;
 
@@ -23,22 +24,28 @@
 
         private object EnsureArrayObject(object value)
         {
-            if (value == null)
+            Type valueType = value.GetType();
+
+            if (typeof(IDictionary).IsAssignableFrom(valueType))
             {
-                return null;
+                var dictionary = value as IDictionary;
+                int length = dictionary.Count;
+
+                dynamic[] result = new dynamic[length];
+                dictionary.CopyTo(result, 0);
+
+                return result;
             }
-
-            IList list = value as IList;
-            int length = list.Count;
-
-            object[] result = new object[length];
-
-            for (int i = 0; i < length; i++)
+            else
             {
-                result[i] = list[i];
-            }
+                IList list = value as IList;
+                int length = list.Count;
 
-            return result;
+                dynamic[] result = new dynamic[length];
+                list.CopyTo(result, 0);
+
+                return result;
+            }
         }
 
         private long GetArrayLength(object value)

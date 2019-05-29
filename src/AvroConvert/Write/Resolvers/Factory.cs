@@ -6,6 +6,8 @@
 
     public static class Factory
     {
+        public delegate void Writer<in T>(T t);
+
         private static readonly Array Array;
         private static readonly Map Map;
         private static readonly Null Null;

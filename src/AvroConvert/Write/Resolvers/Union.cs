@@ -2,7 +2,6 @@
 {
     using System.Collections.Generic;
     using System.Linq;
-    using Generic;
     using Models;
     using Schema;
 
@@ -66,8 +65,8 @@
                     return false; // Union directly within another union not allowed!
                 case Schema.Type.Fixed:
                     //return obj is GenericFixed && (obj as GenericFixed)._schema.Equals(s);
-                    return obj is GenericFixed &&
-                           (obj as GenericFixed).Schema.SchemaName.Equals((sc as FixedSchema).SchemaName);
+                    return obj is Models.Fixed &&
+                           (obj as Models.Fixed).Schema.SchemaName.Equals((sc as FixedSchema).SchemaName);
                 default:
                     throw new AvroException("Unknown schema type: " + sc.Tag);
             }

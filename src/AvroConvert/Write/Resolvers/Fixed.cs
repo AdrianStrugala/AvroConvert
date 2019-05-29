@@ -1,7 +1,7 @@
 ﻿namespace AvroConvert.Write.Resolvers
 {
     using Exceptions;
-    using Generic;
+    using Models;
     using Schema;
 
     public class Fixed
@@ -10,12 +10,12 @@
         {
             return (value, encoder) =>
             {
-                if (!(value is GenericFixed) || !((GenericFixed)value).Schema.Equals(es))
+                if (!(value is Models.Fixed) || !((Models.Fixed)value).Schema.Equals(es))
                 {
                     throw new AvroTypeMismatchException("[GenericFixed] required to write against [Fixed] schema but found " + value.GetType());
                 }
 
-                GenericFixed ba = (GenericFixed)value;
+                Models.Fixed ba = (Models.Fixed)value;
                 encoder.WriteFixed(ba.Value);
             };
         }

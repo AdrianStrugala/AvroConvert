@@ -1,7 +1,6 @@
 ﻿namespace AvroConvert.Write.Resolvers
 {
     using Exceptions;
-    using Generic;
     using Models;
     using Schema;
 

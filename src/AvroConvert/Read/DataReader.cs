@@ -3,7 +3,6 @@ namespace AvroConvert.Read
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using Generic;
     using Models;
     using Schema;
     using Write;
@@ -295,8 +294,8 @@ namespace AvroConvert.Read
                     ", reader: " + readerSchema);
             }
 
-            object ru = new GenericFixed(rs);
-            byte[] bb = (ru as GenericFixed).Value;
+            object ru = new Fixed(rs);
+            byte[] bb = (ru as Fixed).Value;
             d.ReadFixed(bb);
             return ru;
         }

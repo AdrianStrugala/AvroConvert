@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace AvroOld.Generic
+namespace AvroOrigin.Generic
 {
     using System.Collections.Generic;
     using System.IO;

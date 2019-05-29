@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace AvroOld.Specific
+namespace AvroOrigin.Specific
 {
     using System;
     using Schema;

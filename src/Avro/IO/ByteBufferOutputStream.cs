@@ -19,7 +19,7 @@
 
 //using System.Linq;
 
-namespace AvroOld.IO
+namespace AvroOrigin.IO
 {
     using System.Collections.Generic;
     using System.IO;

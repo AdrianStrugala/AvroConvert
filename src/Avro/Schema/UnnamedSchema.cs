@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace AvroOld.Schema
+namespace AvroOrigin.Schema
 {
     /// <summary>
     /// Base class for all unnamed schemas

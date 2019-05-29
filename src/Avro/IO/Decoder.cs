@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace AvroOld.IO
+namespace AvroOrigin.IO
 {
     /// <summary>
     /// Decoder is used to decode Avro data on a stream. There are methods to read the Avro types on the stream. There are also

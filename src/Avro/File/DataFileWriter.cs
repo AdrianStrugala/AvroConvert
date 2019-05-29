@@ -1,4 +1,4 @@
-﻿namespace AvroOld.File
+﻿namespace AvroOrigin.File
 {
     using System;
     using System.Collections.Generic;

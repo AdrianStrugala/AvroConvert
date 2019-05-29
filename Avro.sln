@@ -9,7 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{CCBD5998
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvroConvert", "src\AvroConvert\AvroConvert.csproj", "{6D7BC559-A191-426D-AE26-B2050C1583D5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvroOld", "src\Avro\AvroOld.csproj", "{E902B366-F27B-4BAA-A15C-65A01CFF9867}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvroOrigin", "src\Avro\AvroOrigin.csproj", "{E902B366-F27B-4BAA-A15C-65A01CFF9867}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

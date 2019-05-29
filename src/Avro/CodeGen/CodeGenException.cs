@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace AvroOld.CodeGen
+namespace AvroOrigin.CodeGen
 {
     using System;
     using Schema;

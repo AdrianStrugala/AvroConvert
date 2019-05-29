@@ -19,7 +19,7 @@
 
 //using System.Runtime.Loader;
 
-namespace AvroOld.Specific
+namespace AvroOrigin.Specific
 {
     using System;
     using System.Collections.Generic;

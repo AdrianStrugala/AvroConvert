@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace AvroOld.Protocol
+namespace AvroOrigin.Protocol
 {
     using System;
     using System.Collections.Generic;

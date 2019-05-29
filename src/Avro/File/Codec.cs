@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace AvroOld.File
+namespace AvroOrigin.File
 {
     abstract public class Codec
     {

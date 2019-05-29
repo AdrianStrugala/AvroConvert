@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-using Encoder = AvroOld.IO.Encoder;
+using Encoder = AvroOrigin.IO.Encoder;
 
-namespace AvroOld.Specific
+namespace AvroOrigin.Specific
 {
     using System;
     using System.Collections;

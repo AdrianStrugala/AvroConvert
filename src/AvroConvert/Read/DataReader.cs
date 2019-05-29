@@ -4,6 +4,7 @@ namespace AvroConvert.Read
     using System.Collections.Generic;
     using System.IO;
     using Generic;
+    using Models;
     using Schema;
     using Write;
 
@@ -146,7 +147,7 @@ namespace AvroConvert.Read
         {
             RecordSchema rs = (RecordSchema)readerSchema;
 
-            GenericRecord result = CreateRecord(rs);
+            Record result = CreateRecord(rs);
             foreach (Field wf in writerSchema)
             {
                 try
@@ -188,23 +189,23 @@ namespace AvroConvert.Read
             return result.contents;
         }
 
-        protected virtual GenericRecord CreateRecord(RecordSchema readerSchema)
+        protected virtual Record CreateRecord(RecordSchema readerSchema)
         {
-            GenericRecord ru =
-                new GenericRecord(readerSchema);
+            Record ru =
+                new Record(readerSchema);
             return ru;
         }
 
 
         protected virtual bool TryGetField(object record, string fieldName, int fieldPos, out object value)
         {
-            return (record as GenericRecord).TryGetValue(fieldName, out value);
+            return (record as Record).TryGetValue(fieldName, out value);
         }
 
 
         protected virtual void AddField(object record, string fieldName, int fieldPos, object fieldValue)
         {
-            (record as GenericRecord).Add(fieldName, fieldValue);
+            (record as Record).Add(fieldName, fieldValue);
         }
 
 

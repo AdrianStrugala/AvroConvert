@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using Generic;
+    using Models;
     using Schema;
 
     public class Union
@@ -51,8 +52,8 @@
                 case Schema.Type.Error:
                 case Schema.Type.Record:
                     //return obj is GenericRecord && (obj as GenericRecord)._schema.Equals(s);
-                    return obj is GenericRecord &&
-                           (obj as GenericRecord).Schema.SchemaName.Equals((sc as RecordSchema).SchemaName);
+                    return obj is Models.Record &&
+                           (obj as Models.Record).Schema.SchemaName.Equals((sc as RecordSchema).SchemaName);
                 case Schema.Type.Enumeration:
                     //return obj is GenericEnum && (obj as GenericEnum)._schema.Equals(s);
                     return obj is GenericEnum &&

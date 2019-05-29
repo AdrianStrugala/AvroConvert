@@ -20,6 +20,7 @@ namespace AvroConvert.Generic
 {
     using System;
     using System.Collections.Generic;
+    using Models;
     using Schema;
     using Write;
 
@@ -190,7 +191,7 @@ namespace AvroConvert.Generic
 
         protected virtual void EnsureRecordObject(RecordSchema s, object value)
         {
-            if (value == null || !(value is GenericRecord) || !((value as GenericRecord).Schema.Equals(s)))
+            if (value == null || !(value is Record) || !((value as Record).Schema.Equals(s)))
             {
                 throw TypeMismatch(value, "record", "GenericRecord");
             }
@@ -206,7 +207,7 @@ namespace AvroConvert.Generic
         /// <returns></returns>
         protected virtual object GetField(object value, string fieldName, int fieldPos)
         {
-            GenericRecord d = value as GenericRecord;
+            Record d = value as Record;
             return d[fieldName];
         }
 
@@ -427,7 +428,7 @@ namespace AvroConvert.Generic
                     return obj is string;
                 case Schema.Type.Record:
                     //return obj is GenericRecord && (obj as GenericRecord).Schema.Equals(s);
-                    return obj is GenericRecord && (obj as GenericRecord).Schema.SchemaName.Equals((sc as RecordSchema).SchemaName);
+                    return obj is Record && (obj as Record).Schema.SchemaName.Equals((sc as RecordSchema).SchemaName);
                 case Schema.Type.Enumeration:
                     //return obj is GenericEnum && (obj as GenericEnum).Schema.Equals(s);
                     return obj is GenericEnum && (obj as GenericEnum).Schema.SchemaName.Equals((sc as EnumSchema).SchemaName);

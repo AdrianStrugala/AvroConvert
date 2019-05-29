@@ -6,6 +6,7 @@
     using System.Reflection;
     using Exceptions;
     using Generic;
+    using Models;
     using Schema;
 
     public class Record
@@ -31,7 +32,7 @@
         }
         private void WriteRecordFields(object recordObj, WriteStep[] writers, IWriter encoder, RecordSchema schema)
         {
-            GenericRecord record = new GenericRecord(schema);
+            Models.Record record = new Models.Record(schema);
 
             if (recordObj is Dictionary<string, object> obj)
             {
@@ -138,7 +139,7 @@
 
         private void EnsureRecordObject(RecordSchema recordSchema, object value)
         {
-            if (value == null || !(value is GenericRecord) || !((value as GenericRecord).Schema.Equals(recordSchema)))
+            if (value == null || !(value is Models.Record) || !((value as Models.Record).Schema.Equals(recordSchema)))
             {
                 throw new AvroTypeMismatchException("[GenericRecord] required to write against [Record] schema but found " + value.GetType());
             }

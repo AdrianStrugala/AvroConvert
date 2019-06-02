@@ -1,8 +1,10 @@
 namespace AvroConvert.Read
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using Models;
     using Schema;
     using Write;
@@ -206,41 +208,40 @@ namespace AvroConvert.Read
         protected virtual object ReadArray(ArraySchema writerSchema, Schema readerSchema, IReader d)
         {
             ArraySchema rs = (ArraySchema)readerSchema;
-            object result = new object[0];
+            object[] result = new object[0];
             int i = 0;
             for (int n = (int)d.ReadArrayStart(); n != 0; n = (int)d.ReadArrayNext())
             {
-                if (GetArraySize(result) < (i + n)) ResizeArray(ref result, i + n);
+                if (result.Length < i + n)
+                {
+                    Array.Resize(ref result, i + n);
+                }
+
                 for (int j = 0; j < n; j++, i++)
                 {
-                    SetArrayElement(result, i, Read(writerSchema.ItemSchema, rs.ItemSchema, d));
+                    result[i] = Read(writerSchema.ItemSchema, rs.ItemSchema, d);
                 }
             }
-            if (GetArraySize(result) != i) ResizeArray(ref result, i);
+
+            if (result[0] is IDictionary)
+            {
+                Dictionary<object, object> resultDictionary = new Dictionary<object, object>();
+                foreach (Dictionary<string, object> keyValue in result)
+                {
+                    if (!keyValue.ContainsKey("Key") || !keyValue.ContainsKey("Value"))
+                    {
+                        //HACK for reading c# dictionaries, which are not avro maps
+
+                        return result;
+                    }
+                    resultDictionary.Add(keyValue["Key"], keyValue["Value"]);
+                }
+
+                return resultDictionary;
+            }
+
             return result;
         }
-
-
-        protected virtual int GetArraySize(object array)
-        {
-            return ((object[])array).Length;
-        }
-
-
-        protected virtual void ResizeArray(ref object array, int n)
-        {
-            object[] o = array as object[];
-            Array.Resize(ref o, n);
-            array = o;
-        }
-
-
-        protected virtual void SetArrayElement(object array, int index, object value)
-        {
-            object[] a = (object[])array;
-            a[index] = value;
-        }
-
 
         protected virtual object ReadMap(MapSchema writerSchema, Schema readerSchema, IReader d)
         {
@@ -254,9 +255,9 @@ namespace AvroConvert.Read
                     result.Add(k, Read(writerSchema.ValueSchema, rs.ValueSchema, d));
                 }
             }
+
             return result;
         }
-
 
         protected virtual object ReadUnion(UnionSchema writerSchema, Schema readerSchema, IReader d)
         {

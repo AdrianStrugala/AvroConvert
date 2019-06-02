@@ -291,7 +291,7 @@
             }
             catch (Exception e)
             {
-                throw new AvroRuntimeException(string.Format("Error fetching next object from block: {0}", e));
+                throw new AvroRuntimeException($"Error fetching next object from block: {e}");
             }
         }
 

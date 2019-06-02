@@ -69,13 +69,6 @@
                 Type keyType = objType.GetGenericArguments()[0];
                 Type valueType = objType.GetGenericArguments()[1];
 
-                if (keyType != typeof(string))
-                {
-                    throw new AvroNotSupportedException("Avro supports Dictionaries only as [string] as a key type");
-
-                    //TODO Add Handling of not avro map type, but regular dictionary
-                }
-
                 objType = typeof(Dictionary<,>).MakeGenericType(keyType, ConvertToAvroType(valueType));
             }
 

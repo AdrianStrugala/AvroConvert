@@ -10,23 +10,23 @@
     using Schema;
     using Codec = Helpers.Codec.Codec;
 
-    public class Decoder
+    public class Decoder : IDisposable
     {
         public delegate DataReader CreateDatumReader(Schema writerSchema, Schema readerSchema);
 
-        private DataReader _dataReader;
-        private IReader _reader, _datumReader;
-        private Header _header;
-        private Codec _codec;
+        private readonly DataReader _dataReader;
+        private readonly IReader _reader;
+        private IReader _datumReader;
+        private readonly Header _header;
+        private readonly Codec _codec;
         private DataBlock _currentBlock;
         private long _blockRemaining;
         private long _blockSize;
         private bool _availableBlock;
-        private byte[] _syncBuffer;
-        private long _blockStart;
-        private Stream _stream;
-        private readonly Schema _readerSchema;
-        private readonly CreateDatumReader _datumReaderFactory;
+        private readonly byte[] _syncBuffer;
+        private readonly Stream _stream;
+        private Schema _readerSchema;
+        private CreateDatumReader _datumReaderFactory;
 
 
         public static Decoder OpenReader(string filePath)
@@ -51,179 +51,6 @@
         Decoder(Stream stream, CreateDatumReader datumReaderFactory)
         {
             _datumReaderFactory = datumReaderFactory;
-            Init(stream);
-            BlockFinished();
-        }
-
-        public Header GetHeader()
-        {
-            return _header;
-        }
-
-        public Schema GetSchema()
-        {
-            return _header.Schema;
-        }
-
-        public ICollection<string> GetMetaKeys()
-        {
-            return _header.MetaData.Keys;
-        }
-
-        public byte[] GetMeta(string key)
-        {
-            try
-            {
-                return _header.MetaData[key];
-            }
-            catch (KeyNotFoundException)
-            {
-                return null;
-            }
-        }
-
-        public long GetMetaLong(string key)
-        {
-            return long.Parse(GetMetaString(key));
-        }
-
-        public string GetMetaString(string key)
-        {
-            byte[] value = GetMeta(key);
-            if (value == null)
-            {
-                return null;
-            }
-            try
-            {
-                return System.Text.Encoding.UTF8.GetString(value);
-            }
-            catch (Exception e)
-            {
-                throw new AvroRuntimeException(string.Format("Error fetching meta data for key: {0}", key), e);
-            }
-        }
-
-        public void Seek(long position)
-        {
-            _stream.Position = position;
-            _reader = new Reader(_stream);
-            _datumReader = null;
-            _blockRemaining = 0;
-            _blockStart = position;
-        }
-
-        public void Sync(long position)
-        {
-            Seek(position);
-            // work around an issue where 1.5.4 C stored sync in metadata
-            if ((position == 0) && (GetMeta(DataFileConstants.SyncMetadataKey) != null))
-            {
-                Init(_stream); // re-init to skip header
-                return;
-            }
-
-            try
-            {
-                bool done = false;
-
-                do // read until sync mark matched
-                {
-                    _reader.ReadFixed(_syncBuffer);
-                    if (Enumerable.SequenceEqual(_syncBuffer, _header.SyncData))
-                        done = true;
-                    else
-                        _stream.Position = _stream.Position - (DataFileConstants.SyncSize - 1);
-                } while (!done);
-            }
-            catch (Exception) { } // could not find .. default to EOF
-
-            _blockStart = _stream.Position;
-        }
-
-        public bool PastSync(long position)
-        {
-            return ((_blockStart >= position + DataFileConstants.SyncSize) || (_blockStart >= _stream.Length));
-        }
-
-        public long PreviousSync()
-        {
-            return _blockStart;
-        }
-
-        public long Tell()
-        {
-            return _stream.Position;
-        }
-
-        public IEnumerable<object> GetEntries()
-        {
-            var result = new List<object>();
-            long remainingBlocks = GetRemainingBlocksCount();
-
-            for (int i = 0; i < remainingBlocks; i++)
-            {
-                result.Add(Next());
-            }
-
-            return result;
-        }
-
-        public bool HasNext()
-        {
-            try
-            {
-                if (_blockRemaining == 0)
-                {
-                    if (HasNextBlock())
-                    {
-                        _currentBlock = NextRawBlock(_currentBlock);
-                        _currentBlock.Data = _codec.Decompress(_currentBlock.Data);
-                        _datumReader = new Reader(_currentBlock.GetDataAsStream());
-                    }
-                }
-                return _blockRemaining != 0;
-            }
-            catch (Exception e)
-            {
-                throw new AvroRuntimeException(string.Format("Error fetching next object from block: {0}", e));
-            }
-        }
-
-        public long GetRemainingBlocksCount()
-        {
-            try
-            {
-                if (_blockRemaining == 0)
-                {
-                    if (HasNextBlock())
-                    {
-                        _currentBlock = NextRawBlock(_currentBlock);
-                        _currentBlock.Data = _codec.Decompress(_currentBlock.Data);
-                        _datumReader = new Reader(_currentBlock.GetDataAsStream());
-                    }
-                }
-
-                return _blockRemaining;
-            }
-            catch (Exception e)
-            {
-                throw new AvroRuntimeException(string.Format("Error fetching next object from block: {0}", e));
-            }
-        }
-
-        public void Reset()
-        {
-            Init(_stream);
-        }
-
-        public void Dispose()
-        {
-            _stream.Dispose();
-        }
-
-        private void Init(Stream stream)
-        {
             _stream = stream;
             _header = new Header();
             _reader = new Reader(stream);
@@ -263,7 +90,77 @@
             // parse schema and set codec 
             _header.Schema = Schema.Parse(GetMetaString(DataFileConstants.SchemaMetadataKey));
             _dataReader = _datumReaderFactory(_header.Schema, _readerSchema ?? _header.Schema);
-            _codec = ResolveCodec();
+            _codec = Codec.CreateCodecFromString(GetMetaString(DataFileConstants.CodecMetadataKey));
+        }
+
+        public byte[] GetMeta(string key)
+        {
+            try
+            {
+                return _header.MetaData[key];
+            }
+            catch (KeyNotFoundException)
+            {
+                return null;
+            }
+        }
+
+        public string GetMetaString(string key)
+        {
+            byte[] value = GetMeta(key);
+            if (value == null)
+            {
+                return null;
+            }
+            try
+            {
+                return System.Text.Encoding.UTF8.GetString(value);
+            }
+            catch (Exception e)
+            {
+                throw new AvroRuntimeException($"Error fetching meta data for key: {key}", e);
+            }
+        }
+
+
+        public IEnumerable<object> GetEntries()
+        {
+            var result = new List<object>();
+            long remainingBlocks = GetRemainingBlocksCount();
+
+            for (int i = 0; i < remainingBlocks; i++)
+            {
+                result.Add(Next());
+            }
+
+            return result;
+        }
+
+        public long GetRemainingBlocksCount()
+        {
+            try
+            {
+                if (_blockRemaining == 0)
+                {
+                    if (HasNextBlock())
+                    {
+                        _currentBlock = NextRawBlock(_currentBlock);
+                        _currentBlock.Data = _codec.Decompress(_currentBlock.Data);
+                        _datumReader = new Reader(_currentBlock.GetDataAsStream());
+                    }
+                }
+
+                return _blockRemaining;
+            }
+            catch (Exception e)
+            {
+                throw new AvroRuntimeException($"Error fetching next object from block: {e}");
+            }
+        }
+
+        public void Dispose()
+        {
+            _stream.Dispose();
         }
 
         private static DataReader CreateDefaultReader(Schema writerSchema, Schema readerSchema)
@@ -273,20 +170,12 @@
             return reader;
         }
 
-        private Codec ResolveCodec()
-        {
-            return Codec.CreateCodecFromString(GetMetaString(DataFileConstants.CodecMetadataKey));
-        }
-
         private object Next()
         {
             try
             {
                 var result = _dataReader.Read(_datumReader);
-                if (--_blockRemaining == 0)
-                {
-                    BlockFinished();
-                }
+
                 return result;
             }
             catch (Exception e)
@@ -295,10 +184,6 @@
             }
         }
 
-        private void BlockFinished()
-        {
-            _blockStart = _stream.Position;
-        }
 
         private DataBlock NextRawBlock(DataBlock reuse)
         {
@@ -350,9 +235,8 @@
             }
             catch (Exception e)
             {
-                throw new AvroRuntimeException(string.Format("Error ascertaining if data has next block: {0}", e));
+                throw new AvroRuntimeException($"Error ascertaining if data has next block: {e}");
             }
         }
-
     }
 }

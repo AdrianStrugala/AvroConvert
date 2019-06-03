@@ -69,7 +69,7 @@
                 Type keyType = objType.GetGenericArguments()[0];
                 Type valueType = objType.GetGenericArguments()[1];
 
-                objType = typeof(Dictionary<,>).MakeGenericType(keyType, ConvertToAvroType(valueType));
+                objType = typeof(Dictionary<,>).MakeGenericType(ConvertToAvroType(keyType), ConvertToAvroType(valueType));
             }
 
             else if (objType == typeof(Guid))

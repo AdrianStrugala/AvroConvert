@@ -81,6 +81,8 @@
         public ClassWithConstructorPopulatingProperty anotherClass { get; set; }
         public User simpleClass { get; set; }
         public int simpleObject { get; set; }
-
+        public List<bool> bools { get; set; }
+        public double doubleProperty { get; set; }
+        public float floatProperty { get; set; }
     }
 }

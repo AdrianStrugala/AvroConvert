@@ -1,9 +1,9 @@
 ﻿namespace AvroConvertTests
 {
-    using Microsoft.Hadoop.Avro;
     using System;
     using System.Collections.Generic;
     using System.Runtime.Serialization;
+    using AvroConvert.Attributes;
 
     [Equals]
     [DataContract(Name = "User", Namespace = "user")]

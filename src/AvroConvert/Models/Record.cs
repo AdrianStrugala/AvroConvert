@@ -49,11 +49,12 @@
         {
             if (d1.Count == d2.Count)
             {
-                foreach (var (key, value) in d1)
+                foreach (KeyValuePair<string, object> keyValuePair in d1)
                 {
-                    if (!d2.TryGetValue(key, out var o)) return false;
-                    if (!AreEqual(o, value)) return false;
+                    if (!d2.TryGetValue(keyValuePair.Key, out var o)) return false;
+                    if (!AreEqual(o, keyValuePair.Value)) return false;
                 }
+
                 return true;
             }
             return false;

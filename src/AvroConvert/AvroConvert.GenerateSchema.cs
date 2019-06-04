@@ -7,8 +7,10 @@
     using System.Reflection;
     using System.Reflection.Emit;
     using System.Runtime.Serialization;
+    using Attributes;
     using Exceptions;
-    using Microsoft.Hadoop.Avro;
+    using AvroSerializerSettings = TempSchema.AvroSerializerSettings;
+    using ReflectionSchemaBuilder = TempSchema.ReflectionSchemaBuilder;
 
     public static partial class AvroConvert
     {
@@ -23,17 +25,10 @@
             _moduleBuilder = assemblyBuilder.DefineDynamicModule(assemblyName.Name);
 
             Type inMemoryType = ConvertToAvroType(obj.GetType());
-            var inMemoryInstance = Activator.CreateInstance(inMemoryType);
 
-            //invoke Create method of AvroSerializer
-            var createMethod = typeof(AvroSerializer).GetMethod("Create", new Type[0]);
-            var createGenericMethod = createMethod.MakeGenericMethod(inMemoryType);
-            dynamic avroSerializer = createGenericMethod.Invoke(inMemoryInstance, null);
+            var reader = new ReflectionSchemaBuilder(new AvroSerializerSettings()).BuildSchema(inMemoryType);
 
-            string result = avroSerializer.GetType().GetProperty("WriterSchema").GetValue(avroSerializer, null)
-                .ToString();
-
-            return result;
+            return reader.ToString();
         }
 
         private static Type ConvertToAvroType(Type objType)
@@ -94,7 +89,7 @@
                 var attributeBuilder = GenerateCustomAttributeBuilder<DataContractAttribute>(objType.Name);
                 typeBuilder.SetCustomAttribute(attributeBuilder);
 
-                objType = typeBuilder.CreateType();
+                objType = typeBuilder.CreateTypeInfo();
             }
 
             else

@@ -206,11 +206,6 @@ namespace AvroConvert.TempSchema
         }
 
         /// <summary>
-        ///     Gets or sets the builder.
-        /// </summary>
-        internal IFieldSerializer Builder { get; set; }
-
-        /// <summary>
         ///     Converts current not to JSON according to the avro specification.
         /// </summary>
         /// <param name="writer">The writer.</param>

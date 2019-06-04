@@ -23,7 +23,7 @@ namespace AvroConvert.TempSchema
     /// </summary>
     public abstract class TypeSchema : Schema
     {
-        private readonly Type runtimeType;
+        private readonly Type _runtimeType;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="TypeSchema" /> class.
@@ -38,7 +38,7 @@ namespace AvroConvert.TempSchema
                 throw new ArgumentNullException("runtimeType");
             }
 
-            this.runtimeType = runtimeType;
+            this._runtimeType = runtimeType;
         }
 
         /// <summary>
@@ -46,18 +46,13 @@ namespace AvroConvert.TempSchema
         /// </summary>
         public Type RuntimeType
         {
-            get { return this.runtimeType; }
+            get { return this._runtimeType; }
         }
 
         /// <summary>
         /// Gets the type of the schema as string.
         /// </summary>
         internal abstract string Type { get; }
-
-        /// <summary>
-        ///     Gets or sets the builder.
-        /// </summary>
-        internal IObjectSerializer Serializer { get; set; }
 
         /// <summary>
         /// Creates schema from JSON string.

@@ -20,6 +20,7 @@ namespace AvroConvert.TempSchema
     using System.Globalization;
     using System.IO;
     using System.Linq;
+    using Attributes;
     using Newtonsoft.Json;
 
     /// <summary>

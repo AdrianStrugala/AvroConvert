@@ -21,6 +21,7 @@ namespace AvroConvert.TempSchema
     using System.Linq;
     using System.Reflection;
     using System.Runtime.Serialization;
+    using Attributes;
 
     /// <summary>
     ///     This class creates an avro schema given a c# type.

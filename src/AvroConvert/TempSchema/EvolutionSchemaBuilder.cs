@@ -19,6 +19,7 @@ namespace AvroConvert.TempSchema
     using System.Globalization;
     using System.Linq;
     using System.Runtime.Serialization;
+    using Attributes;
 
     // Schema Resolution. Citation from the Avro specification:
     // A reader of Avro data, whether from an RPC or a file, can always parse that data because its schema is provided. But that 

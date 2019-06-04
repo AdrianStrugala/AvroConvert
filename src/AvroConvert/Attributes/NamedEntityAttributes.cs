@@ -12,10 +12,11 @@
 // 
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
-namespace AvroConvert.TempSchema
+namespace AvroConvert.Attributes
 {
     using System;
     using System.Collections.Generic;
+    using TempSchema;
 
     /// <summary>
     ///     Standard attributes supported by named schemas.

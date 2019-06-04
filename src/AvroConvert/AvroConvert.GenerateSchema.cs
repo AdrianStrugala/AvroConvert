@@ -8,9 +8,8 @@
     using System.Reflection.Emit;
     using System.Runtime.Serialization;
     using Attributes;
-    using Exceptions;
-    using AvroSerializerSettings = TempSchema.AvroSerializerSettings;
-    using ReflectionSchemaBuilder = TempSchema.ReflectionSchemaBuilder;
+    using AvroSerializerSettings = BuildSchema.AvroSerializerSettings;
+    using ReflectionSchemaBuilder = BuildSchema.ReflectionSchemaBuilder;
 
     public static partial class AvroConvert
     {

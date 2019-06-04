@@ -16,7 +16,7 @@ namespace AvroConvert.Attributes
 {
     using System;
     using System.Collections.Generic;
-    using TempSchema;
+    using BuildSchema;
 
     /// <summary>
     ///     Standard attributes supported by named schemas.

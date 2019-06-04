@@ -14,7 +14,7 @@
 // permissions and limitations under the License.
 namespace AvroConvert.TempSchema
 {
-    using global::AvroConvert.Extensions;
+    using Extensions;
     using System;
     using System.Collections.Generic;
     using System.Globalization;

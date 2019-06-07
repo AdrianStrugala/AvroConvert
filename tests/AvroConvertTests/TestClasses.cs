@@ -37,6 +37,12 @@
     }
 
     [Equals]
+    public class SmallerNestedTestClass
+    {
+        public string justSomeProperty { get; set; }
+    }
+
+    [Equals]
     public class ClassWithConstructorPopulatingProperty
     {
         public List<NestedTestClass> nestedList { get; set; }

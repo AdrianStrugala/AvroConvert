@@ -242,5 +242,23 @@
             Assert.NotNull(deserialized);
             Assert.Equal(dictionary, deserialized);
         }
+
+        [Fact]
+        public void Serialize_SerializeBiggerObjectAndReadSmaller_NoError()
+        {
+            //Arrange
+            NestedTestClass toSerialize = _fixture.Create<NestedTestClass>();
+
+            //Act
+
+            var result = AvroConvert.Serialize(toSerialize);
+
+            var deserialized = AvroConvert.Deserialize<SmallerNestedTestClass>(result);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(toSerialize.justSomeProperty, deserialized.justSomeProperty);
+        }
     }
 }

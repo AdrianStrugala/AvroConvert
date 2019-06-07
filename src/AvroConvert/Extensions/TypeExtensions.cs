@@ -1,9 +1,9 @@
 ﻿namespace AvroConvert.Extensions
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Globalization;
-    using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Runtime.CompilerServices;
@@ -261,20 +261,6 @@
                 .Select(a => a.Type);
         }
 
-        public static int ReadAllRequiredBytes(this Stream stream, byte[] buffer, int offset, int count)
-        {
-            int toRead = count;
-            int currentOffset = offset;
-            int currentRead;
-            do
-            {
-                currentRead = stream.Read(buffer, currentOffset, toRead);
-                currentOffset += currentRead;
-                toRead -= currentRead;
-            }
-            while (toRead > 0 && currentRead != 0);
-            return currentOffset - offset;
-        }
 
         public static void CheckPropertyGetters(IEnumerable<PropertyInfo> properties)
         {
@@ -333,9 +319,19 @@
             return type.GetTypeInfo().IsClass;
         }
 
-        public static Assembly Assembly(this Type type)
+        public static bool IsDictionary(this Type type)
         {
-            return type.GetTypeInfo().Assembly;
+            return typeof(IDictionary).IsAssignableFrom(type);
+        }
+
+        public static bool IsList(this Type type)
+        {
+            return typeof(IList).IsAssignableFrom(type);
+        }
+
+        public static bool IsGuid(this Type type)
+        {
+            return type == typeof(Guid);
         }
 
         public static bool IsAbstract(this Type type)

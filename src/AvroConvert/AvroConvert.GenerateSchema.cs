@@ -1,13 +1,13 @@
 ﻿namespace AvroConvert
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
     using System.Reflection.Emit;
     using System.Runtime.Serialization;
     using Attributes;
+    using Extensions;
     using AvroSerializerSettings = BuildSchema.AvroSerializerSettings;
     using ReflectionSchemaBuilder = BuildSchema.ReflectionSchemaBuilder;
 
@@ -38,7 +38,7 @@
                 return existingType;
             }
 
-            if (objType.IsArray && objType.FullName.EndsWith("[]"))
+            if (objType.IsArray)
             {
                 string fullName = objType.FullName.Substring(0, objType.FullName.Length - 2);
                 var field = Type.GetType($"{fullName},{objType.Assembly.GetName().Name}");
@@ -49,7 +49,7 @@
                 objType = avroArray.GetType();
             }
 
-            else if (typeof(IList).IsAssignableFrom(objType))
+            else if (objType.IsList())
             {
                 var field = objType.GetProperties()[2];
                 var avroFieldType = ConvertToAvroType(field.PropertyType);
@@ -58,7 +58,7 @@
                 objType = avroArray.GetType();
             }
 
-            else if (typeof(IDictionary).IsAssignableFrom(objType))
+            else if (objType.IsDictionary())
             {
                 Type keyType = objType.GetGenericArguments()[0];
                 Type valueType = objType.GetGenericArguments()[1];
@@ -66,7 +66,7 @@
                 objType = typeof(Dictionary<,>).MakeGenericType(ConvertToAvroType(keyType), ConvertToAvroType(valueType));
             }
 
-            else if (objType == typeof(Guid))
+            else if (objType.IsGuid())
             {
                 objType = typeof(string);
             }

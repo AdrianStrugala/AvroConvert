@@ -85,9 +85,6 @@
                     typeBuilder = AddPropertyToTypeBuilder(typeBuilder, propertyType, prop.Name);
                 }
 
-                var attributeBuilder = GenerateCustomAttributeBuilder<DataContractAttribute>(objType.Name);
-                typeBuilder.SetCustomAttribute(attributeBuilder);
-
                 objType = typeBuilder.CreateTypeInfo();
             }
 

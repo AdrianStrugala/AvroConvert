@@ -120,14 +120,10 @@ namespace AvroConvert.BuildSchema
 
             var attributes = type.GetTypeInfo().GetCustomAttributes(false);
             var dataContract = attributes.OfType<DataContractAttribute>().SingleOrDefault();
-            if (dataContract == null)
-            {
-                throw new SerializationException(
-                    string.Format(CultureInfo.InvariantCulture, "Type '{0}' is not supported by the resolver.", type));
-            }
 
-            var name = StripAvroNonCompatibleCharacters(dataContract.Name ?? type.Name);
-            var nspace = StripAvroNonCompatibleCharacters(dataContract.Namespace ?? type.Namespace);
+            var name = StripAvroNonCompatibleCharacters(dataContract?.Name ?? type.Name);
+            var nspace = StripAvroNonCompatibleCharacters(dataContract?.Namespace ?? type.Namespace);
+
             return new TypeSerializationInfo
             {
                 Name = name,

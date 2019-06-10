@@ -260,5 +260,25 @@
             Assert.NotNull(deserialized);
             Assert.Equal(toSerialize.justSomeProperty, deserialized.justSomeProperty);
         }
+
+        [Fact]
+        public void Serialize_ClassContainsAvroAttributes_AttributeValuesAreResolved()
+        {
+            //Arrange
+            AttributeClass toSerialize = _fixture.Create<AttributeClass>();
+
+            //Act
+
+            var result = AvroConvert.Serialize(toSerialize);
+
+            var deserialized = AvroConvert.Deserialize<User>(result);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(toSerialize.NullableIntProperty, deserialized.favorite_number);
+            Assert.Equal(toSerialize.StringProperty, deserialized.favorite_color);
+            Assert.Equal(toSerialize.AndAnotherString, deserialized.favorite_color);
+        }
     }
 }

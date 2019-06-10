@@ -91,4 +91,20 @@
         public double doubleProperty { get; set; }
         public float floatProperty { get; set; }
     }
+
+
+    [Equals]
+    [DataContract(Name = "User", Namespace = "user")]
+    public class AttributeClass
+    {
+        [DataMember(Name = "name")]
+        public string StringProperty { get; set; }
+
+        [DataMember(Name = "favorite_number")]
+        [NullableSchema]
+        public int? NullableIntProperty { get; set; }
+
+        [DataMember(Name = "favorite_color")]
+        public string AndAnotherString { get; set; }
+    }
 }

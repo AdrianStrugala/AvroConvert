@@ -119,17 +119,12 @@
         {
             //Arrange
             VeryComplexClass
-                testClass = 
+                testClass =
                     _fixture.Create<VeryComplexClass>();
-
-                //  testClass.ClassesWithArray[0] = null;
-//            testClass.simpleClass.name = null;
-//            testClass.anotherClass.nestedList[1] = null;
 
             //Act
             var result = AvroConvert.Serialize(testClass);
 
-            var xd = AvroConvert.Deserialize<VeryComplexClass>(result);
 
             //Assert
             Assert.NotNull(result);

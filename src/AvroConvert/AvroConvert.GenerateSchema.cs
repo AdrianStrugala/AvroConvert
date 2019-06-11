@@ -103,17 +103,17 @@
             //mimic property 
             PropertyBuilder propertyBuilder = typeBuilder.DefineProperty(name, PropertyAttributes.None, propertyType, null);
 
-            var attributeBuilder = GenerateCustomAttributeBuilder<DataMemberAttribute>(name);
-            propertyBuilder.SetCustomAttribute(attributeBuilder);
+//            var attributeBuilder = GenerateCustomAttributeBuilder<DataMemberAttribute>(name);
+//            propertyBuilder.SetCustomAttribute(attributeBuilder);
 
             //Add nullable attribute
-            if (Nullable.GetUnderlyingType(propertyType) != null || propertyType == typeof(string))
-            {
-                var nullableAttributeConstructor = typeof(NullableSchemaAttribute).GetConstructor(new Type[] { });
-                var nullableAttributeBuilder = new CustomAttributeBuilder(nullableAttributeConstructor, new string[] { }, new PropertyInfo[] { }, new object[] { });
-
-                propertyBuilder.SetCustomAttribute(nullableAttributeBuilder);
-            }
+//            if (Nullable.GetUnderlyingType(propertyType) != null || propertyType == typeof(string))
+//            {
+//                var nullableAttributeConstructor = typeof(NullableSchemaAttribute).GetConstructor(new Type[] { });
+//                var nullableAttributeBuilder = new CustomAttributeBuilder(nullableAttributeConstructor, new string[] { }, new PropertyInfo[] { }, new object[] { });
+//
+//                propertyBuilder.SetCustomAttribute(nullableAttributeBuilder);
+//            }
 
             // Define field
             FieldBuilder fieldBuilder = typeBuilder.DefineField(name, propertyType, FieldAttributes.Public);

@@ -176,16 +176,15 @@ namespace AvroConvert.BuildSchema
                 {
                     Member = m,
                     Attribute = m.GetCustomAttributes(false).OfType<DataMemberAttribute>().SingleOrDefault(),
-                    Nullable = m.GetCustomAttributes(false).OfType<NullableSchemaAttribute>().Any()
+                    Nullable = m.GetCustomAttributes(false).OfType<NullableSchemaAttribute>().Any() || m.GetType().CanContainNull()
                 });
 
-            var result = members.Where(m => m.Attribute != null)
-                          .Select(m => new MemberSerializationInfo
-                          {
-                              Name = m.Attribute.Name ?? m.Member.Name,
-                              MemberInfo = m.Member,
-                              Nullable = m.Nullable
-                          });
+            var result = members.Select(m => new MemberSerializationInfo
+            {
+                Name = m.Attribute?.Name ?? m.Member.Name,
+                MemberInfo = m.Member,
+                Nullable = m.Nullable
+            });
 
             if (this.useAlphabeticalOrder)
             {

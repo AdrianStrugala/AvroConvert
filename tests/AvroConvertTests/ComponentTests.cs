@@ -20,7 +20,7 @@
             //Arrange
             User user = new User();
             user.name = "Krzys";
-            user.favorite_color = "yellow";
+            user.favorite_color = null;
             user.favorite_number = null;
 
             //Act

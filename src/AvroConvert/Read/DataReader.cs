@@ -285,6 +285,12 @@ namespace AvroConvert.Read
             object ru = new Fixed(rs);
             byte[] bb = ((Fixed)ru).Value;
             d.ReadFixed(bb);
+
+            if (bb.Length == 16)
+            {
+                return new Guid(bb);
+            }
+
             return ru;
         }
 

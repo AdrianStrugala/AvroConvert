@@ -12,10 +12,6 @@
                 value = string.Empty;
             }
 
-            if (value is Guid)
-            {
-                value = value.ToString();
-            }
 
             if (!(value is string))
             {

@@ -75,12 +75,6 @@
                     result.Add(prop.Name, GetSplitList((IList)value));
                 }
 
-                else if (prop.PropertyType == typeof(Guid))
-                {
-                    // We have a guid type
-                    result.Add(prop.Name, value.ToString());
-                }
-
                 else if (prop.PropertyType.GetTypeInfo().IsValueType ||
                          prop.PropertyType == typeof(string))
                 {

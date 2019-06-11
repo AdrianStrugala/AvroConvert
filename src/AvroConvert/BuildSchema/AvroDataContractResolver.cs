@@ -162,10 +162,7 @@ namespace AvroConvert.BuildSchema
             }
 
             var fields = type.GetAllFields();
-            var properties = type.GetAllProperties();
-
-            var dataMemberProperties = properties
-                .Where(p => p.GetDataMemberAttribute() != null);
+            var dataMemberProperties = type.GetAllProperties();
 
             var serializedProperties = TypeExtensions.RemoveDuplicates(dataMemberProperties);
             TypeExtensions.CheckPropertyGetters(serializedProperties);

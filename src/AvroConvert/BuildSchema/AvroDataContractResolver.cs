@@ -102,7 +102,7 @@ namespace AvroConvert.BuildSchema
                     string.Format(CultureInfo.InvariantCulture, "Type '{0}' is not supported by the resolver.", type));
             }
 
-            bool canContainNull = this.allowNullable && type.CanContainNull();
+            bool canContainNull = this.allowNullable || type.CanContainNull();
 
             if (type.IsInterface() ||
                 type.IsNativelySupported() ||

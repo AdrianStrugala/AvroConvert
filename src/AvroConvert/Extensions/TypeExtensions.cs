@@ -216,8 +216,10 @@
 
         public static bool CanContainNull(this Type type)
         {
-            var underlyingType = Nullable.GetUnderlyingType(type);
-            return !type.IsValueType() || underlyingType != null;
+            //            var underlyingType = Nullable.GetUnderlyingType(type);
+            //            return !type.IsValueType() || underlyingType != null;
+
+            return Nullable.GetUnderlyingType(type) != null || type == typeof(string);
         }
 
         public static bool IsKeyValuePair(this Type type)

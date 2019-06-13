@@ -39,7 +39,7 @@
 
             else
             {
-                record.Contents = SplitKeyValues(recordObj);
+                record.Contents = SplitKeyValues(recordObj, schema);
             }
 
             foreach (var writer in writers)
@@ -48,7 +48,7 @@
             }
         }
 
-        private Dictionary<string, object> SplitKeyValues(object item)
+        private Dictionary<string, object> SplitKeyValues(object item, RecordSchema schema = null)
         {
             Dictionary<string, object> result = new Dictionary<string, object>();
 
@@ -60,31 +60,41 @@
             Type objType = item.GetType();
             PropertyInfo[] properties = objType.GetProperties();
 
-            foreach (PropertyInfo prop in properties)
+            for (var i = 0; i < properties.Length; i++)
             {
+                var prop = properties[i];
+                var propName = schema?.Fields[i].Name ?? properties[i].Name;
+
                 var value = FindValue(prop, item);
 
                 if (value == null)
                 {
-                    result.Add(prop.Name, null);
+                    result.Add(propName, null);
                 }
 
                 else if (typeof(IList).IsAssignableFrom(prop.PropertyType))
                 {
                     // We have a List<T> or array                  
-                    result.Add(prop.Name, GetSplitList((IList)value));
+                    result.Add(propName, GetSplitList((IList)value));
                 }
 
                 else if (prop.PropertyType.GetTypeInfo().IsValueType ||
                          prop.PropertyType == typeof(string))
                 {
                     // We have a simple type
-                    result.Add(prop.Name, value);
+                    result.Add(propName, value);
                 }
                 else
                 {
                     //complex type
-                    result.Add(prop.Name, SplitKeyValues(value));
+                    if (schema?.Fields[i].Schema is RecordSchema recordSchema)
+                    {
+                        result.Add(propName, SplitKeyValues(value, recordSchema));
+                    }
+                    else
+                    {
+                        result.Add(propName, SplitKeyValues(value));
+                    }
                 }
             }
             return result;

@@ -277,7 +277,7 @@
             Assert.NotNull(result);
             Assert.NotNull(deserialized);
             Assert.Equal(toSerialize.NullableIntProperty, deserialized.favorite_number);
-            Assert.Equal(toSerialize.StringProperty, deserialized.favorite_color);
+            Assert.Equal(toSerialize.StringProperty, deserialized.name);
             Assert.Equal(toSerialize.AndAnotherString, deserialized.favorite_color);
         }
     }

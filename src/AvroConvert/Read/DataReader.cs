@@ -45,8 +45,8 @@ namespace AvroConvert.Read
 
         public object Read(IReader reader)
         {
-            if (!ReaderSchema.CanRead(WriterSchema))
-                throw new AvroException("Schema mismatch. Reader: " + ReaderSchema + ", writer: " + WriterSchema);
+//            if (!ReaderSchema.CanRead(WriterSchema))
+//                throw new AvroException("Schema mismatch. Reader: " + ReaderSchema + ", writer: " + WriterSchema);
 
             var result = Read(WriterSchema, ReaderSchema, reader);
             return result;

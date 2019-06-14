@@ -25,7 +25,7 @@
         private bool _availableBlock;
         private readonly byte[] _syncBuffer;
         private readonly Stream _stream;
-        private Schema _readerSchema;
+        private static Schema _readerSchema;
         private CreateDatumReader _datumReaderFactory;
 
 
@@ -34,8 +34,9 @@
             return OpenReader(new FileStream(filePath, FileMode.Open), CreateDefaultReader);
         }
 
-        public static Decoder OpenReader(Stream inStream)
+        public static Decoder OpenReader(Stream inStream, Schema schema = null)
         {
+            _readerSchema = schema;
             return OpenReader(inStream, CreateDefaultReader);
         }
 

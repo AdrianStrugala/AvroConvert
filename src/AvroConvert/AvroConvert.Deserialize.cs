@@ -1,6 +1,5 @@
 ﻿namespace AvroConvert
 {
-    using System.Collections;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -14,11 +13,11 @@
             Mapper.Initialize(cfg => { });
         }
 
-        public static List<object> Deserialize(byte[] avroBytes)
+        public static List<object> Deserialize(byte[] avroBytes, Schema.Schema schema = null)
         {
             var result = new List<object>();
 
-            var reader = Decoder.OpenReader(new MemoryStream(avroBytes));
+            var reader = Decoder.OpenReader(new MemoryStream(avroBytes), schema);
 
             List<dynamic> readResult = reader.GetEntries().ToList();
 
@@ -33,7 +32,9 @@
         public static T Deserialize<T>(byte[] avroBytes)
         {
             T result;
-            var deserialized = Deserialize(avroBytes);
+
+            string schema = AvroConvert.GenerateSchema(typeof(T));
+            var deserialized = Deserialize(avroBytes, Schema.Schema.Parse(schema));
 
             result = Mapper.Map<T>(deserialized[0]);
 

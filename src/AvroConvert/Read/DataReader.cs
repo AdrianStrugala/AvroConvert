@@ -3,11 +3,8 @@ namespace AvroConvert.Read
     using System;
     using System.Collections;
     using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
     using Models;
     using Schema;
-    using Write;
     using Enum = Models.Enum;
 
     public delegate T Reader<out T>();
@@ -45,9 +42,6 @@ namespace AvroConvert.Read
 
         public object Read(IReader reader)
         {
-//            if (!ReaderSchema.CanRead(WriterSchema))
-//                throw new AvroException("Schema mismatch. Reader: " + ReaderSchema + ", writer: " + WriterSchema);
-
             var result = Read(WriterSchema, ReaderSchema, reader);
             return result;
         }
@@ -166,23 +160,6 @@ namespace AvroConvert.Read
                     throw new AvroException(ex.Message + " in field " + wf.Name);
                 }
             }
-
-            var defaultStream = new MemoryStream();
-            var defaultEncoder = new Writer(defaultStream);
-            var defaultDecoder = new Reader(defaultStream);
-            foreach (Field rf in rs)
-            {
-                if (writerSchema.Contains(rf.Name)) continue;
-
-                defaultStream.Position = 0; // reset for writing
-                Resolver.EncodeDefaultValue(defaultEncoder, rf.Schema, rf.DefaultValue);
-                defaultStream.Flush();
-                defaultStream.Position = 0; // reset for reading
-
-                TryGetField(result, rf.Name, rf.Pos, out _);
-                AddField(result, rf.Name, rf.Pos, Read(rf.Schema, rf.Schema, defaultDecoder));
-            }
-
             return result.Contents;
         }
 

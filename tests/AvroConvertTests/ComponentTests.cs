@@ -261,6 +261,25 @@
             Assert.Equal(toSerialize.justSomeProperty, deserialized.justSomeProperty);
         }
 
+
+        [Fact]
+        public void Component_SerializeSmallerClassAndReadBigger_NoError()
+        {
+            //Arrange
+            SmallerNestedTestClass toSerialize = _fixture.Create<SmallerNestedTestClass>();
+
+            //Act
+
+            var result = AvroConvert.Serialize(toSerialize);
+
+            var deserialized = AvroConvert.Deserialize<NestedTestClass>(result);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(toSerialize.justSomeProperty, deserialized.justSomeProperty);
+        }
+
         [Fact]
         public void Serialize_ClassContainsAvroAttributes_AttributeValuesAreResolved()
         {
@@ -279,6 +298,25 @@
             Assert.Equal(toSerialize.NullableIntProperty, deserialized.favorite_number);
             Assert.Equal(toSerialize.StringProperty, deserialized.name);
             Assert.Equal(toSerialize.AndAnotherString, deserialized.favorite_color);
+        }
+
+        [Fact]
+        public void Component_SerializeBiggerAvroObjectAndReadSmaller_NoError()
+        {
+            //Arrange
+            AttributeClass toSerialize = _fixture.Create<AttributeClass>();
+
+            //Act
+
+            var result = AvroConvert.Serialize(toSerialize);
+
+            var deserialized = AvroConvert.Deserialize<SmallerAttributeClass>(result);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(toSerialize.StringProperty, deserialized.StringProperty);
+            Assert.Equal(toSerialize.NullableIntProperty, deserialized.NullableIntProperty);
         }
     }
 }

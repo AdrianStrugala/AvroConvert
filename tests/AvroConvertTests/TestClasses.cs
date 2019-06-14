@@ -107,4 +107,16 @@
         [DataMember(Name = "favorite_color")]
         public string AndAnotherString { get; set; }
     }
+
+    [Equals]
+    [DataContract(Name = "User", Namespace = "database")]
+    public class SmallerAttributeClass
+    {
+        [DataMember(Name = "name")]
+        public string StringProperty { get; set; }
+
+        [DataMember(Name = "favorite_number")]
+        [NullableSchema]
+        public int? NullableIntProperty { get; set; }
+    }
 }

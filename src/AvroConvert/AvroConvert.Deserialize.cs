@@ -35,14 +35,7 @@
             T result;
             var deserialized = Deserialize(avroBytes);
 
-            if (typeof(IList).IsAssignableFrom(typeof(T)))
-            {
-                result = Mapper.Map<T>(deserialized);
-            }
-            else
-            {
-                result = Mapper.Map<T>(deserialized[0]);
-            }
+            result = Mapper.Map<T>(deserialized[0]);
 
             return result;
         }

@@ -5,9 +5,9 @@
 
     public static partial class AvroConvert
     {
-        public static string GenerateSchema(Type type)
+        public static string GenerateSchema(Type type, bool usePropertyNameAsAlias = false)
         {
-            var reader = new ReflectionSchemaBuilder(new AvroSerializerSettings()).BuildSchema(type);
+            var reader = new ReflectionSchemaBuilder(new AvroSerializerSettings(usePropertyNameAsAlias)).BuildSchema(type);
 
             return reader.ToString();
         }

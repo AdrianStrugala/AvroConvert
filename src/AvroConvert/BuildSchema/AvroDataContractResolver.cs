@@ -31,32 +31,14 @@ namespace AvroConvert.BuildSchema
     /// </summary>
     public class AvroDataContractResolver : AvroContractResolver
     {
+        private readonly bool _usePropertyNameAsAlias;
         private readonly bool allowNullable;
         private readonly bool useAlphabeticalOrder;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AvroDataContractResolver"/> class.
-        /// </summary>
-        public AvroDataContractResolver() : this(false)
-        {
-        }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AvroDataContractResolver"/> class.
-        /// </summary>
-        /// <param name="allowNullable">If set to <c>true</c>, null values are allowed.</param>
-        public AvroDataContractResolver(bool allowNullable)
-            : this(allowNullable, false)
+        public AvroDataContractResolver(bool usePropertyNameAsAlias, bool allowNullable = false, bool useAlphabeticalOrder = false)
         {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AvroDataContractResolver"/> class.
-        /// </summary>
-        /// <param name="allowNullable">If set to <c>true</c>, null values are allowed.</param>
-        /// <param name="useAlphabeticalOrder">If set to <c>true</c> use alphabetical data member order during serialization/deserialization.</param>
-        public AvroDataContractResolver(bool allowNullable, bool useAlphabeticalOrder)
-        {
+            _usePropertyNameAsAlias = usePropertyNameAsAlias;
             this.allowNullable = allowNullable;
             this.useAlphabeticalOrder = useAlphabeticalOrder;
         }
@@ -176,12 +158,29 @@ namespace AvroConvert.BuildSchema
                     Nullable = m.GetCustomAttributes(false).OfType<NullableSchemaAttribute>().Any() || m.GetType().CanContainNull()
                 });
 
-            var result = members.Select(m => new MemberSerializationInfo
+            IEnumerable<MemberSerializationInfo> result;
+
+
+            if (_usePropertyNameAsAlias)
             {
-                Name = m.Attribute?.Name ?? m.Member.Name,
-                MemberInfo = m.Member,
-                Nullable = m.Nullable
-            });
+                result = members.Select(m => new MemberSerializationInfo
+                {
+                    Name = m.Attribute?.Name ?? m.Member.Name,
+                    MemberInfo = m.Member,
+                    Nullable = m.Nullable,
+                    Aliases = { m.Member.Name }
+                });
+            }
+            else
+            {
+                result = members.Select(m => new MemberSerializationInfo
+                {
+                    Name = m.Attribute?.Name ?? m.Member.Name,
+                    MemberInfo = m.Member,
+                    Nullable = m.Nullable
+                });
+
+            }
 
             if (this.useAlphabeticalOrder)
             {

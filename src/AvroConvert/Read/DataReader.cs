@@ -3,6 +3,7 @@ namespace AvroConvert.Read
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.Linq;
     using Models;
     using Schema;
     using Enum = Models.Enum;
@@ -142,23 +143,17 @@ namespace AvroConvert.Read
             Record result = new Record(rs);
             foreach (Field wf in writerSchema)
             {
-                try
+                Field rf;
+                if (rs.TryGetFieldAlias(wf.Name, out rf))
                 {
-                    Field rf;
-                    if (rs.TryGetFieldAlias(wf.Name, out rf))
-                    {
-                        object obj = null;
-                        TryGetField(result, wf.Name, rf.Pos, out obj);
+                    object obj = null;
+                    TryGetField(result, wf.Name, rf.Pos, out obj);
 
-                        AddField(result, wf.Name, rf.Pos, Read(wf.Schema, rf.Schema, dec));
-                    }
-                    else
-                        Skip(wf.Schema, dec);
+                    AddField(result, rf.aliases?[0] ?? wf.Name, rf.Pos, Read(wf.Schema, rf.Schema, dec));
                 }
-                catch (Exception ex)
-                {
-                    throw new AvroException(ex.Message + " in field " + wf.Name);
-                }
+                else
+                    Skip(wf.Schema, dec);
+
             }
             return result.Contents;
         }
@@ -169,9 +164,9 @@ namespace AvroConvert.Read
         }
 
 
-        protected virtual void AddField(object record, string fieldName, int fieldPos, object fieldValue)
+        protected virtual void AddField(Record record, string fieldName, int fieldPos, object fieldValue)
         {
-            ((Record)record).Add(fieldName, fieldValue);
+            record.Contents[fieldName] = fieldValue;
         }
 
 

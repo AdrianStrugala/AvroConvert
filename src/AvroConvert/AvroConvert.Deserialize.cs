@@ -33,7 +33,7 @@
         {
             T result;
 
-            string schema = AvroConvert.GenerateSchema(typeof(T));
+            string schema = AvroConvert.GenerateSchema(typeof(T), true);
             var deserialized = Deserialize(avroBytes, Schema.Schema.Parse(schema));
 
             result = Mapper.Map<T>(deserialized[0]);

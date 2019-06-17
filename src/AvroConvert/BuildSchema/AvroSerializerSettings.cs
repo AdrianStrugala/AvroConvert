@@ -26,11 +26,11 @@ namespace AvroConvert.BuildSchema
         /// <summary>
         ///     Initializes a new instance of the <see cref="AvroSerializerSettings" /> class.
         /// </summary>
-        public AvroSerializerSettings()
+        public AvroSerializerSettings(bool usePropertyNameAsAlias)
         {
             this.GenerateDeserializer = true;
             this.GenerateSerializer = true;
-            this.Resolver = new AvroDataContractResolver();
+            this.Resolver = new AvroDataContractResolver(usePropertyNameAsAlias);
             this.MaxItemsInSchemaTree = 1024;
             this.UsePosixTime = false;
             this.KnownTypes = new List<Type>();

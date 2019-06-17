@@ -18,17 +18,6 @@
 
         public object this[string fieldName] => Contents.TryGetValue(fieldName, out var value) ? value : null;
 
-        public void Add(string fieldName, object fieldValue)
-        {
-            if (Schema.Contains(fieldName))
-            {
-                // TODO: Use a matcher to verify that object has the right type for the field.
-                //contents.Add(fieldName, fieldValue);
-                Contents[fieldName] = fieldValue;
-                return;
-            }
-            throw new AvroException("No such field: " + fieldName);
-        }
 
         public bool TryGetValue(string fieldName, out object result)
         {

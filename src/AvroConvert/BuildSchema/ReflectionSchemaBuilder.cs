@@ -458,7 +458,6 @@ namespace AvroConvert.BuildSchema
 
                 var aliases = info
                     .Aliases
-                    .Select(alias => alias.Contains(".") ? alias : record.Namespace + "." + alias)
                     .ToList();
                 var recordField = new RecordField(
                     new NamedEntityAttributes(new SchemaName(info.Name), aliases, info.Doc),

@@ -102,8 +102,8 @@ namespace AvroConvert.Schema
         /// <param name="request">true if this is an anonymous record with 'request' instead of 'fields'</param>
         /// <param name="fieldMap">map of field names and field objects</param>
         /// <param name="names">list of named schema already read</param>
-        private RecordSchema(Type type, SchemaName name, IList<SchemaName> aliases,  PropertyMap props, 
-                                List<Field> fields, bool request, IDictionary<string, Field> fieldMap, 
+        private RecordSchema(Type type, SchemaName name, IList<SchemaName> aliases, PropertyMap props,
+                                List<Field> fields, bool request, IDictionary<string, Field> fieldMap,
                                 IDictionary<string, Field> fieldAliasMap, SchemaNames names)
                                 : base(type, name, aliases, props, names)
         {
@@ -130,14 +130,14 @@ namespace AvroConvert.Schema
             var jorder = JsonHelper.GetOptionalString(jfield, "order");
             Field.SortOrder sortorder = Field.SortOrder.ignore;
             if (null != jorder)
-                sortorder = (Field.SortOrder) Enum.Parse(typeof(Field.SortOrder), jorder);
+                sortorder = (Field.SortOrder)Enum.Parse(typeof(Field.SortOrder), jorder);
 
             var aliases = Field.GetAliases(jfield);
             var props = Schema.GetProperties(jfield);
             var defaultValue = jfield["default"];
 
             JToken jtype = jfield["type"];
-            if (null == jtype) 
+            if (null == jtype)
                 throw new SchemaParseException("'type' was not found for field: " + name);
             var schema = Schema.ParseJson(jtype, names, encspace);
 
@@ -146,9 +146,10 @@ namespace AvroConvert.Schema
 
         private static void addToFieldMap(Dictionary<string, Field> map, string name, Field field)
         {
-            if (map.ContainsKey(name))
-                throw new SchemaParseException("field or alias " + name + " is a duplicate name");
-            map.Add(name, field);
+            if (!map.ContainsKey(name))
+            {
+                map.Add(name, field);
+            }
         }
 
         /// <summary>
@@ -271,7 +272,7 @@ namespace AvroConvert.Schema
             return protect(() => true, () =>
             {
                 if (!that.SchemaName.Equals(SchemaName))
-                    if (!InAliases(that.SchemaName)) 
+                    if (!InAliases(that.SchemaName))
                         return false;
 
                 foreach (Field f in this)
@@ -323,10 +324,10 @@ namespace AvroConvert.Schema
          */
         private T protect<T>(Function<T> bypass, Function<T> main, RecordSchema that)
         {
-            if (seen == null) 
+            if (seen == null)
                 seen = new List<RecordSchemaPair>();
 
-            else if (seen.Find((RecordSchemaPair rs) => rs.first == this && rs.second == that) != null) 
+            else if (seen.Find((RecordSchemaPair rs) => rs.first == this && rs.second == that) != null)
                 return bypass();
 
             RecordSchemaPair p = new RecordSchemaPair(this, that);

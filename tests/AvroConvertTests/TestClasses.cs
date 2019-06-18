@@ -6,17 +6,12 @@
     using AvroConvert.Attributes;
 
     [Equals]
-    [DataContract(Name = "User", Namespace = "user")]
     public class User
     {
-        [DataMember(Name = "name")]
         public string name { get; set; }
 
-        [DataMember(Name = "favorite_number")]
-        [NullableSchema]
         public int? favorite_number { get; set; }
 
-        [DataMember(Name = "favorite_color")]
         public string favorite_color { get; set; }
     }
 

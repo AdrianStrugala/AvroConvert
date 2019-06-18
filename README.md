@@ -24,6 +24,7 @@ Serialization examples:
 
 ```csharp
 1) Plain object:
+
     public class NestedTestClass
     {
         public string justSomeProperty { get; set; }
@@ -32,9 +33,10 @@ Serialization examples:
     }
 
 //Produces following schema:
-"{\"type\":\"record\",\"name\":\"AvroConvertTests.NestedTestClass\",\"fields\":[{\"name\":\"justSomeProperty\",\"type\":[\"null\",\"string\"]},{\"name\":\"andLongProperty\",\"type\":\"long\"}]}"
+"{"type":"record","name":"AvroConvertTests.NestedTestClass","fields":[{"name":"justSomeProperty","type":["null","string"]},{"name":"andLongProperty","type":"long"}]}"
 
 2) Using attributes:
+
     [DataContract(Name = "User", Namespace = "user")]
     public class AttributeClass
     {
@@ -50,5 +52,5 @@ Serialization examples:
     }
 	
 //Produces following schema:
-"{\"type\":\"record\",\"name\":\"user.User\",\"fields\":[{\"name\":\"name\",\"type\":[\"null\",\"string\"]},{\"name\":\"favorite_number\",\"type\":[\"null\",\"int\"]},{\"name\":\"favorite_color\",\"type\":[\"null\",\"string\"]}]}"
+"{"type":"record","name":"user.User","fields":[{"name":"name","type":["null","string"]},{"name":"favorite_number","type":["null","int"]},{"name":"favorite_color","type":["null","string"]}]}"
 ```

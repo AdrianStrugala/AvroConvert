@@ -334,7 +334,7 @@
             //Assert
             Assert.NotNull(result);
             Assert.NotNull(deserialized);
-            Assert.Equal(toSerialize, deserialized);
+            Assert.Equal(toSerialize.ArriveBy, deserialized.ArriveBy);
         }
     }
 }

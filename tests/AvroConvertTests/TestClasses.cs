@@ -118,10 +118,10 @@
     [Equals]
     public class ClassWithDateTime
     {
-        public string From;
-        public string To;
+        public string From { get; set; }
+        public string To { get; set; }
 
-        public int Count;
-        public DateTime ArriveBy;
+        public int Count { get; set; }
+        public DateTime ArriveBy { get; set; }
     }
 }

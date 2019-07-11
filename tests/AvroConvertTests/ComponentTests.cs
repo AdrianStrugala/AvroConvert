@@ -336,5 +336,24 @@
             Assert.NotNull(deserialized);
             Assert.Equal(toSerialize.ArriveBy, deserialized.ArriveBy);
         }
+
+        [Fact]
+        public void Component_ClassWithoutGetters_ResultIsTheSameAsInput()
+        {
+            //Arrange
+            ClassWithoutGetters toSerialize = _fixture.Create<ClassWithoutGetters>();
+
+            //Act
+
+            var result = AvroConvert.Serialize(toSerialize);
+
+            var deserialized = AvroConvert.Deserialize<ClassWithoutGetters>(result);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(toSerialize.Count, deserialized.Count);
+            Assert.Equal(toSerialize.SomeString, deserialized.SomeString);
+        }
     }
 }

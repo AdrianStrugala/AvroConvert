@@ -124,4 +124,11 @@
         public int Count { get; set; }
         public DateTime ArriveBy { get; set; }
     }
+
+    [Equals]
+    public class ClassWithoutGetters
+    {
+        public string SomeString;
+        public int Count;
+    }
 }

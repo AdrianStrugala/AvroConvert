@@ -334,7 +334,12 @@
             //Assert
             Assert.NotNull(result);
             Assert.NotNull(deserialized);
-            Assert.Equal(toSerialize.ArriveBy, deserialized.ArriveBy);
+            Assert.Equal(toSerialize.ArriveBy.Second, deserialized.ArriveBy.Second);
+            Assert.Equal(toSerialize.ArriveBy.Minute, deserialized.ArriveBy.Minute);
+            Assert.Equal(toSerialize.ArriveBy.Hour, deserialized.ArriveBy.Hour);
+            Assert.Equal(toSerialize.ArriveBy.Day, deserialized.ArriveBy.Day);
+            Assert.Equal(toSerialize.ArriveBy.Month, deserialized.ArriveBy.Month);
+            Assert.Equal(toSerialize.ArriveBy.Year, deserialized.ArriveBy.Year);
         }
 
         [Fact]

@@ -1,16 +1,21 @@
 ﻿namespace AvroConvert
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using AutoMapper;
     using Read;
+    using Read.AutoMapperConverters;
 
     public static partial class AvroConvert
     {
         static AvroConvert()
         {
-            Mapper.Initialize(cfg => { });
+            Mapper.Initialize(cfg =>
+                              {
+                                  cfg.CreateMap<long, DateTime>().ConvertUsing(new DateTimeConverter());
+                              });
         }
 
         public static List<object> Deserialize(byte[] avroBytes, Schema.Schema schema = null)

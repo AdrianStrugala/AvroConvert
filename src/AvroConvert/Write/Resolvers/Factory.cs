@@ -15,6 +15,7 @@
         private static readonly Enum Enum;
         private static readonly Fixed Fixed;
         private static readonly Union Union;
+        private static readonly Long Long;
 
         static Factory()
         {
@@ -26,6 +27,7 @@
             Enum = new Enum();
             Fixed = new Fixed();
             Union = new Union();
+            Long = new Long();
         }
 
         public static Encoder.WriteItem ResolveWriter(Schema schema)
@@ -39,7 +41,7 @@
                 case Schema.Type.Int:
                     return (v, e) => Write<int>(v, schema.Tag, e.WriteInt);
                 case Schema.Type.Long:
-                    return (v, e) => Write<long>(v, schema.Tag, e.WriteLong);
+                    return Long.Resolve;
                 case Schema.Type.Float:
                     return (v, e) => Write<float>(v, schema.Tag, e.WriteFloat);
                 case Schema.Type.Double:

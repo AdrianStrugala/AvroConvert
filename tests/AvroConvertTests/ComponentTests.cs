@@ -318,5 +318,23 @@
             Assert.Equal(toSerialize.StringProperty, deserialized.StringProperty);
             Assert.Equal(toSerialize.NullableIntProperty, deserialized.NullableIntProperty);
         }
+
+        [Fact]
+        public void Component_ClassWithDateTime_ResultIsTheSameAsInput()
+        {
+            //Arrange
+            ClassWithDateTime toSerialize = _fixture.Create<ClassWithDateTime>();
+
+            //Act
+
+            var result = AvroConvert.Serialize(toSerialize);
+
+            var deserialized = AvroConvert.Deserialize<ClassWithDateTime>(result);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(toSerialize, deserialized);
+        }
     }
 }

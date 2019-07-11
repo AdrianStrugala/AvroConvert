@@ -114,4 +114,14 @@
         [NullableSchema]
         public int? NullableIntProperty { get; set; }
     }
+
+    [Equals]
+    public class ClassWithDateTime
+    {
+        public string From;
+        public string To;
+
+        public int Count;
+        public DateTime ArriveBy;
+    }
 }

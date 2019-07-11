@@ -5,6 +5,7 @@
     using System.IO;
     using System.Linq;
     using AutoMapper;
+    using Models;
     using Read;
     using Read.AutoMapperConverters;
 
@@ -15,6 +16,7 @@
             Mapper.Initialize(cfg =>
                               {
                                   cfg.CreateMap<long, DateTime>().ConvertUsing(new DateTimeConverter());
+                                  cfg.CreateMap<Fixed, Guid>().ConvertUsing(new GuidConverter());
                               });
         }
 
@@ -38,7 +40,7 @@
         {
             T result;
 
-            string schema = AvroConvert.GenerateSchema(typeof(T), true);
+            string schema = GenerateSchema(typeof(T), true);
             var deserialized = Deserialize(avroBytes, Schema.Schema.Parse(schema));
 
             result = Mapper.Map<T>(deserialized[0]);

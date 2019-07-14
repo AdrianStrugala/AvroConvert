@@ -10,8 +10,8 @@
             DateTime unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
             var result = new DateTime();
-            result = result.AddSeconds(source);
             result = result.AddTicks(unixEpoch.Ticks);
+            result = result.AddSeconds(source);
 
             return result;
         }

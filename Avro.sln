@@ -11,6 +11,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvroConvert", "src\AvroConv
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvroOrigin", "src\Avro\AvroOrigin.csproj", "{E902B366-F27B-4BAA-A15C-65A01CFF9867}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{45B109EA-AE78-4432-8DE5-ABE152EC9ED5}"
+	ProjectSection(SolutionItems) = preProject
+		docs\CHANGELOG.md = docs\CHANGELOG.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

@@ -3,6 +3,7 @@
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Reflection;
     using Exceptions;
     using Schema;
@@ -48,6 +49,7 @@
             }
         }
 
+        //TODO: REFACTOR
         private Dictionary<string, object> SplitKeyValues(object item, RecordSchema schema = null)
         {
             Dictionary<string, object> result = new Dictionary<string, object>();
@@ -59,6 +61,7 @@
 
             Type objType = item.GetType();
             PropertyInfo[] properties = objType.GetProperties();
+            
 
             for (var i = 0; i < properties.Length; i++)
             {
@@ -97,6 +100,17 @@
                     }
                 }
             }
+
+            FieldInfo[] fields = objType.GetFields();
+
+            foreach (var fieldInfo in fields)
+            {
+                if ((schema?.Fields.Select(f => f?.Name == fieldInfo.Name)).Any())
+                {
+                    result.Add(fieldInfo.Name, fieldInfo.GetValue(item));
+                }
+            }
+
             return result;
         }
 

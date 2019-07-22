@@ -101,3 +101,7 @@ START OF THE PROJECT
 </br>
 **v. 1.5.1 (11.07.19)**
 - Refactored deserialization of Guid type
+</br>
+</br>
+**v. 1.6.0 (22.07.19)**
+- Added full support for public fields in classes (in addition to properties)

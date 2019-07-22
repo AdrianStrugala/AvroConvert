@@ -52,17 +52,8 @@
             AssertOpen();
             EnsureHeader();
 
-            long usedBuffer = _blockStream.Position;
+            _writer(datum, _blockEncoder);
 
-            try
-            {
-                _writer(datum, _blockEncoder);
-            }
-            catch (Exception e)
-            {
-                _blockStream.Position = usedBuffer;
-                throw new AvroRuntimeException("Error appending datum to writer", e);
-            }
             _blockCount++;
             WriteIfBlockFull();
         }

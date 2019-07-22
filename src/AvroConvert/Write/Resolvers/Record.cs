@@ -49,72 +49,78 @@
             }
         }
 
-        //TODO: REFACTOR
-        private Dictionary<string, object> SplitKeyValues(object item, RecordSchema schema = null)
+        private Dictionary<string, object> SplitKeyValues(object item, RecordSchema schema)
         {
             Dictionary<string, object> result = new Dictionary<string, object>();
 
-            if (item == null)
+            if ((item == null) || (schema?.Fields == null))
             {
                 return result;
             }
 
-            Type objType = item.GetType();
-            PropertyInfo[] properties = objType.GetProperties();
-            
+            PropertyInfo[] properties = item.GetType().GetProperties();
+            FieldInfo[] fields = item.GetType().GetFields();
 
-            for (var i = 0; i < properties.Length; i++)
+
+            foreach (var property in properties)
             {
-                var prop = properties[i];
-                var propName = schema?.Fields[i].Name ?? properties[i].Name;
+                var schemaField = schema.Fields.Single(f => f.aliases[0] == property.Name);
 
-                var value = FindValue(prop, item);
-
-                if (value == null)
+                if (schemaField == null)
                 {
-                    result.Add(propName, null);
+                    continue;
                 }
 
-                else if (typeof(IList).IsAssignableFrom(prop.PropertyType))
-                {
-                    // We have a List<T> or array                  
-                    result.Add(propName, GetSplitList((IList)value));
-                }
+                var value = FindPropertyValue(property, item);
 
-                else if (prop.PropertyType.GetTypeInfo().IsValueType ||
-                         prop.PropertyType == typeof(string))
-                {
-                    // We have a simple type
-                    result.Add(propName, value);
-                }
-                else
-                {
-                    //complex type
-                    if (schema?.Fields[i].Schema is RecordSchema recordSchema)
-                    {
-                        result.Add(propName, SplitKeyValues(value, recordSchema));
-                    }
-                    else
-                    {
-                        result.Add(propName, SplitKeyValues(value));
-                    }
-                }
+                result = SmartAddValueToResult(value, result, schemaField, property.PropertyType);
             }
 
-            FieldInfo[] fields = objType.GetFields();
-
-            foreach (var fieldInfo in fields)
+            foreach (var field in fields)
             {
-                if ((schema?.Fields.Select(f => f?.Name == fieldInfo.Name)).Any())
+                var schemaField = schema.Fields.Single(f => f.aliases[0] == field.Name);
+
+                if (schemaField == null)
                 {
-                    result.Add(fieldInfo.Name, fieldInfo.GetValue(item));
+                    continue;
                 }
+
+                var value = FindFieldValue(field, item);
+
+                result = SmartAddValueToResult(value, result, schemaField, field.FieldType);
             }
 
             return result;
         }
 
-        private IList GetSplitList(IList list)
+        private Dictionary<string, object> SmartAddValueToResult(dynamic value, Dictionary<string, object> result, Field schemaField, Type fieldType)
+        {
+            if (value == null)
+            {
+                result.Add(schemaField.Name, null);
+            }
+
+            else if (typeof(IList).IsAssignableFrom(fieldType))
+            {
+                // We have a List<T> or array                  
+                result.Add(schemaField.Name, GetSplitList((IList)value, (ArraySchema)schemaField.Schema));
+            }
+
+            else if (fieldType.GetTypeInfo().IsValueType || fieldType == typeof(string))
+            {
+                // We have a simple type
+                result.Add(schemaField.Name, value);
+            }
+            else
+            {
+                //complex type
+                result.Add(schemaField.Name, SplitKeyValues(value, (RecordSchema)schemaField.Schema));
+            }
+
+            return result;
+        }
+
+        private IList GetSplitList(IList list, ArraySchema schema)
         {
             if (list.Count == 0)
             {
@@ -133,18 +139,32 @@
 
             foreach (var item in list)
             {
-                result.Add(item != null ? SplitKeyValues(item) : null);
+                result.Add(item != null ? SplitKeyValues(item, (RecordSchema)schema.ItemSchema) : null);
             }
 
             return result;
         }
 
-        private dynamic FindValue(PropertyInfo propertyInfo, object item)
+        private dynamic FindPropertyValue(PropertyInfo propertyInfo, object item)
         {
             dynamic value = null;
             try
             {
                 value = propertyInfo.GetValue(item);
+            }
+            catch (Exception)
+            {
+                //no value
+            }
+            return value;
+        }
+
+        private dynamic FindFieldValue(FieldInfo fieldInfo, object item)
+        {
+            dynamic value = null;
+            try
+            {
+                value = fieldInfo.GetValue(item);
             }
             catch (Exception)
             {

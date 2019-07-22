@@ -138,7 +138,8 @@ namespace AvroConvert.BuildSchema
                     {
                         Name = p.Name,
                         MemberInfo = p,
-                        Nullable = false
+                        Nullable = false,
+                        Aliases = { p.Name }
                     })
                     .ToArray();
             }

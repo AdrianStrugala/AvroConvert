@@ -5,7 +5,6 @@
     using AvroConvert;
     using Xunit;
 
-    [Collection("MemoryBasedTests")]
     public class SerializeTests
     {
         private readonly Fixture _fixture;

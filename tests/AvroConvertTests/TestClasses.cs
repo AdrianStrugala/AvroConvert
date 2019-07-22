@@ -131,4 +131,32 @@
         public string SomeString;
         public int Count;
     }
+
+    [Equals]
+    public class ComplexClassWithoutGetters
+    {
+        public List<ClassWithArray> ClassesWithArray;
+        public ClassWithGuid[] ClassesWithGuid;
+        public ClassWithConstructorPopulatingProperty AnotherClass;
+        public User SimpleClass;
+        public int SimpleObject;
+        public List<bool> Bools;
+        public double DoubleProperty;
+        public float FloatProperty;
+    }
+
+    [Equals]
+    [DataContract(Name = "User", Namespace = "user")]
+    public class AttributeClassWithoutGetters
+    {
+        [DataMember(Name = "name")]
+        public string StringProperty;
+
+        [DataMember(Name = "favorite_number")]
+        [NullableSchema]
+        public int? NullableIntProperty;
+
+        [DataMember(Name = "favorite_color")]
+        public string AndAnotherString;
+    }
 }

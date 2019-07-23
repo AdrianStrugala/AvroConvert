@@ -20,7 +20,7 @@ namespace AvroConvert.BuildSchema
     using System.Globalization;
     using System.IO;
     using System.Linq;
-    using global::AvroConvert.Attributes;
+    using Attributes;
     using Newtonsoft.Json;
 
     /// <summary>
@@ -187,7 +187,7 @@ namespace AvroConvert.BuildSchema
         /// <returns>An instance of the <see cref="RecordSchema" />.</returns>
         public static RecordSchema CreateRecord(string name, string ns)
         {
-            return new RecordSchema(new NamedEntityAttributes(new SchemaName(name, ns), new List<string>(), string.Empty), typeof(AvroRecord));
+            return new RecordSchema(new NamedEntityAttributes(new SchemaName(name, ns), new List<string>(), String.Empty), typeof(AvroRecord));
         }
 
         /// <summary>
@@ -231,7 +231,7 @@ namespace AvroConvert.BuildSchema
         /// <returns>An instance of the <see cref="RecordField" />.</returns>
         public static RecordField CreateField(string fieldName, TypeSchema fieldType)
         {
-            if (string.IsNullOrEmpty(fieldName))
+            if (String.IsNullOrEmpty(fieldName))
             {
                 throw new ArgumentException("Field name is not allowed to be null or empty.");
             }
@@ -242,7 +242,7 @@ namespace AvroConvert.BuildSchema
             }
 
             return new RecordField(
-                new NamedEntityAttributes(new SchemaName(fieldName), new List<string>(), string.Empty),
+                new NamedEntityAttributes(new SchemaName(fieldName), new List<string>(), String.Empty),
                 fieldType,
                 SortOrder.Ascending,
                 false,
@@ -283,7 +283,7 @@ namespace AvroConvert.BuildSchema
         /// <returns>An instance of the <see cref="FixedSchema" />.</returns>
         public static FixedSchema CreateFixed(string name, string ns, int size)
         {
-            return new FixedSchema(new NamedEntityAttributes(new SchemaName(name, ns), new List<string>(), string.Empty), size, typeof(byte[]));
+            return new FixedSchema(new NamedEntityAttributes(new SchemaName(name, ns), new List<string>(), String.Empty), size, typeof(byte[]));
         }
 
         /// <summary>
@@ -300,7 +300,7 @@ namespace AvroConvert.BuildSchema
                 throw new ArgumentNullException("values");
             }
 
-            var result = new EnumSchema(new NamedEntityAttributes(new SchemaName(name, ns), new List<string>(), string.Empty), typeof(Enum));
+            var result = new EnumSchema(new NamedEntityAttributes(new SchemaName(name, ns), new List<string>(), String.Empty), typeof(Enum));
             values.ToList().ForEach(result.AddSymbol);
             return result;
         }
@@ -341,5 +341,21 @@ namespace AvroConvert.BuildSchema
         }
 
         #endregion //Schema creation methods.
+
+
+        /// <summary>
+        /// Creates schema from JSON string.
+        /// </summary>
+        /// <param name="schemaInJson">The schema.</param>
+        /// <returns>Created schema.</returns>
+        public static TypeSchema Create(string schemaInJson)
+        {
+            if (string.IsNullOrEmpty(schemaInJson))
+            {
+                throw new ArgumentNullException("schemaInJson");
+            }
+
+            return new JsonSchemaBuilder().BuildSchema(schemaInJson);
+        }
     }
 }

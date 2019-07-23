@@ -30,8 +30,7 @@ namespace AvroConvert.BuildSchema
         /// </summary>
         /// <param name="runtimeType">Type of the runtime.</param>
         /// <param name="attributes">The attributes.</param>
-        protected TypeSchema(Type runtimeType, IDictionary<string, string> attributes)
-            : base(attributes)
+        protected TypeSchema(Type runtimeType, IDictionary<string, string> attributes) : base(attributes)
         {
             if (runtimeType == null)
             {

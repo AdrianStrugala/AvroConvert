@@ -82,5 +82,7 @@ namespace AvroConvert.BuildSchema
             writer.WriteProperty("size", this.Size);
             writer.WriteEndObject();
         }
+
+        internal override global::AvroConvert.Schema.Schema.Type Type => global::AvroConvert.Schema.Schema.Type.Fixed;
     }
 }

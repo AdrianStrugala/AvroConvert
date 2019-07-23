@@ -44,7 +44,7 @@ namespace AvroConvert.BuildSchema
             Justification = "All Avro tokens are ASCII.")]
         internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
         {
-            writer.WriteValue(CultureInfo.InvariantCulture.TextInfo.ToLower(this.Type));
+            writer.WriteValue(CultureInfo.InvariantCulture.TextInfo.ToLower(this.Type.ToString()));
         }
     }
 }

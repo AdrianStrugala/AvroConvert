@@ -76,9 +76,6 @@ namespace AvroConvert.BuildSchema
         /// <summary>
         /// Gets the type of the schema as string.
         /// </summary>
-        internal override string Type
-        {
-            get { return Token.Union; }
-        }
+        internal override global::AvroConvert.Schema.Schema.Type Type => global::AvroConvert.Schema.Schema.Type.Union;
     }
 }

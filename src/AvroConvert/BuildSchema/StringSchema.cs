@@ -38,9 +38,6 @@ namespace AvroConvert.BuildSchema
         {
         }
 
-        internal override string Type
-        {
-            get { return Token.String; }
-        }
+        internal override global::AvroConvert.Schema.Schema.Type Type => global::AvroConvert.Schema.Schema.Type.String;
     }
 }

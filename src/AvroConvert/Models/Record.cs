@@ -4,7 +4,9 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
+    using BuildSchema;
     using Schema;
+    using RecordSchema = global::AvroConvert.Schema.RecordSchema;
 
     public class Record
     {

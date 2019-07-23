@@ -91,9 +91,6 @@ namespace AvroConvert.BuildSchema
         /// <summary>
         /// Gets the type of the schema as string.
         /// </summary>
-        internal override string Type
-        {
-            get { return this.surrogateSchema.Type; }
-        }
+        internal override global::AvroConvert.Schema.Schema.Type Type => surrogateSchema.Type;
     }
 }

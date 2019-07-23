@@ -124,5 +124,7 @@ namespace AvroConvert.BuildSchema
             writer.WriteEndArray();
             writer.WriteEndObject();
         }
+
+        internal override global::AvroConvert.Schema.Schema.Type Type => global::AvroConvert.Schema.Schema.Type.Record;
     }
 }

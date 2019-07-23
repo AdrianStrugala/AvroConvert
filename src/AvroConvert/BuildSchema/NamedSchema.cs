@@ -86,13 +86,5 @@ namespace AvroConvert.BuildSchema
         {
             get { return this.attributes.Doc; }
         }
-
-        /// <summary>
-        /// Gets the type of the schema as string.
-        /// </summary>
-        internal override string Type
-        {
-            get { return this.FullName; }
-        }
     }
 }

@@ -164,5 +164,7 @@ namespace AvroConvert.BuildSchema
                 this.avroToCSharpValueMapping.Add(0);
             }
         }
+
+        internal override global::AvroConvert.Schema.Schema.Type Type { get; } = global::AvroConvert.Schema.Schema.Type.Enumeration;
     }
 }

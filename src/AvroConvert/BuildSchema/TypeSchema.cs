@@ -52,20 +52,6 @@ namespace AvroConvert.BuildSchema
         /// <summary>
         /// Gets the type of the schema as string.
         /// </summary>
-        internal abstract string Type { get; }
-
-        /// <summary>
-        /// Creates schema from JSON string.
-        /// </summary>
-        /// <param name="schemaInJson">The schema.</param>
-        /// <returns>Created schema.</returns>
-        public static TypeSchema Create(string schemaInJson)
-        {
-            if (string.IsNullOrEmpty(schemaInJson))
-            {
-                throw new ArgumentNullException("schemaInJson");
-            }
-            return new JsonSchemaBuilder().BuildSchema(schemaInJson);
-        }
+        internal abstract global::AvroConvert.Schema.Schema.Type Type { get; }
     }
 }

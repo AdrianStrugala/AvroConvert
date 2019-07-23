@@ -40,6 +40,7 @@ namespace AvroConvert.Schema
             Double,
             Bytes,
             String,
+
             Record,
             Enumeration,
             Array,

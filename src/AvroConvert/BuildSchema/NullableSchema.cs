@@ -52,10 +52,7 @@ namespace AvroConvert.BuildSchema
             get { return this.valueSchema; }
         }
 
-        internal override string Type
-        {
-            get { return this.valueSchema.Type; }
-        }
+        internal override global::AvroConvert.Schema.Schema.Type Type => valueSchema.Type;
 
         internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
         {

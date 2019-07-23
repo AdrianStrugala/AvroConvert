@@ -19,22 +19,6 @@ namespace AvroConvert.BuildSchema
     /// </summary>
     internal static class Token
     {
-        public const string Record = "record";
-        public const string Enum = "enum";
-        public const string Array = "array";
-        public const string Map = "map";
-        public const string Union = "union";
-        public const string Fixed = "fixed";
-
-        public const string Boolean = "boolean";
-        public const string Bytes = "bytes";
-        public const string String = "string";
-        public const string Null = "null";
-        public const string Long = "long";
-        public const string Int = "int";
-        public const string Float = "float";
-        public const string Double = "double";
-
         public const string Type = "type";
         public const string Name = "name";
         public const string Namespace = "namespace";

@@ -42,7 +42,7 @@
             _blockStream = new MemoryStream();
             _blockEncoder = new Writer(_blockStream);
 
-            _writer = Factory.ResolveWriter(schema);
+            _writer = Resolver.ResolveWriter(schema);
 
             _isOpen = true;
         }

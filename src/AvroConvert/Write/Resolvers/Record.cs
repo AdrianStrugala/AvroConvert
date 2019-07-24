@@ -21,7 +21,7 @@
             {
                 var record = new WriteStep
                 {
-                    WriteField = Factory.ResolveWriter(field.Schema),
+                    WriteField = Resolver.ResolveWriter(field.Schema),
                     Field = field
                 };
                 writeSteps[index++] = record;

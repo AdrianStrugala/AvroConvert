@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using AvroConvert;
+    using AvroConvert.Exceptions;
     using Xunit;
 
     public class DeserializeTests
@@ -40,5 +41,19 @@
             Assert.Equal(expectedResult, result);
         }
 
+        [Fact]
+        public void Deserialize_InvalidFile_InvalidAvroObjectExceptionIsThrown()
+        {
+            //Arrange
+            byte[] invalidBytes = new byte[2137];
+
+
+            //Act
+            var result = Record.Exception(() => AvroConvert.Deserialize(invalidBytes));
+
+
+            //Assert
+            Assert.IsType<InvalidAvroObjectException>(result);
+        }
     }
 }

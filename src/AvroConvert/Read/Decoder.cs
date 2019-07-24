@@ -12,9 +12,9 @@
 
     public class Decoder : IDisposable
     {
-        public delegate DataReader CreateDatumReader(Schema writerSchema, Schema readerSchema);
+        public delegate Resolver CreateDatumReader(Schema writerSchema, Schema readerSchema);
 
-        private readonly DataReader _dataReader;
+        private readonly Resolver resolver;
         private readonly IReader _reader;
         private IReader _datumReader;
         private readonly Header _header;
@@ -65,10 +65,10 @@
             }
             catch (Exception)
             {
-                throw new InvalidAvroHeaderException();
+                throw new InvalidAvroObjectException("Cannot read length of Avro Header");
             }
             if (!firstBytes.SequenceEqual(DataFileConstants.AvroHeader))
-                throw new InvalidAvroHeaderException();
+                throw new InvalidAvroObjectException("Cannot read Avro Header");
 
             // read meta data 
             long len = _reader.ReadMapStart();
@@ -90,7 +90,7 @@
 
             // parse schema and set codec 
             _header.Schema = Schema.Parse(GetMetaString(DataFileConstants.SchemaMetadataKey));
-            _dataReader = _datumReaderFactory(_header.Schema, _readerSchema ?? _header.Schema);
+            resolver = _datumReaderFactory(_header.Schema, _readerSchema ?? _header.Schema);
             _codec = Codec.CreateCodecFromString(GetMetaString(DataFileConstants.CodecMetadataKey));
         }
 
@@ -164,9 +164,9 @@
             _stream.Dispose();
         }
 
-        private static DataReader CreateDefaultReader(Schema writerSchema, Schema readerSchema)
+        private static Resolver CreateDefaultReader(Schema writerSchema, Schema readerSchema)
         {
-            var reader = new DataReader(writerSchema, readerSchema);
+            var reader = new Resolver(writerSchema, readerSchema);
 
             return reader;
         }
@@ -175,7 +175,7 @@
         {
             try
             {
-                var result = _dataReader.Read(_datumReader);
+                var result = resolver.Read(_datumReader);
 
                 return result;
             }

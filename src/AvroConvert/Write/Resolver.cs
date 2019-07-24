@@ -1,9 +1,10 @@
-﻿namespace AvroConvert.Write.Resolvers
+﻿namespace AvroConvert.Write
 {
     using Exceptions;
+    using Resolvers;
     using Schema;
 
-    public static class Factory
+    public static class Resolver
     {
         public delegate void Writer<in T>(T t);
 
@@ -17,7 +18,7 @@
         private static readonly Union Union;
         private static readonly Long Long;
 
-        static Factory()
+        static Resolver()
         {
             Array = new Array();
             Null = new Null();

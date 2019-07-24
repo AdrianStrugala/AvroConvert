@@ -8,7 +8,7 @@
     {
         public Encoder.WriteItem Resolve(ArraySchema schema)
         {
-            var itemWriter = Factory.ResolveWriter(schema.ItemSchema);
+            var itemWriter = Resolver.ResolveWriter(schema.ItemSchema);
             return (d, e) => WriteArray(itemWriter, d, e);
         }
 

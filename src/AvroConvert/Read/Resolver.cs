@@ -1,168 +1,336 @@
-﻿/**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 namespace AvroConvert.Read
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
-    using Newtonsoft.Json.Linq;
+    using System.Linq;
+    using Models;
     using Schema;
-    using Write;
+    using Enum = Models.Enum;
 
-    static class Resolver
+    public delegate T Reader<out T>();
+
+    public sealed class Resolver
     {
-        /// <summary>
-        /// Reads the passed JToken default value field and writes it in the specified encoder 
-        /// </summary>
-        /// <param name="enc">encoder to use for writing</param>
-        /// <param name="schema">schema object for the current field</param>
-        /// <param name="jtok">default value as JToken</param>
-        public static void EncodeDefaultValue(IWriter enc, Schema schema, JToken jtok)
+        private readonly DefaultReader _reader;
+
+        public Resolver(Schema writerSchema, Schema readerSchema)
+            : this(new DefaultReader(writerSchema, readerSchema))
         {
-            if (null == jtok) return;
+        }
 
-            switch (schema.Tag)
+        public Resolver(DefaultReader reader)
+        {
+            _reader = reader;
+        }
+
+        public object Read(IReader d)
+        {
+            return _reader.Read(d);
+        }
+    }
+
+    public class DefaultReader
+    {
+        public Schema ReaderSchema { get; }
+        public Schema WriterSchema { get; }
+
+        public DefaultReader(Schema writerSchema, Schema readerSchema)
+        {
+            ReaderSchema = readerSchema;
+            WriterSchema = writerSchema;
+        }
+
+        public object Read(IReader reader)
+        {
+            var result = Read(WriterSchema, ReaderSchema, reader);
+            return result;
+        }
+
+        public object Read(Schema writerSchema, Schema readerSchema, IReader d)
+        {
+            if (readerSchema.Tag == Schema.Type.Union && writerSchema.Tag != Schema.Type.Union)
             {
-                case Schema.Type.Boolean:
-                    if (jtok.Type != JTokenType.Boolean)
-                        throw new AvroException("Default boolean value " + jtok.ToString() + " is invalid, expected is json boolean.");
-                    enc.WriteBoolean((bool)jtok);
-                    break;
+                readerSchema = FindBranch(readerSchema as UnionSchema, writerSchema);
+            }
 
-                case Schema.Type.Int:
-                    if (jtok.Type != JTokenType.Integer)
-                        throw new AvroException("Default int value " + jtok.ToString() + " is invalid, expected is json integer.");
-                    enc.WriteInt(Convert.ToInt32((int)jtok));
-                    break;
-
-                case Schema.Type.Long:
-                    if (jtok.Type != JTokenType.Integer)
-                        throw new AvroException("Default long value " + jtok.ToString() + " is invalid, expected is json integer.");
-                    enc.WriteLong(Convert.ToInt64((long)jtok));
-                    break;
-
-                case Schema.Type.Float:
-                    if (jtok.Type != JTokenType.Float)
-                        throw new AvroException("Default float value " + jtok.ToString() + " is invalid, expected is json number.");
-                    enc.WriteFloat((float)jtok);
-                    break;
-
-                case Schema.Type.Double:
-                    if (jtok.Type == JTokenType.Integer)
-                        enc.WriteDouble(Convert.ToDouble((int)jtok));
-                    else if (jtok.Type == JTokenType.Float)
-                        enc.WriteDouble(Convert.ToDouble((float)jtok));
-                    else
-                        throw new AvroException("Default double value " + jtok.ToString() + " is invalid, expected is json number.");
-
-                    break;
-
-                case Schema.Type.Bytes:
-                    if (jtok.Type != JTokenType.String)
-                        throw new AvroException("Default bytes value " + jtok.ToString() + " is invalid, expected is json string.");
-                    var en = System.Text.Encoding.GetEncoding("iso-8859-1");
-                    enc.WriteBytes(en.GetBytes((string)jtok));
-                    break;
-
-                case Schema.Type.Fixed:
-                    if (jtok.Type != JTokenType.String)
-                        throw new AvroException("Default fixed value " + jtok.ToString() + " is invalid, expected is json string.");
-                    en = System.Text.Encoding.GetEncoding("iso-8859-1");
-                    int len = (schema as FixedSchema).Size;
-                    byte[] bb = en.GetBytes((string)jtok);
-                    if (bb.Length != len)
-                        throw new AvroException("Default fixed value " + jtok.ToString() + " is not of expected length " + len);
-                    enc.WriteFixed(bb);
-                    break;
-
-                case Schema.Type.String:
-                    if (jtok.Type != JTokenType.String)
-                        throw new AvroException("Default string value " + jtok.ToString() + " is invalid, expected is json string.");
-                    enc.WriteString((string)jtok);
-                    break;
-
-                case Schema.Type.Enumeration:
-                    if (jtok.Type != JTokenType.String)
-                        throw new AvroException("Default enum value " + jtok.ToString() + " is invalid, expected is json string.");
-                    enc.WriteEnum((schema as EnumSchema).Ordinal((string)jtok));
-                    break;
-
+            switch (writerSchema.Tag)
+            {
                 case Schema.Type.Null:
-                    if (jtok.Type != JTokenType.Null)
-                        throw new AvroException("Default null value " + jtok.ToString() + " is invalid, expected is json null.");
-                    enc.WriteNull();
-                    break;
-
-                case Schema.Type.Array:
-                    if (jtok.Type != JTokenType.Array)
-                        throw new AvroException("Default array value " + jtok.ToString() + " is invalid, expected is json array.");
-                    JArray jarr = jtok as JArray;
-                    enc.WriteArrayStart();
-                    enc.SetItemCount(jarr.Count);
-                    foreach (JToken jitem in jarr)
+                    return ReadNull(readerSchema, d);
+                case Schema.Type.Boolean:
+                    return Read<bool>(writerSchema.Tag, readerSchema, d.ReadBoolean);
+                case Schema.Type.Int:
                     {
-                        enc.StartItem();
-                        EncodeDefaultValue(enc, (schema as ArraySchema).ItemSchema, jitem);
+                        int i = Read<int>(writerSchema.Tag, readerSchema, d.ReadInt);
+                        switch (readerSchema.Tag)
+                        {
+                            case Schema.Type.Long:
+                                return (long)i;
+                            case Schema.Type.Float:
+                                return (float)i;
+                            case Schema.Type.Double:
+                                return (double)i;
+                            default:
+                                return i;
+                        }
                     }
-                    enc.WriteArrayEnd();
-                    break;
-
-                case Schema.Type.Record:
+                case Schema.Type.Long:
+                    {
+                        long l = Read<long>(writerSchema.Tag, readerSchema, d.ReadLong);
+                        switch (readerSchema.Tag)
+                        {
+                            case Schema.Type.Float:
+                                return (float)l;
+                            case Schema.Type.Double:
+                                return (double)l;
+                            default:
+                                return l;
+                        }
+                    }
+                case Schema.Type.Float:
+                    {
+                        float f = Read<float>(writerSchema.Tag, readerSchema, d.ReadFloat);
+                        switch (readerSchema.Tag)
+                        {
+                            case Schema.Type.Double:
+                                return (double)f;
+                            default:
+                                return f;
+                        }
+                    }
+                case Schema.Type.Double:
+                    return Read<double>(writerSchema.Tag, readerSchema, d.ReadDouble);
+                case Schema.Type.String:
+                    return Read<string>(writerSchema.Tag, readerSchema, d.ReadString);
+                case Schema.Type.Bytes:
+                    return Read<byte[]>(writerSchema.Tag, readerSchema, d.ReadBytes);
                 case Schema.Type.Error:
-                    if (jtok.Type != JTokenType.Object)
-                        throw new AvroException("Default record value " + jtok.ToString() + " is invalid, expected is json object.");
-                    RecordSchema rcs = schema as RecordSchema;
-                    JObject jo = jtok as JObject;
-                    foreach (Field field in rcs)
-                    {
-                        JToken val = jo[field.Name];
-                        if (null == val)
-                            val = field.DefaultValue;
-                        if (null == val)
-                            throw new AvroException("No default value for field " + field.Name);
-
-                        EncodeDefaultValue(enc, field.Schema, val);
-                    }
-                    break;
-
+                case Schema.Type.Record:
+                    return ReadRecord((RecordSchema)writerSchema, readerSchema, d);
+                case Schema.Type.Enumeration:
+                    return ReadEnum((EnumSchema)writerSchema, readerSchema, d);
+                case Schema.Type.Fixed:
+                    return ReadFixed((FixedSchema)writerSchema, readerSchema, d);
+                case Schema.Type.Array:
+                    return ReadArray((ArraySchema)writerSchema, readerSchema, d);
                 case Schema.Type.Map:
-                    if (jtok.Type != JTokenType.Object)
-                        throw new AvroException("Default map value " + jtok.ToString() + " is invalid, expected is json object.");
-                    jo = jtok as JObject;
-                    enc.WriteMapStart();
-                    enc.SetItemCount(jo.Count);
-                    foreach (KeyValuePair<string, JToken> jp in jo)
-                    {
-                        enc.StartItem();
-                        enc.WriteString(jp.Key);
-                        EncodeDefaultValue(enc, (schema as MapSchema).ValueSchema, jp.Value);
-                    }
-                    enc.WriteMapEnd();
-                    break;
-
+                    return ReadMap((MapSchema)writerSchema, readerSchema, d);
                 case Schema.Type.Union:
-                    enc.WriteUnionIndex(0);
-                    EncodeDefaultValue(enc, (schema as UnionSchema).Schemas[0], jtok);
-                    break;
-
+                    return ReadUnion((UnionSchema)writerSchema, readerSchema, d);
                 default:
-                    throw new AvroException("Unsupported schema type " + schema.Tag);
+                    throw new AvroException("Unknown schema type: " + writerSchema);
             }
         }
+
+
+        protected virtual object ReadNull(Schema readerSchema, IReader d)
+        {
+            d.ReadNull();
+            return null;
+        }
+
+        protected S Read<S>(Schema.Type tag, Schema readerSchema, Reader<S> reader)
+        {
+            return reader();
+        }
+
+
+        protected virtual IDictionary<string, object> ReadRecord(RecordSchema writerSchema, Schema readerSchema, IReader dec)
+        {
+            RecordSchema rs = (RecordSchema)readerSchema;
+
+            Record result = new Record(rs);
+            foreach (Field wf in writerSchema)
+            {
+                Field rf;
+                if (rs.TryGetFieldAlias(wf.Name, out rf))
+                {
+                    object obj = null;
+                    TryGetField(result, wf.Name, rf.Pos, out obj);
+
+                    AddField(result, rf.aliases?[0] ?? wf.Name, rf.Pos, Read(wf.Schema, rf.Schema, dec));
+                }
+                else
+                    Skip(wf.Schema, dec);
+
+            }
+            return result.Contents;
+        }
+
+        protected virtual bool TryGetField(object record, string fieldName, int fieldPos, out object value)
+        {
+            return ((Record)record).TryGetValue(fieldName, out value);
+        }
+
+
+        protected virtual void AddField(Record record, string fieldName, int fieldPos, object fieldValue)
+        {
+            record.Contents[fieldName] = fieldValue;
+        }
+
+
+        protected virtual object ReadEnum(EnumSchema writerSchema, Schema readerSchema, IReader d)
+        {
+            EnumSchema es = readerSchema as EnumSchema;
+            return new Enum(es, writerSchema[d.ReadEnum()]);
+        }
+
+
+        protected virtual object ReadArray(ArraySchema writerSchema, Schema readerSchema, IReader d)
+        {
+            ArraySchema rs = (ArraySchema)readerSchema;
+            object[] result = new object[0];
+            int i = 0;
+            for (int n = (int)d.ReadArrayStart(); n != 0; n = (int)d.ReadArrayNext())
+            {
+                if (result.Length < i + n)
+                {
+                    Array.Resize(ref result, i + n);
+                }
+
+                for (int j = 0; j < n; j++, i++)
+                {
+                    result[i] = Read(writerSchema.ItemSchema, rs.ItemSchema, d);
+                }
+            }
+
+            if (result[0] is IDictionary)
+            {
+                Dictionary<object, object> resultDictionary = new Dictionary<object, object>();
+                foreach (Dictionary<string, object> keyValue in result)
+                {
+                    if (!keyValue.ContainsKey("Key") || !keyValue.ContainsKey("Value"))
+                    {
+                        //HACK for reading c# dictionaries, which are not avro maps
+
+                        return result;
+                    }
+                    resultDictionary.Add(keyValue["Key"], keyValue["Value"]);
+                }
+
+                return resultDictionary;
+            }
+
+            return result;
+        }
+
+        protected virtual object ReadMap(MapSchema writerSchema, Schema readerSchema, IReader d)
+        {
+            MapSchema rs = (MapSchema)readerSchema;
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            for (int n = (int)d.ReadMapStart(); n != 0; n = (int)d.ReadMapNext())
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    string k = d.ReadString();
+                    result.Add(k, Read(writerSchema.ValueSchema, rs.ValueSchema, d));
+                }
+            }
+
+            return result;
+        }
+
+        protected virtual object ReadUnion(UnionSchema writerSchema, Schema readerSchema, IReader d)
+        {
+            int index = d.ReadUnionIndex();
+            Schema ws = writerSchema[index];
+
+            if (readerSchema is UnionSchema unionSchema)
+                readerSchema = FindBranch(unionSchema, ws);
+            else
+                if (!readerSchema.CanRead(ws))
+                throw new AvroException("Schema mismatch. Reader: " + ReaderSchema + ", writer: " + WriterSchema);
+
+            return Read(ws, readerSchema, d);
+        }
+
+        protected virtual object ReadFixed(FixedSchema writerSchema, Schema readerSchema, IReader d)
+        {
+            FixedSchema rs = (FixedSchema)readerSchema;
+            if (rs.Size != writerSchema.Size)
+            {
+                throw new AvroException("Size mismatch between reader and writer fixed schemas. Encoder: " + writerSchema +
+                    ", reader: " + readerSchema);
+            }
+
+            object ru = new Fixed(rs);
+            byte[] bb = ((Fixed)ru).Value;
+            d.ReadFixed(bb);
+            return ru;
+        }
+
+        protected virtual void Skip(Schema writerSchema, IReader d)
+        {
+            switch (writerSchema.Tag)
+            {
+                case Schema.Type.Null:
+                    d.SkipNull();
+                    break;
+                case Schema.Type.Boolean:
+                    d.SkipBoolean();
+                    break;
+                case Schema.Type.Int:
+                    d.SkipInt();
+                    break;
+                case Schema.Type.Long:
+                    d.SkipLong();
+                    break;
+                case Schema.Type.Float:
+                    d.SkipFloat();
+                    break;
+                case Schema.Type.Double:
+                    d.SkipDouble();
+                    break;
+                case Schema.Type.String:
+                    d.SkipString();
+                    break;
+                case Schema.Type.Bytes:
+                    d.SkipBytes();
+                    break;
+                case Schema.Type.Record:
+                    foreach (Field f in (RecordSchema)writerSchema) Skip(f.Schema, d);
+                    break;
+                case Schema.Type.Enumeration:
+                    d.SkipEnum();
+                    break;
+                case Schema.Type.Fixed:
+                    d.SkipFixed(((FixedSchema)writerSchema).Size);
+                    break;
+                case Schema.Type.Array:
+                    {
+                        Schema s = ((ArraySchema)writerSchema).ItemSchema;
+                        for (long n = d.ReadArrayStart(); n != 0; n = d.ReadArrayNext())
+                        {
+                            for (long i = 0; i < n; i++) Skip(s, d);
+                        }
+                    }
+                    break;
+                case Schema.Type.Map:
+                    {
+                        Schema s = ((MapSchema)writerSchema).ValueSchema;
+                        for (long n = d.ReadMapStart(); n != 0; n = d.ReadMapNext())
+                        {
+                            for (long i = 0; i < n; i++) { d.SkipString(); Skip(s, d); }
+                        }
+                    }
+                    break;
+                case Schema.Type.Union:
+                    Skip(((UnionSchema)writerSchema)[d.ReadUnionIndex()], d);
+                    break;
+                case Schema.Type.Error:
+                    break;
+                default:
+                    throw new AvroException("Unknown schema type: " + writerSchema);
+            }
+        }
+
+        protected static Schema FindBranch(UnionSchema us, Schema s)
+        {
+            int index = us.MatchingBranch(s);
+            if (index >= 0) return us[index];
+            throw new AvroException("No matching schema for " + s + " in " + us);
+        }
+
     }
 }

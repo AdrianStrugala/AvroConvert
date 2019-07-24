@@ -7,7 +7,7 @@
     {
         public Encoder.WriteItem Resolve(MapSchema mapSchema)
         {
-            var itemWriter = Factory.ResolveWriter(mapSchema.ValueSchema);
+            var itemWriter = Resolver.ResolveWriter(mapSchema.ValueSchema);
             return (v, e) => WriteMap(itemWriter, v, e);
         }
 

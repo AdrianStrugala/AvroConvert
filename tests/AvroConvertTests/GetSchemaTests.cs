@@ -11,7 +11,7 @@
 
         public GetSchemaTests()
         {
-            _avroBytes = System.IO.File.ReadAllBytes("example2.avro");
+            _avroBytes = File.ReadAllBytes("example2.avro");
 
             _example2schema =
                 "{\"type\": \"record\", \"name\": \"User\", \"namespace\": \"example.avro\", \"fields\": [{\"type\": \"string\", \"name\": \"name\"}, {\"type\": [\"int\", \"null\"], \"name\": \"favorite_number\"}, {\"type\": [\"string\", \"null\"], \"name\": \"favorite_color\"}]}";

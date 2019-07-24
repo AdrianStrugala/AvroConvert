@@ -14,7 +14,7 @@
             int branchIndex = 0;
             foreach (var branch in branchSchemas)
             {
-                branchWriters[branchIndex++] = Factory.ResolveWriter(branch);
+                branchWriters[branchIndex++] = Resolver.ResolveWriter(branch);
             }
 
 

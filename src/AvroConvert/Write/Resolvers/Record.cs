@@ -5,6 +5,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using System.Runtime.Serialization;
     using Exceptions;
     using Schema;
 
@@ -64,7 +65,10 @@
 
             foreach (var property in properties)
             {
-                var schemaField = schema.Fields.Single(f => f.aliases[0] == property.Name);
+                var attribute = property.GetCustomAttributes(false).OfType<DataMemberAttribute>().SingleOrDefault();
+                string propertyName = attribute?.Name ?? property.Name;
+
+                var schemaField = schema.Fields.SingleOrDefault(f => f.Name == propertyName);
 
                 if (schemaField == null)
                 {
@@ -78,7 +82,10 @@
 
             foreach (var field in fields)
             {
-                var schemaField = schema.Fields.Single(f => f.aliases[0] == field.Name);
+                var attribute = field.GetCustomAttributes(false).OfType<DataMemberAttribute>().SingleOrDefault();
+                string fieldName = attribute?.Name ?? field.Name;
+
+                var schemaField = schema.Fields.Single(f => f.Name == fieldName);
 
                 if (schemaField == null)
                 {

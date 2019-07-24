@@ -133,15 +133,29 @@ namespace AvroConvert.BuildSchema
             if (type.IsKeyValuePair())
             {
                 var keyValueProperties = type.GetAllProperties();
-                return keyValueProperties
-                    .Select(p => new MemberSerializationInfo
+
+                if (_usePropertyNameAsAlias)
+                {
+                    return keyValueProperties.Select(p => new MemberSerializationInfo
                     {
                         Name = p.Name,
                         MemberInfo = p,
                         Nullable = false,
-                        Aliases = { p.Name }
-                    })
-                    .ToArray();
+                        Aliases =
+                        {
+                            p.Name
+                        }
+                    }).ToArray();
+                }
+                else
+                {
+                    return keyValueProperties.Select(p => new MemberSerializationInfo
+                    {
+                        Name = p.Name,
+                        MemberInfo = p,
+                        Nullable = false
+                    }).ToArray();
+                }
             }
 
             var fields = type.GetAllFields();
@@ -180,7 +194,6 @@ namespace AvroConvert.BuildSchema
                     MemberInfo = m.Member,
                     Nullable = m.Nullable
                 });
-
             }
 
             if (this.useAlphabeticalOrder)

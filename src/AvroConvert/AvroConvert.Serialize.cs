@@ -9,7 +9,7 @@
         {
             MemoryStream resultStream = new MemoryStream();
 
-            string schema = AvroConvert.GenerateSchema(obj.GetType(), true);
+            string schema = AvroConvert.GenerateSchema(obj.GetType(), false);
             using (var writer = new Encoder(Schema.Schema.Parse(schema), resultStream))
             {
                 writer.Append(obj);

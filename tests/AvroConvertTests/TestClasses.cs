@@ -1,6 +1,7 @@
 ﻿namespace AvroConvertTests
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
     using System.Runtime.Serialization;
@@ -130,6 +131,12 @@
     public class ClassWithDateTimeOffset
     {
         public DateTimeOffset yeah { get; set; }
+    }
+
+    [Equals]
+    public class ConcurrentBagClass
+    {
+        public ConcurrentBag<ComplexClassWithoutGetters> concurentBagField;
     }
 
     [Equals]

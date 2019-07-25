@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Runtime.Serialization;
     using AvroConvert.Attributes;
 
@@ -158,5 +159,17 @@
 
         [DataMember(Name = "favorite_color")]
         public string AndAnotherString;
+    }
+
+    [Equals]
+    public struct ComplexStruct
+    {
+        [DataMember]
+        public List<int> savedValues;
+
+        public ComplexStruct(List<int> vals)
+        {
+            this.savedValues = vals;
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿namespace AvroConvertTests.Component
 {
+    using System;
     using System.Collections.Generic;
     using AutoFixture;
     using AvroConvert;
@@ -36,13 +37,13 @@
         public void Component_ObjectIsDictionaryOfComplexTypes_ResultIsTheSameAsInput()
         {
             //Arrange
-            Dictionary<string, SomeTestClass> dictionary = _fixture.Create<Dictionary<string, SomeTestClass>>();
+            Dictionary<Uri, SomeTestClass> dictionary = _fixture.Create<Dictionary<Uri, SomeTestClass>>();
 
             //Act
 
             var result = AvroConvert.Serialize(dictionary);
 
-            var deserialized = AvroConvert.Deserialize<Dictionary<string, SomeTestClass>>(result);
+            var deserialized = AvroConvert.Deserialize<Dictionary<Uri, SomeTestClass>>(result);
 
             //Assert
             Assert.NotNull(result);

@@ -1,5 +1,6 @@
 ﻿namespace AvroConvertTests.Component
 {
+    using System.Collections.Generic;
     using AutoFixture;
     using AvroConvert;
     using Xunit;
@@ -51,6 +52,23 @@
             Assert.Equal(toSerialize.NullableIntProperty, deserialized.favorite_number);
             Assert.Equal(toSerialize.StringProperty, deserialized.name);
             Assert.Equal(toSerialize.AndAnotherString, deserialized.favorite_color);
+        }
+
+        [Fact]
+        public void Component_ComplexStruct_AttributeValuesAreResolved()
+        {
+            //Arrange
+            ComplexStruct toSerialize = new ComplexStruct(_fixture.Create<List<int>>());
+
+            //Act
+            var result = AvroConvert.Serialize(toSerialize);
+
+            var deserialized = AvroConvert.Deserialize<ComplexStruct>(result);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(toSerialize, deserialized);
         }
     }
 }

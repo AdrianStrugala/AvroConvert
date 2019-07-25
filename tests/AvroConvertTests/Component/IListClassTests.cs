@@ -146,5 +146,23 @@
             Assert.NotNull(deserialized);
             Assert.Equal(array, deserialized);
         }
+
+        [Fact]
+        public void Component_ObjectIsHashSet_ResultIsTheSameAsInput()
+        {
+            //Arrange
+            HashSet<int> hashset = _fixture.Create<HashSet<int>>();
+
+            //Act
+
+            var result = AvroConvert.Serialize(hashset);
+
+            var deserialized = AvroConvert.Deserialize<HashSet<int>>(result);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(hashset, deserialized);
+        }
     }
 }

@@ -2,6 +2,8 @@
 {
     using System;
     using System.Collections;
+    using System.Linq;
+    using System.Reflection;
     using Schema;
 
     public class Array
@@ -12,9 +14,10 @@
             return (d, e) => WriteArray(itemWriter, d, e);
         }
 
-        private void WriteArray(Encoder.WriteItem itemWriter, object array, IWriter encoder)
+        private void WriteArray(Encoder.WriteItem itemWriter, object @object, IWriter encoder)
         {
-            array = EnsureArrayObject(array);
+            var array = EnsureArrayObject(@object);
+            //var array = @object as System.Array;
             long l = GetArrayLength(array);
             encoder.WriteArrayStart();
             encoder.SetItemCount(l);
@@ -22,30 +25,16 @@
             encoder.WriteArrayEnd();
         }
 
-        private object EnsureArrayObject(object value)
+        private System.Array EnsureArrayObject(object value)
         {
-            Type valueType = value.GetType();
+            var enumerable = value as IEnumerable;
+            var list = enumerable.Cast<object>().ToList();
 
-            if (typeof(IDictionary).IsAssignableFrom(valueType))
-            {
-                var dictionary = value as IDictionary;
-                int length = dictionary.Count;
+            int length = list.Count;
+            dynamic[] result = new dynamic[length];
+            list.CopyTo(result, 0);
 
-                dynamic[] result = new dynamic[length];
-                dictionary.CopyTo(result, 0);
-
-                return result;
-            }
-            else
-            {
-                IList list = value as IList;
-                int length = list.Count;
-
-                dynamic[] result = new dynamic[length];
-                list.CopyTo(result, 0);
-
-                return result;
-            }
+            return result;
         }
 
         private long GetArrayLength(object value)

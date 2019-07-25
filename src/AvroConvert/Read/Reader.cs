@@ -138,7 +138,6 @@ namespace AvroConvert.Read
         {
             int length = ReadInt();
             byte[] buffer = new byte[length];
-            //TODO: Fix this because it's lame;
             ReadFixed(buffer);
             return System.Text.Encoding.UTF8.GetString(buffer);
         }

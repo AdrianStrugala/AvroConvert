@@ -58,5 +58,22 @@
             Assert.Equal(toSerialize.ArriveBy.Month, deserialized.ArriveBy.Month);
             Assert.Equal(toSerialize.ArriveBy.Year, deserialized.ArriveBy.Year);
         }
+
+        [Fact]
+        public void Component_ClassWithDateTimeOffset_ResultIsTheSameAsInput()
+        {
+            //Arrange
+            ClassWithDateTimeOffset toSerialize = _fixture.Create<ClassWithDateTimeOffset>();
+
+            //Act
+            var result = AvroConvert.Serialize(toSerialize);
+
+            var deserialized = AvroConvert.Deserialize<ClassWithDateTimeOffset>(result);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(toSerialize, deserialized);
+        }
     }
 }

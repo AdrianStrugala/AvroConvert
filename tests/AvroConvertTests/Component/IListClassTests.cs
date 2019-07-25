@@ -164,5 +164,23 @@
             Assert.NotNull(deserialized);
             Assert.Equal(hashset, deserialized);
         }
+
+        [Fact]
+        public void Component_MultidimensionalArray_ResultIsTheSameAsInput()
+        {
+            //Arrange
+            MultidimArrayClass array = _fixture.Create<MultidimArrayClass>();
+
+            //Act
+
+            var result = AvroConvert.Serialize(array);
+
+            var deserialized = AvroConvert.Deserialize<MultidimArrayClass>(result);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(array, deserialized);
+        }
     }
 }

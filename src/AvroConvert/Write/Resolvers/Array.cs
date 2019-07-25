@@ -17,7 +17,6 @@
         private void WriteArray(Encoder.WriteItem itemWriter, object @object, IWriter encoder)
         {
             var array = EnsureArrayObject(@object);
-            //var array = @object as System.Array;
             long l = GetArrayLength(array);
             encoder.WriteArrayStart();
             encoder.SetItemCount(l);

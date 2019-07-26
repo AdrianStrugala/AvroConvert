@@ -12,10 +12,16 @@
                 value = string.Empty;
             }
 
-
             if (!(value is string))
             {
-                throw new AvroTypeMismatchException("[String] required to write against [String] schema but found " + value.GetType());
+                try
+                {
+                    value = value.ToString();
+                }
+                catch (Exception e)
+                {
+                    throw new AvroTypeMismatchException("[String] required to write against [String] schema but found " + value.GetType());
+                }
             }
 
             encoder.WriteString((string)value);

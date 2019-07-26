@@ -169,13 +169,14 @@
         public void Component_MultidimensionalArray_ResultIsTheSameAsInput()
         {
             //Arrange
-            MultidimArrayClass array = _fixture.Create<MultidimArrayClass>();
+            MultidimensionalArrayClass array = _fixture.Create<MultidimensionalArrayClass>();
+
 
             //Act
-
             var result = AvroConvert.Serialize(array);
 
-            var deserialized = AvroConvert.Deserialize<MultidimArrayClass>(result);
+            var deserialized = AvroConvert.Deserialize<MultidimensionalArrayClass>(result);
+
 
             //Assert
             Assert.NotNull(result);

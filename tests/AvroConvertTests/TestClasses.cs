@@ -186,50 +186,9 @@
         }
     }
 
-    public class MultidimArrayClass
+    [Equals]
+    public class MultidimensionalArrayClass
     {
-        private int[,,] ArrayField = new int[2, 3, 4]
-        {
-            {
-                {
-                    5341,
-                    5432,
-                    5433,
-                   5434
-                },
-                {
-                    1543,
-                    243,
-                    5433,
-                    43543
-                },
-                {
-                    4321,
-                    2432,
-                    4323,
-                    4
-                }
-            },
-            {
-                {
-                    5,
-                    6,
-                    213,
-                    6
-                },
-                {
-                    123232,
-                    22,
-                    3324,
-                    454
-                },
-                {
-                    12,
-                    2222,
-                    36546564,
-                    4747564
-                }
-            }
-        };
-    };
+        public int[,,] ArrayField { get; set; }
+    }
 }

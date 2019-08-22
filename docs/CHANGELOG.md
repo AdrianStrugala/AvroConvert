@@ -105,3 +105,10 @@ START OF THE PROJECT
 </br>
 **v. 1.6.0 (22.07.19)**
 - Added full support for public fields in classes (in addition to properties)
+</br>
+</br>
+**v. 1.7.0 (22.08.19)**
+- Schema build optimizations
+- Fixed problem with aliases in result
+- Added support for Hashsets
+- Added support for DateTimeOffset type

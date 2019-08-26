@@ -25,22 +25,31 @@ namespace AvroConvert.BuildSchema
     using TypeExtensions = Extensions.TypeExtensions;
 
     /// <summary>
-    /// Allows using standard <see cref="T:System.Runtime.Serialization.DataContractAttribute"/> and 
+    /// Allows optionally using standard <see cref="T:System.Runtime.Serialization.DataContractAttribute"/> and 
     /// <see cref="T:System.Runtime.Serialization.DataMemberAttribute"/> attributes for defining what types/properties/fields
     /// should be serialized.
     /// </summary>
+
+
     public class AvroDataContractResolver : AvroContractResolver
     {
+
         private readonly bool _usePropertyNameAsAlias;
         private readonly bool allowNullable;
         private readonly bool useAlphabeticalOrder;
-
-
-        public AvroDataContractResolver(bool usePropertyNameAsAlias, bool allowNullable = false, bool useAlphabeticalOrder = false)
+        private readonly bool includeOnlyDataContractMembers;
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AvroDataContractResolver"/> class.
+        /// </summary>
+        /// <param name="usePropertyNameAsAlias">If set to <c>true</c>, Aliases get set to property names.</param>
+        /// <param name="allowNullable">If set to <c>true</c>, null values are allowed.</param>
+        /// <param name="useAlphabeticalOrder">If set to <c>true</c> use alphabetical data member order during serialization/deserialization.</param>
+        public AvroDataContractResolver(bool usePropertyNameAsAlias, bool allowNullable = false, bool useAlphabeticalOrder = false, bool includeOnlyDataContractMembers = false)
         {
             _usePropertyNameAsAlias = usePropertyNameAsAlias;
             this.allowNullable = allowNullable;
             this.useAlphabeticalOrder = useAlphabeticalOrder;
+            this.includeOnlyDataContractMembers = includeOnlyDataContractMembers;
         }
 
         /// <summary>
@@ -102,6 +111,11 @@ namespace AvroConvert.BuildSchema
 
             var attributes = type.GetTypeInfo().GetCustomAttributes(false);
             var dataContract = attributes.OfType<DataContractAttribute>().SingleOrDefault();
+            if (dataContract == null && includeOnlyDataContractMembers)
+            {
+                throw new SerializationException(
+                    string.Format(CultureInfo.InvariantCulture, "Type '{0}' is not supported by the resolver.", type));
+            }
 
             var name = StripAvroNonCompatibleCharacters(dataContract?.Name ?? type.Name);
             var nspace = StripAvroNonCompatibleCharacters(dataContract?.Namespace ?? type.Namespace);
@@ -159,7 +173,10 @@ namespace AvroConvert.BuildSchema
             }
 
             var fields = type.GetAllFields();
-            var dataMemberProperties = type.GetAllProperties();
+            var properties = type.GetAllProperties();
+
+            var dataMemberProperties = properties
+                .Where(p => includeOnlyDataContractMembers && p.GetDataMemberAttribute() != null);
 
             var serializedProperties = TypeExtensions.RemoveDuplicates(dataMemberProperties);
             TypeExtensions.CheckPropertyGetters(serializedProperties);
@@ -170,7 +187,9 @@ namespace AvroConvert.BuildSchema
                 {
                     Member = m,
                     Attribute = m.GetCustomAttributes(false).OfType<DataMemberAttribute>().SingleOrDefault(),
-                    Nullable = m.GetCustomAttributes(false).OfType<NullableSchemaAttribute>().Any() || m.GetType().CanContainNull()
+                    Nullable = m.GetCustomAttributes(false).OfType<NullableSchemaAttribute>().Any(), //|| m.GetType().CanContainNull()
+                    DefaultValue = m.GetCustomAttributes(false).OfType<NullableSchemaAttribute>().FirstOrDefault()?.DefaultValue,
+                    HasDefaultValue = m.GetCustomAttributes(false).OfType<NullableSchemaAttribute>().FirstOrDefault() != null ? m.GetCustomAttributes(false).OfType<NullableSchemaAttribute>().FirstOrDefault().HasDefaultValue : false
                 });
 
             IEnumerable<MemberSerializationInfo> result;
@@ -183,6 +202,8 @@ namespace AvroConvert.BuildSchema
                     Name = m.Attribute?.Name ?? m.Member.Name,
                     MemberInfo = m.Member,
                     Nullable = m.Nullable,
+                    DefaultValue = m.DefaultValue,
+                    HasDefaultValue = m.HasDefaultValue,
                     Aliases = { m.Member.Name }
                 });
             }
@@ -192,7 +213,9 @@ namespace AvroConvert.BuildSchema
                 {
                     Name = m.Attribute?.Name ?? m.Member.Name,
                     MemberInfo = m.Member,
-                    Nullable = m.Nullable
+                    Nullable = m.Nullable,
+                    DefaultValue = m.DefaultValue,
+                    HasDefaultValue = m.HasDefaultValue
                 });
             }
 

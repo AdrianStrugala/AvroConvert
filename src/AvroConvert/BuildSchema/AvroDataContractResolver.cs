@@ -164,7 +164,7 @@ namespace AvroConvert.BuildSchema
             var properties = type.GetAllProperties();
 
             var dataMemberProperties = properties
-                .Where(p => includeOnlyDataContractMembers && p.GetDataMemberAttribute() != null);
+                .Where(p => !includeOnlyDataContractMembers || p.GetDataMemberAttribute() != null);
 
             var serializedProperties = TypeExtensions.RemoveDuplicates(dataMemberProperties);
             TypeExtensions.CheckPropertyGetters(serializedProperties);

@@ -12,26 +12,26 @@ The main purpose of the project was to enhance communication between microservic
 * Increased communication security - the data was not visible in plain JSON text
 
 
-# Documentation
+## Documentation
 
 General information: http://avro.apache.org/
 <br></br>
 Wiki: https://cwiki.apache.org/confluence/display/AVRO/Index
 
-# Code samples
+## Code samples
 
-### Serialization
+#### Serialization
 ```csharp
   byte[] avroObject = AvroConvert.Serialize(object yourObject);
 ```
 
-### Deserialization
+#### Deserialization
 ```csharp
   CustomClass deserializedObject = AvroConvert.Deserialize<CustomClass>(byte[] avroObject);
 
   Dictionary<string, object> mapOfPropertiesAndValues = AvroConvert.Deserialize(byte[] avroObject);  
 ```
-### Generating Avro schema for C# classes
+#### Generating Avro schema for C# classes
 
 Using simple class
 ```csharp
@@ -79,7 +79,11 @@ string schemaInJsonFormat = AvroConvert.GenerateSchema(typeof(AttributeClass));
 "{"type":"record","name":"user.User","fields":[{"name":"name","type":["null","string"]},{"name":"favorite_number","type":["null","int"]},{"name":"favorite_color","type":["null","string"]}]}"
 ```  
 
-### Reading Avro schema from Avro encoded object
+#### Reading Avro schema from Avro encoded object
 ```csharp
   string schemaInJsonFormat = AvroConvert.GetSchema(byte[] avroObject)
 ```
+
+## Contribution
+
+We want to improve AvroConvert as much as possible. If you have any idea, found next possible feature, optimization opportunity or better way for integration, leave a comment or pull request. 

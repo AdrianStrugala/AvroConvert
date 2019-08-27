@@ -217,8 +217,9 @@ namespace AvroConvert.BuildSchema
             writer.WriteOptionalProperty("doc", this.Doc);
             writer.WriteOptionalProperty("aliases", this.Aliases);
             writer.WritePropertyName("type");
-            writer.WriteOptionalProperty("default",this.DefaultValue != null ? this.DefaultValue.ToString(): null, this.hasDefaultValue);
             this.TypeSchema.ToJson(writer, seenSchemas);
+            writer.WriteOptionalProperty("default", this.defaultValue, this.hasDefaultValue);
+
             writer.WriteEndObject();
         }
 

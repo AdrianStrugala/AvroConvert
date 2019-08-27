@@ -1,4 +1,6 @@
-﻿namespace AvroConvertTests
+﻿using System.ComponentModel;
+
+namespace AvroConvertTests
 {
     using System;
     using System.Collections.Concurrent;
@@ -190,5 +192,19 @@
     public class MultidimensionalArrayClass
     {
         public int[,,] ArrayField { get; set; }
+    }
+
+
+    [Equals]
+    public class DefaultValueClass
+    {
+        [DefaultValue("Let's go")]
+        public string justSomeProperty { get; set; }
+
+        [DefaultValue(2137)]
+        public long andLongProperty { get; set; }
+
+        [DefaultValue(null)]
+        public long? andNullProperty { get; set; }
     }
 }

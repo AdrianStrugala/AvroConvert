@@ -31,7 +31,7 @@ namespace AvroConvert.BuildSchema
         /// <summary>
         ///     Gets the aliases of the member.
         /// </summary>
-        public ICollection<string> Aliases { get; private set; }
+        public ICollection<string> Aliases { get;  set; }
 
         /// <summary>
         ///     Gets or sets the doc attribute.
@@ -55,9 +55,9 @@ namespace AvroConvert.BuildSchema
         /// Gets or sets a value indicating the default to use when the property is undefined.
         /// </summary>
         /// <value>
-        ///   <c>null</c> or <c>"chosen default value"</c> when a property is undefined in a serialized Avro message.
+        ///   <c>null</c> or the chosen default value, when a property is undefined in a serialized Avro message.
         /// </value>
-        public string DefaultValue { get; set; }
+        public object DefaultValue { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating if the default value has been set.

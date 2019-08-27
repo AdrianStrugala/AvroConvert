@@ -200,13 +200,21 @@ namespace AvroConvert.BuildSchema
         /// <param name="writer">The writer.</param>
         /// <param name="name">The name.</param>
         /// <param name="value">The value.</param>
-        public static void WriteOptionalProperty(this JsonTextWriter writer, string name, string value, bool forceNullDefault = false)
+        public static void WriteOptionalProperty(this JsonTextWriter writer, string name, object value, bool forceNullDefault = false)
         {
-            if (!string.IsNullOrEmpty(value) || forceNullDefault)
+            if (value != null || forceNullDefault)
             {
                 writer.WritePropertyName(name);
-                writer.WriteValue(value);
+                if (value != null)
+                {
+                    writer.WriteValue(value);
+                }
+                else
+                {
+                    writer.WriteNull();
+                }
             }
+
         }
 
         /// <summary>

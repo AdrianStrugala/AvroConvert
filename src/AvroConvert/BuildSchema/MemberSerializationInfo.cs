@@ -31,7 +31,7 @@ namespace AvroConvert.BuildSchema
         /// <summary>
         ///     Gets the aliases of the member.
         /// </summary>
-        public ICollection<string> Aliases { get; private set; }
+        public ICollection<string> Aliases { get;  set; }
 
         /// <summary>
         ///     Gets or sets the doc attribute.
@@ -50,5 +50,9 @@ namespace AvroConvert.BuildSchema
         ///   <c>true</c> if member is nullable; otherwise, <c>false</c>.
         /// </value>
         public bool Nullable { get; set; }
+
+        public bool HasDefaultValue { get; set; }
+
+        public object DefaultValue { get; set; }
     }
 }

@@ -463,8 +463,8 @@ namespace AvroConvert.BuildSchema
                     new NamedEntityAttributes(new SchemaName(info.Name), aliases, info.Doc),
                     fieldSchema,
                     SortOrder.Ascending,
-                    false,
-                    null,
+                    info.HasDefaultValue,
+                    info.DefaultValue,
                     info.MemberInfo,
                     index++);
                 record.AddField(recordField);

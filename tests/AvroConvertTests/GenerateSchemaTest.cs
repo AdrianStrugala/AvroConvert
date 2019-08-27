@@ -15,8 +15,8 @@
             string schema = AvroConvert.GenerateSchema(typeof(DefaultValueClass));
 
             //Assert
-            Assert.Contains("\"default\": \"Let's go\"", schema);
-            Assert.Contains("\"default\": \"2137\"", schema);
+            Assert.Contains("\"default\":\"Let's go\"", schema);
+            Assert.Contains("\"default\":\"2137\"", schema);
         }
     }
 }

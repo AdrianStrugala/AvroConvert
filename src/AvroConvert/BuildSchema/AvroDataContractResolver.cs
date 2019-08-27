@@ -12,18 +12,20 @@
 // 
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
+
+using System.ComponentModel;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.Serialization;
+using AvroConvert.Attributes;
+using AvroConvert.Extensions;
+using TypeExtensions = AvroConvert.Extensions.TypeExtensions;
+
 namespace AvroConvert.BuildSchema
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.Linq;
-    using System.Reflection;
-    using System.Runtime.Serialization;
-    using global::AvroConvert.Attributes;
-    using global::AvroConvert.Extensions;
-    using TypeExtensions = Extensions.TypeExtensions;
-
     /// <summary>
     /// Allows using standard <see cref="T:System.Runtime.Serialization.DataContractAttribute"/> and 
     /// <see cref="T:System.Runtime.Serialization.DataMemberAttribute"/> attributes for defining what types/properties/fields
@@ -134,29 +136,15 @@ namespace AvroConvert.BuildSchema
             {
                 var keyValueProperties = type.GetAllProperties();
 
-                if (_usePropertyNameAsAlias)
+                return keyValueProperties.Select(p => new MemberSerializationInfo
                 {
-                    return keyValueProperties.Select(p => new MemberSerializationInfo
-                    {
-                        Name = p.Name,
-                        MemberInfo = p,
-                        Nullable = false,
-                        Aliases =
-                        {
-                            p.Name
-                        }
-                    }).ToArray();
-                }
-                else
-                {
-                    return keyValueProperties.Select(p => new MemberSerializationInfo
-                    {
-                        Name = p.Name,
-                        MemberInfo = p,
-                        Nullable = false
-                    }).ToArray();
-                }
+                    Name = p.Name,
+                    MemberInfo = p,
+                    Nullable = false,
+                    Aliases = _usePropertyNameAsAlias ? new List<string> { p.Name } : new List<string>()
+                }).ToArray();
             }
+
 
             var fields = type.GetAllFields();
             var dataMemberProperties = type.GetAllProperties();
@@ -170,31 +158,22 @@ namespace AvroConvert.BuildSchema
                 {
                     Member = m,
                     Attribute = m.GetCustomAttributes(false).OfType<DataMemberAttribute>().SingleOrDefault(),
-                    Nullable = m.GetCustomAttributes(false).OfType<NullableSchemaAttribute>().Any() || m.GetType().CanContainNull()
+                    Nullable = m.GetCustomAttributes(false).OfType<NullableSchemaAttribute>().Any() || m.GetType().CanContainNull(),
+                    DefaultValue = m.GetCustomAttributes(false).OfType<DefaultValueAttribute>().SingleOrDefault()?.Value
                 });
 
             IEnumerable<MemberSerializationInfo> result;
 
+            result = members.Select(m => new MemberSerializationInfo
+            {
+                Name = m.Attribute?.Name ?? m.Member.Name,
+                MemberInfo = m.Member,
+                Nullable = m.Nullable,
+                Aliases = _usePropertyNameAsAlias ? new List<string> { m.Member.Name } : new List<string>(),
+                HasDefaultValue = m.DefaultValue != null,
+                DefaultValue = m.DefaultValue
+            });
 
-            if (_usePropertyNameAsAlias)
-            {
-                result = members.Select(m => new MemberSerializationInfo
-                {
-                    Name = m.Attribute?.Name ?? m.Member.Name,
-                    MemberInfo = m.Member,
-                    Nullable = m.Nullable,
-                    Aliases = { m.Member.Name }
-                });
-            }
-            else
-            {
-                result = members.Select(m => new MemberSerializationInfo
-                {
-                    Name = m.Attribute?.Name ?? m.Member.Name,
-                    MemberInfo = m.Member,
-                    Nullable = m.Nullable
-                });
-            }
 
             if (this.useAlphabeticalOrder)
             {

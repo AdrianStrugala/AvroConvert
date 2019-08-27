@@ -1,4 +1,5 @@
-Nuget: (https://www.nuget.org/packages/AvroConvert)
+
+[![Nuget](https://img.shields.io/badge/Nuget-3k-blue)](https://www.nuget.org/packages/AvroConvert)
 
 # AvroConvert
 Small and fast library for serializing C# objects to avro format and vice versa

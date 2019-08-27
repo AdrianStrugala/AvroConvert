@@ -200,6 +200,22 @@ namespace AvroConvert.BuildSchema
         /// <param name="writer">The writer.</param>
         /// <param name="name">The name.</param>
         /// <param name="value">The value.</param>
+        public static void WriteOptionalProperty(this JsonTextWriter writer, string name, string value)
+        {
+            if (!string.IsNullOrEmpty(value))
+            {
+                writer.WritePropertyName(name);
+                writer.WriteValue(value);
+            }
+
+        }
+
+        /// <summary>
+        ///     Writes the optional property.
+        /// </summary>
+        /// <param name="writer">The writer.</param>
+        /// <param name="name">The name.</param>
+        /// <param name="value">The value.</param>
         public static void WriteOptionalProperty(this JsonTextWriter writer, string name, object value, bool forceNullDefault = false)
         {
             if (value != null || forceNullDefault)

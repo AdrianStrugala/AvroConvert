@@ -201,8 +201,13 @@ namespace AvroConvertTests
         [DefaultValue("Let's go")]
         public string justSomeProperty { get; set; }
 
-        [DefaultValue(2137)]
-        public long andLongProperty { get; set; }
+        public long? andLongProperty { get; set; }
+
+        [DefaultValue(9200000000000000007)]
+        public long? andLongBigDefaultedProperty { get; set; }
+
+        [DefaultValue(100)]
+        public long? andLongSmallDefaultedProperty { get; set; }
 
         [DefaultValue(null)]
         public long? andNullProperty { get; set; }

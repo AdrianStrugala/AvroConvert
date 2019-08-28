@@ -167,23 +167,14 @@ namespace AvroConvert.Schema
             }
         }
 
-        /// <summary>
-        /// Returns true if and only if the record contains a field by the given name.
-        /// </summary>
-        /// <param name="fieldName">The name of the field</param>
-        /// <returns>true if the field exists, false otherwise</returns>
         public bool Contains(string fieldName)
         {
-            return fieldLookup.ContainsKey(fieldName);
+            return fieldAliasLookup.ContainsKey(fieldName);
         }
 
-        public bool TryGetField(string fieldName, out Field field)
+        public Field GetField(string fieldName)
         {
-            return fieldLookup.TryGetValue(fieldName, out field);
-        }
-        public bool TryGetFieldAlias(string fieldName, out Field field)
-        {
-            return fieldAliasLookup.TryGetValue(fieldName, out field);
+            return fieldAliasLookup[fieldName];
         }
 
         /// <summary>

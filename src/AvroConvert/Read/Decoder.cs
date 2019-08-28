@@ -127,7 +127,7 @@
 
             for (int i = 0; i < remainingBlocks; i++)
             {
-                result.Add(_resolver.Read(_datumReader));
+                result.Add(_resolver.Resolve(_datumReader));
             }
 
             return result;

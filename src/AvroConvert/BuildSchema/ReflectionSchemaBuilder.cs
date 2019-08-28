@@ -145,16 +145,9 @@ namespace AvroConvert.BuildSchema
 
             typeSchemas = typeSchemas.OrderBy(x =>
             {
+                return (prioritizedType == null && x.Type.ToString() != "Null") || (prioritizedType != null && x.Type.ToString() == "Null");
 
-                if (prioritizedType == null && x.Type.ToString() == "Null") return -1;
-                if ((prioritizedType?.FullName == x.RuntimeType.GenericTypeArguments.FirstOrDefault()?.FullName ||
-                    prioritizedType?.FullName == x.RuntimeType.FullName)
-                    && x.Type.ToString() != "Null") return -1;
-                return 1;
-
-            }).ToList()
-
-            ;
+            }).ToList();
 
             return new UnionSchema(typeSchemas, type);
         }

@@ -22,7 +22,7 @@
 
 
         [Fact]
-        public void GenerateSchema_PropertiesAreDecoratedWithDefaultValueAttributes_SchemaPositionsNullTypeBeforeOtherWhenDefaultIsNull()
+        public void GenerateSchema_PropertiesAreDecoratedWithDefaultValueAttributes_SchemaPositionsNullTypeBeforeOtherInTheTypeArrayWhenDefaultIsNull()
         {
             //Arrange
 
@@ -45,7 +45,7 @@
         }
         
         [Fact]
-        public void JOEY_TypePerfectMatchCastableMakesNullMoveToSecondPlace()
+        public void GenerateSchema_PropertiesAreDecoratedWithDefaultValueAttributes_SchemaPositionsNullTypeAfterOtherInTheTypeArrayWhenDefaultIsNotNull()
         {
             //Arrange
 
@@ -56,14 +56,15 @@
             Assert.Contains("{\"name\":\"andLongBigDefaultedProperty\",\"type\":[\"long\",\"null\"],\"default\":9200000000000000007}", schema);
         }
         [Fact]
-        public void SALLY_TypeCastableMakesNullMoveToSecondPlace_notJustForPerfectMatches()
+        public void GenerateSchema_PropertiesAreDecoratedWithDefaultValueAttributes_SchemaPositionsTypesEffectivelyRegardlessofMismatchBetweenDefaultValueAndPropertyType()
         {
             //Arrange
 
             //Act
             string schema = AvroConvert.GenerateSchema(typeof(DefaultValueClass));
 
-            //Assert
+            // Assert - The DefaultValue is an int, (100)  but the proerty is a long, matching 
+            // isn't necessary, all that's required is that the 'not null' type is first in the schema list
             Assert.Contains("{\"name\":\"andLongSmallDefaultedProperty\",\"type\":[\"long\",\"null\"],\"default\":100}", schema);
         }
         [Fact]

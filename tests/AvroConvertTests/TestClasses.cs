@@ -212,4 +212,21 @@ namespace AvroConvertTests
         [DefaultValue(null)]
         public long? andNullProperty { get; set; }
     }
+
+
+    [Equals]
+    [DataContract]
+    public struct MixedDataMembers
+    {
+        [DataMember]
+        public List<int> savedValues;
+
+        public long? dontSerializeMe { get; set; }
+
+        [DataMember]
+        public long? andAnother { get; set; }
+
+        public int anIntField;
+
+    }
 }

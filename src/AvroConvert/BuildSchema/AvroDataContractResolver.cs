@@ -169,8 +169,8 @@ namespace AvroConvert.BuildSchema
             var serializedProperties = TypeExtensions.RemoveDuplicates(dataMemberProperties);
             TypeExtensions.CheckPropertyGetters(serializedProperties);
 
-            var members = fields
-                .Concat<MemberInfo>(serializedProperties)
+            var members = serializedProperties
+                .Concat<MemberInfo>(!includeOnlyDataContractMembers ? fields : new List<FieldInfo>())
                 .Select(m => new
                 {
                     Member = m,

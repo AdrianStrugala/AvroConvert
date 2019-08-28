@@ -143,13 +143,18 @@ namespace AvroConvert.Read
             Record result = new Record(rs);
             foreach (Field wf in writerSchema)
             {
-                Field rf;
-                if (rs.TryGetFieldAlias(wf.Name, out rf))
+                if (rs.TryGetFieldAlias(wf.Name, out Field rf))
                 {
                     object obj = null;
                     TryGetField(result, wf.Name, rf.Pos, out obj);
 
-                    AddField(result, rf.aliases?[0] ?? wf.Name, rf.Pos, Read(wf.Schema, rf.Schema, dec));
+                    object value = Read(wf.Schema, rf.Schema, dec);
+                    if ((value == null) && (rf.DefaultValue != null))
+                    {
+                        value = rf.DefaultValue.ToObject(typeof(object));
+                    }
+
+                    AddField(result, rf.aliases?[0] ?? wf.Name, rf.Pos, value);
                 }
                 else
                     Skip(wf.Schema, dec);

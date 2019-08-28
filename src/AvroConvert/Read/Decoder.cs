@@ -131,7 +131,7 @@
 
             for (int i = 0; i < remainingBlocks; i++)
             {
-                result.Add(Next());
+                result.Add(resolver.Read(_datumReader));
             }
 
             return result;
@@ -169,20 +169,6 @@
             var reader = new Resolver(writerSchema, readerSchema);
 
             return reader;
-        }
-
-        private object Next()
-        {
-            try
-            {
-                var result = resolver.Read(_datumReader);
-
-                return result;
-            }
-            catch (Exception e)
-            {
-                throw new AvroRuntimeException($"Error fetching next object from block: {e}");
-            }
         }
 
 

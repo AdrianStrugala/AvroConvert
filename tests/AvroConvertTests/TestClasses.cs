@@ -202,6 +202,6 @@ namespace AvroConvertTests
         public string justSomeProperty { get; set; }
 
         [DefaultValue(2137)]
-        public long andLongProperty { get; set; }
+        public long? andLongProperty { get; set; }
     }
 }

@@ -29,7 +29,7 @@ namespace AvroConvert.Read
             return result;
         }
 
-        public object Resolve(Schema.Schema writerSchema, Schema.Schema readerSchema, IReader d, object defaultValue = null)
+        public object Resolve(Schema.Schema writerSchema, Schema.Schema readerSchema, IReader d)
         {
             if (readerSchema.Tag == Schema.Schema.Type.Union && writerSchema.Tag != Schema.Schema.Type.Union)
             {
@@ -39,7 +39,7 @@ namespace AvroConvert.Read
             switch (writerSchema.Tag)
             {
                 case Schema.Schema.Type.Null:
-                    return defaultValue;
+                    return null;
                 case Schema.Schema.Type.Boolean:
                     return d.ReadBoolean();
                 case Schema.Schema.Type.Int:
@@ -99,7 +99,7 @@ namespace AvroConvert.Read
                 case Schema.Schema.Type.Map:
                     return ResolveMap((MapSchema)writerSchema, readerSchema, d);
                 case Schema.Schema.Type.Union:
-                    return ResolveUnion((UnionSchema)writerSchema, readerSchema, d, defaultValue);
+                    return ResolveUnion((UnionSchema)writerSchema, readerSchema, d);
                 default:
                     throw new AvroException("Unknown schema type: " + writerSchema);
             }
@@ -113,7 +113,7 @@ namespace AvroConvert.Read
                 if (readerSchema.Contains(wf.Name))
                 {
                     Field rf = readerSchema.GetField(wf.Name);
-                    object value = Resolve(wf.Schema, rf.Schema, dec, rf.DefaultValue?.ToObject(typeof(object)));
+                    object value = Resolve(wf.Schema, rf.Schema, dec) ?? rf.DefaultValue?.ToObject(typeof(object));
 
                     AddField(result, rf.aliases?[0] ?? wf.Name, rf.Pos, value);
                 }
@@ -198,7 +198,7 @@ namespace AvroConvert.Read
             return result;
         }
 
-        protected virtual object ResolveUnion(UnionSchema writerSchema, Schema.Schema readerSchema, IReader d, object defaultValue)
+        protected virtual object ResolveUnion(UnionSchema writerSchema, Schema.Schema readerSchema, IReader d)
         {
             int index = d.ReadUnionIndex();
             Schema.Schema ws = writerSchema[index];
@@ -209,7 +209,7 @@ namespace AvroConvert.Read
             if (!readerSchema.CanRead(ws))
                 throw new AvroException("Schema mismatch. Reader: " + ReaderSchema + ", writer: " + WriterSchema);
 
-            return Resolve(ws, readerSchema, d, defaultValue);
+            return Resolve(ws, readerSchema, d);
         }
 
         protected virtual object ResolveFixed(FixedSchema writerSchema, Schema.Schema readerSchema, IReader d)

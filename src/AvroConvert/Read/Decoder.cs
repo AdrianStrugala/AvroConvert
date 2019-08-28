@@ -12,9 +12,7 @@
 
     public class Decoder : IDisposable
     {
-        public delegate Resolver CreateDatumReader(Schema writerSchema, Schema readerSchema);
-
-        private readonly Resolver resolver;
+        private readonly Resolver _resolver;
         private readonly IReader _reader;
         private IReader _datumReader;
         private readonly Header _header;
@@ -26,32 +24,30 @@
         private readonly byte[] _syncBuffer;
         private readonly Stream _stream;
         private static Schema _readerSchema;
-        private CreateDatumReader _datumReaderFactory;
 
 
         public static Decoder OpenReader(string filePath)
         {
-            return OpenReader(new FileStream(filePath, FileMode.Open), CreateDefaultReader);
+            return OpenReader(new FileStream(filePath, FileMode.Open));
         }
 
         public static Decoder OpenReader(Stream inStream, Schema schema = null)
         {
             _readerSchema = schema;
-            return OpenReader(inStream, CreateDefaultReader);
+            return OpenReader(inStream);
         }
 
 
-        private static Decoder OpenReader(Stream inStream, CreateDatumReader datumReaderFactory)
+        private static Decoder OpenReader(Stream inStream)
         {
             if (!inStream.CanSeek)
                 throw new AvroRuntimeException("Not a valid input stream - must be seekable!");
 
-            return new Decoder(inStream, datumReaderFactory);         // (not supporting 1.2 or below, format)           
+            return new Decoder(inStream);         // (not supporting 1.2 or below, format)           
         }
 
-        Decoder(Stream stream, CreateDatumReader datumReaderFactory)
+        Decoder(Stream stream)
         {
-            _datumReaderFactory = datumReaderFactory;
             _stream = stream;
             _header = new Header();
             _reader = new Reader(stream);
@@ -90,7 +86,7 @@
 
             // parse schema and set codec 
             _header.Schema = Schema.Parse(GetMetaString(DataFileConstants.SchemaMetadataKey));
-            resolver = _datumReaderFactory(_header.Schema, _readerSchema ?? _header.Schema);
+            _resolver = new Resolver(_header.Schema, _readerSchema ?? _header.Schema);
             _codec = Codec.CreateCodecFromString(GetMetaString(DataFileConstants.CodecMetadataKey));
         }
 
@@ -131,7 +127,7 @@
 
             for (int i = 0; i < remainingBlocks; i++)
             {
-                result.Add(resolver.Read(_datumReader));
+                result.Add(_resolver.Read(_datumReader));
             }
 
             return result;
@@ -163,14 +159,6 @@
         {
             _stream.Dispose();
         }
-
-        private static Resolver CreateDefaultReader(Schema writerSchema, Schema readerSchema)
-        {
-            var reader = new Resolver(writerSchema, readerSchema);
-
-            return reader;
-        }
-
 
         private DataBlock NextRawBlock(DataBlock reuse)
         {

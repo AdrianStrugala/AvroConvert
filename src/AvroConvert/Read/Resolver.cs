@@ -1,44 +1,26 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using AvroConvert.Models;
+using AvroConvert.Schema;
+using AvroConvert.Skip;
+using Enum = AvroConvert.Models.Enum;
+
 namespace AvroConvert.Read
 {
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.Linq;
-    using Models;
-    using Schema;
-    using Enum = Models.Enum;
-
-    public delegate T Reader<out T>();
-
-    public sealed class Resolver
+    public class Resolver
     {
-        private readonly DefaultReader _reader;
+        private readonly Skipper _skipper;
 
-        public Resolver(Schema writerSchema, Schema readerSchema)
-            : this(new DefaultReader(writerSchema, readerSchema))
-        {
-        }
+        public Schema.Schema ReaderSchema { get; }
+        public Schema.Schema WriterSchema { get; }
 
-        public Resolver(DefaultReader reader)
-        {
-            _reader = reader;
-        }
-
-        public object Read(IReader d)
-        {
-            return _reader.Read(d);
-        }
-    }
-
-    public class DefaultReader
-    {
-        public Schema ReaderSchema { get; }
-        public Schema WriterSchema { get; }
-
-        public DefaultReader(Schema writerSchema, Schema readerSchema)
+        public Resolver(Schema.Schema writerSchema, Schema.Schema readerSchema)
         {
             ReaderSchema = readerSchema;
             WriterSchema = writerSchema;
+
+            _skipper = new Skipper();
         }
 
         public object Read(IReader reader)
@@ -47,96 +29,84 @@ namespace AvroConvert.Read
             return result;
         }
 
-        public object Read(Schema writerSchema, Schema readerSchema, IReader d)
+        public object Read(Schema.Schema writerSchema, Schema.Schema readerSchema, IReader d)
         {
-            if (readerSchema.Tag == Schema.Type.Union && writerSchema.Tag != Schema.Type.Union)
+            if (readerSchema.Tag == Schema.Schema.Type.Union && writerSchema.Tag != Schema.Schema.Type.Union)
             {
                 readerSchema = FindBranch(readerSchema as UnionSchema, writerSchema);
             }
 
             switch (writerSchema.Tag)
             {
-                case Schema.Type.Null:
-                    return ReadNull(readerSchema, d);
-                case Schema.Type.Boolean:
-                    return Read<bool>(writerSchema.Tag, readerSchema, d.ReadBoolean);
-                case Schema.Type.Int:
+                case Schema.Schema.Type.Null:
+                    return null;
+                case Schema.Schema.Type.Boolean:
+                    return d.ReadBoolean();
+                case Schema.Schema.Type.Int:
                     {
-                        int i = Read<int>(writerSchema.Tag, readerSchema, d.ReadInt);
+                        int i = d.ReadInt();
                         switch (readerSchema.Tag)
                         {
-                            case Schema.Type.Long:
+                            case Schema.Schema.Type.Long:
                                 return (long)i;
-                            case Schema.Type.Float:
+                            case Schema.Schema.Type.Float:
                                 return (float)i;
-                            case Schema.Type.Double:
+                            case Schema.Schema.Type.Double:
                                 return (double)i;
                             default:
                                 return i;
                         }
                     }
-                case Schema.Type.Long:
+                case Schema.Schema.Type.Long:
                     {
-                        long l = Read<long>(writerSchema.Tag, readerSchema, d.ReadLong);
+                        long l = d.ReadLong();
                         switch (readerSchema.Tag)
                         {
-                            case Schema.Type.Float:
+                            case Schema.Schema.Type.Float:
                                 return (float)l;
-                            case Schema.Type.Double:
+                            case Schema.Schema.Type.Double:
                                 return (double)l;
                             default:
                                 return l;
                         }
                     }
-                case Schema.Type.Float:
+                case Schema.Schema.Type.Float:
                     {
-                        float f = Read<float>(writerSchema.Tag, readerSchema, d.ReadFloat);
+                        float f = d.ReadFloat();
                         switch (readerSchema.Tag)
                         {
-                            case Schema.Type.Double:
+                            case Schema.Schema.Type.Double:
                                 return (double)f;
                             default:
                                 return f;
                         }
                     }
-                case Schema.Type.Double:
-                    return Read<double>(writerSchema.Tag, readerSchema, d.ReadDouble);
-                case Schema.Type.String:
-                    return Read<string>(writerSchema.Tag, readerSchema, d.ReadString);
-                case Schema.Type.Bytes:
-                    return Read<byte[]>(writerSchema.Tag, readerSchema, d.ReadBytes);
-                case Schema.Type.Error:
-                case Schema.Type.Record:
-                    return ReadRecord((RecordSchema)writerSchema, readerSchema, d);
-                case Schema.Type.Enumeration:
-                    return ReadEnum((EnumSchema)writerSchema, readerSchema, d);
-                case Schema.Type.Fixed:
-                    return ReadFixed((FixedSchema)writerSchema, readerSchema, d);
-                case Schema.Type.Array:
-                    return ReadArray((ArraySchema)writerSchema, readerSchema, d);
-                case Schema.Type.Map:
-                    return ReadMap((MapSchema)writerSchema, readerSchema, d);
-                case Schema.Type.Union:
-                    return ReadUnion((UnionSchema)writerSchema, readerSchema, d);
+                case Schema.Schema.Type.Double:
+                    return d.ReadDouble();
+                case Schema.Schema.Type.String:
+                    return d.ReadString();
+                case Schema.Schema.Type.Bytes:
+                    return d.ReadBytes();
+                case Schema.Schema.Type.Error:
+                case Schema.Schema.Type.Record:
+                    return ResolveRecord((RecordSchema)writerSchema, readerSchema, d);
+                case Schema.Schema.Type.Enumeration:
+                    return ResolveEnum((EnumSchema)writerSchema, readerSchema, d);
+                case Schema.Schema.Type.Fixed:
+                    return ResolveFixed((FixedSchema)writerSchema, readerSchema, d);
+                case Schema.Schema.Type.Array:
+                    return ResolveArray((ArraySchema)writerSchema, readerSchema, d);
+                case Schema.Schema.Type.Map:
+                    return ResolveMap((MapSchema)writerSchema, readerSchema, d);
+                case Schema.Schema.Type.Union:
+                    return ResolveUnion((UnionSchema)writerSchema, readerSchema, d);
                 default:
                     throw new AvroException("Unknown schema type: " + writerSchema);
             }
         }
 
 
-        protected virtual object ReadNull(Schema readerSchema, IReader d)
-        {
-            d.ReadNull();
-            return null;
-        }
-
-        protected S Read<S>(Schema.Type tag, Schema readerSchema, Reader<S> reader)
-        {
-            return reader();
-        }
-
-
-        protected virtual IDictionary<string, object> ReadRecord(RecordSchema writerSchema, Schema readerSchema, IReader dec)
+        protected virtual IDictionary<string, object> ResolveRecord(RecordSchema writerSchema, Schema.Schema readerSchema, IReader dec)
         {
             RecordSchema rs = (RecordSchema)readerSchema;
 
@@ -157,7 +127,7 @@ namespace AvroConvert.Read
                     AddField(result, rf.aliases?[0] ?? wf.Name, rf.Pos, value);
                 }
                 else
-                    Skip(wf.Schema, dec);
+                    _skipper.Skip(wf.Schema, dec);
 
             }
             return result.Contents;
@@ -175,14 +145,14 @@ namespace AvroConvert.Read
         }
 
 
-        protected virtual object ReadEnum(EnumSchema writerSchema, Schema readerSchema, IReader d)
+        protected virtual object ResolveEnum(EnumSchema writerSchema, Schema.Schema readerSchema, IReader d)
         {
             EnumSchema es = readerSchema as EnumSchema;
             return new Enum(es, writerSchema[d.ReadEnum()]);
         }
 
 
-        protected virtual object ReadArray(ArraySchema writerSchema, Schema readerSchema, IReader d)
+        protected virtual object ResolveArray(ArraySchema writerSchema, Schema.Schema readerSchema, IReader d)
         {
             ArraySchema rs = (ArraySchema)readerSchema;
             object[] result = new object[0];
@@ -220,7 +190,7 @@ namespace AvroConvert.Read
             return result;
         }
 
-        protected virtual object ReadMap(MapSchema writerSchema, Schema readerSchema, IReader d)
+        protected virtual object ResolveMap(MapSchema writerSchema, Schema.Schema readerSchema, IReader d)
         {
             MapSchema rs = (MapSchema)readerSchema;
             Dictionary<string, object> result = new Dictionary<string, object>();
@@ -236,27 +206,27 @@ namespace AvroConvert.Read
             return result;
         }
 
-        protected virtual object ReadUnion(UnionSchema writerSchema, Schema readerSchema, IReader d)
+        protected virtual object ResolveUnion(UnionSchema writerSchema, Schema.Schema readerSchema, IReader d)
         {
             int index = d.ReadUnionIndex();
-            Schema ws = writerSchema[index];
+            Schema.Schema ws = writerSchema[index];
 
             if (readerSchema is UnionSchema unionSchema)
                 readerSchema = FindBranch(unionSchema, ws);
             else
-                if (!readerSchema.CanRead(ws))
+            if (!readerSchema.CanRead(ws))
                 throw new AvroException("Schema mismatch. Reader: " + ReaderSchema + ", writer: " + WriterSchema);
 
             return Read(ws, readerSchema, d);
         }
 
-        protected virtual object ReadFixed(FixedSchema writerSchema, Schema readerSchema, IReader d)
+        protected virtual object ResolveFixed(FixedSchema writerSchema, Schema.Schema readerSchema, IReader d)
         {
             FixedSchema rs = (FixedSchema)readerSchema;
             if (rs.Size != writerSchema.Size)
             {
                 throw new AvroException("Size mismatch between reader and writer fixed schemas. Encoder: " + writerSchema +
-                    ", reader: " + readerSchema);
+                                        ", reader: " + readerSchema);
             }
 
             object ru = new Fixed(rs);
@@ -265,77 +235,11 @@ namespace AvroConvert.Read
             return ru;
         }
 
-        protected virtual void Skip(Schema writerSchema, IReader d)
-        {
-            switch (writerSchema.Tag)
-            {
-                case Schema.Type.Null:
-                    d.SkipNull();
-                    break;
-                case Schema.Type.Boolean:
-                    d.SkipBoolean();
-                    break;
-                case Schema.Type.Int:
-                    d.SkipInt();
-                    break;
-                case Schema.Type.Long:
-                    d.SkipLong();
-                    break;
-                case Schema.Type.Float:
-                    d.SkipFloat();
-                    break;
-                case Schema.Type.Double:
-                    d.SkipDouble();
-                    break;
-                case Schema.Type.String:
-                    d.SkipString();
-                    break;
-                case Schema.Type.Bytes:
-                    d.SkipBytes();
-                    break;
-                case Schema.Type.Record:
-                    foreach (Field f in (RecordSchema)writerSchema) Skip(f.Schema, d);
-                    break;
-                case Schema.Type.Enumeration:
-                    d.SkipEnum();
-                    break;
-                case Schema.Type.Fixed:
-                    d.SkipFixed(((FixedSchema)writerSchema).Size);
-                    break;
-                case Schema.Type.Array:
-                    {
-                        Schema s = ((ArraySchema)writerSchema).ItemSchema;
-                        for (long n = d.ReadArrayStart(); n != 0; n = d.ReadArrayNext())
-                        {
-                            for (long i = 0; i < n; i++) Skip(s, d);
-                        }
-                    }
-                    break;
-                case Schema.Type.Map:
-                    {
-                        Schema s = ((MapSchema)writerSchema).ValueSchema;
-                        for (long n = d.ReadMapStart(); n != 0; n = d.ReadMapNext())
-                        {
-                            for (long i = 0; i < n; i++) { d.SkipString(); Skip(s, d); }
-                        }
-                    }
-                    break;
-                case Schema.Type.Union:
-                    Skip(((UnionSchema)writerSchema)[d.ReadUnionIndex()], d);
-                    break;
-                case Schema.Type.Error:
-                    break;
-                default:
-                    throw new AvroException("Unknown schema type: " + writerSchema);
-            }
-        }
-
-        protected static Schema FindBranch(UnionSchema us, Schema s)
+        protected static Schema.Schema FindBranch(UnionSchema us, Schema.Schema s)
         {
             int index = us.MatchingBranch(s);
             if (index >= 0) return us[index];
             throw new AvroException("No matching schema for " + s + " in " + us);
         }
-
     }
 }

@@ -37,9 +37,9 @@ Deserialization to map of property names and values
 Dictionary<string, object> mapOfPropertiesAndValues = AvroConvert.Deserialize(byte[] avroObject);  
 ```
 
-Deserialization providing default value in the case, when a property value is null
+Deserialization when a property value is null, but schema contains information about default value
 ```csharp
-//Model
+//Model used for serialization
 public class DefaultValueClass
 {
     [DefaultValue("Let's go")]

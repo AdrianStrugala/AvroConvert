@@ -113,7 +113,7 @@ namespace AvroConvert.Read
                 if (readerSchema.Contains(wf.Name))
                 {
                     Field rf = readerSchema.GetField(wf.Name);
-                    object value = Resolve(wf.Schema, rf.Schema, dec) ?? rf.DefaultValue?.ToObject(typeof(object));
+                    object value = Resolve(wf.Schema, rf.Schema, dec) ?? wf.DefaultValue?.ToObject(typeof(object));
 
                     AddField(result, rf.aliases?[0] ?? wf.Name, rf.Pos, value);
                 }

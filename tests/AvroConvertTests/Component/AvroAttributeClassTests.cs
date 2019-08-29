@@ -72,7 +72,7 @@
         }
 
         [Fact]
-        public void Component_FieldsWithDefaultValueAttributes_NullValuesAreReplacedWithDefault()
+        public void Component_WriteSchemaContainsDefaultValuesForProperies_NullValuesAreReplacedWithDefault()
         {
             //Arrange
             DefaultValueClass defaultValueClass = new DefaultValueClass();

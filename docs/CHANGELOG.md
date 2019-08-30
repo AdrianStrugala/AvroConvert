@@ -112,3 +112,11 @@ START OF THE PROJECT
 - Fixed problem with aliases in result
 - Added support for Hashsets
 - Added support for DateTimeOffset type
+</br>
+</br>
+**v. 1.8.0 (30.08.19)**
+- Added possibility to define DefaultValue for members
+- DefaultValue is visible in the schema header
+- DefaultValue is taken into consideration in deserialization when member value is null
+- Added possiblity to generate schema containing only members decorated with DataMember attribute
+- Added possibility to provide schema used for Deserialization

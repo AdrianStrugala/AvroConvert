@@ -20,6 +20,12 @@ namespace AvroConvertTests
     }
 
     [Equals]
+    public class UserNameClass
+    {
+        public string name { get; set; }
+    }
+
+    [Equals]
     public class SomeTestClass
     {
         public NestedTestClass objectProperty { get; set; }

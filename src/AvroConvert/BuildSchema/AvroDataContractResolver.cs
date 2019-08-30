@@ -37,21 +37,23 @@ namespace AvroConvert.BuildSchema
     {
 
         private readonly bool _usePropertyNameAsAlias;
-        private readonly bool allowNullable;
-        private readonly bool useAlphabeticalOrder;
-        private readonly bool includeOnlyDataContractMembers;
+        private readonly bool _allowNullable;
+        private readonly bool _useAlphabeticalOrder;
+        private readonly bool _includeOnlyDataContractMembers;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="AvroDataContractResolver"/> class.
         /// </summary>
         /// <param name="usePropertyNameAsAlias">If set to <c>true</c>, Aliases get set to property names.</param>
         /// <param name="allowNullable">If set to <c>true</c>, null values are allowed.</param>
         /// <param name="useAlphabeticalOrder">If set to <c>true</c> use alphabetical data member order during serialization/deserialization.</param>
+        /// <param name="includeOnlyDataContractMembers">If set to <c>true</c> members without DataMemberAttribute won't be taken into consideration in serialization/deserialization.</param>
         public AvroDataContractResolver(bool usePropertyNameAsAlias, bool allowNullable = false, bool useAlphabeticalOrder = false, bool includeOnlyDataContractMembers = false)
         {
             _usePropertyNameAsAlias = usePropertyNameAsAlias;
-            this.allowNullable = allowNullable;
-            this.useAlphabeticalOrder = useAlphabeticalOrder;
-            this.includeOnlyDataContractMembers = includeOnlyDataContractMembers;
+            _allowNullable = allowNullable;
+            _useAlphabeticalOrder = useAlphabeticalOrder;
+            _includeOnlyDataContractMembers = includeOnlyDataContractMembers;
         }
 
         /// <summary>
@@ -95,7 +97,7 @@ namespace AvroConvert.BuildSchema
                     string.Format(CultureInfo.InvariantCulture, "Type '{0}' is not supported by the resolver.", type));
             }
 
-            bool canContainNull = this.allowNullable || type.CanContainNull();
+            bool canContainNull = this._allowNullable || type.CanContainNull();
 
             if (type.IsInterface() ||
                 type.IsNativelySupported() ||
@@ -113,7 +115,7 @@ namespace AvroConvert.BuildSchema
 
             var attributes = type.GetTypeInfo().GetCustomAttributes(false);
             var dataContract = attributes.OfType<DataContractAttribute>().SingleOrDefault();
-            if (dataContract == null && includeOnlyDataContractMembers)
+            if (dataContract == null && _includeOnlyDataContractMembers)
             {
                 throw new SerializationException(
                     string.Format(CultureInfo.InvariantCulture, "Type '{0}' is not supported by the resolver.", type));
@@ -161,16 +163,13 @@ namespace AvroConvert.BuildSchema
 
 
             var fields = type.GetAllFields();
-            var properties = type.GetAllProperties();
-
-            var dataMemberProperties = properties
-                .Where(p => !includeOnlyDataContractMembers || p.GetDataMemberAttribute() != null);
+            var dataMemberProperties = type.GetAllProperties();
 
             var serializedProperties = TypeExtensions.RemoveDuplicates(dataMemberProperties);
             TypeExtensions.CheckPropertyGetters(serializedProperties);
 
-            var members = serializedProperties
-                .Concat<MemberInfo>(!includeOnlyDataContractMembers ? fields : new List<FieldInfo>())
+            var members = fields
+                .Concat<MemberInfo>(serializedProperties)
                 .Select(m => new
                 {
                     Member = m,
@@ -179,6 +178,11 @@ namespace AvroConvert.BuildSchema
                     DefaultValue = m.GetCustomAttributes(false).OfType<DefaultValueAttribute>().FirstOrDefault()?.Value,
                     HasDefaultValue = m.GetCustomAttributes(false).OfType<DefaultValueAttribute>().Any()
                 });
+
+            if (_includeOnlyDataContractMembers)
+            {
+                members = members.Where(m => m.Attribute != null);
+            }
 
             IEnumerable<MemberSerializationInfo> result;
 
@@ -193,7 +197,7 @@ namespace AvroConvert.BuildSchema
             });
 
 
-            if (this.useAlphabeticalOrder)
+            if (this._useAlphabeticalOrder)
             {
                 result = result.OrderBy(p => p.Name);
             }

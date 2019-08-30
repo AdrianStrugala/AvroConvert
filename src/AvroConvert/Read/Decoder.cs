@@ -31,9 +31,13 @@
             return OpenReader(new FileStream(filePath, FileMode.Open));
         }
 
-        public static Decoder OpenReader(Stream inStream, Schema schema = null)
+        public static Decoder OpenReader(Stream inStream, string schema = null)
         {
-            _readerSchema = schema;
+            if (schema != null)
+            {
+                _readerSchema = Schema.Parse(schema);
+            }
+         
             return OpenReader(inStream);
         }
 

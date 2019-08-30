@@ -51,8 +51,20 @@ namespace AvroConvert.BuildSchema
         /// </value>
         public bool Nullable { get; set; }
 
-        public bool HasDefaultValue { get; set; }
-
+        /// <summary>
+        /// Gets or sets a value indicating the default to use when the property is undefined.
+        /// </summary>
+        /// <value>
+        ///   <c>null</c> or the chosen default value, when a property is undefined in a serialized Avro message.
+        /// </value>
         public object DefaultValue { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating if the default value has been set.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> when the DefaultValue has been explicitly set.
+        /// </value>
+        public bool HasDefaultValue { get; set; }
     }
 }

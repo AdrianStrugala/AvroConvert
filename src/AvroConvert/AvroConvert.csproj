@@ -6,7 +6,7 @@
     <Authors>Adrian Strugala</Authors>
     <AssemblyVersion>1.7.0.0</AssemblyVersion>
     <FileVersion>1.7.0.0</FileVersion>
-    <Version>1.7.0</Version>
+    <Version>1.7.1</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Description>Apache Avro serializer for .NET.</Description>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>

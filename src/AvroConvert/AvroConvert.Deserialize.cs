@@ -20,7 +20,7 @@
                               });
         }
 
-        public static List<object> Deserialize(byte[] avroBytes, Schema.Schema schema = null)
+        public static List<object> Deserialize(byte[] avroBytes, string schema = null)
         {
             var result = new List<object>();
 
@@ -36,12 +36,11 @@
             return result;
         }
 
-        public static T Deserialize<T>(byte[] avroBytes)
+        public static T Deserialize<T>(byte[] avroBytes, string schema = null)
         {
             T result;
 
-            string schema = GenerateSchema(typeof(T), true);
-            var deserialized = Deserialize(avroBytes, Schema.Schema.Parse(schema));
+            var deserialized = Deserialize(avroBytes, schema ?? GenerateSchema(typeof(T), true));
 
             result = Mapper.Map<T>(deserialized[0]);
 

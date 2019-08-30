@@ -13,7 +13,7 @@
             _fixture = new Fixture();
         }
 
-        [Fact]
+        [Fact (Skip = "ConcurrentBagClass is not supported yet")]
         public void Component_SerializeConcurrentBagClass_ResultIsTheSameAsInput()
         {
             //Arrange

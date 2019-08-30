@@ -18,7 +18,7 @@
                 {
                     value = value.ToString();
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     throw new AvroTypeMismatchException("[String] required to write against [String] schema but found " + value.GetType());
                 }

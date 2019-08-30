@@ -14,6 +14,12 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{45B109EA-AE78-4432-8DE5-ABE152EC9ED5}"
 	ProjectSection(SolutionItems) = preProject
 		docs\CHANGELOG.md = docs\CHANGELOG.md
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{97C3224F-26F8-4FDF-A047-3D84C8625C94}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
 	EndProjectSection
 EndProject
 Global

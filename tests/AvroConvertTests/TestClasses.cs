@@ -1,4 +1,6 @@
-﻿namespace AvroConvertTests
+﻿using System.ComponentModel;
+
+namespace AvroConvertTests
 {
     using System;
     using System.Collections.Concurrent;
@@ -15,6 +17,12 @@
         public int? favorite_number { get; set; }
 
         public string favorite_color { get; set; }
+    }
+
+    [Equals]
+    public class UserNameClass
+    {
+        public string name { get; set; }
     }
 
     [Equals]
@@ -190,5 +198,41 @@
     public class MultidimensionalArrayClass
     {
         public int[,,] ArrayField { get; set; }
+    }
+
+
+    [Equals]
+    public class DefaultValueClass
+    {
+        [DefaultValue("Let's go")]
+        public string justSomeProperty { get; set; }
+
+        public long? andLongProperty { get; set; }
+
+        [DefaultValue(9200000000000000007)]
+        public long? andLongBigDefaultedProperty { get; set; }
+
+        [DefaultValue(100)]
+        public long? andLongSmallDefaultedProperty { get; set; }
+
+        [DefaultValue(null)]
+        public long? andNullProperty { get; set; }
+    }
+
+
+    [Equals]
+    [DataContract]
+    public struct MixedDataMembers
+    {
+        [DataMember]
+        public List<int> savedValues;
+
+        public long? dontSerializeMe { get; set; }
+
+        [DataMember]
+        public long? andAnother { get; set; }
+
+        public int anIntField;
+
     }
 }

@@ -89,7 +89,7 @@ namespace AvroConvert.BuildSchema
             return this.CreateSchema(false, type, new Dictionary<string, NamedSchema>(), 0);
         }
 
-        private TypeSchema CreateSchema(bool forceNullable, Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth)
+        private TypeSchema CreateSchema(bool forceNullable, Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth, Type prioritizedType = null)
         {
             if (currentDepth == this.settings.MaxItemsInSchemaTree)
             {
@@ -124,11 +124,11 @@ namespace AvroConvert.BuildSchema
             }
 
             return typeInfo.Nullable || forceNullable
-                ? this.CreateNullableSchema(type, schemas, currentDepth)
+                ? this.CreateNullableSchema(type, schemas, currentDepth, prioritizedType)
                 : this.CreateNotNullableSchema(type, schemas, currentDepth);
         }
 
-        private TypeSchema CreateNullableSchema(Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth)
+        private TypeSchema CreateNullableSchema(Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth, Type prioritizedType)
         {
             var typeSchemas = new List<TypeSchema> { new NullSchema(type) };
             var notNullableSchema = this.CreateNotNullableSchema(type, schemas, currentDepth);
@@ -142,6 +142,13 @@ namespace AvroConvert.BuildSchema
             {
                 typeSchemas.Add(notNullableSchema);
             }
+
+            typeSchemas = typeSchemas.OrderBy(x =>
+            {
+                return (prioritizedType == null && x.Type.ToString() != "Null") || (prioritizedType != null && x.Type.ToString() == "Null");
+
+            }).ToList();
+
             return new UnionSchema(typeSchemas, type);
         }
 
@@ -383,6 +390,7 @@ namespace AvroConvert.BuildSchema
 
         private TypeSchema TryBuildUnionSchema(Type memberType, MemberInfo memberInfo, Dictionary<string, NamedSchema> schemas, uint currentDepth)
         {
+
             var attribute = memberInfo.GetCustomAttributes(false).OfType<AvroUnionAttribute>().FirstOrDefault();
             if (attribute == null)
             {
@@ -394,6 +402,7 @@ namespace AvroConvert.BuildSchema
             {
                 result.Add(memberType);
             }
+
 
             return new UnionSchema(result.Select(type => this.CreateNotNullableSchema(type, schemas, currentDepth + 1)).ToList(), memberType);
         }
@@ -454,7 +463,9 @@ namespace AvroConvert.BuildSchema
 
                 TypeSchema fieldSchema = this.TryBuildUnionSchema(memberType, info.MemberInfo, schemas, currentDepth)
                                          ?? this.TryBuildFixedSchema(memberType, info.MemberInfo, record)
-                                         ?? this.CreateSchema(info.Nullable, memberType, schemas, currentDepth + 1);
+                                         ?? this.CreateSchema(info.Nullable, memberType, schemas, currentDepth + 1, info.DefaultValue?.GetType());
+
+
 
                 var aliases = info
                     .Aliases
@@ -463,8 +474,8 @@ namespace AvroConvert.BuildSchema
                     new NamedEntityAttributes(new SchemaName(info.Name), aliases, info.Doc),
                     fieldSchema,
                     SortOrder.Ascending,
-                    false,
-                    null,
+                    info.HasDefaultValue,
+                    info.DefaultValue,
                     info.MemberInfo,
                     index++);
                 record.AddField(recordField);

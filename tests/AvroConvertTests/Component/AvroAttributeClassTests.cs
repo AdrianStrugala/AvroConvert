@@ -70,5 +70,28 @@
             Assert.NotNull(deserialized);
             Assert.Equal(toSerialize, deserialized);
         }
+
+        [Fact]
+        public void Component_WriteSchemaContainsDefaultValuesForProperies_NullValuesAreReplacedWithDefault()
+        {
+            //Arrange
+            DefaultValueClass defaultValueClass = new DefaultValueClass();
+            defaultValueClass.andLongBigDefaultedProperty = null;
+            defaultValueClass.justSomeProperty = null;
+            defaultValueClass.andLongSmallDefaultedProperty = null;
+
+            //Act
+            var result = AvroConvert.Serialize(defaultValueClass);
+
+            var deserialized = AvroConvert.Deserialize<DefaultValueClass>(result);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal("Let's go", deserialized.justSomeProperty);
+            Assert.Equal(9200000000000000007, deserialized.andLongBigDefaultedProperty);
+            Assert.Equal(100, deserialized.andLongSmallDefaultedProperty);
+            Assert.Null(deserialized.andNullProperty);
+        }
     }
 }

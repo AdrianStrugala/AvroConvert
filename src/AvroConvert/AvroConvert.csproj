@@ -4,9 +4,9 @@
     <OutputType>Library</OutputType>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>Adrian Strugala</Authors>
-    <AssemblyVersion>1.7.0.0</AssemblyVersion>
-    <FileVersion>1.7.0.0</FileVersion>
-    <Version>1.7.0</Version>
+    <AssemblyVersion>1.8.0.0</AssemblyVersion>
+    <FileVersion>1.8.0.0</FileVersion>
+    <Version>1.8.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Description>Apache Avro serializer for .NET.</Description>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>

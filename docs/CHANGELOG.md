@@ -120,3 +120,7 @@ START OF THE PROJECT
 - DefaultValue is taken into consideration in deserialization when member value is null
 - Added possiblity to generate schema containing only members decorated with DataMember attribute
 - Added possibility to provide schema used for Deserialization
+</br>
+</br>
+**v. 1.8.1 (09.12.19)**
+- Fixed bug during deserializaion of object conaining property with empty list

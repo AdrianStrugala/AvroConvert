@@ -1,4 +1,7 @@
-﻿namespace AvroConvertTests.Component
+﻿using System;
+using System.Collections.Generic;
+
+namespace AvroConvertTests.Component
 {
     using AutoFixture;
     using AvroConvert;
@@ -12,6 +15,7 @@
         {
             _fixture = new Fixture();
         }
+
         [Fact]
         public void Serialize_ThenDeserialize_ObjectsAreEqual()
         {
@@ -38,8 +42,7 @@
         public void Serialize_ObjectContainsGuid_ResultIsTheSameAsInput()
         {
             //Arrange
-            ClassWithGuid
-                testClass = _fixture.Create<ClassWithGuid>();
+            ClassWithGuid testClass = _fixture.Create<ClassWithGuid>();
 
             //Act
 
@@ -142,7 +145,19 @@
         public void Serialize_ByteArray_ResultIsTheSameAsInput()
         {
             //Arrange
-            var testObject = new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+            var testObject = new byte[]
+            {
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+            };
 
             //Act
             var result = AvroConvert.Serialize(testObject);

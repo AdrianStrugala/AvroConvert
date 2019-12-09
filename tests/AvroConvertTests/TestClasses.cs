@@ -1,14 +1,12 @@
 ﻿using System.ComponentModel;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Runtime.Serialization;
+using AvroConvert.Attributes;
 
 namespace AvroConvertTests
 {
-    using System;
-    using System.Collections.Concurrent;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Runtime.Serialization;
-    using AvroConvert.Attributes;
-
     [Equals]
     public class User
     {

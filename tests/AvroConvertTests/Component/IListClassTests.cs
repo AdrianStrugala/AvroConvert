@@ -165,6 +165,25 @@
             Assert.Equal(hashset, deserialized);
         }
 
+        [Fact]
+        public void Component_ObjectContainsEmptyList_ResultIsTheSameAsInput()
+        {
+            //Arrange
+            ClassWithConstructorPopulatingProperty testClass = new ClassWithConstructorPopulatingProperty();
+
+
+            //Act
+            var result = AvroConvert.Serialize(testClass);
+
+            var deserialized = AvroConvert.Deserialize<ClassWithConstructorPopulatingProperty>(result);
+
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(testClass, deserialized);
+        }
+
         [Fact (Skip = "MultidimensionalArray is not supported yet")]
         public void Component_MultidimensionalArray_ResultIsTheSameAsInput()
         {

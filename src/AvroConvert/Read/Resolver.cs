@@ -156,7 +156,7 @@ namespace AvroConvert.Read
                 }
             }
 
-            if (result[0] is IDictionary)
+            if ((result.Length > 0) && result[0] is IDictionary)
             {
                 return ResolveDictionaryFromArray(result);
             }

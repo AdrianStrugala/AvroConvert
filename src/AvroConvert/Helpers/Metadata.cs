@@ -1,7 +1,7 @@
-﻿namespace AvroConvert.Helpers
-{
-    using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
+namespace SolTechnology.Avro.Helpers
+{
     public class Metadata
     {
         private readonly Dictionary<string, byte[]> _value;

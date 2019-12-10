@@ -12,11 +12,12 @@
 // 
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
-namespace AvroConvert.BuildSchema
-{
-    using System;
-    using System.Globalization;
 
+using System;
+using System.Globalization;
+
+namespace SolTechnology.Avro.BuildSchema
+{
     /// <summary>
     /// This attribute determines the size of the Avro fixed byte array.
     /// </summary>

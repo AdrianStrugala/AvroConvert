@@ -12,12 +12,13 @@
 // 
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
-namespace AvroConvert.BuildSchema
-{
-    using System;
-    using System.Collections.Generic;
-    using global::AvroConvert.Extensions;
 
+using System;
+using System.Collections.Generic;
+using SolTechnology.Avro.Extensions;
+
+namespace SolTechnology.Avro.BuildSchema
+{
     /// <summary>
     ///     Provides a mechanism for dynamically mapping C# types to and from Avro schema.
     ///     Using derived contract resolvers, the <see cref="Microsoft.Hadoop.Avro.IAvroSerializer{T}"/> can identify what fields should be

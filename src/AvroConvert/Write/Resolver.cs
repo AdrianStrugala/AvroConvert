@@ -1,9 +1,9 @@
-﻿namespace AvroConvert.Write
-{
-    using Exceptions;
-    using Resolvers;
-    using Schema;
+﻿using SolTechnology.Avro.Exceptions;
+using SolTechnology.Avro.Schema;
+using SolTechnology.Avro.Write.Resolvers;
 
+namespace SolTechnology.Avro.Write
+{
     public static class Resolver
     {
         public delegate void Writer<in T>(T t);
@@ -31,38 +31,38 @@
             Long = new Long();
         }
 
-        public static Encoder.WriteItem ResolveWriter(Schema schema)
+        public static Encoder.WriteItem ResolveWriter(Schema.Schema schema)
         {
             switch (schema.Tag)
             {
-                case Schema.Type.Null:
+                case Schema.Schema.Type.Null:
                     return Null.Resolve;
-                case Schema.Type.Boolean:
+                case Schema.Schema.Type.Boolean:
                     return (v, e) => Write<bool>(v, schema.Tag, e.WriteBoolean);
-                case Schema.Type.Int:
+                case Schema.Schema.Type.Int:
                     return (v, e) => Write<int>(v, schema.Tag, e.WriteInt);
-                case Schema.Type.Long:
+                case Schema.Schema.Type.Long:
                     return Long.Resolve;
-                case Schema.Type.Float:
+                case Schema.Schema.Type.Float:
                     return (v, e) => Write<float>(v, schema.Tag, e.WriteFloat);
-                case Schema.Type.Double:
+                case Schema.Schema.Type.Double:
                     return (v, e) => Write<double>(v, schema.Tag, e.WriteDouble);
-                case Schema.Type.String:
+                case Schema.Schema.Type.String:
                     return String.Resolve;
-                case Schema.Type.Bytes:
+                case Schema.Schema.Type.Bytes:
                     return (v, e) => Write<byte[]>(v, schema.Tag, e.WriteBytes);
-                case Schema.Type.Error:
-                case Schema.Type.Record:
+                case Schema.Schema.Type.Error:
+                case Schema.Schema.Type.Record:
                     return Record.Resolve((RecordSchema)schema);
-                case Schema.Type.Enumeration:
+                case Schema.Schema.Type.Enumeration:
                     return Enum.Resolve((EnumSchema)schema);
-                case Schema.Type.Fixed:
+                case Schema.Schema.Type.Fixed:
                     return Fixed.Resolve((FixedSchema)schema);
-                case Schema.Type.Array:
+                case Schema.Schema.Type.Array:
                     return Array.Resolve((ArraySchema)schema);
-                case Schema.Type.Map:
+                case Schema.Schema.Type.Map:
                     return Map.Resolve((MapSchema)schema);
-                case Schema.Type.Union:
+                case Schema.Schema.Type.Union:
                     return Union.Resolve((UnionSchema)schema);
                 default:
                     return (v, e) =>
@@ -78,7 +78,7 @@
         /// <param name="value">The value to be serialized</param>
         /// <param name="tag">The schema type tag</param>
         /// <param name="writer">The writer which should be used to write the given type.</param>
-        private static void Write<S>(object value, Schema.Type tag, Writer<S> writer)
+        private static void Write<S>(object value, Schema.Schema.Type tag, Writer<S> writer)
         {
             if (value == null)
             {

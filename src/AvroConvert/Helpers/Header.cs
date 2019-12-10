@@ -16,11 +16,10 @@
  * limitations under the License.
  */
 
-namespace AvroConvert.Helpers
-{
-    using System.Collections.Generic;
-    using Schema;
+using System.Collections.Generic;
 
+namespace SolTechnology.Avro.Helpers
+{
     public class Header
     {
         private IDictionary<string, byte[]> _metaData;
@@ -28,7 +27,7 @@ namespace AvroConvert.Helpers
 
         public IDictionary<string, byte[]> MetaData { get { return _metaData; }}
         public byte[] SyncData { get { return _syncData; }}
-        public Schema Schema { get; set; }
+        public Schema.Schema Schema { get; set; }
 
         public Header()
         {

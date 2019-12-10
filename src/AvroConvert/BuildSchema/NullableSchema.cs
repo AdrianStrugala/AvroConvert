@@ -12,12 +12,13 @@
 // 
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
-namespace AvroConvert.BuildSchema
-{
-    using System;
-    using System.Collections.Generic;
-    using Newtonsoft.Json;
 
+using System;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+
+namespace SolTechnology.Avro.BuildSchema
+{
     /// <summary>
     /// Artificial node for nullable types.
     /// </summary>
@@ -52,7 +53,7 @@ namespace AvroConvert.BuildSchema
             get { return this.valueSchema; }
         }
 
-        internal override global::AvroConvert.Schema.Schema.Type Type => valueSchema.Type;
+        internal override global::SolTechnology.Avro.Schema.Schema.Type Type => valueSchema.Type;
 
         internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
         {

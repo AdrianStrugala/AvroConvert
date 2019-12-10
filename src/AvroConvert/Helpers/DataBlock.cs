@@ -16,10 +16,10 @@
  * limitations under the License.
  */
 
-namespace AvroConvert.Helpers
-{
-    using System.IO;
+using System.IO;
 
+namespace SolTechnology.Avro.Helpers
+{
     public class DataBlock
     {
         public byte[] Data { get;  set; }

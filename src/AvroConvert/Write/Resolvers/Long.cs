@@ -1,8 +1,8 @@
-﻿namespace AvroConvert.Write.Resolvers
-{
-    using System;
-    using Exceptions;
+﻿using System;
+using SolTechnology.Avro.Exceptions;
 
+namespace SolTechnology.Avro.Write.Resolvers
+{
     public class Long
     {
         public void Resolve(object value, IWriter encoder)

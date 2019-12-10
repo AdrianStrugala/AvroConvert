@@ -12,13 +12,14 @@
 // 
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
-namespace AvroConvert.BuildSchema
-{
-    using System;
-    using System.Globalization;
-    using System.Runtime.Serialization;
-    using System.Text.RegularExpressions;
 
+using System;
+using System.Globalization;
+using System.Runtime.Serialization;
+using System.Text.RegularExpressions;
+
+namespace SolTechnology.Avro.BuildSchema
+{
     /// <summary>
     /// Represents a name of the schema. For details, please see <a href="http://avro.apache.org/docs/current/spec.html#Names">the specification</a>.
     /// </summary>

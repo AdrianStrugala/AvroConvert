@@ -12,14 +12,15 @@
 // 
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
-namespace AvroConvert.BuildSchema
-{
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.Reflection;
-    using global::AvroConvert.Attributes;
-    using Newtonsoft.Json;
 
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Reflection;
+using Newtonsoft.Json;
+using SolTechnology.Avro.Attributes;
+
+namespace SolTechnology.Avro.BuildSchema
+{
     /// <summary>
     ///  Sort order.
     /// </summary>

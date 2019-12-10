@@ -16,12 +16,12 @@
  * limitations under the License.
  */
 
-namespace AvroConvert.Schema
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
+namespace SolTechnology.Avro.Schema
+{
     /// <summary>
     /// Collection of static methods for generating the cannonical form of schemas.
     /// </summary>

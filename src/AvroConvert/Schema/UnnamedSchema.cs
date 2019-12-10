@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-namespace AvroConvert.Schema
+namespace SolTechnology.Avro.Schema
 {
     /// <summary>
     /// Base class for all unnamed schemas

@@ -12,15 +12,16 @@
 // 
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
-namespace AvroConvert.BuildSchema
-{
-    using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Linq;
-    using System.Runtime.Serialization;
-    using global::AvroConvert.Attributes;
 
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Linq;
+using System.Runtime.Serialization;
+using SolTechnology.Avro.Attributes;
+
+namespace SolTechnology.Avro.BuildSchema
+{
     // Schema Resolution. Citation from the Avro specification:
     // A reader of Avro data, whether from an RPC or a file, can always parse that data because its schema is provided. But that 
     // schema may not be exactly the schema that was expected. For example, if the data was written with a different version of the software than it is read,

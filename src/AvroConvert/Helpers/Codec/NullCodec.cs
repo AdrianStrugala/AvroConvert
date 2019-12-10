@@ -16,10 +16,10 @@
  * limitations under the License.
  */
 
-namespace AvroConvert.Helpers.Codec
-{
-    using Constants;
+using SolTechnology.Avro.Constants;
 
+namespace SolTechnology.Avro.Helpers.Codec
+{
     public class NullCodec : Codec
     {
         public NullCodec() { }

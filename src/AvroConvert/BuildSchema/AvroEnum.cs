@@ -12,12 +12,13 @@
 // 
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
-namespace AvroConvert.BuildSchema
-{
-    using System;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
 
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+
+namespace SolTechnology.Avro.BuildSchema
+{
     /// <summary>
     /// Represents Avro enumeration.
     /// </summary>

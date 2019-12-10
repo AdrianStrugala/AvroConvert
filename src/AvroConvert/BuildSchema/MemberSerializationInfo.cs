@@ -4,11 +4,11 @@
 // *                                                       *
 // ********************************************************/
 
-namespace AvroConvert.BuildSchema
-{
-    using System.Collections.Generic;
-    using System.Reflection;
+using System.Collections.Generic;
+using System.Reflection;
 
+namespace SolTechnology.Avro.BuildSchema
+{
     /// <summary>
     ///     Represents serialization information about a member of a class/struct.
     /// </summary>

@@ -1,7 +1,7 @@
-﻿namespace AvroConvert.Exceptions
-{
-    using System;
+﻿using System;
 
+namespace SolTechnology.Avro.Exceptions
+{
     public class AvroTypeMismatchException : Exception
     {
         public AvroTypeMismatchException(string s)

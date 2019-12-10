@@ -1,4 +1,4 @@
-﻿namespace AvroConvert.Constants
+﻿namespace SolTechnology.Avro.Constants
 {
     public class DataFileConstants
     {

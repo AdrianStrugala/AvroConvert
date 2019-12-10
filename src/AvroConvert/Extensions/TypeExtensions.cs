@@ -1,15 +1,15 @@
-﻿namespace AvroConvert.Extensions
-{
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.Linq;
-    using System.Reflection;
-    using System.Runtime.CompilerServices;
-    using System.Runtime.Serialization;
-    using System.Text.RegularExpressions;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
+using System.Text.RegularExpressions;
 
+namespace SolTechnology.Avro.Extensions
+{
     public static class TypeExtensions
     {
         /// <summary>

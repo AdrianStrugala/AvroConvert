@@ -12,10 +12,11 @@
 // 
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
-namespace AvroConvert.BuildSchema
-{
-    using System.Collections.Generic;
 
+using System.Collections.Generic;
+
+namespace SolTechnology.Avro.BuildSchema
+{
     /// <summary>
     ///     Class represents a double schema.
     ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html#schema_primitive">the specification</a>.
@@ -37,6 +38,6 @@ namespace AvroConvert.BuildSchema
         {
         }
 
-        internal override global::AvroConvert.Schema.Schema.Type Type => global::AvroConvert.Schema.Schema.Type.Double;
+        internal override global::SolTechnology.Avro.Schema.Schema.Type Type => global::SolTechnology.Avro.Schema.Schema.Type.Double;
     }
 }

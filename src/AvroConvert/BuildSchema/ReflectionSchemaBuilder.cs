@@ -12,17 +12,18 @@
 //
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
-namespace AvroConvert.BuildSchema
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.Linq;
-    using System.Reflection;
-    using System.Runtime.Serialization;
-    using global::AvroConvert.Attributes;
-    using global::AvroConvert.Extensions;
 
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.Serialization;
+using SolTechnology.Avro.Attributes;
+using SolTechnology.Avro.Extensions;
+
+namespace SolTechnology.Avro.BuildSchema
+{
     /// <summary>
     ///     This class creates an avro schema given a c# type.
     /// </summary>

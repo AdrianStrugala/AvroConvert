@@ -1,9 +1,9 @@
-﻿namespace AvroConvert
-{
-    using System.IO;
-    using Constants;
-    using Read;
+﻿using System.IO;
+using SolTechnology.Avro.Constants;
+using SolTechnology.Avro.Read;
 
+namespace SolTechnology.Avro
+{
     public static partial class AvroConvert
     {
         public static string GetSchema(byte[] avroBytes)

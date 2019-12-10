@@ -12,12 +12,13 @@
 // 
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
-namespace AvroConvert.BuildSchema
-{
-    using System;
-    using System.Collections.Generic;
-    using Newtonsoft.Json;
 
+using System;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+
+namespace SolTechnology.Avro.BuildSchema
+{
     /// <summary>
     /// Node for surrogate types.
     /// </summary>
@@ -91,6 +92,6 @@ namespace AvroConvert.BuildSchema
         /// <summary>
         /// Gets the type of the schema as string.
         /// </summary>
-        internal override global::AvroConvert.Schema.Schema.Type Type => surrogateSchema.Type;
+        internal override global::SolTechnology.Avro.Schema.Schema.Type Type => surrogateSchema.Type;
     }
 }

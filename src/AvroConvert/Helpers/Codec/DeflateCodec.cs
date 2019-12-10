@@ -16,12 +16,12 @@
  * limitations under the License.
  */
 
-namespace AvroConvert.Helpers.Codec
-{
-    using System.IO;
-    using System.IO.Compression;
-    using Constants;
+using System.IO;
+using System.IO.Compression;
+using SolTechnology.Avro.Constants;
 
+namespace SolTechnology.Avro.Helpers.Codec
+{
     public class DeflateCodec : Codec
     {
         public override byte[] Compress(byte[] uncompressedData)

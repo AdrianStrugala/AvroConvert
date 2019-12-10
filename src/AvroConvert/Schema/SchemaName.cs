@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 
-namespace AvroConvert.Schema
-{
-    using System;
-    using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 
+namespace SolTechnology.Avro.Schema
+{
     /// <summary>
     /// Class to store schema name, namespace and enclosing namespace
     /// </summary>

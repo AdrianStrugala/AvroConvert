@@ -1,14 +1,14 @@
-﻿namespace AvroConvert.Write.Resolvers
-{
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Reflection;
-    using System.Runtime.Serialization;
-    using Exceptions;
-    using Schema;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.Serialization;
+using SolTechnology.Avro.Exceptions;
+using SolTechnology.Avro.Schema;
 
+namespace SolTechnology.Avro.Write.Resolvers
+{
     public class Record
     {
         public Encoder.WriteItem Resolve(RecordSchema recordSchema)

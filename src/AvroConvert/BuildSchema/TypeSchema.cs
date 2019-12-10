@@ -12,11 +12,12 @@
 // 
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
-namespace AvroConvert.BuildSchema
-{
-    using System;
-    using System.Collections.Generic;
 
+using System;
+using System.Collections.Generic;
+
+namespace SolTechnology.Avro.BuildSchema
+{
     /// <summary>
     ///     Base class for all type schemas.
     ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html">the specification</a>.
@@ -51,6 +52,6 @@ namespace AvroConvert.BuildSchema
         /// <summary>
         /// Gets the type of the schema as string.
         /// </summary>
-        internal abstract global::AvroConvert.Schema.Schema.Type Type { get; }
+        internal abstract global::SolTechnology.Avro.Schema.Schema.Type Type { get; }
     }
 }

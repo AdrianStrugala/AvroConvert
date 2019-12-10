@@ -1,11 +1,9 @@
-﻿namespace AvroConvert.Write.Resolvers
-{
-    using System;
-    using System.Collections;
-    using System.Linq;
-    using System.Reflection;
-    using Schema;
+﻿using System.Collections;
+using System.Linq;
+using SolTechnology.Avro.Schema;
 
+namespace SolTechnology.Avro.Write.Resolvers
+{
     public class Array
     {
         public Encoder.WriteItem Resolve(ArraySchema schema)

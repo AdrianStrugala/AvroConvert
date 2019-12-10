@@ -1,8 +1,8 @@
-﻿namespace AvroConvert
-{
-    using System.IO;
-    using Write;
+﻿using System.IO;
+using SolTechnology.Avro.Write;
 
+namespace SolTechnology.Avro
+{
     public static partial class AvroConvert
     {
         public static byte[] Serialize(object obj)

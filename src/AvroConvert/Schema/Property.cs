@@ -16,12 +16,12 @@
  * limitations under the License.
  */
 
-namespace AvroConvert.Schema
-{
-    using System.Collections.Generic;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
+namespace SolTechnology.Avro.Schema
+{
     public class PropertyMap : Dictionary<string, string>
     {
         /// <summary>

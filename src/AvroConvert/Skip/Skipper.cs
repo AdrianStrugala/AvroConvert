@@ -1,7 +1,7 @@
-﻿using AvroConvert.Read;
-using AvroConvert.Schema;
+﻿using SolTechnology.Avro.Read;
+using SolTechnology.Avro.Schema;
 
-namespace AvroConvert.Skip
+namespace SolTechnology.Avro.Skip
 {
     public class Skipper
     {

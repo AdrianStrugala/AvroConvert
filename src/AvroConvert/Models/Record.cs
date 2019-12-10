@@ -1,12 +1,11 @@
-﻿namespace AvroConvert.Models
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace SolTechnology.Avro.Models
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using BuildSchema;
-    using Schema;
-    using RecordSchema = global::AvroConvert.Schema.RecordSchema;
+    using RecordSchema = global::SolTechnology.Avro.Schema.RecordSchema;
 
     public class Record
     {

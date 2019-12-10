@@ -1,9 +1,8 @@
-﻿namespace AvroConvert.Write.Resolvers
-{
-    using Exceptions;
-    using Models;
-    using Schema;
+﻿using SolTechnology.Avro.Exceptions;
+using SolTechnology.Avro.Schema;
 
+namespace SolTechnology.Avro.Write.Resolvers
+{
     public class Enum
     {
         public Encoder.WriteItem Resolve(EnumSchema es)

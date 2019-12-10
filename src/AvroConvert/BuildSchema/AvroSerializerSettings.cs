@@ -12,12 +12,13 @@
 // 
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
-namespace AvroConvert.BuildSchema
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace SolTechnology.Avro.BuildSchema
+{
     /// <summary>
     ///     Specifies Avro serializer settings.
     /// </summary>

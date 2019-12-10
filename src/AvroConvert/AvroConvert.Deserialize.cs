@@ -1,14 +1,14 @@
-﻿namespace AvroConvert
-{
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using AutoMapper;
-    using Models;
-    using Read;
-    using Read.AutoMapperConverters;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using AutoMapper;
+using SolTechnology.Avro.Models;
+using SolTechnology.Avro.Read;
+using SolTechnology.Avro.Read.AutoMapperConverters;
 
+namespace SolTechnology.Avro
+{
     public static partial class AvroConvert
     {
         static AvroConvert()

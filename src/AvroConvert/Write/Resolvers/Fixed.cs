@@ -1,9 +1,9 @@
-﻿namespace AvroConvert.Write.Resolvers
-{
-    using System;
-    using Exceptions;
-    using Schema;
+﻿using System;
+using SolTechnology.Avro.Exceptions;
+using SolTechnology.Avro.Schema;
 
+namespace SolTechnology.Avro.Write.Resolvers
+{
     public class Fixed
     {
         public Encoder.WriteItem Resolve(FixedSchema es)

@@ -1,20 +1,18 @@
-﻿namespace AvroConvert.Write
-{
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using Constants;
-    using Exceptions;
-    using Helpers;
-    using Helpers.Codec;
-    using Resolvers;
-    using Schema;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using SolTechnology.Avro.Constants;
+using SolTechnology.Avro.Exceptions;
+using SolTechnology.Avro.Helpers;
+using SolTechnology.Avro.Helpers.Codec;
 
+namespace SolTechnology.Avro.Write
+{
     public class Encoder : IDisposable
     {
         public delegate void WriteItem(object value, IWriter encoder);
 
-        private readonly Schema _schema;
+        private readonly Schema.Schema _schema;
         private readonly Codec _codec;
         private readonly Stream _stream;
         private MemoryStream _blockStream;
@@ -29,7 +27,7 @@
         private readonly Metadata _metadata;
 
 
-        public Encoder(Schema schema, Stream outStream)
+        public Encoder(Schema.Schema schema, Stream outStream)
         {
             _codec = Codec.CreateCodec(Codec.Type.Null);
             _stream = outStream;

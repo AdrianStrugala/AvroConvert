@@ -1,9 +1,9 @@
-﻿namespace AvroConvert.Models
-{
-    using System;
-    using System.Linq;
-    using Schema;
+﻿using System;
+using System.Linq;
+using SolTechnology.Avro.Schema;
 
+namespace SolTechnology.Avro.Models
+{
     public class Fixed
     {
         protected readonly byte[] _value;

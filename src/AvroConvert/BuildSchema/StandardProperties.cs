@@ -12,10 +12,11 @@
 // 
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
-namespace AvroConvert.BuildSchema
-{
-    using System.Collections.Generic;
 
+using System.Collections.Generic;
+
+namespace SolTechnology.Avro.BuildSchema
+{
     /// <summary>
     ///     Class containing standard properties for different avro types.
     /// </summary>

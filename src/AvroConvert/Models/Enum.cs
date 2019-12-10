@@ -1,7 +1,7 @@
-﻿namespace AvroConvert.Models
-{
-    using Schema;
+﻿using SolTechnology.Avro.Schema;
 
+namespace SolTechnology.Avro.Models
+{
     public class Enum
     {
         public EnumSchema Schema { get; }

@@ -1,4 +1,4 @@
-namespace AvroConvert.Write
+namespace SolTechnology.Avro.Write
 {
     public interface IWriter
     {

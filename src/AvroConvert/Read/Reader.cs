@@ -16,12 +16,12 @@
  * limitations under the License.
  */
 
-namespace AvroConvert.Read
-{
-    using System;
-    using System.IO;
-    using Schema;
+using System;
+using System.IO;
+using SolTechnology.Avro.Schema;
 
+namespace SolTechnology.Avro.Read
+{
     /// <summary>
     /// IDecoder for Avro binary format
     /// </summary>

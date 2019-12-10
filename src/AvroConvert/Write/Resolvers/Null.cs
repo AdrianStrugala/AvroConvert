@@ -1,7 +1,7 @@
-﻿namespace AvroConvert.Write.Resolvers
-{
-    using Exceptions;
+﻿using SolTechnology.Avro.Exceptions;
 
+namespace SolTechnology.Avro.Write.Resolvers
+{
     public class Null
     {
         public void Resolve(object value, IWriter encoder)

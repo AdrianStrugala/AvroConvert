@@ -1,7 +1,7 @@
-﻿namespace AvroConvert.Exceptions
-{
-    using System;
+﻿using System;
 
+namespace SolTechnology.Avro.Exceptions
+{
     public class InvalidAvroObjectException : Exception
     {
         public InvalidAvroObjectException(string s)

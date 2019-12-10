@@ -12,17 +12,18 @@
 // 
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
-namespace AvroConvert.BuildSchema
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using Attributes;
-    using Newtonsoft.Json;
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using Newtonsoft.Json;
+using SolTechnology.Avro.Attributes;
+
+namespace SolTechnology.Avro.BuildSchema
+{
     /// <summary>
     ///     Base class for schema objects.
     /// </summary>

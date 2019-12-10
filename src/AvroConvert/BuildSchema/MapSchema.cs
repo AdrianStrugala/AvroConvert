@@ -12,12 +12,13 @@
 // 
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
-namespace AvroConvert.BuildSchema
-{
-    using System;
-    using System.Collections.Generic;
-    using Newtonsoft.Json;
 
+using System;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+
+namespace SolTechnology.Avro.BuildSchema
+{
     /// <summary>
     ///     Represents a map.
     ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html#Maps">the specification</a>.
@@ -92,6 +93,6 @@ namespace AvroConvert.BuildSchema
         /// <summary>
         /// Gets the type of the schema as string.
         /// </summary>
-        internal override global::AvroConvert.Schema.Schema.Type Type => global::AvroConvert.Schema.Schema.Type.Map;
+        internal override global::SolTechnology.Avro.Schema.Schema.Type Type => global::SolTechnology.Avro.Schema.Schema.Type.Map;
     }
 }

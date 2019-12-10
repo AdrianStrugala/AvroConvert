@@ -12,13 +12,14 @@
 // 
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
-namespace AvroConvert.BuildSchema
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using global::AvroConvert.Attributes;
 
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using SolTechnology.Avro.Attributes;
+
+namespace SolTechnology.Avro.BuildSchema
+{
     /// <summary>
     ///     Class representing an named schema: record, enumeration or fixed.
     ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html#Names">the specification</a>.

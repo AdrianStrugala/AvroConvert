@@ -1,8 +1,8 @@
-namespace AvroConvert.Write
-{
-    using System;
-    using System.IO;
+using System;
+using System.IO;
 
+namespace SolTechnology.Avro.Write
+{
     /// <summary>
     /// Write leaf values.
     /// </summary>

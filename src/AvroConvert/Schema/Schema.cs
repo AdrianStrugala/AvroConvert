@@ -16,12 +16,12 @@
  * limitations under the License.
  */
 
-namespace AvroConvert.Schema
-{
-    using System;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+using System;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
+namespace SolTechnology.Avro.Schema
+{
     /// <summary>
     /// Base class for all schema types
     /// </summary>

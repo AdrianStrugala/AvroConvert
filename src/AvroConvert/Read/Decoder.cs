@@ -1,13 +1,13 @@
-﻿namespace AvroConvert.Read
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using SolTechnology.Avro.Constants;
+using SolTechnology.Avro.Exceptions;
+using SolTechnology.Avro.Helpers;
+
+namespace SolTechnology.Avro.Read
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using Constants;
-    using Exceptions;
-    using Helpers;
-    using Schema;
     using Codec = Helpers.Codec.Codec;
 
     public class Decoder : IDisposable
@@ -23,7 +23,7 @@
         private bool _availableBlock;
         private readonly byte[] _syncBuffer;
         private readonly Stream _stream;
-        private static Schema _readerSchema;
+        private static Schema.Schema _readerSchema;
 
 
         public static Decoder OpenReader(string filePath)
@@ -35,7 +35,7 @@
         {
             if (schema != null)
             {
-                _readerSchema = Schema.Parse(schema);
+                _readerSchema = Schema.Schema.Parse(schema);
             }
          
             return OpenReader(inStream);
@@ -89,7 +89,7 @@
             _reader.ReadFixed(_header.SyncData);
 
             // parse schema and set codec 
-            _header.Schema = Schema.Parse(GetMetaString(DataFileConstants.SchemaMetadataKey));
+            _header.Schema = Schema.Schema.Parse(GetMetaString(DataFileConstants.SchemaMetadataKey));
             _resolver = new Resolver(_header.Schema, _readerSchema ?? _header.Schema);
             _codec = Codec.CreateCodecFromString(GetMetaString(DataFileConstants.CodecMetadataKey));
         }

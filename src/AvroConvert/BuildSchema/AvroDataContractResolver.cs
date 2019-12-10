@@ -13,18 +13,18 @@
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
 
-using System.ComponentModel;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
-using AvroConvert.Attributes;
-using AvroConvert.Extensions;
-using TypeExtensions = AvroConvert.Extensions.TypeExtensions;
+using SolTechnology.Avro.Attributes;
+using SolTechnology.Avro.Extensions;
+using TypeExtensions = SolTechnology.Avro.Extensions.TypeExtensions;
 
-namespace AvroConvert.BuildSchema
+namespace SolTechnology.Avro.BuildSchema
 {
     /// <summary>
     /// Allows optionally using standard <see cref="T:System.Runtime.Serialization.DataContractAttribute"/> and 

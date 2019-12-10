@@ -16,10 +16,10 @@
  * limitations under the License.
  */
 
-namespace AvroConvert.Exceptions
-{
-    using System;
+using System;
 
+namespace SolTechnology.Avro.Exceptions
+{
     public class AvroRuntimeException : Exception
     {
         public AvroRuntimeException(string s)

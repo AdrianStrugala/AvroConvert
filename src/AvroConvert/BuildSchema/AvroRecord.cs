@@ -12,12 +12,13 @@
 // 
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
-namespace AvroConvert.BuildSchema
-{
-    using System;
-    using System.Dynamic;
-    using System.Globalization;
 
+using System;
+using System.Dynamic;
+using System.Globalization;
+
+namespace SolTechnology.Avro.BuildSchema
+{
     /// <summary>
     /// Represents an Avro generic record. It can be considered as a set of name-value pairs.
     /// Please, use the <see cref="Microsoft.Hadoop.Avro.AvroSerializer.CreateGeneric"/> method to create the corresponding <see cref="Microsoft.Hadoop.Avro.IAvroSerializer{T}"/>.

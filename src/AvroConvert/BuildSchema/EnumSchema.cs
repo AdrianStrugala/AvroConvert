@@ -12,17 +12,18 @@
 // 
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
-namespace AvroConvert.BuildSchema
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.Globalization;
-    using System.Linq;
-    using global::AvroConvert.Attributes;
-    using global::AvroConvert.Extensions;
-    using Newtonsoft.Json;
 
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Globalization;
+using System.Linq;
+using Newtonsoft.Json;
+using SolTechnology.Avro.Attributes;
+using SolTechnology.Avro.Extensions;
+
+namespace SolTechnology.Avro.BuildSchema
+{
     /// <summary>
     ///     Schema representing an enumeration.
     ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html#Enums"> the specification</a>.
@@ -165,6 +166,6 @@ namespace AvroConvert.BuildSchema
             }
         }
 
-        internal override global::AvroConvert.Schema.Schema.Type Type { get; } = global::AvroConvert.Schema.Schema.Type.Enumeration;
+        internal override global::SolTechnology.Avro.Schema.Schema.Type Type { get; } = global::SolTechnology.Avro.Schema.Schema.Type.Enumeration;
     }
 }

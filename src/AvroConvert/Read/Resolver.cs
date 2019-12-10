@@ -1,12 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using AvroConvert.Models;
-using AvroConvert.Schema;
-using AvroConvert.Skip;
-using Enum = AvroConvert.Models.Enum;
+using SolTechnology.Avro.Models;
+using SolTechnology.Avro.Schema;
+using SolTechnology.Avro.Skip;
+using Enum = SolTechnology.Avro.Models.Enum;
 
-namespace AvroConvert.Read
+namespace SolTechnology.Avro.Read
 {
     public class Resolver
     {

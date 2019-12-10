@@ -1,8 +1,8 @@
-﻿namespace AvroConvert.Write.Resolvers
-{
-    using System.Collections;
-    using Schema;
+﻿using System.Collections;
+using SolTechnology.Avro.Schema;
 
+namespace SolTechnology.Avro.Write.Resolvers
+{
     public class Map
     {
         public Encoder.WriteItem Resolve(MapSchema mapSchema)

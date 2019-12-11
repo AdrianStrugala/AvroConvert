@@ -178,5 +178,21 @@ namespace AvroConvertTests.Component
             Assert.NotNull(deserialized);
             Assert.Equal(testObject, deserialized);
         }
+
+        [Fact]
+        public void Serialize_Decimal_ResultIsTheSameAsInput()
+        {
+            //Arrange
+            decimal testObject = 21.37m;
+
+            //Act
+            var result = AvroConvert.Serialize(testObject);
+
+            var deserialized = AvroConvert.Deserialize<decimal>(result);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.Equal(testObject, deserialized);
+        }
     }
 }

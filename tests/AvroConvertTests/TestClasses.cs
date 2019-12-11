@@ -50,9 +50,11 @@ namespace AvroConvertTests
     {
         public string justSomeProperty { get; set; }
         public long andLongProperty { get; set; }
+        public double DoubleProp { get; set; }
+        public bool BoolProp{ get; set; }
+        public long LongToSkipProp { get; set; }
         public Guid TheGuid { get; set; }
         public int[] TheArray { get; set; }
-        public DateTime ArriveBy { get; set; }
         public List<bool> Bools;
         [DefaultValue(9200000000000000007)]
         public long? AndLongBigDefaultedProperty { get; set; }

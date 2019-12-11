@@ -14,7 +14,7 @@ namespace AvroConvertTests.Component
             _fixture = new Fixture();
         }
 
-        [Fact (Skip = "ConcurrentBagClass is not supported yet")]
+        [Fact]
         public void Component_SerializeConcurrentBagClass_ResultIsTheSameAsInput()
         {
             //Arrange

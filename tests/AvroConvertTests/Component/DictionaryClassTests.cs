@@ -69,5 +69,24 @@ namespace AvroConvertTests.Component
             Assert.NotNull(deserialized);
             Assert.Equal(dictionary, deserialized);
         }
+
+        [Fact]
+        public void Component_ObjectContainsDictionaryAndMap_ResultIsTheSameAsInput()
+        {
+            //Arrange
+            BiggerNestedTestClass testClass = _fixture.Create<BiggerNestedTestClass>();
+
+
+            //Act
+            var result = AvroConvert.Serialize(testClass);
+
+            var deserialized = AvroConvert.Deserialize<BiggerNestedTestClass>(result);
+
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(testClass, deserialized);
+        }
     }
 }

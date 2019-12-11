@@ -108,7 +108,8 @@ namespace SolTechnology.Avro.Read
 
         protected virtual IDictionary<string, object> ResolveRecord(RecordSchema writerSchema, RecordSchema readerSchema, IReader dec)
         {
-            Record result = new Record(readerSchema);
+            Dictionary<string, object> result = new Dictionary<string, object>();
+
             foreach (Field wf in writerSchema)
             {
                 if (readerSchema.Contains(wf.Name))
@@ -116,19 +117,14 @@ namespace SolTechnology.Avro.Read
                     Field rf = readerSchema.GetField(wf.Name);
                     object value = Resolve(wf.Schema, rf.Schema, dec) ?? wf.DefaultValue?.ToObject(typeof(object));
 
-                    AddField(result, rf.aliases?[0] ?? wf.Name, rf.Pos, value);
+                    string name = rf.aliases?[0] ?? wf.Name;
+                    result[name] = value;
                 }
                 else
                     _skipper.Skip(wf.Schema, dec);
-
             }
-            return result.Contents;
-        }
 
-
-        protected virtual void AddField(Record record, string fieldName, int fieldPos, object fieldValue)
-        {
-            record.Contents[fieldName] = fieldValue;
+            return result;
         }
 
 

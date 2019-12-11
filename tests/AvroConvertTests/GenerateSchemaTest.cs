@@ -94,5 +94,17 @@ namespace AvroConvertTests
             //Assert
             Assert.Contains("{\"type\":\"record\",\"name\":\"AvroConvertTests.MixedDataMembers\",\"fields\":[{\"name\":\"savedValues\",\"type\":{\"type\":\"array\",\"items\":\"int\"}},{\"name\":\"andAnother\",\"type\":[\"null\",\"long\"]}]}", schema);
         }
+
+        [Fact]
+        public void GenerateSchema_Enum_SchemaIsCorrect()
+        {
+            //Arrange
+
+            //Act
+            string schema = AvroConvert.GenerateSchema(typeof(TestEnum));
+
+            //Assert
+            Assert.Contains("{\"type\":\"enum\",\"name\":\"AvroConvertTests.TestEnum\",\"symbols\":[\"a\",\"be\",\"ca\",\"dlo\"]}", schema);
+        }
     }
 }

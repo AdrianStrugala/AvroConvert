@@ -233,4 +233,12 @@ namespace AvroConvertTests
         public int anIntField;
 
     }
+
+    public enum TestEnum
+    {
+        a,
+        be,
+        ca,
+        dlo
+    }
 }

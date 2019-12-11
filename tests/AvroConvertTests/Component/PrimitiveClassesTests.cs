@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using SolTechnology.Avro;
+using AutoFixture;
+using Xunit;
 
 namespace AvroConvertTests.Component
 {
-    using AutoFixture;
-    using AvroConvert;
-    using Xunit;
-
     public class PrimitiveClassesTests
     {
         private readonly Fixture _fixture;
@@ -69,8 +66,7 @@ namespace AvroConvertTests.Component
 
             //Assert
             Assert.NotNull(result);
-            Assert.NotNull(deserialized);
-            Assert.Equal(testObject, testObject);
+            Assert.Equal(testObject, deserialized);
         }
 
         [Fact]
@@ -86,8 +82,7 @@ namespace AvroConvertTests.Component
 
             //Assert
             Assert.NotNull(result);
-            Assert.NotNull(deserialized);
-            Assert.Equal(testObject, testObject);
+            Assert.Equal(testObject, deserialized);
         }
 
         [Fact]
@@ -103,8 +98,7 @@ namespace AvroConvertTests.Component
 
             //Assert
             Assert.NotNull(result);
-            Assert.NotNull(deserialized);
-            Assert.Equal(testObject, testObject);
+            Assert.Equal(testObject, deserialized);
         }
 
         [Fact]
@@ -120,8 +114,7 @@ namespace AvroConvertTests.Component
 
             //Assert
             Assert.NotNull(result);
-            Assert.NotNull(deserialized);
-            Assert.Equal(testObject, testObject);
+            Assert.Equal(testObject, deserialized);
         }
 
         [Fact]
@@ -137,8 +130,7 @@ namespace AvroConvertTests.Component
 
             //Assert
             Assert.NotNull(result);
-            Assert.NotNull(deserialized);
-            Assert.Equal(testObject, testObject);
+            Assert.Equal(testObject, deserialized);
         }
 
         [Fact]
@@ -167,7 +159,7 @@ namespace AvroConvertTests.Component
             //Assert
             Assert.NotNull(result);
             Assert.NotNull(deserialized);
-            Assert.Equal(testObject, testObject);
+            Assert.Equal(testObject, deserialized);
         }
 
         [Fact]
@@ -184,7 +176,7 @@ namespace AvroConvertTests.Component
             //Assert
             Assert.NotNull(result);
             Assert.NotNull(deserialized);
-            Assert.Equal(testObject, testObject);
+            Assert.Equal(testObject, deserialized);
         }
     }
 }

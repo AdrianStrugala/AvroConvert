@@ -1,8 +1,9 @@
-﻿namespace AvroConvertTests
+﻿using SolTechnology.Avro;
+
+namespace AvroConvertTests
 {
     using AutoFixture;
     using System.Collections.Generic;
-    using AvroConvert;
     using Xunit;
 
     public class SerializeTests

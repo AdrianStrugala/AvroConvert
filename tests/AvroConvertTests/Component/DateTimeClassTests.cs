@@ -1,8 +1,9 @@
-﻿namespace AvroConvertTests.Component
+﻿using SolTechnology.Avro;
+
+namespace AvroConvertTests.Component
 {
     using System;
     using AutoFixture;
-    using AvroConvert;
     using Xunit;
 
     public class DateTimeClassTests

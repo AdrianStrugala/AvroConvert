@@ -1,9 +1,10 @@
-﻿namespace AvroConvertTests.Component
+﻿using SolTechnology.Avro;
+
+namespace AvroConvertTests.Component
 {
     using System;
     using System.Collections.Generic;
     using AutoFixture;
-    using AvroConvert;
     using Xunit;
 
     public class DictionaryClassTests

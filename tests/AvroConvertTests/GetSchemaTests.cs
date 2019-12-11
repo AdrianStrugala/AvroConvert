@@ -1,7 +1,8 @@
-﻿namespace AvroConvertTests
+﻿using SolTechnology.Avro;
+
+namespace AvroConvertTests
 {
     using System.IO;
-    using AvroConvert;
     using Xunit;
 
     public class GetSchemaTests

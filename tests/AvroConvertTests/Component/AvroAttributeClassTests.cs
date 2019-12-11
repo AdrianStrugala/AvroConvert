@@ -1,8 +1,9 @@
-﻿namespace AvroConvertTests.Component
+﻿using SolTechnology.Avro;
+
+namespace AvroConvertTests.Component
 {
     using System.Collections.Generic;
     using AutoFixture;
-    using AvroConvert;
     using Xunit;
 
     public class AvroAttributeClassTests
@@ -67,7 +68,6 @@
 
             //Assert
             Assert.NotNull(result);
-            Assert.NotNull(deserialized);
             Assert.Equal(toSerialize, deserialized);
         }
 

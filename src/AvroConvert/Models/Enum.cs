@@ -1,4 +1,5 @@
-﻿using SolTechnology.Avro.Schema;
+﻿using SolTechnology.Avro.Exceptions;
+using SolTechnology.Avro.Schema;
 
 namespace SolTechnology.Avro.Models
 {

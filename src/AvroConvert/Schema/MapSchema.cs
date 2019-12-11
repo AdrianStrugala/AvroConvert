@@ -18,6 +18,7 @@
 
 using System;
 using Newtonsoft.Json.Linq;
+using SolTechnology.Avro.Exceptions;
 
 namespace SolTechnology.Avro.Schema
 {

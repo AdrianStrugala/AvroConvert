@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
+using SolTechnology.Avro.Exceptions;
 
 namespace SolTechnology.Avro.Schema
 {

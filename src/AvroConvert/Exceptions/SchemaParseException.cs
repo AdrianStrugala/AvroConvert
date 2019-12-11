@@ -16,19 +16,12 @@
  * limitations under the License.
  */
 
-using System;
-
-namespace SolTechnology.Avro.Schema
+namespace SolTechnology.Avro.Exceptions
 {
-    public class AvroException : Exception
+    public class SchemaParseException:AvroException
     {
-        public AvroException(string s)
+        public SchemaParseException(string s)
             : base(s)
-        {
-        }
-
-        public AvroException(string s, Exception inner)
-            : base(s, inner)
         {
         }
     }

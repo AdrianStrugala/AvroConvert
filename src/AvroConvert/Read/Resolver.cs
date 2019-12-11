@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using SolTechnology.Avro.Exceptions;
 using SolTechnology.Avro.Models;
 using SolTechnology.Avro.Schema;
 using SolTechnology.Avro.Skip;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using SolTechnology.Avro.Exceptions;
 using SolTechnology.Avro.Schema;
 
 namespace SolTechnology.Avro.Models

@@ -18,6 +18,7 @@
 
 using System;
 using System.IO;
+using SolTechnology.Avro.Exceptions;
 using SolTechnology.Avro.Schema;
 
 namespace SolTechnology.Avro.Read

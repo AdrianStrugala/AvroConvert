@@ -1,4 +1,5 @@
-﻿using SolTechnology.Avro.Read;
+﻿using SolTechnology.Avro.Exceptions;
+using SolTechnology.Avro.Read;
 using SolTechnology.Avro.Schema;
 
 namespace SolTechnology.Avro.Skip

@@ -18,18 +18,19 @@ namespace AvroConvertTests.Component
         public void Component_SerializeBiggerObjectAndReadSmaller_NoError()
         {
             //Arrange
-            NestedTestClass toSerialize = _fixture.Create<NestedTestClass>();
+            BiggerNestedTestClass toSerialize = _fixture.Create<BiggerNestedTestClass>();
 
             //Act
 
             var result = AvroConvert.Serialize(toSerialize);
 
-            var deserialized = AvroConvert.Deserialize<SmallerNestedTestClass>(result);
+            var deserialized = AvroConvert.Deserialize<NestedTestClass>(result);
 
             //Assert
             Assert.NotNull(result);
             Assert.NotNull(deserialized);
             Assert.Equal(toSerialize.justSomeProperty, deserialized.justSomeProperty);
+            Assert.Equal(toSerialize.andLongProperty, deserialized.andLongProperty);
         }
 
 

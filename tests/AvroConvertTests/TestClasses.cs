@@ -46,6 +46,23 @@ namespace AvroConvertTests
     }
 
     [Equals]
+    public class BiggerNestedTestClass
+    {
+        public string justSomeProperty { get; set; }
+        public long andLongProperty { get; set; }
+        public Guid TheGuid { get; set; }
+        public int[] TheArray { get; set; }
+        public DateTime ArriveBy { get; set; }
+        public List<bool> Bools;
+        [DefaultValue(9200000000000000007)]
+        public long? AndLongBigDefaultedProperty { get; set; }
+        public ClassWithConstructorPopulatingProperty AnotherClass { get; set; }
+        public double DoubleProperty { get; set; }
+        public Dictionary<string, int> AvroMap { get; set; }
+        public Dictionary<bool, int> OtherDictionary { get; set; }
+    }
+
+    [Equals]
     public class ClassWithConstructorPopulatingProperty
     {
         public List<NestedTestClass> nestedList { get; set; }

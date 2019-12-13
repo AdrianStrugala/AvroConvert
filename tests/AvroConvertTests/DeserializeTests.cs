@@ -8,29 +8,13 @@ namespace AvroConvertTests
 
     public class DeserializeTests
     {
-        private readonly byte[] _avroBytes;
+        private readonly byte[] _avroBytes = System.IO.File.ReadAllBytes("example2.avro");
 
-        public DeserializeTests()
-        {
-            _avroBytes = System.IO.File.ReadAllBytes("example2.avro");
-        }
 
         [Fact]
         public void Deserialize_CustomSchema_OnlyValuesFromCustomSchemaAreReturned()
         {
             //Arrange
-            string customSchema = AvroConvert.GenerateSchema(typeof(UserNameClass));
-
-            Dictionary<string, object> result1 = new Dictionary<string, object>();
-            result1.Add("name", "Alyssa");
-
-            Dictionary<string, object> result2 = new Dictionary<string, object>();
-            result2.Add("name", "Ben");
-
-            //            List<object> expectedResult = new List<object>();
-            //            expectedResult.Add(result1);
-            //            expectedResult.Add(result2);
-
             var expectedResult = new List<UserNameClass>();
             expectedResult.Add(new UserNameClass
             {

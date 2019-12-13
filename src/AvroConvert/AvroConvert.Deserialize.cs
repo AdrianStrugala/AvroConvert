@@ -20,31 +20,14 @@ namespace SolTechnology.Avro
                               });
         }
 
-        public static List<object> Deserialize(byte[] avroBytes, string schema = null)
+        public static T Deserialize<T>(byte[] avroBytes)
         {
-            var result = new List<object>();
+            var reader = Decoder.OpenReader(
+                new MemoryStream(avroBytes),
+                GenerateSchema(typeof(T), true)
+                );
 
-            var reader = Decoder.OpenReader(new MemoryStream(avroBytes), schema);
-
-            List<dynamic> readResult = reader.GetEntries().ToList();
-
-            foreach (var read in readResult)
-            {
-                result.Add(read);
-            }
-
-            return result;
-        }
-
-        public static T Deserialize<T>(byte[] avroBytes, string schema = null)
-        {
-            T result;
-
-            var deserialized = Deserialize(avroBytes, schema ?? GenerateSchema(typeof(T), true));
-
-            result = Mapper.Map<T>(deserialized[0]);
-
-            return result;
+            return Mapper.Map<T>(reader.Read());
         }
     }
 }

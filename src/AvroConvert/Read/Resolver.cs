@@ -24,8 +24,13 @@ namespace SolTechnology.Avro.Read
             _skipper = new Skipper();
         }
 
-        public object Resolve(IReader reader)
+        public object Resolve(IReader reader, long itemsCount = 1)
         {
+            if (itemsCount > 1)
+            {
+                return ResolveArray(WriterSchema, ((ArraySchema)ReaderSchema).ItemSchema, reader, itemsCount);
+            }
+
             var result = Resolve(WriterSchema, ReaderSchema, reader);
             return result;
         }
@@ -96,7 +101,10 @@ namespace SolTechnology.Avro.Read
                 case Schema.Schema.Type.Fixed:
                     return ResolveFixed((FixedSchema)writerSchema, readerSchema, d);
                 case Schema.Schema.Type.Array:
-                    return ResolveArray((ArraySchema)writerSchema, readerSchema, d);
+                    return ResolveArray(
+                        ((ArraySchema)writerSchema).ItemSchema,
+                        ((ArraySchema)readerSchema).ItemSchema,
+                        d);
                 case Schema.Schema.Type.Map:
                     return ResolveMap((MapSchema)writerSchema, readerSchema, d);
                 case Schema.Schema.Type.Union:
@@ -135,21 +143,30 @@ namespace SolTechnology.Avro.Read
         }
 
 
-        protected virtual object ResolveArray(ArraySchema writerSchema, Schema.Schema readerSchema, IReader d)
+        protected virtual object ResolveArray(Schema.Schema writerSchema, Schema.Schema readerSchema, IReader d, long itemsCount = 0)
         {
-            ArraySchema rs = (ArraySchema)readerSchema;
-            object[] result = new object[0];
+            object[] result = new object[itemsCount];
             int i = 0;
-            for (int n = (int)d.ReadArrayStart(); n != 0; n = (int)d.ReadArrayNext())
+            if (itemsCount == 0)
             {
-                if (result.Length < i + n)
+                for (int n = (int)d.ReadArrayStart(); n != 0; n = (int)d.ReadArrayNext())
                 {
-                    Array.Resize(ref result, i + n);
-                }
+                    if (result.Length < i + n)
+                    {
+                        Array.Resize(ref result, i + n);
+                    }
 
-                for (int j = 0; j < n; j++, i++)
+                    for (int j = 0; j < n; j++, i++)
+                    {
+                        result[i] = Resolve(writerSchema, readerSchema, d);
+                    }
+                }
+            }
+            else
+            {
+                for (int k = 0; k < itemsCount; k++)
                 {
-                    result[i] = Resolve(writerSchema.ItemSchema, rs.ItemSchema, d);
+                    result[k] = Resolve(writerSchema, readerSchema, d);
                 }
             }
 

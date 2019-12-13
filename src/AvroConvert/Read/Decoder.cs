@@ -31,18 +31,18 @@ namespace SolTechnology.Avro.Read
             return OpenReader(new FileStream(filePath, FileMode.Open));
         }
 
-        public static Decoder OpenReader(Stream inStream, string schema = null)
+        public static Decoder OpenReader(Stream inStream, string schema)
         {
             if (schema != null)
             {
                 _readerSchema = Schema.Schema.Parse(schema);
             }
-         
+
             return OpenReader(inStream);
         }
 
 
-        private static Decoder OpenReader(Stream inStream)
+        public static Decoder OpenReader(Stream inStream)
         {
             if (!inStream.CanSeek)
                 throw new AvroRuntimeException("Not a valid input stream - must be seekable!");
@@ -50,7 +50,7 @@ namespace SolTechnology.Avro.Read
             return new Decoder(inStream);         // (not supporting 1.2 or below, format)           
         }
 
-        Decoder(Stream stream)
+        private Decoder(Stream stream)
         {
             _stream = stream;
             _header = new Header();
@@ -124,15 +124,10 @@ namespace SolTechnology.Avro.Read
         }
 
 
-        public IEnumerable<object> GetEntries()
+        public object Read()
         {
-            var result = new List<object>();
             long remainingBlocks = GetRemainingBlocksCount();
-
-            for (int i = 0; i < remainingBlocks; i++)
-            {
-                result.Add(_resolver.Resolve(_datumReader));
-            }
+            var result = _resolver.Resolve(_datumReader, remainingBlocks);
 
             return result;
         }

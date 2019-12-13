@@ -16,33 +16,6 @@ namespace AvroConvertTests
         }
 
         [Fact]
-        public void Deserialize_ValidBytes_SetOfPropertiesAreReturned()
-        {
-            //Arrange
-            Dictionary<string, object> result1 = new Dictionary<string, object>();
-            result1.Add("name", "Alyssa");
-            result1.Add("favorite_number", 256);
-            result1.Add("favorite_color", null);
-
-            Dictionary<string, object> result2 = new Dictionary<string, object>();
-            result2.Add("name", "Ben");
-            result2.Add("favorite_number", 7);
-            result2.Add("favorite_color", "red");
-
-            List<object> expectedResult = new List<object>();
-            expectedResult.Add(result1);
-            expectedResult.Add(result2);
-
-
-            //Act
-            var result = AvroConvert.Deserialize(_avroBytes);
-
-
-            //Assert
-            Assert.Equal(expectedResult, result);
-        }
-
-        [Fact]
         public void Deserialize_CustomSchema_OnlyValuesFromCustomSchemaAreReturned()
         {
             //Arrange
@@ -54,13 +27,23 @@ namespace AvroConvertTests
             Dictionary<string, object> result2 = new Dictionary<string, object>();
             result2.Add("name", "Ben");
 
-            List<object> expectedResult = new List<object>();
-            expectedResult.Add(result1);
-            expectedResult.Add(result2);
+            //            List<object> expectedResult = new List<object>();
+            //            expectedResult.Add(result1);
+            //            expectedResult.Add(result2);
 
+            var expectedResult = new List<UserNameClass>();
+            expectedResult.Add(new UserNameClass
+            {
+                name = "Alyssa"
+            });
+
+            expectedResult.Add(new UserNameClass
+            {
+                name = "Ben"
+            });
 
             //Act
-            var result = AvroConvert.Deserialize(_avroBytes, customSchema);
+            var result = AvroConvert.Deserialize<List<UserNameClass>>(_avroBytes);
 
 
             //Assert
@@ -75,7 +58,7 @@ namespace AvroConvertTests
 
 
             //Act
-            var result = Record.Exception(() => AvroConvert.Deserialize(invalidBytes));
+            var result = Record.Exception(() => AvroConvert.Deserialize<int>(invalidBytes));
 
 
             //Assert

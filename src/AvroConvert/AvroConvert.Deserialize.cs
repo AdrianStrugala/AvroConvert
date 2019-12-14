@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using AutoMapper;
 using SolTechnology.Avro.Models;
 using SolTechnology.Avro.Read;

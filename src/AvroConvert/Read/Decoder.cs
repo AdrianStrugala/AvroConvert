@@ -134,24 +134,17 @@ namespace SolTechnology.Avro.Read
 
         public long GetRemainingBlocksCount()
         {
-            try
+            if (_blockRemaining == 0)
             {
-                if (_blockRemaining == 0)
+                if (HasNextBlock())
                 {
-                    if (HasNextBlock())
-                    {
-                        _currentBlock = NextRawBlock(_currentBlock);
-                        _currentBlock.Data = _codec.Decompress(_currentBlock.Data);
-                        _datumReader = new Reader(_currentBlock.GetDataAsStream());
-                    }
+                    _currentBlock = NextRawBlock(_currentBlock);
+                    _currentBlock.Data = _codec.Decompress(_currentBlock.Data);
+                    _datumReader = new Reader(_currentBlock.GetDataAsStream());
                 }
+            }
 
-                return _blockRemaining;
-            }
-            catch (Exception e)
-            {
-                throw new AvroRuntimeException($"Error fetching next object from block: {e}");
-            }
+            return _blockRemaining;
         }
 
         public void Dispose()

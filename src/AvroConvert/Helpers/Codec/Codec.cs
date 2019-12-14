@@ -62,7 +62,7 @@ namespace SolTechnology.Avro.Helpers.Codec
         public enum Type
         {
             Deflate,
-            //Snappy 
+            Snappy,
             Null
         };
 
@@ -76,6 +76,8 @@ namespace SolTechnology.Avro.Helpers.Codec
         {
             switch (codecType)
             {
+                case Type.Snappy:
+                    return new SnappyCodec();
                 case Type.Deflate:
                     return new DeflateCodec();
                 default:
@@ -93,6 +95,8 @@ namespace SolTechnology.Avro.Helpers.Codec
         {
             switch (codecType)
             {
+                case DataFileConstants.SnappyCodec:
+                    return new SnappyCodec();
                 case DataFileConstants.DeflateCodec:
                     return new DeflateCodec();
                 default:

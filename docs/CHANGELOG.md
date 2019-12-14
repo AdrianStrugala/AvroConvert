@@ -130,3 +130,4 @@ START OF THE PROJECT
 - Improved performance during serialization
 - Added support for ConcurentBagClass
 - Added support for Dictionary properties
+- Snappy encoding is not supported

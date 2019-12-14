@@ -7,6 +7,7 @@
         public const string SchemaMetadataKey = "avro.schema";
         public const string NullCodec = "null";
         public const string DeflateCodec = "deflate";
+        public const string SnappyCodec = "snappy";
         public const string MetaDataReserved = "avro";
 
         public static byte[] AvroHeader = { (byte)'O',

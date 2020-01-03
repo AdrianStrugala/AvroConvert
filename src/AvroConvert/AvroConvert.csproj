@@ -23,6 +23,7 @@
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="8.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="Snappy.NET" Version="1.1.1.8" />
   </ItemGroup>
 
 </Project>

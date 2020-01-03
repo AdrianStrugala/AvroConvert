@@ -1,41 +1,27 @@
 ﻿using System;
-using System.Linq;
 using System.IO;
-using SolTechnology.Avro.Constants;
+using System.IO.Compression;
+using Snappy;
 using SolTechnology.Avro.Helpers.Codec;
 
-namespace Snappy.Sharp
+namespace xd.Sharp
 {
-    public class Snappy : Codec
+    public class xd : Codec
     {
-        internal const int LITERAL = 0;
-        internal const int COPY_1_BYTE_OFFSET = 1; // 3 bit length + 3 bits of offset in opcode
-        internal const int COPY_2_BYTE_OFFSET = 2;
-        internal const int COPY_4_BYTE_OFFSET = 3;
-
-        public int MaxCompressedLength(int sourceLength)
+        public override byte[] Compress(byte[] uncompressedData)
         {
-            var compressor = new SnappyCompressor();
-            return compressor.MaxCompressedLength(sourceLength);
-        }
 
-        public override byte[] Compress(byte[] uncompressed)
-        {
-            var target = new SnappyCompressor();
-            var result = new byte[target.MaxCompressedLength(uncompressed.Length)];
-            var count = target.Compress(uncompressed, 0, uncompressed.Length, result);
-            return result.Take(count).ToArray();
+            return SnappyCodec.Compress(uncompressedData);
         }
 
         public override byte[] Decompress(byte[] compressedData)
         {
-            var target = new SnappyDecompressor();
-            return target.Decompress(compressedData, 0, compressedData.Length);
+            return SnappyCodec.Uncompress(compressedData);
         }
 
         public override string GetName()
         {
-            return DataFileConstants.SnappyCodec;
+            throw new NotImplementedException();
         }
 
         public override bool Equals(object other)

@@ -46,7 +46,7 @@ namespace AvroConvertTests.TwitterExample
         }
 
         [Fact]
-        public void Deserialize_InvalidFile_InvalidAvroObjectExceptionIsThrown()
+        public void Deserialize_SnappyCodedFile_NotSupportedExceptionIsThrown()
         {
             //Arrange
 

@@ -126,7 +126,7 @@ START OF THE PROJECT
 - Fixed bug during deserializaion of object conaining property with empty list
 </br>
 </br>
-**v. 2.0.0 (xxx)**
+**v. 2.0.0 (04.01.20)**
 - Improved performance during serialization
 - Added support for ConcurentBagClass
 - Added support for Dictionary properties

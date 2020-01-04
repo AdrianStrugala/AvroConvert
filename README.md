@@ -32,11 +32,6 @@ Deserialization to known type
 CustomClass deserializedObject = AvroConvert.Deserialize<CustomClass>(byte[] avroObject);
 ```
 
-Deserialization to map of property names and values
-```csharp
-Dictionary<string, object> mapOfPropertiesAndValues = AvroConvert.Deserialize(byte[] avroObject);  
-```
-
 Deserialization when a property value is null, but schema contains information about default value
 ```csharp
 //Model used for serialization

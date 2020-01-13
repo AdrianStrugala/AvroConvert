@@ -171,8 +171,8 @@ namespace SolTechnology.Avro.Read
             _reader.ReadFixed(reuse.Data, 0, (int)reuse.BlockSize);
             _reader.ReadFixed(_syncBuffer);
 
-            if (!Enumerable.SequenceEqual(_syncBuffer, _header.SyncData))
-                throw new AvroRuntimeException("Invalid sync!");
+//            if (!Enumerable.SequenceEqual(_syncBuffer, _header.SyncData))
+//                throw new AvroRuntimeException("Invalid sync!");
 
             _availableBlock = false;
             return reuse;
@@ -193,6 +193,7 @@ namespace SolTechnology.Avro.Read
 
                 _blockRemaining = _reader.ReadLong();      // read block count
                 _blockSize = _reader.ReadLong();           // read block size
+//                _blockSize = _blockSize - 4;
                 if (_blockSize > int.MaxValue || _blockSize < 0)
                 {
                     throw new AvroRuntimeException("Block size invalid or too large for this " +

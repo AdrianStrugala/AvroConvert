@@ -24,6 +24,16 @@ namespace SolTechnology.Avro.Helpers.Codec
 {
     public class DeflateCodec : Codec
     {
+        public override DataBlock Read(long blockRemaining, long blockSize)
+        {
+            var dataBlock = new DataBlock(blockRemaining, blockSize);
+
+            _reader.ReadFixed(dataBlock.Data, 0, (int)blockSize);
+
+            dataBlock.Data = Decompress(dataBlock.Data);
+
+            return dataBlock;
+        }
         public override byte[] Compress(byte[] uncompressedData)
         {
             MemoryStream outStream = new MemoryStream();
@@ -37,7 +47,7 @@ namespace SolTechnology.Avro.Helpers.Codec
             return outStream.ToArray();
         }
 
-        public override byte[] Decompress(byte[] compressedData)
+        public byte[] Decompress(byte[] compressedData)
         {
             MemoryStream inStream = new MemoryStream(compressedData);
             MemoryStream outStream = new MemoryStream();
@@ -55,7 +65,7 @@ namespace SolTechnology.Avro.Helpers.Codec
         {
             byte[] buffer = new byte[4096];
             int read;
-            while((read = from.Read(buffer, 0, buffer.Length)) != 0)
+            while ((read = from.Read(buffer, 0, buffer.Length)) != 0)
             {
                 to.Write(buffer, 0, read);
             }

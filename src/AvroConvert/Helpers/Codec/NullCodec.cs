@@ -24,12 +24,15 @@ namespace SolTechnology.Avro.Helpers.Codec
     {
         public NullCodec() { }
 
-        public override byte[] Compress(byte[] uncompressedData)
+        public override DataBlock Read(long blockRemaining, long blockSize)
         {
-            return uncompressedData;
+            var dataBlock = new DataBlock(blockRemaining, blockSize);
+
+            _reader.ReadFixed(dataBlock.Data, 0, (int)blockSize);
+            return dataBlock;
         }
 
-        public override byte[] Decompress(byte[] compressedData)
+        public override byte[] Compress(byte[] compressedData)
         {
             return compressedData;
         }

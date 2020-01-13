@@ -17,6 +17,7 @@
  */
 
 using SolTechnology.Avro.Constants;
+using SolTechnology.Avro.Read;
 
 namespace SolTechnology.Avro.Helpers.Codec
 {
@@ -27,14 +28,14 @@ namespace SolTechnology.Avro.Helpers.Codec
         /// </summary>
         /// <param name="uncompressedData"></param>
         /// <returns></returns>
-        public abstract byte[] Compress(byte[] uncompressedData);
+        public abstract DataBlock Read(long blockRemaining, long  blockSize);
 
         /// <summary>
         /// Decompress data using implemented codec
         /// </summary>
         /// <param name="compressedData"></param>
         /// <returns></returns>
-        public abstract byte[] Decompress(byte[] compressedData);
+        public abstract byte[] Compress(byte[] compressedData);
 
         /// <summary>
         /// Name of this codec type
@@ -66,6 +67,8 @@ namespace SolTechnology.Avro.Helpers.Codec
             Null
         };
 
+        protected static IReader _reader;
+
         /// <summary>
         /// Factory method to return child
         /// codec instance based on Codec.Type  
@@ -76,12 +79,10 @@ namespace SolTechnology.Avro.Helpers.Codec
         {
             switch (codecType)
             {
-                case Type.Snappy:
-                    return new SnappyCodec();
                 case Type.Deflate:
                     return new DeflateCodec();
                 case Type.Snappy:
-                    return new xd.Sharp.xd();
+                    return new SnappyCodec();
                 default:
                     return new NullCodec();
             }
@@ -93,16 +94,16 @@ namespace SolTechnology.Avro.Helpers.Codec
         /// </summary>
         /// <param name="codecType"></param>
         /// <returns></returns>
-        public static Codec CreateCodecFromString(string codecType)
+        public static Codec CreateCodecFromString(string codecType, IReader reader)
         {
+            _reader = reader;
+
             switch (codecType)
             {
-                case DataFileConstants.SnappyCodec:
-                    return new SnappyCodec();
                 case DataFileConstants.DeflateCodec:
                     return new DeflateCodec();
                 case DataFileConstants.SnappyCodec:
-                    return new xd.Sharp.xd();
+                    return new SnappyCodec();
                 default:
                     return new NullCodec();
             }

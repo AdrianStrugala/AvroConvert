@@ -49,14 +49,28 @@ namespace AvroConvertTests.TwitterExample
         public void Deserialize_SnappyCodedFile_NotSupportedExceptionIsThrown()
         {
             //Arrange
+            List<TwitterModel> expected = new List<TwitterModel>();
+            expected.Add(new TwitterModel
+            {
+                Timestamp = 1366150681,
+                Tweet = "Rock: Nerf paper, scissors is fine.",
+                Username = "miguno"
+            });
+
+            expected.Add(new TwitterModel
+            {
+                Timestamp = 1366154481,
+                Tweet = "Works as intended.  Terran is IMBA.",
+                Username = "BlizzardCS"
+            });
 
 
             //Act
-            var result = Record.Exception(() => AvroConvert.Deserialize<List<TwitterModel>>(_snappy));
+            var result = AvroConvert.Deserialize<List<TwitterModel>>(_snappy);
 
 
             //Assert
-            Assert.IsType<NotSupportedException>(result);
+            Assert.Equal(expected, result);
         }
     }
 }

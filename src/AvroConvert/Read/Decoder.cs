@@ -91,7 +91,7 @@ namespace SolTechnology.Avro.Read
             // parse schema and set codec 
             _header.Schema = Schema.Schema.Parse(GetMetaString(DataFileConstants.SchemaMetadataKey));
             _resolver = new Resolver(_header.Schema, _readerSchema ?? _header.Schema);
-            _codec = Codec.CreateCodecFromString(GetMetaString(DataFileConstants.CodecMetadataKey));
+            _codec = Codec.CreateCodecFromString(GetMetaString(DataFileConstants.CodecMetadataKey), _reader);
         }
 
         public byte[] GetMeta(string key)
@@ -138,8 +138,7 @@ namespace SolTechnology.Avro.Read
             {
                 if (HasNextBlock())
                 {
-                    _currentBlock = NextRawBlock(_currentBlock);
-                    _currentBlock.Data = _codec.Decompress(_currentBlock.Data);
+                    _currentBlock = NextRawBlock();
                     _datumReader = new Reader(_currentBlock.GetDataAsStream());
                 }
             }
@@ -152,29 +151,19 @@ namespace SolTechnology.Avro.Read
             _stream.Dispose();
         }
 
-        private DataBlock NextRawBlock(DataBlock reuse)
+        private DataBlock NextRawBlock()
         {
             if (!HasNextBlock())
                 throw new AvroRuntimeException("No data remaining in block!");
 
-            if (reuse == null || reuse.Data.Length < _blockSize)
-            {
-                reuse = new DataBlock(_blockRemaining, _blockSize);
-            }
-            else
-            {
-                reuse.NumberOfEntries = _blockRemaining;
-                reuse.BlockSize = _blockSize;
-            }
-
-            _reader.ReadFixed(reuse.Data, 0, (int)reuse.BlockSize);
+            var dataBlock = _codec.Read(_blockRemaining, _blockSize);
             _reader.ReadFixed(_syncBuffer);
 
-//            if (!Enumerable.SequenceEqual(_syncBuffer, _header.SyncData))
-//                throw new AvroRuntimeException("Invalid sync!");
+            if (!Enumerable.SequenceEqual(_syncBuffer, _header.SyncData))
+                throw new AvroRuntimeException("Invalid sync!");
 
             _availableBlock = false;
-            return reuse;
+            return dataBlock;
         }
 
 
@@ -192,7 +181,7 @@ namespace SolTechnology.Avro.Read
 
                 _blockRemaining = _reader.ReadLong();      // read block count
                 _blockSize = _reader.ReadLong();           // read block size
-//                _blockSize = _blockSize - 4;
+
                 if (_blockSize > int.MaxValue || _blockSize < 0)
                 {
                     throw new AvroRuntimeException("Block size invalid or too large for this " +

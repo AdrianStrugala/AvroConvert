@@ -46,6 +46,8 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="TwitterExample\twitter.snappy.avro">
+	 <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="UserDataTests\userdata1.avro">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -6,27 +6,42 @@ namespace SolTechnology.Avro.Helpers.Codec
     {
         public override byte[] Compress(byte[] uncompressedData)
         {
-            throw new NotSupportedException("Snappy encoding is not supported");
+
+            return Snappy.SnappyCodec.Compress(uncompressedData);
         }
 
-        public override byte[] Decompress(byte[] compressedData)
+        public override DataBlock Read(long blockRemaining, long blockSize)
         {
-            throw new NotSupportedException("Snappy encoding is not supported");
+            blockSize = blockSize - 4; //CRC
+
+            var dataBlock = new DataBlock(blockRemaining, blockSize);
+
+            _reader.ReadFixed(dataBlock.Data, 0, (int)blockSize);
+            dataBlock.Data = Decompress(dataBlock.Data);
+
+            _reader.ReadFixed(new byte[4]);
+
+            return dataBlock;
+        }
+
+        public byte[] Decompress(byte[] compressedData)
+        {
+            return Snappy.SnappyCodec.Uncompress(compressedData);
         }
 
         public override string GetName()
         {
-            throw new NotSupportedException("Snappy encoding is not supported");
+            throw new NotImplementedException();
         }
 
         public override bool Equals(object other)
         {
-            throw new NotSupportedException("Snappy encoding is not supported");
+            throw new NotImplementedException();
         }
 
         public override int GetHashCode()
         {
-            throw new NotSupportedException("Snappy encoding is not supported");
+            throw new NotImplementedException();
         }
     }
 }

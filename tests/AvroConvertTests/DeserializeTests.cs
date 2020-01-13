@@ -8,12 +8,8 @@ namespace AvroConvertTests
 
     public class DeserializeTests
     {
-        private readonly byte[] _avroBytes;
+        private readonly byte[] _avroBytes = System.IO.File.ReadAllBytes("example2.avro");
 
-        public DeserializeTests()
-        {
-            _avroBytes = System.IO.File.ReadAllBytes("example2.avro");
-        }
 
         [Fact]
         public void Deserialize_CustomSchema_OnlyValuesFromCustomSchemaAreReturned()

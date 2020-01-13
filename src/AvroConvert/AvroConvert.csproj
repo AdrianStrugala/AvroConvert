@@ -17,11 +17,13 @@
     <RepositoryUrl>https://github.com/AdrianStrugala/AvroConvert</RepositoryUrl>
     <AssemblyName>SolTechnology.Avro</AssemblyName>
     <RootNamespace>SolTechnology.Avro</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="8.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="Snappy.NET" Version="1.1.1.8" />
   </ItemGroup>
 
 </Project>

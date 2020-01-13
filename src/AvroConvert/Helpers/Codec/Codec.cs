@@ -80,6 +80,8 @@ namespace SolTechnology.Avro.Helpers.Codec
                     return new SnappyCodec();
                 case Type.Deflate:
                     return new DeflateCodec();
+                case Type.Snappy:
+                    return new xd.Sharp.xd();
                 default:
                     return new NullCodec();
             }
@@ -99,6 +101,8 @@ namespace SolTechnology.Avro.Helpers.Codec
                     return new SnappyCodec();
                 case DataFileConstants.DeflateCodec:
                     return new DeflateCodec();
+                case DataFileConstants.SnappyCodec:
+                    return new xd.Sharp.xd();
                 default:
                     return new NullCodec();
             }

@@ -29,7 +29,7 @@ namespace SolTechnology.Avro.Write
 
         public Encoder(Schema.Schema schema, Stream outStream)
         {
-            _codec = AbstractCodec.CreateCodec(AbstractCodec.Type.Null);
+            _codec = AbstractCodec.CreateCodec(AbstractCodec.Type.Snappy);
             _stream = outStream;
             _metadata = new Metadata();
             _schema = schema;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace SolTechnology.Avro.Codec
 {
@@ -8,9 +9,12 @@ namespace SolTechnology.Avro.Codec
 
         public override byte[] Compress(byte[] uncompressedData)
         {
-            return Snappy.SnappyCodec.Compress(uncompressedData);
+            var compressedData = Snappy.SnappyCodec.Compress(uncompressedData);
+            uint checksumUint = Crc32.Get(compressedData);
+            byte[] checksumBytes = BitConverter.GetBytes(checksumUint);
 
-            //TODO add CRC calculation at the end and add it to dataBlock
+            byte[] result = compressedData.Concat(checksumBytes).ToArray();
+            return result;
         }
 
         public override byte[] Decompress(byte[] compressedData)

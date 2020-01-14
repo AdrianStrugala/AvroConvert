@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace AvroConvertTests.RealExample2
+namespace AvroConvertTests.CodecTests.Snappy
 {
     public class ModelItem
     {

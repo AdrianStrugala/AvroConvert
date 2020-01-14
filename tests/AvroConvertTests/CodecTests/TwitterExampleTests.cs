@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using SolTechnology.Avro;
-using SolTechnology.Avro.Exceptions;
 using Xunit;
 
-namespace AvroConvertTests.TwitterExample
+namespace AvroConvertTests.CodecTests
 {
     public class TwitterExampleTests
     {
@@ -13,9 +11,11 @@ namespace AvroConvertTests.TwitterExample
 
         public TwitterExampleTests()
         {
-            _notCompressed = System.IO.File.ReadAllBytes("TwitterExample/twitter.avro");
-            _snappy = System.IO.File.ReadAllBytes("TwitterExample/twitter.snappy.avro");
+            _notCompressed = System.IO.File.ReadAllBytes("CodecTests/twitter.avro");
+            _snappy = System.IO.File.ReadAllBytes("CodecTests/twitter.snappy.avro");
         }
+
+        //TODO ComponentTestForSnappy
 
         [Fact]
         public void Deserialize_NotCompressed_DataIsDeserialized()

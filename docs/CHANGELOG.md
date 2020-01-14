@@ -131,3 +131,9 @@ START OF THE PROJECT
 - Added support for ConcurentBagClass
 - Added support for Dictionary properties
 - Snappy encoding is not supported
+</br>
+</br>
+**v. 2.1.0 (xxx)**
+- Added support for Snappy Codec
+- Added possibility to choose Snappy compression during serialization
+- Added possibility to choose Deflate compression during serialization

@@ -20,7 +20,7 @@ namespace SolTechnology.Avro.Codec
 {
     public class NullCodec : AbstractCodec
     {
-        public override string Name { get; } = Type.Null.ToString().ToLower();
+        public override string Name { get; } = CodecType.Null.ToString().ToLower();
 
         public override byte[] Decompress(byte[] compressedData)
         {

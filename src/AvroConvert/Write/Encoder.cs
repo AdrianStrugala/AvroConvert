@@ -27,9 +27,9 @@ namespace SolTechnology.Avro.Write
         private readonly Metadata _metadata;
 
 
-        public Encoder(Schema.Schema schema, Stream outStream)
+        public Encoder(Schema.Schema schema, Stream outStream, CodecType codecType)
         {
-            _codec = AbstractCodec.CreateCodec(AbstractCodec.Type.Snappy);
+            _codec = AbstractCodec.CreateCodec(codecType);
             _stream = outStream;
             _metadata = new Metadata();
             _schema = schema;

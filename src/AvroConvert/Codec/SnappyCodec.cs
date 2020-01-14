@@ -5,7 +5,7 @@ namespace SolTechnology.Avro.Codec
 {
     public class SnappyCodec : AbstractCodec
     {
-        public override string Name { get; } = Type.Snappy.ToString().ToLower();
+        public override string Name { get; } = CodecType.Snappy.ToString().ToLower();
 
         public override byte[] Compress(byte[] uncompressedData)
         {

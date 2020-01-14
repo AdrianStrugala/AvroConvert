@@ -1,19 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using SolTechnology.Avro.Constants;
 
 namespace SolTechnology.Avro.Codec
 {
     public abstract class AbstractCodec
     {
-        public enum Type
-        {
-            Deflate,
-            Snappy,
-            Null
-        };
-
         public abstract string Name { get; }
 
         public abstract byte[] Decompress(byte[] compressedData);
@@ -22,13 +13,13 @@ namespace SolTechnology.Avro.Codec
 
         public abstract override int GetHashCode();
 
-        public static AbstractCodec CreateCodec(Type codecType)
+        public static AbstractCodec CreateCodec(CodecType codecType)
         {
             switch (codecType)
             {
-                case Type.Deflate:
+                case CodecType.Deflate:
                     return new DeflateCodec();
-                case Type.Snappy:
+                case CodecType.Snappy:
                     return new SnappyCodec();
                 default:
                     return new NullCodec();

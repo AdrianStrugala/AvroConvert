@@ -18,12 +18,13 @@
 
 using System.IO;
 using System.IO.Compression;
-using SolTechnology.Avro.Constants;
 
 namespace SolTechnology.Avro.Codec
 {
     public class DeflateCodec : AbstractCodec
     {
+        public override string Name { get; } = CodecType.Deflate.ToString().ToLower();
+
         public override byte[] Compress(byte[] uncompressedData)
         {
             MemoryStream outStream = new MemoryStream();
@@ -36,8 +37,6 @@ namespace SolTechnology.Avro.Codec
             }
             return outStream.ToArray();
         }
-
-        public override string Name { get; } = Type.Deflate.ToString().ToLower();
 
         public override byte[] Decompress(byte[] compressedData)
         {

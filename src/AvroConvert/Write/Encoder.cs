@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using SolTechnology.Avro.Codec;
 using SolTechnology.Avro.Constants;
 using SolTechnology.Avro.Exceptions;
 using SolTechnology.Avro.Helpers;
-using SolTechnology.Avro.Helpers.Codec;
 
 namespace SolTechnology.Avro.Write
 {
@@ -13,7 +13,7 @@ namespace SolTechnology.Avro.Write
         public delegate void WriteItem(object value, IWriter encoder);
 
         private readonly Schema.Schema _schema;
-        private readonly Codec _codec;
+        private readonly AbstractCodec _codec;
         private readonly Stream _stream;
         private MemoryStream _blockStream;
         private readonly IWriter _encoder;
@@ -29,7 +29,7 @@ namespace SolTechnology.Avro.Write
 
         public Encoder(Schema.Schema schema, Stream outStream)
         {
-            _codec = Codec.CreateCodec(Codec.Type.Null);
+            _codec = AbstractCodec.CreateCodec(AbstractCodec.Type.Null);
             _stream = outStream;
             _metadata = new Metadata();
             _schema = schema;
@@ -88,7 +88,7 @@ namespace SolTechnology.Avro.Write
         {
             // Add sync, code & schema to metadata
             GenerateSyncData();
-            _metadata.Add(DataFileConstants.CodecMetadataKey, _codec.GetName());
+            _metadata.Add(DataFileConstants.CodecMetadataKey, _codec.Name);
             _metadata.Add(DataFileConstants.SchemaMetadataKey, _schema.ToString());
 
             // write metadata 

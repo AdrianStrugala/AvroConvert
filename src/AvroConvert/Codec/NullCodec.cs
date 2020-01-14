@@ -16,26 +16,25 @@
  * limitations under the License.
  */
 
-using System.IO;
-
-namespace SolTechnology.Avro.Helpers
+namespace SolTechnology.Avro.Codec
 {
-    public class DataBlock
+    public class NullCodec : AbstractCodec
     {
-        public byte[] Data { get;  set; }
-        public long NumberOfEntries { get; set; }
-        public long BlockSize { get; set; }
-       
-        public DataBlock(long numberOfEntries, long blockSize)
+        public override string Name { get; } = Type.Null.ToString().ToLower();
+
+        public override byte[] Decompress(byte[] compressedData)
         {
-            this.NumberOfEntries = numberOfEntries;
-            this.BlockSize = blockSize;
-            this.Data = new byte[blockSize];
+            return compressedData;
         }
 
-        public Stream GetDataAsStream()
+        public override byte[] Compress(byte[] uncompressedData)
         {
-            return new MemoryStream(Data);
+            return uncompressedData;
+        }
+
+        public override int GetHashCode()
+        {
+            return 2;
         }
     }
 }

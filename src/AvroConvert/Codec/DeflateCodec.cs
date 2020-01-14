@@ -20,20 +20,10 @@ using System.IO;
 using System.IO.Compression;
 using SolTechnology.Avro.Constants;
 
-namespace SolTechnology.Avro.Helpers.Codec
+namespace SolTechnology.Avro.Codec
 {
-    public class DeflateCodec : Codec
+    public class DeflateCodec : AbstractCodec
     {
-        public override DataBlock Read(long blockRemaining, long blockSize)
-        {
-            var dataBlock = new DataBlock(blockRemaining, blockSize);
-
-            _reader.ReadFixed(dataBlock.Data, 0, (int)blockSize);
-
-            dataBlock.Data = Decompress(dataBlock.Data);
-
-            return dataBlock;
-        }
         public override byte[] Compress(byte[] uncompressedData)
         {
             MemoryStream outStream = new MemoryStream();
@@ -47,7 +37,9 @@ namespace SolTechnology.Avro.Helpers.Codec
             return outStream.ToArray();
         }
 
-        public byte[] Decompress(byte[] compressedData)
+        public override string Name { get; } = Type.Deflate.ToString().ToLower();
+
+        public override byte[] Decompress(byte[] compressedData)
         {
             MemoryStream inStream = new MemoryStream(compressedData);
             MemoryStream outStream = new MemoryStream();
@@ -71,21 +63,9 @@ namespace SolTechnology.Avro.Helpers.Codec
             }
         }
 
-        public override string GetName()
-        {
-            return DataFileConstants.DeflateCodec;
-        }
-
-        public override bool Equals(object other)
-        {
-            if (this == other)
-                return true;
-            return (this.GetType().Name == other.GetType().Name);
-        }
-
         public override int GetHashCode()
         {
-            return DataFileConstants.DeflateCodecHash;
+            return 0;
         }
     }
 }

@@ -2,22 +2,21 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using SolTechnology.Avro.Codec;
 using SolTechnology.Avro.Constants;
 using SolTechnology.Avro.Exceptions;
 using SolTechnology.Avro.Helpers;
 
 namespace SolTechnology.Avro.Read
 {
-    using Codec = Helpers.Codec.Codec;
-
     public class Decoder : IDisposable
     {
         private readonly Resolver _resolver;
         private readonly IReader _reader;
         private IReader _datumReader;
         private readonly Header _header;
-        private readonly Codec _codec;
-        private DataBlock _currentBlock;
+        private readonly AbstractCodec _codec;
+        private byte[] _currentBlock;
         private long _blockRemaining;
         private long _blockSize;
         private bool _availableBlock;
@@ -91,7 +90,7 @@ namespace SolTechnology.Avro.Read
             // parse schema and set codec 
             _header.Schema = Schema.Schema.Parse(GetMetaString(DataFileConstants.SchemaMetadataKey));
             _resolver = new Resolver(_header.Schema, _readerSchema ?? _header.Schema);
-            _codec = Codec.CreateCodecFromString(GetMetaString(DataFileConstants.CodecMetadataKey), _reader);
+            _codec = AbstractCodec.CreateCodecFromString(GetMetaString(DataFileConstants.CodecMetadataKey));
         }
 
         public byte[] GetMeta(string key)
@@ -139,7 +138,8 @@ namespace SolTechnology.Avro.Read
                 if (HasNextBlock())
                 {
                     _currentBlock = NextRawBlock();
-                    _datumReader = new Reader(_currentBlock.GetDataAsStream());
+                    _currentBlock = _codec.Decompress(_currentBlock);
+                    _datumReader = new Reader(new MemoryStream(_currentBlock));
                 }
             }
 
@@ -151,15 +151,17 @@ namespace SolTechnology.Avro.Read
             _stream.Dispose();
         }
 
-        private DataBlock NextRawBlock()
+        private byte[] NextRawBlock()
         {
             if (!HasNextBlock())
                 throw new AvroRuntimeException("No data remaining in block!");
 
-            var dataBlock = _codec.Read(_blockRemaining, _blockSize);
+            var dataBlock = new byte[_blockSize];
+
+            _reader.ReadFixed(dataBlock, 0, (int)_blockSize);
             _reader.ReadFixed(_syncBuffer);
 
-            if (!Enumerable.SequenceEqual(_syncBuffer, _header.SyncData))
+            if (!_syncBuffer.SequenceEqual(_header.SyncData))
                 throw new AvroRuntimeException("Invalid sync!");
 
             _availableBlock = false;

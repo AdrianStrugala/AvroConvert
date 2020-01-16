@@ -1,6 +1,6 @@
 
 [![Nuget](https://img.shields.io/badge/Nuget-v1.8.1-blue?logo=nuget)](https://www.nuget.org/packages/AvroConvert)
-[![Github](https://img.shields.io/badge/Downloads-4k-blue?logo=github)](https://github.com/AdrianStrugala/AvroConvert)
+[![Github](https://img.shields.io/badge/Downloads-5k-blue?logo=github)](https://github.com/AdrianStrugala/AvroConvert)
 
 # AvroConvert
 
@@ -24,6 +24,17 @@ Wiki: https://cwiki.apache.org/confluence/display/AVRO/Index
 ```csharp
  byte[] avroObject = AvroConvert.Serialize(object yourObject);
 ```
+
+Using encoding
+```csharp
+ byte[] avroObject = AvroConvert.Serialize(object yourObject, CodecType.Snappy);
+```
+Supported encoding types:
+* Null (default)
+* Deflate
+* Snappy
+
+<br />
 
 #### Deserialization
 
@@ -55,6 +66,7 @@ public class DefaultValueClass
 > 2137
 ```
 
+<br />
 
 #### Generating Avro schema for C# classes
 
@@ -103,6 +115,8 @@ string schemaInJsonFormat = AvroConvert.GenerateSchema(typeof(AttributeClass));
 //Produces following schema:
 "{"type":"record","name":"user.User","fields":[{"name":"name","type":["null","string"]},{"name":"favorite_number","type":["null","int"]},{"name":"favorite_color","type":["null","string"]}]}"
 ```  
+
+<br />
 
 #### Reading Avro schema from Avro encoded object
 ```csharp

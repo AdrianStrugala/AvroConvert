@@ -15,11 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+using System;
+using System.Collections.Generic;
+using System.Text;
 
-namespace AvroOrigin.Generic
+namespace Avro.Generic
 {
-    using Schema;
-
     /// <summary>
     /// The defualt class to hold values for enum schema in GenericReader and GenericWriter.
     /// </summary>

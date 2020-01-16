@@ -16,12 +16,12 @@
  * limitations under the License.
  */
 
-namespace AvroOrigin.Schema
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
+using System.Collections.Generic;
+using System.Text;
+using System;
 
+namespace Avro
+{
     /// <summary>
     /// Collection of static methods for generating the cannonical form of schemas.
     /// </summary>

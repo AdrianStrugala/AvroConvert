@@ -16,10 +16,10 @@
  * limitations under the License.
  */
 
-namespace AvroOrigin.IO
-{
-    using System;
+using System;
 
+namespace Avro.IO
+{
     public interface ICallback<in T> 
     {
         /**

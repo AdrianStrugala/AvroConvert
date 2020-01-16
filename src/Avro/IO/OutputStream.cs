@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 
-namespace AvroOrigin.IO
-{
-    using System;
-    using System.IO;
+using System;
+using System.IO;
 
+namespace Avro.IO
+{
     public abstract class OutputStream : Stream
     {
         public override bool CanWrite

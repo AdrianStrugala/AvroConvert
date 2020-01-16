@@ -15,15 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+using System.Collections;
+using Avro.Generic;
+using Avro.IO;
 
-namespace AvroOrigin.Specific
+namespace Avro.Specific
 {
-    using System.Collections;
-    using CodeGen;
-    using Generic;
-    using IO;
-    using Schema;
-
     /// PreresolvingDatumReader for reading data to ISpecificRecord classes.
     /// <see cref="PreresolvingDatumReader{T}">For more information about performance considerations for choosing this implementation</see>
     public class SpecificDatumReader<T> : PreresolvingDatumReader<T>
@@ -146,7 +143,7 @@ namespace AvroOrigin.Specific
             public SpecificArrayAccess(ArraySchema readerSchema)
             {
                 bool nEnum = false;
-                string type = CodeGen.getType(readerSchema, false, ref nEnum);
+                string type = Avro.CodeGen.getType(readerSchema, false, ref nEnum);
                 type = type.Remove(0, 6);              // remove IList<
                 type = type.Remove(type.Length - 1);   // remove >
         
@@ -198,7 +195,7 @@ namespace AvroOrigin.Specific
             public SpecificMapAccess(MapSchema readerSchema)
             {
                 bool nEnum = false;
-                string type = CodeGen.getType(readerSchema, false, ref nEnum);
+                string type = Avro.CodeGen.getType(readerSchema, false, ref nEnum);
                 type = type.Remove(0, 19);             // remove IDictionary<string,
                 type = type.Remove(type.Length - 1);   // remove >
         

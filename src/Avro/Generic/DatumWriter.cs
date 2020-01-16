@@ -15,12 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+using System;
+using Avro.IO;
 
-namespace AvroOrigin.Generic
+namespace Avro.Generic
 {
-    using IO;
-    using Schema;
-
     public interface DatumWriter<T>
     {
         Schema Schema { get; }

@@ -15,20 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.IO;
+using Avro.Generic;
+using Avro.IO;
+using Avro.Specific;
+using System.Reflection;
 
-namespace AvroOrigin.File
+namespace Avro.File
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Reflection;
-    using CodeGen;
-    using Generic;
-    using IO;
-    using Schema;
-    using Specific;
-
     public class DataFileReader<T> : IFileReader<T>
     {
         public delegate DatumReader<T> CreateDatumReader(Schema writerSchema, Schema readerSchema);
@@ -98,16 +95,16 @@ namespace AvroOrigin.File
             if (!inStream.CanSeek)
                 throw new AvroRuntimeException("Not a valid input stream - must be seekable!");
 
-            if (inStream.Length < DataFileConstants.AvroHeader.Length)
+            if (inStream.Length < DataFileConstants.Magic.Length)
                 throw new AvroRuntimeException("Not an Avro data file");
 
             // verify magic header
-            byte[] magic = new byte[DataFileConstants.AvroHeader.Length];
+            byte[] magic = new byte[DataFileConstants.Magic.Length];
             inStream.Seek(0, SeekOrigin.Begin);
             for (int c = 0; c < magic.Length; c = inStream.Read(magic, c, magic.Length - c)) { }
             inStream.Seek(0, SeekOrigin.Begin);
 
-            if (magic.SequenceEqual(DataFileConstants.AvroHeader))   // current format
+            if (magic.SequenceEqual(DataFileConstants.Magic))   // current format
                 return new DataFileReader<T>(inStream, readerSchema, datumReaderFactory);         // (not supporting 1.2 or below, format) 
 
             throw new AvroRuntimeException("Not an Avro data file");
@@ -275,7 +272,7 @@ namespace AvroOrigin.File
             _syncBuffer = new byte[DataFileConstants.SyncSize];
 
             // read magic 
-            byte[] firstBytes = new byte[DataFileConstants.AvroHeader.Length];
+            byte[] firstBytes = new byte[DataFileConstants.Magic.Length];
             try
             {
                 _decoder.ReadFixed(firstBytes);
@@ -284,7 +281,7 @@ namespace AvroOrigin.File
             {
                 throw new AvroRuntimeException("Not a valid data file!", e);
             }
-            if (!firstBytes.SequenceEqual(DataFileConstants.AvroHeader))
+            if (!firstBytes.SequenceEqual(DataFileConstants.Magic))
                 throw new AvroRuntimeException("Not a valid data file!");
 
             // read meta data 
@@ -425,6 +422,5 @@ namespace AvroOrigin.File
                 throw new AvroRuntimeException(string.Format("Error ascertaining if data has next block: {0}", e));
             }
         }
-
     }
 }

@@ -15,14 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+using System.Collections.Generic;
+using System.IO;
+using Avro.IO;
 
-namespace AvroOrigin.Generic
+namespace Avro.Generic
 {
-    using System.Collections.Generic;
-    using System.IO;
-    using IO;
-    using Schema;
-
     /// <summary>
     /// A general purpose reader of data from avro streams. This reader analyzes and resolves the reader and writer schemas
     /// when constructed so that reads can be more efficient. Once constructed, a reader can be reused or shared among threads

@@ -15,11 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+using System;
 
-namespace AvroOrigin.File
+namespace Avro.File
 {
-    using System;
-
     public interface IFileWriter<T> : IDisposable
     {
         /// <summary>

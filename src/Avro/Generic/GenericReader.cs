@@ -15,15 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+using System;
+using System.Collections.Generic;
+using Avro.IO;
+using System.IO;
 
-namespace AvroOrigin.Generic
+namespace Avro.Generic
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using IO;
-    using Schema;
-
     public delegate T Reader<T>();
 
     /// <summary>
@@ -113,8 +111,7 @@ namespace AvroOrigin.Generic
             if (!ReaderSchema.CanRead(WriterSchema))
                 throw new AvroException("Schema mismatch. Reader: " + ReaderSchema + ", writer: " + WriterSchema);
 
-            var xd = Read(reuse, WriterSchema, ReaderSchema, decoder);
-            return (T)xd;
+            return (T)Read(reuse, WriterSchema, ReaderSchema, decoder);
         }
 
         public object Read(object reuse, Schema writerSchema, Schema readerSchema, Decoder d)

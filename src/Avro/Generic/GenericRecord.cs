@@ -15,14 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Avro;
 
-namespace AvroOrigin.Generic
+namespace Avro.Generic
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-    using Schema;
-
     /// <summary>
     /// The default type used by GenericReader and GenericWriter for RecordSchema.
     /// </summary>
@@ -30,7 +30,7 @@ namespace AvroOrigin.Generic
     {
         public RecordSchema Schema { get; private set; }
 
-        public IDictionary<string, object> contents = new Dictionary<string, object>();
+        private IDictionary<string, object> contents = new Dictionary<string, object>();
         public GenericRecord(RecordSchema schema)
         {
             this.Schema = schema;

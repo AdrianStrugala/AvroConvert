@@ -15,11 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+using System.IO;
+using Avro.IO;
+using Avro.Generic;
+using System.Collections.Generic;
 
-namespace AvroOrigin.File
+namespace Avro.File
 {
-    using System.IO;
-
     public class DataBlock
     {
         public byte[] Data { get;  set; }
@@ -33,7 +35,7 @@ namespace AvroOrigin.File
             this.Data = new byte[blockSize];
         }
 
-        public Stream GetDataAsStream()
+        internal Stream GetDataAsStream()
         {
             return new MemoryStream(Data);
         }

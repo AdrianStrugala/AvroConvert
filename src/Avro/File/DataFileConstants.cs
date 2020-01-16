@@ -15,22 +15,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
-namespace AvroOrigin.File
+namespace Avro.File
 {
     public class DataFileConstants
     {
         public const string MetaDataSync = "avro.sync";
         public const string MetaDataCodec = "avro.codec";
-        public const string MetaDataSchema = "Schema";
+        public const string MetaDataSchema = "avro.schema";
         public const string NullCodec = "null";
         public const string DeflateCodec = "deflate";
         public const string MetaDataReserved = "avro";
-        
-        public static byte[] AvroHeader = { (byte)'O', 
-                                            (byte)'b', 
-                                            (byte)'j', 
-                                            (byte)1 };
+
+        public const int Version = 1;
+        public static byte[] Magic = { (byte)'O', 
+                                       (byte)'b', 
+                                       (byte)'j', 
+                                       (byte)Version };
 
         public const int NullCodecHash = 2;
         public const int DeflateCodecHash = 0;

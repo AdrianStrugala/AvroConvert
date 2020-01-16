@@ -15,10 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-namespace AvroOrigin.Specific
+namespace Avro.Specific
 {
-    using Protocol;
-
     public interface ISpecificProtocol
     {
         Protocol Protocol { get; }

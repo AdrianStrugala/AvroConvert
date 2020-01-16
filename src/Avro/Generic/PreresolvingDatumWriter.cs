@@ -1,14 +1,28 @@
-﻿using Encoder = AvroOrigin.IO.Encoder;
+﻿/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using Encoder = Avro.IO.Encoder;
 
-namespace AvroOrigin.Generic
+namespace Avro.Generic
 {
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Reflection;
-    using Schema;
-
     /// <summary>
     /// A general purpose writer of data from avro streams. This writer analyzes the writer schema
     /// when constructed so that writes can be more efficient. Once constructed, a writer can be reused or shared among threads
@@ -130,38 +144,6 @@ namespace AvroOrigin.Generic
             }
 
             return recordResolver;
-        }
-
-
-        public Dictionary<string, object> SplitKeyValues(object item)
-        {
-            Dictionary<string, object> result = new Dictionary<string, object>();
-            
-            PropertyInfo[] properties = item.GetType().GetProperties();
-
-            foreach (PropertyInfo prop in properties)
-            {
-                if (typeof(IList).IsAssignableFrom(prop.PropertyType) &&
-                    prop.PropertyType.GetTypeInfo().IsGenericType)
-                {
-                    // We have a List<T> or array
-                    result.Add(prop.Name, SplitKeyValues(prop.GetValue(item)));
-                }
-
-                else if (prop.PropertyType.GetTypeInfo().IsValueType ||
-                         prop.PropertyType == typeof(string))
-                {
-                    // We have a simple type
-
-                    result.Add(prop.Name, prop.GetValue(item));
-                }
-                else
-                {
-                    result.Add(prop.Name, SplitKeyValues(prop.GetValue(item)));
-                }
-            }
-
-            return result;
         }
 
         protected abstract void WriteRecordFields(object record, RecordFieldWriter[] writers, Encoder encoder);

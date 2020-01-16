@@ -15,8 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
-namespace AvroOrigin.Schema
+namespace Avro
 {
     /// <summary>
     /// Base class for all unnamed schemas

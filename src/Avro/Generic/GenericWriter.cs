@@ -15,14 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+using System;
+using System.Collections.Generic;
+using Avro.IO;
 
-namespace AvroOrigin.Generic
+namespace Avro.Generic
 {
-    using System;
-    using System.Collections.Generic;
-    using IO;
-    using Schema;
-
     public delegate void Writer<T>(T t);
     /// <summary>
     /// A typesafe wrapper around DefaultWriter. While a specific object of DefaultWriter
@@ -406,7 +404,7 @@ namespace AvroOrigin.Generic
          */
         protected virtual bool Matches(Schema sc, object obj)
         {
-            if (obj == null && sc.Tag != Schema.Type.Null) return false;
+            if (obj == null && sc.Tag != Avro.Schema.Type.Null) return false;
             switch (sc.Tag)
             {
                 case Schema.Type.Null:

@@ -15,15 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Avro;
+using Avro.IO;
+using Avro.Generic;
+using System.Reflection;
 
-namespace AvroOrigin.Specific
+namespace Avro.Specific
 {
-    using System;
-    using System.Reflection;
-    using Generic;
-    using IO;
-    using Schema;
-
     /// <summary>
     /// Generic wrapper class for writing data from specific objects
     /// </summary>
@@ -174,7 +175,7 @@ namespace AvroOrigin.Specific
 
         protected override bool Matches(Schema sc, object obj)
         {
-            if (obj == null && sc.Tag != Schema.Type.Null) return false;
+            if (obj == null && sc.Tag != Avro.Schema.Type.Null) return false;
             switch (sc.Tag)
             {
                 case Schema.Type.Null:

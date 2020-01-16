@@ -15,13 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
-namespace AvroOrigin.Schema
+namespace Avro
 {
-    using System.Collections.Generic;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
-
     public class PropertyMap : Dictionary<string, string>
     {
         /// <summary>

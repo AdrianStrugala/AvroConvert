@@ -15,11 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+using System;
+using System.Collections.Generic;
+using System.Text;
 
-namespace AvroOrigin.Schema
+namespace Avro
 {
-    using System;
-
     public class AvroException : Exception
     {
         public AvroException(string s)

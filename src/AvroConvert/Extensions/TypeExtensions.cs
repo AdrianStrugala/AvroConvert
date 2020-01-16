@@ -1,4 +1,21 @@
-﻿using System;
+﻿#region license
+/**Copyright (c) 2020 Adrian Strugała
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* https://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+#endregion
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
@@ -12,24 +29,12 @@ namespace SolTechnology.Avro.Extensions
 {
     public static class TypeExtensions
     {
-        /// <summary>
-        ///     Checks if type t has a public parameter-less constructor.
-        /// </summary>
-        /// <param name="type">The type.</param>
-        /// <returns>True if type t has a public parameter-less constructor, false otherwise.</returns>
         public static bool HasParameterlessConstructor(this Type type)
         {
             //return type.GetTypeInfo().GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, Type.EmptyTypes, null) != null;
             return type.GetConstructor(Type.EmptyTypes) != null;
         }
 
-        /// <summary>
-        ///     Determines whether the type is definitely unsupported for schema generation.
-        /// </summary>
-        /// <param name="type">The type.</param>
-        /// <returns>
-        ///     <c>true</c> if the type is unsupported; otherwise, <c>false</c>.
-        /// </returns>
         public static bool IsUnsupported(this Type type)
         {
             return type == typeof(IntPtr)
@@ -47,9 +52,6 @@ namespace SolTechnology.Avro.Extensions
                 && !(type.IsGenericType() && SupportedInterfaces.Contains(type.GetGenericTypeDefinition())));
         }
 
-        /// <summary>
-        /// The natively supported types.
-        /// </summary>
         private static readonly HashSet<Type> NativelySupported = new HashSet<Type>
         {
             typeof(char),
@@ -124,11 +126,6 @@ namespace SolTechnology.Avro.Extensions
                                  && m.GetParameters().Select(p => p.ParameterType).SequenceEqual(arguments));
         }
 
-        /// <summary>
-        /// Gets all fields of the type.
-        /// </summary>
-        /// <param name="t">The type.</param>
-        /// <returns>Collection of fields.</returns>
         public static IEnumerable<FieldInfo> GetAllFields(this Type t)
         {
             if (t == null)
@@ -147,11 +144,6 @@ namespace SolTechnology.Avro.Extensions
                 .Concat(GetAllFields(t.BaseType()));
         }
 
-        /// <summary>
-        /// Gets all properties of the type.
-        /// </summary>
-        /// <param name="t">The type.</param>
-        /// <returns>Collection of properties.</returns>
         public static IEnumerable<PropertyInfo> GetAllProperties(this Type t)
         {
             if (t == null)

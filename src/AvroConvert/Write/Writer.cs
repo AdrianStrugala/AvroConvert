@@ -1,3 +1,20 @@
+#region license
+/**Copyright (c) 2020 Adrian Struga³a
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* https://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+#endregion
+
 using System;
 using System.IO;
 
@@ -8,15 +25,11 @@ namespace SolTechnology.Avro.Write
     /// </summary>
     public class Writer : IWriter
     {
-        private readonly Stream Stream;
-
-        public Writer() : this(null)
-        {
-        }
+        private readonly Stream _stream;
 
         public Writer(Stream stream)
         {
-            this.Stream = stream;
+            this._stream = stream;
         }
 
         /// <summary>
@@ -32,7 +45,7 @@ namespace SolTechnology.Avro.Write
         /// <param name="b">Boolean value to write</param>
         public void WriteBoolean(bool b)
         {
-            writeByte((byte)(b ? 1 : 0));
+            WriteByte((byte)(b ? 1 : 0));
         }
 
         /// <summary>
@@ -52,10 +65,10 @@ namespace SolTechnology.Avro.Write
             ulong n = (ulong)((value << 1) ^ (value >> 63));
             while ((n & ~0x7FUL) != 0)
             {
-                writeByte((byte)((n & 0x7f) | 0x80));
+                WriteByte((byte)((n & 0x7f) | 0x80));
                 n >>= 7;
             }
-            writeByte((byte)n);
+            WriteByte((byte)n);
         }
 
         /// <summary>
@@ -80,14 +93,14 @@ namespace SolTechnology.Avro.Write
         {
             long bits = BitConverter.DoubleToInt64Bits(value);
             
-            writeByte((byte)((bits) & 0xFF));
-            writeByte((byte)((bits >> 8) & 0xFF));
-            writeByte((byte)((bits >> 16) & 0xFF));
-            writeByte((byte)((bits >> 24) & 0xFF));
-            writeByte((byte)((bits >> 32) & 0xFF));
-            writeByte((byte)((bits >> 40) & 0xFF));
-            writeByte((byte)((bits >> 48) & 0xFF));
-            writeByte((byte)((bits >> 56) & 0xFF));
+            WriteByte((byte)((bits) & 0xFF));
+            WriteByte((byte)((bits >> 8) & 0xFF));
+            WriteByte((byte)((bits >> 16) & 0xFF));
+            WriteByte((byte)((bits >> 24) & 0xFF));
+            WriteByte((byte)((bits >> 32) & 0xFF));
+            WriteByte((byte)((bits >> 40) & 0xFF));
+            WriteByte((byte)((bits >> 48) & 0xFF));
+            WriteByte((byte)((bits >> 56) & 0xFF));
             
         }
 
@@ -156,22 +169,22 @@ namespace SolTechnology.Avro.Write
 
         public void WriteFixed(byte[] data, int start, int len)
         {
-            Stream.Write(data, start, len);
+            _stream.Write(data, start, len);
         }
 
         private void writeBytes(byte[] bytes)
         {
-            Stream.Write(bytes, 0, bytes.Length);
+            _stream.Write(bytes, 0, bytes.Length);
         }
 
-        private void writeByte(byte b)
+        private void WriteByte(byte b)
         {
-            Stream.WriteByte(b);
+            _stream.WriteByte(b);
         }
 
         public void Flush()
         {
-            Stream.Flush();
+            _stream.Flush();
         }
     }
 }

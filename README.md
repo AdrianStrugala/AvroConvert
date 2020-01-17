@@ -18,6 +18,22 @@ General information: http://avro.apache.org/
 <br></br>
 Wiki: https://cwiki.apache.org/confluence/display/AVRO/Index
 
+## Why choose Avro?
+
+Benchmark with comparison to Newtonsoft.Json:
+
+| Converter               | Compression time [ms] | Compressed size [kB] |
+|-------------------------|-----------------------|----------------------|
+| Json                    | 75                    | 9945                 |
+| Avro (null encoding)    | 307                   | 2536                 |
+| Avro (Deflate encoding) | 155                   | 207                  |
+| Avro (Snappy encoding)  | 146                   | 421                  |
+
+You can find the benchmark under tests/AvroConvertTests/Benchmark directory.
+
+**Conclusion:** <br>
+Using Avro for communication between your services reduces up to almost 50 times (!!!) network traffic. This makes huge time and bandwidth savings.
+
 ## Code samples
 
 #### Serialization

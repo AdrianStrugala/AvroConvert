@@ -38,6 +38,8 @@ namespace SolTechnology.Avro.Codec
                     return new DeflateCodec();
                 case CodecType.Snappy:
                     return new SnappyCodec();
+                case CodecType.GZip:
+                    return new GZipCodec();
                 default:
                     return new NullCodec();
             }
@@ -45,7 +47,7 @@ namespace SolTechnology.Avro.Codec
 
         public static AbstractCodec CreateCodecFromString(string codecName)
         {
-            System.Type codecType = typeof(AbstractCodec).Assembly.GetTypes().Where(t => t.IsSubclassOf(typeof(AbstractCodec)) && !t.IsAbstract)
+            Type codecType = typeof(AbstractCodec).Assembly.GetTypes().Where(t => t.IsSubclassOf(typeof(AbstractCodec)) && !t.IsAbstract)
                                               .First(t => t.Name.ToLower().Contains(codecName));
 
             if (codecType == null)

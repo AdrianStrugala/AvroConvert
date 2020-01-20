@@ -21,6 +21,7 @@ namespace SolTechnology.Avro.Codec
     {
         Deflate,
         Snappy,
-        Null
+        Null,
+        GZip
     }
 }

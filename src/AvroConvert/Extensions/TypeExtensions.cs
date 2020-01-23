@@ -27,15 +27,15 @@ using System.Text.RegularExpressions;
 
 namespace SolTechnology.Avro.Extensions
 {
-    public static class TypeExtensions
+    internal static class TypeExtensions
     {
-        public static bool HasParameterlessConstructor(this Type type)
+        internal static bool HasParameterlessConstructor(this Type type)
         {
-            //return type.GetTypeInfo().GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, Type.EmptyTypes, null) != null;
+            //return type.GetTypeInfo().GetConstructor(BindingFlags.Instance | BindingFlags.internal | BindingFlags.Noninternal, null, Type.EmptyTypes, null) != null;
             return type.GetConstructor(Type.EmptyTypes) != null;
         }
 
-        public static bool IsUnsupported(this Type type)
+        internal static bool IsUnsupported(this Type type)
         {
             return type == typeof(IntPtr)
                 || type == typeof(UIntPtr)
@@ -75,7 +75,7 @@ namespace SolTechnology.Avro.Extensions
             typeof(Guid)
         };
 
-        public static bool IsNativelySupported(this Type type)
+        internal static bool IsNativelySupported(this Type type)
         {
             var notNullable = Nullable.GetUnderlyingType(type) ?? type;
             return NativelySupported.Contains(notNullable)
@@ -92,7 +92,7 @@ namespace SolTechnology.Avro.Extensions
             typeof(IDictionary<,>)
         };
 
-        public static bool IsAnonymous(this Type type)
+        internal static bool IsAnonymous(this Type type)
         {
             return type.IsClass()
                 && type.GetTypeInfo().GetCustomAttributes(false).Any(a => a is CompilerGeneratedAttribute)
@@ -101,13 +101,13 @@ namespace SolTechnology.Avro.Extensions
                 && type.Name.Contains("__Anonymous");
         }
 
-        public static PropertyInfo GetPropertyByName(
+        internal static PropertyInfo GetPropertyByName(
             this Type type, string name, BindingFlags flags = BindingFlags.Public | BindingFlags.FlattenHierarchy | BindingFlags.Instance)
         {
             return type.GetProperty(name, flags);
         }
 
-        public static MethodInfo GetMethodByName(this Type type, string shortName, params Type[] arguments)
+        internal static MethodInfo GetMethodByName(this Type type, string shortName, params Type[] arguments)
         {
             var result = type
                 .GetMethods(BindingFlags.Instance | BindingFlags.Public)
@@ -126,7 +126,7 @@ namespace SolTechnology.Avro.Extensions
                                  && m.GetParameters().Select(p => p.ParameterType).SequenceEqual(arguments));
         }
 
-        public static IEnumerable<FieldInfo> GetAllFields(this Type t)
+        internal static IEnumerable<FieldInfo> GetAllFields(this Type t)
         {
             if (t == null)
             {
@@ -144,7 +144,7 @@ namespace SolTechnology.Avro.Extensions
                 .Concat(GetAllFields(t.BaseType()));
         }
 
-        public static IEnumerable<PropertyInfo> GetAllProperties(this Type t)
+        internal static IEnumerable<PropertyInfo> GetAllProperties(this Type t)
         {
             if (t == null)
             {
@@ -164,7 +164,7 @@ namespace SolTechnology.Avro.Extensions
                 .Concat(GetAllProperties(t.BaseType()));
         }
 
-        public static IEnumerable<Type> GetAllInterfaces(this Type t)
+        internal static IEnumerable<Type> GetAllInterfaces(this Type t)
         {
             foreach (var i in t.GetInterfaces())
             {
@@ -172,7 +172,7 @@ namespace SolTechnology.Avro.Extensions
             }
         }
 
-        public static string GetStrippedFullName(this Type type)
+        internal static string GetStrippedFullName(this Type type)
         {
             if (type == null)
             {
@@ -187,7 +187,7 @@ namespace SolTechnology.Avro.Extensions
             return StripAvroNonCompatibleCharacters(type.Namespace + "." + type.Name);
         }
 
-        public static string StripAvroNonCompatibleCharacters(string value)
+        internal static string StripAvroNonCompatibleCharacters(string value)
         {
             if (string.IsNullOrEmpty(value))
             {
@@ -197,7 +197,7 @@ namespace SolTechnology.Avro.Extensions
             return Regex.Replace(value, @"[^A-Za-z0-9_\.]", string.Empty, RegexOptions.None);
         }
 
-        public static bool IsFlagEnum(this Type type)
+        internal static bool IsFlagEnum(this Type type)
         {
             if (type == null)
             {
@@ -206,7 +206,7 @@ namespace SolTechnology.Avro.Extensions
             return type.GetTypeInfo().GetCustomAttributes(false).ToList().Find(a => a is FlagsAttribute) != null;
         }
 
-        public static bool CanContainNull(this Type type)
+        internal static bool CanContainNull(this Type type)
         {
             //            var underlyingType = Nullable.GetUnderlyingType(type);
             //            return !type.IsValueType() || underlyingType != null;
@@ -214,12 +214,12 @@ namespace SolTechnology.Avro.Extensions
             return Nullable.GetUnderlyingType(type) != null || type == typeof(string);
         }
 
-        public static bool IsKeyValuePair(this Type type)
+        internal static bool IsKeyValuePair(this Type type)
         {
             return type.IsGenericType() && type.GetGenericTypeDefinition() == typeof(KeyValuePair<,>);
         }
 
-        public static bool CanBeKnownTypeOf(this Type type, Type baseType)
+        internal static bool CanBeKnownTypeOf(this Type type, Type baseType)
         {
             return !type.IsAbstract()
                    && (type.GetTypeInfo().IsSubclassOf(baseType)
@@ -243,7 +243,7 @@ namespace SolTechnology.Avro.Extensions
             return args.Any() && type.IsAssignableFrom(instanceType.GetGenericTypeDefinition().MakeGenericType(args));
         }
 
-        public static IEnumerable<Type> GetAllKnownTypes(this Type t)
+        internal static IEnumerable<Type> GetAllKnownTypes(this Type t)
         {
             if (t == null)
             {
@@ -256,7 +256,7 @@ namespace SolTechnology.Avro.Extensions
         }
 
 
-        public static void CheckPropertyGetters(IEnumerable<PropertyInfo> properties)
+        internal static void CheckPropertyGetters(IEnumerable<PropertyInfo> properties)
         {
             var missingGetter = properties.FirstOrDefault(p => p.GetGetMethod(true) == null);
             if (missingGetter != null)
@@ -266,7 +266,7 @@ namespace SolTechnology.Avro.Extensions
             }
         }
 
-        public static DataMemberAttribute GetDataMemberAttribute(this PropertyInfo property)
+        internal static DataMemberAttribute GetDataMemberAttribute(this PropertyInfo property)
         {
             return property
                 .GetCustomAttributes(false)
@@ -274,7 +274,7 @@ namespace SolTechnology.Avro.Extensions
                 .SingleOrDefault();
         }
 
-        public static IList<PropertyInfo> RemoveDuplicates(IEnumerable<PropertyInfo> properties)
+        internal static IList<PropertyInfo> RemoveDuplicates(IEnumerable<PropertyInfo> properties)
         {
             var result = new List<PropertyInfo>();
             foreach (var p in properties)
@@ -288,57 +288,57 @@ namespace SolTechnology.Avro.Extensions
             return result;
         }
 
-        public static bool IsValueType(this Type type)
+        internal static bool IsValueType(this Type type)
         {
             return type.GetTypeInfo().IsValueType;
         }
 
-        public static bool IsEnum(this Type type)
+        internal static bool IsEnum(this Type type)
         {
             return type.GetTypeInfo().IsEnum;
         }
 
-        public static bool IsInterface(this Type type)
+        internal static bool IsInterface(this Type type)
         {
             return type.GetTypeInfo().IsInterface;
         }
 
-        public static bool IsGenericType(this Type type)
+        internal static bool IsGenericType(this Type type)
         {
             return type.GetTypeInfo().IsGenericType;
         }
 
-        public static bool IsClass(this Type type)
+        internal static bool IsClass(this Type type)
         {
             return type.GetTypeInfo().IsClass;
         }
 
-        public static bool IsDictionary(this Type type)
+        internal static bool IsDictionary(this Type type)
         {
             return typeof(IDictionary).IsAssignableFrom(type);
         }
 
-        public static bool IsList(this Type type)
+        internal static bool IsList(this Type type)
         {
             return typeof(IList).IsAssignableFrom(type);
         }
 
-        public static bool IsGuid(this Type type)
+        internal static bool IsGuid(this Type type)
         {
             return type == typeof(Guid);
         }
 
-        public static bool IsAbstract(this Type type)
+        internal static bool IsAbstract(this Type type)
         {
             return type.GetTypeInfo().IsAbstract;
         }
 
-        public static bool ContainsGenericParameters(this Type type)
+        internal static bool ContainsGenericParameters(this Type type)
         {
             return type.GetTypeInfo().ContainsGenericParameters;
         }
 
-        public static Type BaseType(this Type type)
+        internal static Type BaseType(this Type type)
         {
             return type.GetTypeInfo().BaseType;
         }

@@ -26,12 +26,12 @@ namespace SolTechnology.Avro.Schema
     /// <summary>
     /// Class for fixed schemas
     /// </summary>
-    public class FixedSchema : NamedSchema
+    internal class FixedSchema : NamedSchema
     {
         /// <summary>
         /// Fixed size for the bytes
         /// </summary>
-        public int Size { get; set; }
+        internal int Size { get; set; }
 
         /// <summary>
         /// Static function to return new instance of the fixed schema class
@@ -107,7 +107,7 @@ namespace SolTechnology.Avro.Schema
         /// </summary>
         /// <param name="writerSchema">writer schema</param>
         /// <returns>true if this and writer schema are compatible based on the AVRO specification, false otherwise</returns>
-        public override bool CanRead(Schema writerSchema)
+        internal override bool CanRead(Schema writerSchema)
         {
             if (writerSchema.Tag != Tag) return false;
             FixedSchema that = writerSchema as FixedSchema;

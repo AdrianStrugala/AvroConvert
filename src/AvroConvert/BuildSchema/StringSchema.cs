@@ -22,7 +22,7 @@ namespace SolTechnology.Avro.BuildSchema
     ///     Class represents a string schema.
     ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html#schema_primitive">the specification</a>.
     /// </summary>
-    public class StringSchema : PrimitiveTypeSchema
+    internal class StringSchema : PrimitiveTypeSchema
     {
         internal StringSchema()
             : this(typeof(string))

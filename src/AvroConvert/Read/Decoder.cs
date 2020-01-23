@@ -26,7 +26,7 @@ using SolTechnology.Avro.Helpers;
 
 namespace SolTechnology.Avro.Read
 {
-    public class Decoder : IDisposable
+    internal class Decoder : IDisposable
     {
         private readonly Resolver _resolver;
         private readonly IReader _reader;
@@ -42,12 +42,12 @@ namespace SolTechnology.Avro.Read
         private static Schema.Schema _readerSchema;
 
 
-        public static Decoder OpenReader(string filePath)
+        internal static Decoder OpenReader(string filePath)
         {
             return OpenReader(new FileStream(filePath, FileMode.Open));
         }
 
-        public static Decoder OpenReader(Stream inStream, string schema)
+        internal static Decoder OpenReader(Stream inStream, string schema)
         {
             if (schema != null)
             {
@@ -58,7 +58,7 @@ namespace SolTechnology.Avro.Read
         }
 
 
-        public static Decoder OpenReader(Stream inStream)
+        internal static Decoder OpenReader(Stream inStream)
         {
             if (!inStream.CanSeek)
                 throw new AvroRuntimeException("Not a valid input stream - must be seekable!");
@@ -110,7 +110,7 @@ namespace SolTechnology.Avro.Read
             _codec = AbstractCodec.CreateCodecFromString(GetMetaString(DataFileConstants.CodecMetadataKey));
         }
 
-        public byte[] GetMeta(string key)
+        internal byte[] GetMeta(string key)
         {
             try
             {
@@ -122,7 +122,7 @@ namespace SolTechnology.Avro.Read
             }
         }
 
-        public string GetMetaString(string key)
+        internal string GetMetaString(string key)
         {
             byte[] value = GetMeta(key);
             if (value == null)
@@ -140,7 +140,7 @@ namespace SolTechnology.Avro.Read
         }
 
 
-        public object Read()
+        internal object Read()
         {
             long remainingBlocks = GetRemainingBlocksCount();
             var result = _resolver.Resolve(_datumReader, remainingBlocks);
@@ -148,7 +148,7 @@ namespace SolTechnology.Avro.Read
             return result;
         }
 
-        public long GetRemainingBlocksCount()
+        internal long GetRemainingBlocksCount()
         {
             if (_blockRemaining == 0)
             {

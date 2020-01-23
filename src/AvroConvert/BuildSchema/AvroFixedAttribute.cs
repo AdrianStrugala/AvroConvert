@@ -22,7 +22,7 @@ namespace SolTechnology.Avro.BuildSchema
     /// This attribute determines the size of the Avro fixed byte array.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, Inherited = true, AllowMultiple = false)]
-    public sealed class AvroFixedAttribute : Attribute
+    internal sealed class AvroFixedAttribute : Attribute
     {
         private readonly int size;
         private readonly string name;
@@ -40,7 +40,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <exception cref="ArgumentException">
         /// If the size is not larger than zero.
         /// </exception>
-        public AvroFixedAttribute(int size, string name)
+        internal AvroFixedAttribute(int size, string name)
             : this(size, name, string.Empty)
         {
         }
@@ -60,7 +60,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <exception cref="ArgumentException">
         /// If the size is not larger than zero.
         /// </exception>
-        public AvroFixedAttribute(int size, string name, string @namespace)
+        internal AvroFixedAttribute(int size, string name, string @namespace)
         {
             if (size <= 0)
             {
@@ -78,7 +78,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         /// Gets the size of the fixed bytes.
         /// </summary>
-        public int Size
+        internal int Size
         {
             get { return this.size; }
         }
@@ -89,7 +89,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <value>
         /// The name of the fixed.
         /// </value>
-        public string Name
+        internal string Name
         {
             get { return this.name; }
         }
@@ -100,7 +100,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <value>
         /// The fixed name space.
         /// </value>
-        public string Namespace
+        internal string Namespace
         {
             get { return this.@namespace; }
         }

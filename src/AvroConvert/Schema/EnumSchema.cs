@@ -26,12 +26,12 @@ namespace SolTechnology.Avro.Schema
     /// <summary>
     /// Class for enum type schemas
     /// </summary>
-    public class EnumSchema : NamedSchema
+    internal class EnumSchema : NamedSchema
     {
         /// <summary>
         /// List of strings representing the enum symbols
         /// </summary>
-        public IList<string> Symbols { get; private set;  }
+        internal IList<string> Symbols { get; private set;  }
 
         /// <summary>
         /// Map of enum symbols and it's corresponding ordinal number
@@ -41,7 +41,7 @@ namespace SolTechnology.Avro.Schema
         /// <summary>
         /// Count of enum symbols
         /// </summary>
-        public int Count { get { return Symbols.Count; } }
+        internal int Count { get { return Symbols.Count; } }
 
         /// <summary>
         /// Static function to return new instance of EnumSchema
@@ -114,7 +114,7 @@ namespace SolTechnology.Avro.Schema
         /// </summary>
         /// <param name="symbol">name of the symbol to find</param>
         /// <returns>position of the given symbol in this enum schema</returns>
-        public int Ordinal(string symbol)
+        internal int Ordinal(string symbol)
         {
             int result;
             if (symbolMap.TryGetValue(symbol, out result)) return result;
@@ -126,7 +126,7 @@ namespace SolTechnology.Avro.Schema
         /// </summary>
         /// <param name="index">symbol index</param>
         /// <returns>symbol name</returns>
-        public string this[int index]
+        internal string this[int index]
         {
             get
             {
@@ -140,7 +140,7 @@ namespace SolTechnology.Avro.Schema
         /// </summary>
         /// <param name="symbol">symbol to check</param>
         /// <returns>true if symbol exist, false otherwise</returns>
-        public bool Contains(string symbol)
+        internal bool Contains(string symbol)
         {
             return symbolMap.ContainsKey(symbol);
         }
@@ -149,7 +149,7 @@ namespace SolTechnology.Avro.Schema
         /// Returns an enumerator that enumerates the symbols in this enum schema in the order of their definition.
         /// </summary>
         /// <returns>Enumeration over the symbols of this enum schema</returns>
-        public IEnumerator<string> GetEnumerator()
+        internal IEnumerator<string> GetEnumerator()
         {
             return Symbols.GetEnumerator();
         }
@@ -190,7 +190,7 @@ namespace SolTechnology.Avro.Schema
         /// </summary>
         /// <param name="writerSchema">writer schema</param>
         /// <returns>true if this and writer schema are compatible based on the AVRO specification, false otherwise</returns>
-        public override bool CanRead(Schema writerSchema)
+        internal override bool CanRead(Schema writerSchema)
         {
             if (writerSchema.Tag != Tag) return false;
 

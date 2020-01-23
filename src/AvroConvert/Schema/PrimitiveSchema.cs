@@ -23,7 +23,7 @@ namespace SolTechnology.Avro.Schema
     /// <summary>
     /// Class for schemas of primitive types
     /// </summary>
-    public sealed class PrimitiveSchema : UnnamedSchema
+    internal sealed class PrimitiveSchema : UnnamedSchema
     {
         /// <summary>
         /// Constructor for primitive schema
@@ -38,7 +38,7 @@ namespace SolTechnology.Avro.Schema
         /// </summary>
         /// <param name="type">primitive type</param>
         /// <returns></returns>
-        public static PrimitiveSchema NewInstance(string type, PropertyMap props = null)
+        internal static PrimitiveSchema NewInstance(string type, PropertyMap props = null)
         {
             const string q = "\"";
             if (type.StartsWith(q) && type.EndsWith(q)) type = type.Substring(1, type.Length - 2);
@@ -81,7 +81,7 @@ namespace SolTechnology.Avro.Schema
         /// </summary>
         /// <param name="writerSchema">writer schema</param>
         /// <returns>true if this and writer schema are compatible based on the AVRO specification, false otherwise</returns>
-        public override bool CanRead(Schema writerSchema)
+        internal override bool CanRead(Schema writerSchema)
         {
             if (writerSchema is UnionSchema || Tag == writerSchema.Tag) return true;
             Type t = writerSchema.Tag;

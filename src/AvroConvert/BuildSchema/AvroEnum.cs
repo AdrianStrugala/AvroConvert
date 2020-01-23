@@ -23,7 +23,7 @@ namespace SolTechnology.Avro.BuildSchema
     /// Represents Avro enumeration.
     /// </summary>
     [SuppressMessage("Microsoft.Naming", "CA1711:IdentifiersShouldNotHaveIncorrectSuffix", Justification = "Represents Avro enumeration.")]
-    public sealed class AvroEnum
+    internal sealed class AvroEnum
     {
         private readonly EnumSchema schema;
         private int value;
@@ -32,7 +32,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// Initializes a new instance of the <see cref="AvroEnum"/> class.
         /// </summary>
         /// <param name="schema">The schema.</param>
-        public AvroEnum(Schema schema)
+        internal AvroEnum(Schema schema)
         {
             this.schema = schema as EnumSchema;
             if (this.schema == null)
@@ -44,7 +44,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         /// Gets the schema.
         /// </summary>
-        public EnumSchema Schema
+        internal EnumSchema Schema
         {
             get { return this.schema; }
         }
@@ -52,7 +52,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         /// Gets or sets the value.
         /// </summary>
-        public string Value
+        internal string Value
         {
             get
             {

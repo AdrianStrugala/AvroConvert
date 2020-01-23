@@ -24,7 +24,7 @@ namespace SolTechnology.Avro.BuildSchema
     /// <summary>
     ///  Sort order.
     /// </summary>
-    public enum SortOrder
+    internal enum SortOrder
     {
         /// <summary>
         /// The ascending order.
@@ -46,7 +46,7 @@ namespace SolTechnology.Avro.BuildSchema
     ///     Class representing a field of the record.
     ///     For more information please see <a href="http://avro.apache.org/docs/current/spec.html#schema_record">the specification</a>.
     /// </summary>
-    public sealed class RecordField : Schema
+    internal sealed class RecordField : Schema
     {
         private readonly NamedEntityAttributes namedEntityAttributes;
         private readonly TypeSchema typeSchema;
@@ -115,7 +115,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         ///     Gets the full name.
         /// </summary>
-        public string FullName
+        internal string FullName
         {
             get { return this.namedEntityAttributes.Name.FullName; }
         }
@@ -123,7 +123,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         ///     Gets the name.
         /// </summary>
-        public string Name
+        internal string Name
         {
             get { return this.namedEntityAttributes.Name.Name; }
         }
@@ -131,7 +131,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         ///     Gets the namespace.
         /// </summary>
-        public string Namespace
+        internal string Namespace
         {
             get { return this.namedEntityAttributes.Name.Namespace; }
         }
@@ -139,7 +139,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         ///     Gets the aliases.
         /// </summary>
-        public ReadOnlyCollection<string> Aliases
+        internal ReadOnlyCollection<string> Aliases
         {
             get { return this.namedEntityAttributes.Aliases.AsReadOnly(); }
         }
@@ -147,7 +147,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         ///     Gets the doc.
         /// </summary>
-        public string Doc
+        internal string Doc
         {
             get { return this.namedEntityAttributes.Doc; }
         }
@@ -155,7 +155,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         ///     Gets the type schema.
         /// </summary>
-        public TypeSchema TypeSchema
+        internal TypeSchema TypeSchema
         {
             get { return this.typeSchema; }
         }
@@ -163,7 +163,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         ///     Gets the sort order.
         /// </summary>
-        public SortOrder Order
+        internal SortOrder Order
         {
             get { return this.order; }
         }
@@ -171,7 +171,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         ///     Gets a value indicating whether the field has a default value or not.
         /// </summary>
-        public bool HasDefaultValue
+        internal bool HasDefaultValue
         {
             get { return this.hasDefaultValue; }
         }
@@ -179,7 +179,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         ///     Gets the default value.
         /// </summary>
-        public object DefaultValue
+        internal object DefaultValue
         {
             get { return this.defaultValue; }
         }
@@ -187,7 +187,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         /// Gets the position.
         /// </summary>
-        public int Position
+        internal int Position
         {
             get { return this.position; }
         }
@@ -195,7 +195,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         /// Gets or sets the member info.
         /// </summary>
-        public MemberInfo MemberInfo
+        internal MemberInfo MemberInfo
         {
             get { return this.info; }
             set { this.info = value; }

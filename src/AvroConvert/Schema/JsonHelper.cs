@@ -32,7 +32,7 @@ namespace SolTechnology.Avro.Schema
         /// <param name="jtok">JSON object to read</param>
         /// <param name="field">property name</param>
         /// <returns>property value if property exists, null if property doesn't exist in the JSON object</returns>
-        public static string GetOptionalString(JToken jtok, string field)
+        internal static string GetOptionalString(JToken jtok, string field)
         {
             if (null == jtok) throw new ArgumentNullException("jtok", "jtok cannot be null.");
             if (string.IsNullOrEmpty(field)) throw new ArgumentNullException("field", "field cannot be null.");
@@ -54,7 +54,7 @@ namespace SolTechnology.Avro.Schema
         /// <param name="jtok">JSON object to read</param>
         /// <param name="field">property name</param>
         /// <returns>property value</returns>
-        public static string GetRequiredString(JToken jtok, string field)
+        internal static string GetRequiredString(JToken jtok, string field)
         {
             string value = GetOptionalString(jtok, field);
             if (string.IsNullOrEmpty(value)) throw new SchemaParseException(string.Format("No \"{0}\" JSON field: {1}", field, jtok));
@@ -67,7 +67,7 @@ namespace SolTechnology.Avro.Schema
         /// <param name="jtok">JSON object to read</param>
         /// <param name="field">property name</param>
         /// <returns>property value</returns>
-        public static int GetRequiredInteger(JToken jtok, string field)
+        internal static int GetRequiredInteger(JToken jtok, string field)
         {
             ensureValidFieldName(field);
             JToken child = jtok[field];
@@ -83,7 +83,7 @@ namespace SolTechnology.Avro.Schema
         /// <param name="jtok">JSON object to read</param>
         /// <param name="field">property name</param>
         /// <returns>null if property doesn't exist, otherise returns property boolean value</returns>
-        public static bool? GetOptionalBoolean(JToken jtok, string field)
+        internal static bool? GetOptionalBoolean(JToken jtok, string field)
         {
             if (null == jtok) throw new ArgumentNullException("jtok", "jtok cannot be null.");
             if (string.IsNullOrEmpty(field)) throw new ArgumentNullException("field", "field cannot be null.");

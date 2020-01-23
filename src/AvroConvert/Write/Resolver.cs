@@ -21,9 +21,9 @@ using SolTechnology.Avro.Write.Resolvers;
 
 namespace SolTechnology.Avro.Write
 {
-    public static class Resolver
+    internal static class Resolver
     {
-        public delegate void Writer<in T>(T t);
+        internal delegate void Writer<in T>(T t);
 
         private static readonly Array Array;
         private static readonly Map Map;
@@ -48,7 +48,7 @@ namespace SolTechnology.Avro.Write
             Long = new Long();
         }
 
-        public static Encoder.WriteItem ResolveWriter(Schema.Schema schema)
+        internal static Encoder.WriteItem ResolveWriter(Schema.Schema schema)
         {
             switch (schema.Tag)
             {

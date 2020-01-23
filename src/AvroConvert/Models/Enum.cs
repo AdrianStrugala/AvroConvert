@@ -20,11 +20,11 @@ using SolTechnology.Avro.Schema;
 
 namespace SolTechnology.Avro.Models
 {
-    public class Enum
+    internal class Enum
     {
-        public EnumSchema Schema { get; }
+        internal EnumSchema Schema { get; }
         private string _value;
-        public string Value
+        internal string Value
         {
             get => _value;
             set
@@ -34,7 +34,7 @@ namespace SolTechnology.Avro.Models
             }
         }
 
-        public Enum(EnumSchema schema, string value)
+        internal Enum(EnumSchema schema, string value)
         {
             this.Schema = schema;
             this.Value = value;

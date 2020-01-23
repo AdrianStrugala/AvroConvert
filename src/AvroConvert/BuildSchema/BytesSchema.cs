@@ -21,7 +21,7 @@ namespace SolTechnology.Avro.BuildSchema
     ///     Class represents a byte array schema.
     ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html#schema_primitive">the specification</a>.
     /// </summary>
-    public sealed class BytesSchema : PrimitiveTypeSchema
+    internal sealed class BytesSchema : PrimitiveTypeSchema
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="BytesSchema"/> class.

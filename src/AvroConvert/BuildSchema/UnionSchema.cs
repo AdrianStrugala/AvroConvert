@@ -24,7 +24,7 @@ namespace SolTechnology.Avro.BuildSchema
     ///     Class representing a union schema.
     ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html#Unions">the specification</a>.
     /// </summary>
-    public sealed class UnionSchema : TypeSchema
+    internal sealed class UnionSchema : TypeSchema
     {
         private readonly List<TypeSchema> schemas;
 
@@ -62,7 +62,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         ///     Gets the schemas.
         /// </summary>
-        public ReadOnlyCollection<TypeSchema> Schemas
+        internal ReadOnlyCollection<TypeSchema> Schemas
         {
             get { return this.schemas.AsReadOnly(); }
         }

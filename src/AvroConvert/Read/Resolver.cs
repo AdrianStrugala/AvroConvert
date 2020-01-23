@@ -26,14 +26,14 @@ using Enum = SolTechnology.Avro.Models.Enum;
 
 namespace SolTechnology.Avro.Read
 {
-    public class Resolver
+    internal class Resolver
     {
         private readonly Skipper _skipper;
 
-        public Schema.Schema ReaderSchema { get; }
-        public Schema.Schema WriterSchema { get; }
+        internal Schema.Schema ReaderSchema { get; }
+        internal Schema.Schema WriterSchema { get; }
 
-        public Resolver(Schema.Schema writerSchema, Schema.Schema readerSchema)
+        internal Resolver(Schema.Schema writerSchema, Schema.Schema readerSchema)
         {
             ReaderSchema = readerSchema;
             WriterSchema = writerSchema;
@@ -41,7 +41,7 @@ namespace SolTechnology.Avro.Read
             _skipper = new Skipper();
         }
 
-        public object Resolve(IReader reader, long itemsCount = 1)
+        internal object Resolve(IReader reader, long itemsCount = 1)
         {
             if (itemsCount > 1)
             {
@@ -52,7 +52,7 @@ namespace SolTechnology.Avro.Read
             return result;
         }
 
-        public object Resolve(Schema.Schema writerSchema, Schema.Schema readerSchema, IReader d)
+        internal object Resolve(Schema.Schema writerSchema, Schema.Schema readerSchema, IReader d)
         {
             if (readerSchema.Tag == Schema.Schema.Type.Union && writerSchema.Tag != Schema.Schema.Type.Union)
             {

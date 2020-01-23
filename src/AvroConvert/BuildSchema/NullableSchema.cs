@@ -22,7 +22,7 @@ namespace SolTechnology.Avro.BuildSchema
     /// <summary>
     /// Artificial node for nullable types.
     /// </summary>
-    public sealed class NullableSchema : TypeSchema
+    internal sealed class NullableSchema : TypeSchema
     {
         private readonly TypeSchema valueSchema;
 
@@ -48,7 +48,7 @@ namespace SolTechnology.Avro.BuildSchema
         {
         }
 
-        public TypeSchema ValueSchema
+        internal TypeSchema ValueSchema
         {
             get { return this.valueSchema; }
         }

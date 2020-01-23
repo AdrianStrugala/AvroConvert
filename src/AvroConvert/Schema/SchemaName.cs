@@ -24,32 +24,32 @@ namespace SolTechnology.Avro.Schema
     /// <summary>
     /// Class to store schema name, namespace and enclosing namespace
     /// </summary>
-    public class SchemaName
+    internal class SchemaName
     {
         /// <summary>
         /// Name of the schema
         /// </summary>
-        public String Name { get; private set; }
+        internal String Name { get; private set; }
 
         /// <summary>
         /// Namespace specified within the schema
         /// </summary>
-        public String Space { get; private set; }
+        internal String Space { get; private set; }
 
         /// <summary>
         /// Namespace from the most tightly enclosing schema
         /// </summary>
-        public String EncSpace { get; private set; }
+        internal String EncSpace { get; private set; }
 
         /// <summary>
         /// Namespace.Name of the schema
         /// </summary>
-        public String Fullname { get { return string.IsNullOrEmpty(Namespace) ? this.Name : Namespace + "." + this.Name; } }
+        internal String Fullname { get { return string.IsNullOrEmpty(Namespace) ? this.Name : Namespace + "." + this.Name; } }
 
         /// <summary>
         /// Namespace of the schema
         /// </summary>
-        public String Namespace { get { return string.IsNullOrEmpty(this.Space) ? this.EncSpace : this.Space; } } 
+        internal String Namespace { get { return string.IsNullOrEmpty(this.Space) ? this.EncSpace : this.Space; } } 
 
         /// <summary>
         /// Constructor for SchemaName
@@ -57,7 +57,7 @@ namespace SolTechnology.Avro.Schema
         /// <param name="name">name of the schema</param>
         /// <param name="space">namespace of the schema</param>
         /// <param name="encspace">enclosing namespace of the schema</param>
-        public SchemaName(String name, String space, String encspace)
+        internal SchemaName(String name, String space, String encspace)
         {
             if (name == null)
             {                         // anonymous
@@ -132,7 +132,7 @@ namespace SolTechnology.Avro.Schema
         {
             return obj1 == null ? obj2 == null : obj1.Equals(obj2);
         }
-    
+
         public override int GetHashCode()
         {
             return string.IsNullOrEmpty(Fullname) ? 0 : 29 * Fullname.GetHashCode();
@@ -143,17 +143,17 @@ namespace SolTechnology.Avro.Schema
     /// A class that contains a list of named schemas. This is used when reading or writing a schema/protocol.
     /// This prevents reading and writing of duplicate schema definitions within a protocol or schema file
     /// </summary>
-    public class SchemaNames
+    internal class SchemaNames
     {
         /// <summary>
         /// Map of schema name and named schema objects
         /// </summary>
-        public IDictionary<SchemaName, NamedSchema> Names { get; private set; }
+        internal IDictionary<SchemaName, NamedSchema> Names { get; private set; }
 
         /// <summary>
         /// Constructor
         /// </summary>
-        public SchemaNames()
+        internal SchemaNames()
         {
             Names = new Dictionary<SchemaName, NamedSchema>();
         }
@@ -163,7 +163,7 @@ namespace SolTechnology.Avro.Schema
         /// </summary>
         /// <param name="name">schema name</param>
         /// <returns>true or false</returns>
-        public bool Contains(SchemaName name)
+        internal bool Contains(SchemaName name)
         {
             if (Names.ContainsKey(name))
                 return true;
@@ -176,7 +176,7 @@ namespace SolTechnology.Avro.Schema
         /// <param name="name">schema name</param>
         /// <param name="schema">schema object</param>
         /// <returns>true if schema was added to the list, false if schema is already in the list</returns>
-        public bool Add(SchemaName name, NamedSchema schema)
+        internal bool Add(SchemaName name, NamedSchema schema)
         {
             if (Names.ContainsKey(name))
                 return false;
@@ -190,7 +190,7 @@ namespace SolTechnology.Avro.Schema
         /// </summary>
         /// <param name="schema">schema object</param>
         /// <returns>true if schema was added to the list, false if schema is already in the list</returns>
-        public bool Add(NamedSchema schema)
+        internal bool Add(NamedSchema schema)
         {
             SchemaName name = schema.SchemaName;
             return Add(name, schema);
@@ -204,7 +204,7 @@ namespace SolTechnology.Avro.Schema
         /// <param name="encspace">enclosing namespace of the schema</param>
         /// <param name="schema">schema object found</param>
         /// <returns>true if name is found in the map, false otherwise</returns>
-        public bool TryGetValue(string name, string space, string encspace, out NamedSchema schema)
+        internal bool TryGetValue(string name, string space, string encspace, out NamedSchema schema)
         {
             SchemaName schemaname = new SchemaName(name, space, encspace);
             return Names.TryGetValue(schemaname, out schema);
@@ -214,7 +214,7 @@ namespace SolTechnology.Avro.Schema
         /// Returns the enumerator for the map
         /// </summary>
         /// <returns></returns>
-        public IEnumerator<KeyValuePair<SchemaName, NamedSchema>> GetEnumerator()
+        internal IEnumerator<KeyValuePair<SchemaName, NamedSchema>> GetEnumerator()
         {
             return Names.GetEnumerator();
         }

@@ -20,9 +20,9 @@ using SolTechnology.Avro.Exceptions;
 
 namespace SolTechnology.Avro.Write.Resolvers
 {
-    public class String
+    internal class String
     {
-        public void Resolve(object value, IWriter encoder)
+        internal void Resolve(object value, IWriter encoder)
         {
             if (value == null)
             {

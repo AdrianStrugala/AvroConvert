@@ -25,7 +25,7 @@ namespace SolTechnology.Avro.BuildSchema
     ///     Class represents a record schema.
     ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html#schema_record">the specification</a>.
     /// </summary>
-    public sealed class RecordSchema : NamedSchema
+    internal sealed class RecordSchema : NamedSchema
     {
         private readonly List<RecordField> fields;
         private readonly Dictionary<string, RecordField> fiedsByName;
@@ -77,7 +77,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <param name="fieldName">Name of the field.</param>
         /// <param name="result">The result.</param>
         /// <returns>A record field.</returns>
-        public bool TryGetField(string fieldName, out RecordField result)
+        internal bool TryGetField(string fieldName, out RecordField result)
         {
             return this.fiedsByName.TryGetValue(fieldName, out result);
         }
@@ -87,7 +87,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// </summary>
         /// <param name="fieldName">Name of the field.</param>
         /// <returns>A corresponding field name.</returns>
-        public RecordField GetField(string fieldName)
+        internal RecordField GetField(string fieldName)
         {
             return this.fiedsByName[fieldName];
         }
@@ -95,7 +95,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         ///     Gets the fields.
         /// </summary>
-        public ReadOnlyCollection<RecordField> Fields
+        internal ReadOnlyCollection<RecordField> Fields
         {
             get { return this.fields.AsReadOnly(); }
         }

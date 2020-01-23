@@ -27,7 +27,7 @@ namespace SolTechnology.Avro.BuildSchema
     /// <remarks>
     ///     <see cref="AvroDataContractResolver"/> is used to serialize classes according to Data Contract attributes.
     /// </remarks>
-    public abstract class AvroContractResolver : IEquatable<AvroContractResolver>
+    internal abstract class AvroContractResolver : IEquatable<AvroContractResolver>
     {
         /// <summary>
         /// Gets the known types of an abstract type or interface that could be present in the tree of
@@ -35,7 +35,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// </summary>
         /// <param name="type">The abstract type.</param>
         /// <returns>An enumerable of known types.</returns>
-        public virtual IEnumerable<Type> GetKnownTypes(Type type)
+        internal virtual IEnumerable<Type> GetKnownTypes(Type type)
         {
             if (type == null)
             {
@@ -53,7 +53,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <returns>
         /// Serialization information about the type.
         /// </returns>
-        public abstract TypeSerializationInfo ResolveType(Type type);
+        internal abstract TypeSerializationInfo ResolveType(Type type);
 
         /// <summary>
         /// Gets the serialization information about the type members.
@@ -63,7 +63,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <returns>
         /// Serialization information about the fields/properties.
         /// </returns>
-        public abstract MemberSerializationInfo[] ResolveMembers(Type type);
+        internal abstract MemberSerializationInfo[] ResolveMembers(Type type);
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object of the same type.

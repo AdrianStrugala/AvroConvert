@@ -27,12 +27,12 @@ namespace SolTechnology.Avro.Schema
     /// <summary>
     /// Class for fields defined in a record
     /// </summary>
-    public class Field
+    internal class Field
     {
         /// <summary>
         /// Enum for the sorting order of record fields
         /// </summary>
-        public enum SortOrder
+        internal enum SortOrder
         {
             ascending,
             descending,
@@ -42,37 +42,37 @@ namespace SolTechnology.Avro.Schema
         /// <summary>
         /// Name of the field.
         /// </summary>
-        public readonly string Name;
+        internal readonly string Name;
 
         /// <summary>
         /// List of aliases for the field name
         /// </summary>
-        public readonly IList<string> aliases;
+        internal readonly IList<string> aliases;
 
         /// <summary>
         /// Position of the field within its record.
         /// </summary>
-        public int Pos { get; private set; }
+        internal int Pos { get; private set; }
 
         /// <summary>
         /// Documentation for the field, if any. Null if there is no documentation.
         /// </summary>
-        public string Documentation { get; private set; }
+        internal string Documentation { get; private set; }
 
         /// <summary>
         /// The default value for the field stored as JSON object, if defined. Otherwise, null.
         /// </summary>
-        public JToken DefaultValue { get; private set; }
+        internal JToken DefaultValue { get; private set; }
 
         /// <summary>
         /// Order of the field
         /// </summary>
-        public SortOrder? Ordering { get; private set; }
+        internal SortOrder? Ordering { get; private set; }
 
         /// <summary>
         /// Field type's schema
         /// </summary>
-        public Schema Schema { get; private set; }
+        internal Schema Schema { get; private set; }
 
         /// <summary>
         /// Custom properties for the field. We don't store the fields custom properties in
@@ -185,7 +185,7 @@ namespace SolTechnology.Avro.Schema
         /// </summary>
         /// <param name="key">custom property name</param>
         /// <returns>custom property value</returns>
-        public string GetProperty(string key)
+        internal string GetProperty(string key)
         {
             if (null == this.Props) return null;
             string v;

@@ -21,9 +21,9 @@ using SolTechnology.Avro.Schema;
 
 namespace SolTechnology.Avro.Write.Resolvers
 {
-    public class Fixed
+    internal class Fixed
     {
-        public Encoder.WriteItem Resolve(FixedSchema es)
+        internal Encoder.WriteItem Resolve(FixedSchema es)
         {
             return (value, encoder) =>
             {

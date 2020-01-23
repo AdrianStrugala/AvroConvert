@@ -20,7 +20,7 @@ using AutoMapper;
 
 namespace SolTechnology.Avro.Read.AutoMapperConverters
 {
-    public class DateTimeConverter : ITypeConverter<long, DateTime>
+    internal class DateTimeConverter : ITypeConverter<long, DateTime>
     {
         public DateTime Convert(long source, DateTime destination, ResolutionContext context)
         {

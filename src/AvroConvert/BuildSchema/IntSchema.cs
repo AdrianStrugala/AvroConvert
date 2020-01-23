@@ -22,7 +22,7 @@ namespace SolTechnology.Avro.BuildSchema
     ///     Class represents an int schema.
     ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html#schema_primitive">the specification</a>.
     /// </summary>
-    public class IntSchema : PrimitiveTypeSchema
+    internal class IntSchema : PrimitiveTypeSchema
     {
         internal IntSchema()
             : this(typeof(int))

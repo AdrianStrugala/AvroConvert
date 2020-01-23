@@ -23,11 +23,11 @@ namespace SolTechnology.Avro.Write
     /// <summary>
     /// Write leaf values.
     /// </summary>
-    public class Writer : IWriter
+    internal class Writer : IWriter
     {
         private readonly Stream _stream;
 
-        public Writer(Stream stream)
+        internal Writer(Stream stream)
         {
             this._stream = stream;
         }
@@ -38,7 +38,7 @@ namespace SolTechnology.Avro.Write
         public void WriteNull()
         {
         }
-        
+
         /// <summary>
         /// true is written as 1 and false 0.
         /// </summary>
@@ -182,7 +182,7 @@ namespace SolTechnology.Avro.Write
             _stream.WriteByte(b);
         }
 
-        public void Flush()
+        internal void Flush()
         {
             _stream.Flush();
         }

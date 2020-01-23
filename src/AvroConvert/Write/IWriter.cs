@@ -17,7 +17,7 @@
 
 namespace SolTechnology.Avro.Write
 {
-    public interface IWriter
+    internal interface IWriter
     {
         void WriteNull();
         void WriteBoolean(bool value);

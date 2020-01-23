@@ -7,7 +7,7 @@ namespace SolTechnology.Avro.Codec
     /// <summary>
     /// Performs 32-bit reversed cyclic redundancy checks.
     /// </summary>
-    public static class Crc32
+    internal static class Crc32
     {
         #region Constants
         /// <summary>
@@ -43,7 +43,7 @@ namespace SolTechnology.Avro.Codec
         /// </summary>
         /// <param name="byteStream">The byte stream to calculate the checksum for.</param>
         /// <returns>A 32-bit reversed checksum.</returns>
-        public static uint Get<T>(IEnumerable<T> byteStream)
+        internal static uint Get<T>(IEnumerable<T> byteStream)
         {
             // Initialize checksumRegister to 0xFFFFFFFF and calculate the checksum.
             return ~byteStream.Aggregate(0xFFFFFFFF, (checksumRegister, currentByte) =>

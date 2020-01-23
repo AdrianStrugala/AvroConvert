@@ -26,17 +26,17 @@ namespace SolTechnology.Avro.Schema
     /// <summary>
     /// Base class for all named schemas: fixed, enum, record
     /// </summary>
-    public abstract class NamedSchema : Schema
+    internal abstract class NamedSchema : Schema
     {
         /// <summary>
         /// Name of the schema, contains name, namespace and enclosing namespace
         /// </summary>
-        public SchemaName SchemaName { get; private set; }
+        internal SchemaName SchemaName { get; private set; }
 
         /// <summary>
         /// Name of the schema
         /// </summary>
-        public override string Name
+        internal override string Name
         {
             get { return SchemaName.Name; }
         }
@@ -44,7 +44,7 @@ namespace SolTechnology.Avro.Schema
         /// <summary>
         /// Namespace of the schema
         /// </summary>
-        public string Namespace
+        internal string Namespace
         {
             get { return SchemaName.Namespace; }
         }
@@ -52,7 +52,7 @@ namespace SolTechnology.Avro.Schema
         /// <summary>
         /// Namespace.Name of the schema
         /// </summary>
-        public string Fullname
+        internal string Fullname
         {
             get { return SchemaName.Fullname; }
         }

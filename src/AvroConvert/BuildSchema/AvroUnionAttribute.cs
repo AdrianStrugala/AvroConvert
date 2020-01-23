@@ -24,7 +24,7 @@ namespace SolTechnology.Avro.BuildSchema
     /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
     [SuppressMessage("Microsoft.Design", "CA1019:DefineAccessorsForAttributeArguments", Justification = "Types are not exposed.")]
-    public sealed class AvroUnionAttribute : Attribute
+    internal sealed class AvroUnionAttribute : Attribute
     {
         private readonly Type[] typeAlternatives;
 
@@ -34,7 +34,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <param name="typeAlternatives">
         /// The type alternatives.
         /// </param>
-        public AvroUnionAttribute(params Type[] typeAlternatives)
+        internal AvroUnionAttribute(params Type[] typeAlternatives)
         {
             this.typeAlternatives = typeAlternatives;
         }
@@ -43,7 +43,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// Initializes a new instance of the <see cref="AvroUnionAttribute"/> class.
         /// </summary>
         /// <param name="type">The type.</param>
-        public AvroUnionAttribute(Type type) : this(new[] { type })
+        internal AvroUnionAttribute(Type type) : this(new[] { type })
         {
         }
 
@@ -52,7 +52,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// </summary>
         /// <param name="type">The type.</param>
         /// <param name="type2">The type2.</param>
-        public AvroUnionAttribute(Type type, Type type2) : this(new[] { type, type2 })
+        internal AvroUnionAttribute(Type type, Type type2) : this(new[] { type, type2 })
         {
         }
 
@@ -62,7 +62,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <param name="type">The type.</param>
         /// <param name="type2">The type2.</param>
         /// <param name="type3">The type3.</param>
-        public AvroUnionAttribute(Type type, Type type2, Type type3)
+        internal AvroUnionAttribute(Type type, Type type2, Type type3)
             : this(new[] { type, type2, type3 })
         {
         }
@@ -74,7 +74,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <param name="type2">The type2.</param>
         /// <param name="type3">The type3.</param>
         /// <param name="type4">The type4.</param>
-        public AvroUnionAttribute(Type type, Type type2, Type type3, Type type4)
+        internal AvroUnionAttribute(Type type, Type type2, Type type3, Type type4)
             : this(new[] { type, type2, type3, type4 })
         {
         }
@@ -87,7 +87,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <param name="type3">The type3.</param>
         /// <param name="type4">The type4.</param>
         /// <param name="type5">The type5.</param>
-        public AvroUnionAttribute(Type type, Type type2, Type type3, Type type4, Type type5)
+        internal AvroUnionAttribute(Type type, Type type2, Type type3, Type type4, Type type5)
             : this(new[] { type, type2, type3, type4, type5 })
         {
         }
@@ -98,7 +98,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <value>
         /// The type alternatives.
         /// </value>
-        public IEnumerable<Type> TypeAlternatives
+        internal IEnumerable<Type> TypeAlternatives
         {
             get
             {

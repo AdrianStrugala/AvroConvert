@@ -25,14 +25,14 @@ namespace SolTechnology.Avro.Schema
     /// <summary>
     /// Class for map schemas
     /// </summary>
-    public class MapSchema : UnnamedSchema
+    internal class MapSchema : UnnamedSchema
     {
         /// <summary>
         /// Schema for map values type
         /// </summary>
-        public Schema ValueSchema { get; set; }
+        internal Schema ValueSchema { get; set; }
 
-        public static MapSchema CreateMap(Schema type)
+        internal static MapSchema CreateMap(Schema type)
         {
             return new MapSchema(type,null);
         }
@@ -79,7 +79,7 @@ namespace SolTechnology.Avro.Schema
         /// </summary>
         /// <param name="writerSchema">writer schema</param>
         /// <returns>true if this and writer schema are compatible based on the AVRO specification, false otherwise</returns>
-        public override bool CanRead(Schema writerSchema)
+        internal override bool CanRead(Schema writerSchema)
         {
             if (writerSchema.Tag != Tag) return false;
 

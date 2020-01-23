@@ -33,7 +33,7 @@ namespace SolTechnology.Avro.BuildSchema
         private readonly Dictionary<Type, Func<string, object>> parsersWithoutSchema;
         private readonly Dictionary<Type, Func<TypeSchema, string, object>> parsersWithSchema;
 
-        public JsonObjectParser()
+        internal JsonObjectParser()
         {
             this.parsersWithoutSchema = new Dictionary<Type, Func<string, object>>
             {
@@ -64,7 +64,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <param name="schema">The schema.</param>
         /// <param name="json">The JSON object.</param>
         /// <returns>The object.</returns>
-        public object Parse(TypeSchema schema, string json)
+        internal object Parse(TypeSchema schema, string json)
         {
             if (this.parsersWithoutSchema.ContainsKey(schema.GetType()))
             {

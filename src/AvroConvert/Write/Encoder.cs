@@ -25,9 +25,9 @@ using SolTechnology.Avro.Helpers;
 
 namespace SolTechnology.Avro.Write
 {
-    public class Encoder : IDisposable
+    internal class Encoder : IDisposable
     {
-        public delegate void WriteItem(object value, IWriter encoder);
+        internal delegate void WriteItem(object value, IWriter encoder);
 
         private readonly Schema.Schema _schema;
         private readonly AbstractCodec _codec;
@@ -44,7 +44,7 @@ namespace SolTechnology.Avro.Write
         private readonly Metadata _metadata;
 
 
-        public Encoder(Schema.Schema schema, Stream outStream, CodecType codecType)
+        internal Encoder(Schema.Schema schema, Stream outStream, CodecType codecType)
         {
             _codec = AbstractCodec.CreateCodec(codecType);
             _stream = outStream;
@@ -62,7 +62,7 @@ namespace SolTechnology.Avro.Write
             _isOpen = true;
         }
 
-        public void Append(object datum)
+        internal void Append(object datum)
         {
             AssertOpen();
             EnsureHeader();
@@ -82,7 +82,7 @@ namespace SolTechnology.Avro.Write
             }
         }
 
-        public long Sync()
+        internal long Sync()
         {
             AssertOpen();
             WriteBlock();

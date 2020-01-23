@@ -25,12 +25,12 @@ namespace SolTechnology.Avro.Schema
     /// <summary>
     /// Class for array type schemas
     /// </summary>
-    public class ArraySchema : UnnamedSchema
+    internal class ArraySchema : UnnamedSchema
     {
         /// <summary>
         /// Schema for the array 'type' attribute
         /// </summary>
-        public Schema ItemSchema { get; set;  }
+        internal Schema ItemSchema { get; set;  }
 
         /// <summary>
         /// Static class to return a new instance of ArraySchema
@@ -74,7 +74,7 @@ namespace SolTechnology.Avro.Schema
         /// </summary>
         /// <param name="writerSchema">writer schema</param>
         /// <returns>true if this and writer schema are compatible based on the AVRO specification, false otherwise</returns>
-        public override bool CanRead(Schema writerSchema)
+        internal override bool CanRead(Schema writerSchema)
         {
             if (writerSchema.Tag != Tag) return false;
 

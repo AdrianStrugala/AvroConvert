@@ -28,17 +28,17 @@ namespace SolTechnology.Avro.Schema
     /// <summary>
     /// Class for record schemas
     /// </summary>
-    public class RecordSchema : NamedSchema
+    internal class RecordSchema : NamedSchema
     {
         /// <summary>
         /// List of fields in the record
         /// </summary>
-        public List<Field> Fields { get; private set; }
+        internal List<Field> Fields { get; private set; }
 
         /// <summary>
         /// Number of fields in the record
         /// </summary>
-        public int Count { get { return Fields.Count; } }
+        internal int Count { get { return Fields.Count; } }
 
         /// <summary>
         /// Map of field name and Field object for faster field lookups
@@ -158,7 +158,7 @@ namespace SolTechnology.Avro.Schema
         /// </summary>
         /// <param name="name">field name</param>
         /// <returns>Field object</returns>
-        public Field this[string name]
+        internal Field this[string name]
         {
             get
             {
@@ -168,12 +168,12 @@ namespace SolTechnology.Avro.Schema
             }
         }
 
-        public bool Contains(string fieldName)
+        internal bool Contains(string fieldName)
         {
             return fieldAliasLookup.ContainsKey(fieldName);
         }
 
-        public Field GetField(string fieldName)
+        internal Field GetField(string fieldName)
         {
             return fieldAliasLookup[fieldName];
         }
@@ -256,7 +256,7 @@ namespace SolTechnology.Avro.Schema
         /// </summary>
         /// <param name="writerSchema">writer schema</param>
         /// <returns>true if this and writer schema are compatible based on the AVRO specification, false otherwise</returns>
-        public override bool CanRead(Schema writerSchema)
+        internal override bool CanRead(Schema writerSchema)
         {
             if ((writerSchema.Tag != Type.Record) && (writerSchema.Tag != Type.Error)) return false;
 
@@ -290,10 +290,10 @@ namespace SolTechnology.Avro.Schema
 
         private class RecordSchemaPair
         {
-            public readonly RecordSchema first;
-            public readonly RecordSchema second;
+            internal readonly RecordSchema first;
+            internal readonly RecordSchema second;
 
-            public RecordSchemaPair(RecordSchema first, RecordSchema second)
+            internal RecordSchemaPair(RecordSchema first, RecordSchema second)
             {
                 this.first = first;
                 this.second = second;

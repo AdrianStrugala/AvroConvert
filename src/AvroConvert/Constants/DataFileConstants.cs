@@ -17,19 +17,19 @@
 
 namespace SolTechnology.Avro.Constants
 {
-    public class DataFileConstants
+    internal class DataFileConstants
     {
-        public const string SyncMetadataKey = "avro.sync";
-        public const string CodecMetadataKey = "avro.codec";
-        public const string SchemaMetadataKey = "avro.schema";
-        public const string MetaDataReserved = "avro";
+        internal const string SyncMetadataKey = "avro.sync";
+        internal const string CodecMetadataKey = "avro.codec";
+        internal const string SchemaMetadataKey = "avro.schema";
+        internal const string MetaDataReserved = "avro";
 
-        public static byte[] AvroHeader = { (byte)'O',
+        internal static byte[] AvroHeader = { (byte)'O',
                                             (byte)'b',
                                             (byte)'j',
                                             (byte) 1 };
 
-        public const int SyncSize = 16;
-        public const int DefaultSyncInterval = 4000 * SyncSize;
+        internal const int SyncSize = 16;
+        internal const int DefaultSyncInterval = 4000 * SyncSize;
     }
 }

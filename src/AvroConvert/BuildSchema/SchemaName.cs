@@ -35,7 +35,7 @@ namespace SolTechnology.Avro.BuildSchema
         ///     Initializes a new instance of the <see cref="SchemaName" /> class.
         /// </summary>
         /// <param name="name">The name.</param>
-        public SchemaName(string name) : this(name, string.Empty)
+        internal SchemaName(string name) : this(name, string.Empty)
         {
         }
 
@@ -46,7 +46,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <param name="namespace">The namespace.</param>
         /// <exception cref="System.ArgumentException">Thrown when <paramref name="name"/> is empty or null.</exception>
         /// <exception cref="System.Runtime.Serialization.SerializationException">Thrown when any argument is invalid.</exception>
-        public SchemaName(string name, string @namespace)
+        internal SchemaName(string name, string @namespace)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -79,7 +79,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         ///     Gets the name.
         /// </summary>
-        public string Name
+        internal string Name
         {
             get { return this.name; }
         }
@@ -87,7 +87,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         ///     Gets the namespace.
         /// </summary>
-        public string Namespace
+        internal string Namespace
         {
             get { return this.@namespace; }
         }
@@ -95,7 +95,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         ///     Gets the full name.
         /// </summary>
-        public string FullName
+        internal string FullName
         {
             get { return string.IsNullOrEmpty(this.@namespace) ? this.name : this.@namespace + "." + this.name; }
         }

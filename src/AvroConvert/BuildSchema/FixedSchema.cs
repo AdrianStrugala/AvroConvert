@@ -24,7 +24,7 @@ namespace SolTechnology.Avro.BuildSchema
     ///     Represents a fixed schema.
     ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html#Fixed">the specification</a>.
     /// </summary>
-    public sealed class FixedSchema : NamedSchema
+    internal sealed class FixedSchema : NamedSchema
     {
         private readonly int size;
 
@@ -57,7 +57,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         ///     Gets the size.
         /// </summary>
-        public int Size
+        internal int Size
         {
             get { return this.size; }
         }

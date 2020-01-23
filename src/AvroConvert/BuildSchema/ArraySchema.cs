@@ -23,7 +23,7 @@ namespace SolTechnology.Avro.BuildSchema
     ///     Schema representing an array.
     ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html#Arrays">the specification</a>.
     /// </summary>
-    public sealed class ArraySchema : TypeSchema
+    internal sealed class ArraySchema : TypeSchema
     {
         private readonly TypeSchema itemSchema;
 
@@ -62,7 +62,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         ///     Gets the item schema.
         /// </summary>
-        public TypeSchema ItemSchema
+        internal TypeSchema ItemSchema
         {
             get { return this.itemSchema; }
         }

@@ -26,12 +26,12 @@ namespace SolTechnology.Avro.Schema
     /// <summary>
     /// Base class for all schema types
     /// </summary>
-    public abstract class Schema
+    internal abstract class Schema
     {
         /// <summary>
         /// Enum for schema types
         /// </summary>
-        public enum Type
+        internal enum Type
         {
             Null,
             Boolean,
@@ -54,7 +54,7 @@ namespace SolTechnology.Avro.Schema
         /// <summary>
         /// Schema type property
         /// </summary>
-        public Type Tag { get; private set; }
+        internal Type Tag { get; private set; }
 
         /// <summary>
         /// Additional JSON attributes apart from those defined in the AVRO spec
@@ -75,7 +75,7 @@ namespace SolTechnology.Avro.Schema
         /// The name of this schema. If this is a named schema such as an enum, it returns the fully qualified
         /// name for the schema. For other schemas, it returns the type of the schema.
         /// </summary>
-        public abstract string Name { get; }
+        internal abstract string Name { get; }
 
         /// <summary>
         /// Static class to return new instance of schema object
@@ -139,7 +139,7 @@ namespace SolTechnology.Avro.Schema
         /// </summary>
         /// <param name="json">JSON string</param>
         /// <returns>new Schema object</returns>
-        public static Schema Parse(string json)
+        internal static Schema Parse(string json)
         {
             if (string.IsNullOrEmpty(json)) throw new ArgumentNullException("json", "json cannot be null.");
             return Parse(json.Trim(), new SchemaNames(), null); // standalone schema, so no enclosing namespace
@@ -224,7 +224,7 @@ namespace SolTechnology.Avro.Schema
         /// </summary>
         /// <param name="type">schema type</param>
         /// <returns>symbol name</returns>
-        public static string GetTypeString(Type type)
+        internal static string GetTypeString(Type type)
         {
             if (type != Type.Enumeration) return type.ToString().ToLower();
             return "enum";
@@ -259,7 +259,7 @@ namespace SolTechnology.Avro.Schema
         /// </summary>
         /// <param name="key">custom property name</param>
         /// <returns>custom property value</returns>
-        public string GetProperty(string key)
+        internal string GetProperty(string key)
         {
             if (null == this.Props) return null;
             string v;
@@ -281,7 +281,7 @@ namespace SolTechnology.Avro.Schema
         /// </summary>
         /// <param name="writerSchema">The writer's schema to match against.</param>
         /// <returns>True if and only if the current schema matches the writer's.</returns>
-        public virtual bool CanRead(Schema writerSchema) { return Tag == writerSchema.Tag; }
+        internal virtual bool CanRead(Schema writerSchema) { return Tag == writerSchema.Tag; }
 
         /// <summary>
         /// Compares two objects, null is equal to null

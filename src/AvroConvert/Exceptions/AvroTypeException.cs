@@ -18,9 +18,9 @@
 
 namespace SolTechnology.Avro.Exceptions
 {
-    public class AvroTypeException : AvroException
+    internal class AvroTypeException : AvroException
     {
-        public AvroTypeException(string s)
+        internal AvroTypeException(string s)
             : base(s)
         {
         }

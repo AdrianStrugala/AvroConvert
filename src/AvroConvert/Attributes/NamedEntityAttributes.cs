@@ -30,7 +30,7 @@ namespace SolTechnology.Avro.Attributes
         /// <param name="name">The name.</param>
         /// <param name="aliases">The aliases.</param>
         /// <param name="doc">The doc.</param>
-        public NamedEntityAttributes(SchemaName name, IEnumerable<string> aliases, string doc)
+        internal NamedEntityAttributes(SchemaName name, IEnumerable<string> aliases, string doc)
         {
             if (name == null)
             {
@@ -50,16 +50,16 @@ namespace SolTechnology.Avro.Attributes
         /// <summary>
         ///     Gets the name.
         /// </summary>
-        public SchemaName Name { get; private set; }
+        internal SchemaName Name { get; private set; }
 
         /// <summary>
         ///     Gets the aliases.
         /// </summary>
-        public List<string> Aliases { get; private set; }
+        internal List<string> Aliases { get; private set; }
 
         /// <summary>
         ///     Gets the doc.
         /// </summary>
-        public string Doc { get; private set; }
+        internal string Doc { get; private set; }
     }
 }

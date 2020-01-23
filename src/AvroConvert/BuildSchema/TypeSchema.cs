@@ -22,7 +22,7 @@ namespace SolTechnology.Avro.BuildSchema
     ///     Base class for all type schemas.
     ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html">the specification</a>.
     /// </summary>
-    public abstract class TypeSchema : Schema
+    internal abstract class TypeSchema : Schema
     {
         private readonly Type _runtimeType;
 
@@ -44,7 +44,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         /// Gets the runtime type.
         /// </summary>
-        public Type RuntimeType
+        internal Type RuntimeType
         {
             get { return this._runtimeType; }
         }

@@ -20,14 +20,14 @@ using System;
 
 namespace SolTechnology.Avro.Exceptions
 {
-    public class AvroException : Exception
+    internal class AvroException : Exception
     {
-        public AvroException(string s)
+        internal AvroException(string s)
             : base(s)
         {
         }
 
-        public AvroException(string s, Exception inner)
+        internal AvroException(string s, Exception inner)
             : base(s, inner)
         {
         }

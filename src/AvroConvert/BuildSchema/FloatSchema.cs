@@ -22,7 +22,7 @@ namespace SolTechnology.Avro.BuildSchema
     ///     Class represents a float schema.
     ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html#schema_primitive">the specification</a>.
     /// </summary>
-    public sealed class FloatSchema : PrimitiveTypeSchema
+    internal sealed class FloatSchema : PrimitiveTypeSchema
     {
         internal FloatSchema()
             : this(new Dictionary<string, string>())

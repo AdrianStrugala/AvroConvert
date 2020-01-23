@@ -29,7 +29,7 @@ namespace SolTechnology.Avro.BuildSchema
     /// </summary>
     [SuppressMessage("Microsoft.Naming", "CA1724:TypeNamesShouldNotMatchNamespaces",
         Justification = "It is a different namespace.")]
-    public abstract class Schema
+    internal abstract class Schema
     {
         private readonly Dictionary<string, string> attributes;
 
@@ -50,7 +50,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         ///     Gets the attributes.
         /// </summary>
-        public IDictionary<string, string> Attributes
+        internal IDictionary<string, string> Attributes
         {
             get { return this.attributes; }
         }
@@ -60,7 +60,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// </summary>
         /// <param name="attribute">The attribute.</param>
         /// <param name="value">The value.</param>
-        public void AddAttribute(string attribute, string value)
+        internal void AddAttribute(string attribute, string value)
         {
             if (attribute == null)
             {
@@ -112,7 +112,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// Creates a <see cref="NullSchema" /> instance.
         /// </summary>
         /// <returns>An instance of the <see cref="NullSchema" />.</returns>
-        public static NullSchema CreateNull()
+        internal static NullSchema CreateNull()
         {
             return new NullSchema();
         }
@@ -121,7 +121,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// Creates a <see cref="BooleanSchema" /> instance.
         /// </summary>
         /// <returns>An instance of the <see cref="BooleanSchema" />.</returns>
-        public static BooleanSchema CreateBoolean()
+        internal static BooleanSchema CreateBoolean()
         {
             return new BooleanSchema();
         }
@@ -130,7 +130,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// Creates a <see cref="IntSchema" /> instance.
         /// </summary>
         /// <returns>An instance of the <see cref="IntSchema" />.</returns>
-        public static IntSchema CreateInt()
+        internal static IntSchema CreateInt()
         {
             return new IntSchema();
         }
@@ -139,7 +139,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// Creates a <see cref="LongSchema" /> instance.
         /// </summary>
         /// <returns>An instance of the <see cref="LongSchema" />.</returns>
-        public static LongSchema CreateLong()
+        internal static LongSchema CreateLong()
         {
             return new LongSchema();
         }
@@ -148,7 +148,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// Creates a <see cref="DoubleSchema" /> instance.
         /// </summary>
         /// <returns>An instance of the <see cref="DoubleSchema" />.</returns>
-        public static DoubleSchema CreateDouble()
+        internal static DoubleSchema CreateDouble()
         {
             return new DoubleSchema();
         }
@@ -157,7 +157,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// Creates a <see cref="FloatSchema" /> instance.
         /// </summary>
         /// <returns>An instance of the <see cref="FloatSchema" />.</returns>
-        public static FloatSchema CreateFloat()
+        internal static FloatSchema CreateFloat()
         {
             return new FloatSchema();
         }
@@ -166,7 +166,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// Creates a <see cref="StringSchema" /> instance.
         /// </summary>
         /// <returns>An instance of the <see cref="StringSchema" />.</returns>
-        public static StringSchema CreateString()
+        internal static StringSchema CreateString()
         {
             return new StringSchema();
         }
@@ -175,7 +175,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// Creates a <see cref="BytesSchema" /> instance.
         /// </summary>
         /// <returns>An instance of the <see cref="BytesSchema" />.</returns>
-        public static BytesSchema CreateBytes()
+        internal static BytesSchema CreateBytes()
         {
             return new BytesSchema();
         }
@@ -186,7 +186,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <param name="name">Record name.</param>
         /// <param name="ns">Record namespace.</param>
         /// <returns>An instance of the <see cref="RecordSchema" />.</returns>
-        public static RecordSchema CreateRecord(string name, string ns)
+        internal static RecordSchema CreateRecord(string name, string ns)
         {
             return new RecordSchema(new NamedEntityAttributes(new SchemaName(name, ns), new List<string>(), String.Empty), typeof(AvroRecord));
         }
@@ -200,7 +200,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <param name="fields">
         /// The fields.
         /// </param>
-        public static void SetFields(RecordSchema record, IEnumerable<RecordField> fields)
+        internal static void SetFields(RecordSchema record, IEnumerable<RecordField> fields)
         {
             if (record == null)
             {
@@ -230,7 +230,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <param name="fieldName">The field name.</param>
         /// <param name="fieldType">The field type.</param>
         /// <returns>An instance of the <see cref="RecordField" />.</returns>
-        public static RecordField CreateField(string fieldName, TypeSchema fieldType)
+        internal static RecordField CreateField(string fieldName, TypeSchema fieldType)
         {
             if (String.IsNullOrEmpty(fieldName))
             {
@@ -263,7 +263,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <param name="defaultValue">The field default value.</param>
         /// <param name="order">The field sorting order.</param>
         /// <returns>An instance of the <see cref="RecordField" />.</returns>
-        public static RecordField CreateField(string fieldName, TypeSchema fieldType, string ns, IEnumerable<string> aliases, string doc, object defaultValue, SortOrder order)
+        internal static RecordField CreateField(string fieldName, TypeSchema fieldType, string ns, IEnumerable<string> aliases, string doc, object defaultValue, SortOrder order)
         {
             return new RecordField(
                 new NamedEntityAttributes(new SchemaName(fieldName, ns), aliases, doc),
@@ -282,7 +282,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <param name="ns">The namespace.</param>
         /// <param name="size">The size.</param>
         /// <returns>An instance of the <see cref="FixedSchema" />.</returns>
-        public static FixedSchema CreateFixed(string name, string ns, int size)
+        internal static FixedSchema CreateFixed(string name, string ns, int size)
         {
             return new FixedSchema(new NamedEntityAttributes(new SchemaName(name, ns), new List<string>(), String.Empty), size, typeof(byte[]));
         }
@@ -294,7 +294,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <param name="ns">The namespace.</param>
         /// <param name="values">The values of the enum.</param>
         /// <returns>An instance of the <see cref="EnumSchema" />.</returns>
-        public static EnumSchema CreateEnumeration(string name, string ns, IEnumerable<string> values)
+        internal static EnumSchema CreateEnumeration(string name, string ns, IEnumerable<string> values)
         {
             if (values == null)
             {
@@ -311,7 +311,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// </summary>
         /// <param name="itemSchema">The schema of the items.</param>
         /// <returns>An instance of the <see cref="ArraySchema" />.</returns>
-        public static ArraySchema CreateArray(TypeSchema itemSchema)
+        internal static ArraySchema CreateArray(TypeSchema itemSchema)
         {
             return new ArraySchema(itemSchema, typeof(Array));
         }
@@ -321,7 +321,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// </summary>
         /// <param name="valueSchema">The schema of the values.</param>
         /// <returns>An instance of the <see cref="MapSchema" />.</returns>
-        public static MapSchema CreateMap(TypeSchema valueSchema)
+        internal static MapSchema CreateMap(TypeSchema valueSchema)
         {
             return new MapSchema(new StringSchema(), valueSchema, typeof(Dictionary<,>));
         }
@@ -331,7 +331,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// </summary>
         /// <param name="schemas">The schemas.</param>
         /// <returns>An instance of the <see cref="UnionSchema" />.</returns>
-        public static UnionSchema CreateUnion(params TypeSchema[] schemas)
+        internal static UnionSchema CreateUnion(params TypeSchema[] schemas)
         {
             if (schemas == null)
             {
@@ -349,7 +349,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// </summary>
         /// <param name="schemaInJson">The schema.</param>
         /// <returns>Created schema.</returns>
-        public static TypeSchema Create(string schemaInJson)
+        internal static TypeSchema Create(string schemaInJson)
         {
             if (string.IsNullOrEmpty(schemaInJson))
             {

@@ -18,23 +18,18 @@
 
 namespace SolTechnology.Avro.Codec
 {
-    public class NullCodec : AbstractCodec
+    internal class NullCodec : AbstractCodec
     {
-        public override string Name { get; } = CodecType.Null.ToString().ToLower();
+        internal override string Name { get; } = CodecType.Null.ToString().ToLower();
 
-        public override byte[] Decompress(byte[] compressedData)
+        internal override byte[] Decompress(byte[] compressedData)
         {
             return compressedData;
         }
 
-        public override byte[] Compress(byte[] uncompressedData)
+        internal override byte[] Compress(byte[] uncompressedData)
         {
             return uncompressedData;
-        }
-
-        public override int GetHashCode()
-        {
-            return 2;
         }
     }
 }

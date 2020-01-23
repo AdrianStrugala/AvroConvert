@@ -21,9 +21,9 @@ using SolTechnology.Avro.Schema;
 
 namespace SolTechnology.Avro.Skip
 {
-    public class Skipper
+    internal class Skipper
     {
-        public void Skip(Schema.Schema schema, IReader d)
+        internal void Skip(Schema.Schema schema, IReader d)
         {
             switch (schema.Tag)
             {

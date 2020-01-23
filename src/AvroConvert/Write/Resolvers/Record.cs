@@ -19,9 +19,9 @@ using SolTechnology.Avro.Schema;
 
 namespace SolTechnology.Avro.Write.Resolvers
 {
-    public class Record
+    internal class Record
     {
-        public Encoder.WriteItem Resolve(RecordSchema recordSchema)
+        internal Encoder.WriteItem Resolve(RecordSchema recordSchema)
         {
             WriteStep[] writeSteps = new WriteStep[recordSchema.Fields.Count];
 

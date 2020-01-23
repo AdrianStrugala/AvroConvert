@@ -27,7 +27,7 @@ namespace SolTechnology.Avro.BuildSchema
     /// <summary>
     ///     This class creates an avro schema given a c# type.
     /// </summary>
-    public sealed class ReflectionSchemaBuilder
+    internal sealed class ReflectionSchemaBuilder
     {
         private static readonly Dictionary<Type, Func<Type, PrimitiveTypeSchema>> RuntimeTypeToAvroSchema =
             new Dictionary<Type, Func<Type, PrimitiveTypeSchema>>
@@ -59,7 +59,7 @@ namespace SolTechnology.Avro.BuildSchema
         ///     Initializes a new instance of the <see cref="ReflectionSchemaBuilder" /> class.
         /// </summary>
         /// <param name="settings">The settings.</param>
-        public ReflectionSchemaBuilder(AvroSerializerSettings settings)
+        internal ReflectionSchemaBuilder(AvroSerializerSettings settings)
         {
             if (settings == null)
             {
@@ -78,7 +78,7 @@ namespace SolTechnology.Avro.BuildSchema
         ///     New instance of schema definition.
         /// </returns>
         /// <exception cref="System.ArgumentNullException">Thrown when <paramref name="type"/> parameter is null.</exception>
-        public TypeSchema BuildSchema(Type type)
+        internal TypeSchema BuildSchema(Type type)
         {
             if (type == null)
             {

@@ -21,9 +21,9 @@ using SolTechnology.Avro.Schema;
 
 namespace SolTechnology.Avro.Write.Resolvers
 {
-    public class Map
+    internal class Map
     {
-        public Encoder.WriteItem Resolve(MapSchema mapSchema)
+        internal Encoder.WriteItem Resolve(MapSchema mapSchema)
         {
             var itemWriter = Resolver.ResolveWriter(mapSchema.ValueSchema);
             return (v, e) => WriteMap(itemWriter, v, e);

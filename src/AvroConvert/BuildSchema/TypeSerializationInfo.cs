@@ -20,12 +20,12 @@ namespace SolTechnology.Avro.BuildSchema
     /// <summary>
     ///     Represents serialization information about a C# type.
     /// </summary>
-    public sealed class TypeSerializationInfo
+    internal sealed class TypeSerializationInfo
     {
         /// <summary>
         ///     Initializes a new instance of the <see cref="TypeSerializationInfo" /> class.
         /// </summary>
-        public TypeSerializationInfo()
+        internal TypeSerializationInfo()
         {
             this.Aliases = new List<string>();
             this.Doc = string.Empty;
@@ -35,22 +35,22 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         ///     Gets or sets the Avro name of the type.
         /// </summary>
-        public string Name { get; set; }
+        internal string Name { get; set; }
 
         /// <summary>
         ///     Gets or sets the Avro namespace of the type.
         /// </summary>
-        public string Namespace { get; set; }
+        internal string Namespace { get; set; }
 
         /// <summary>
         ///     Gets the aliases.
         /// </summary>
-        public ICollection<string> Aliases { get; private set; }
+        internal ICollection<string> Aliases { get; private set; }
 
         /// <summary>
         ///     Gets or sets the doc attribute.
         /// </summary>
-        public string Doc { get; set; }
+        internal string Doc { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether this type can represent null values.
@@ -58,6 +58,6 @@ namespace SolTechnology.Avro.BuildSchema
         /// <value>
         ///   <c>True</c> if nullable; otherwise, <c>false</c>.
         /// </value>
-        public bool Nullable { get; set; }
+        internal bool Nullable { get; set; }
     }
 }

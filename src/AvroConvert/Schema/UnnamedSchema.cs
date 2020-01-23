@@ -21,13 +21,13 @@ namespace SolTechnology.Avro.Schema
     /// <summary>
     /// Base class for all unnamed schemas
     /// </summary>
-    public abstract class UnnamedSchema : Schema
+    internal abstract class UnnamedSchema : Schema
     {
         protected UnnamedSchema(Type type, PropertyMap props) : base(type, props)
         {
         }
 
-        public override string Name
+        internal override string Name
         {
             get { return Tag.ToString().ToLower(); }
         }

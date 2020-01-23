@@ -35,7 +35,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <param name="token">The token.</param>
         /// <param name="propertyName">Name of the property.</param>
         /// <returns>Value of the property.</returns>
-        public static T RequiredProperty<T>(this JToken token, string propertyName)
+        internal static T RequiredProperty<T>(this JToken token, string propertyName)
         {
             return ReadProperty<T>(token, propertyName, false);
         }
@@ -47,7 +47,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <param name="token">The token.</param>
         /// <param name="propertyName">Name of the property.</param>
         /// <returns>Value of the property.</returns>
-        public static T OptionalProperty<T>(this JToken token, string propertyName)
+        internal static T OptionalProperty<T>(this JToken token, string propertyName)
         {
             return ReadProperty<T>(token, propertyName, true);
         }
@@ -60,7 +60,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <param name="propertyName">Name of the property.</param>
         /// <param name="func">The function for property value conversion.</param>
         /// <returns>List of property values.</returns>
-        public static List<T> RequiredArrayProperty<T>(this JToken token, string propertyName, Func<JToken, int, T> func)
+        internal static List<T> RequiredArrayProperty<T>(this JToken token, string propertyName, Func<JToken, int, T> func)
         {
             return ReadArrayProperty(token, propertyName, false, func);
         }
@@ -73,7 +73,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <param name="propertyName">Name of the property.</param>
         /// <param name="func">The function for property value conversion.</param>
         /// <returns>List of property values.</returns>
-        public static List<T> OptionalArrayProperty<T>(this JToken token, string propertyName, Func<JToken, int, T> func)
+        internal static List<T> OptionalArrayProperty<T>(this JToken token, string propertyName, Func<JToken, int, T> func)
         {
             return ReadArrayProperty(token, propertyName, true, func);
         }
@@ -84,7 +84,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <param name="obj">The JSON object.</param>
         /// <param name="attributes">The attributes.</param>
         /// <returns>Set of additional attributes.</returns>
-        public static Dictionary<string, string> GetAttributesNotIn(this JObject obj, HashSet<string> attributes)
+        internal static Dictionary<string, string> GetAttributesNotIn(this JObject obj, HashSet<string> attributes)
         {
             if (obj == null)
             {
@@ -201,7 +201,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <param name="writer">The writer.</param>
         /// <param name="name">The name.</param>
         /// <param name="value">The value.</param>
-        public static void WriteOptionalProperty(this JsonTextWriter writer, string name, string value)
+        internal static void WriteOptionalProperty(this JsonTextWriter writer, string name, string value)
         {
             if (!string.IsNullOrEmpty(value))
             {
@@ -217,7 +217,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <param name="writer">The writer.</param>
         /// <param name="name">The name.</param>
         /// <param name="value">The value.</param>
-        public static void WriteOptionalProperty(this JsonTextWriter writer, string name, object value, bool forceNullDefault = false)
+        internal static void WriteOptionalProperty(this JsonTextWriter writer, string name, object value, bool forceNullDefault = false)
         {
             if (value != null || forceNullDefault)
             {
@@ -240,7 +240,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <param name="writer">The writer.</param>
         /// <param name="name">The name.</param>
         /// <param name="collection">The collection.</param>
-        public static void WriteOptionalProperty(this JsonTextWriter writer, string name, ICollection<string> collection)
+        internal static void WriteOptionalProperty(this JsonTextWriter writer, string name, ICollection<string> collection)
         {
             if (collection.Count != 0)
             {
@@ -261,7 +261,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <param name="writer">The writer.</param>
         /// <param name="name">The name.</param>
         /// <param name="value">The value.</param>
-        public static void WriteProperty<T>(this JsonTextWriter writer, string name, T value)
+        internal static void WriteProperty<T>(this JsonTextWriter writer, string name, T value)
         {
             writer.WritePropertyName(name);
             writer.WriteValue(value);

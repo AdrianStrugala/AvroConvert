@@ -25,16 +25,16 @@ namespace SolTechnology.Avro.Schema
     /// <summary>
     /// Collection of static methods for generating the cannonical form of schemas.
     /// </summary>
-    public static class SchemaNormalization
+    internal static class SchemaNormalization
     {
-        public static long Empty64 = -4513414715797952619;
+        internal static long Empty64 = -4513414715797952619;
 
         /// <summary>
         /// Parses a schema into the canonical form as defined by Avro spec.
         /// </summary>
         /// <param name="s">Schema</param>
         /// <returns>Parsing Canonical Form of a schema as defined by Avro spec.</returns>
-        public static string ToParsingForm(Schema s)
+        internal static string ToParsingForm(Schema s)
         {
             IDictionary<string, string> env = new Dictionary<string, string>();
             return Build(env, s, new StringBuilder()).ToString();
@@ -69,7 +69,7 @@ namespace SolTechnology.Avro.Schema
         /// <param name="fpName">Name of the hashing algorithm.</param>
         /// <param name="data">Data to be hashed.</param>
         /// <returns>Fingerprint</returns>
-        public static byte[] Fingerprint(string fpName, byte[] data)
+        internal static byte[] Fingerprint(string fpName, byte[] data)
         {
             switch (fpName)
             {
@@ -99,7 +99,7 @@ namespace SolTechnology.Avro.Schema
         /// <param name="fpName">Name of the hashing algorithm.</param>
         /// <param name="s">Schema to be hashed.</param>
         /// <returns>Fingerprint</returns>
-        public static byte[] ParsingFingerprint(string fpName, Schema s)
+        internal static byte[] ParsingFingerprint(string fpName, Schema s)
         {
             return Fingerprint(fpName, Encoding.UTF8.GetBytes(ToParsingForm(s)));
         }
@@ -109,7 +109,7 @@ namespace SolTechnology.Avro.Schema
         /// </summary>
         /// <param name="s">Schema to be hashed.</param>
         /// <returns>Fingerprint</returns>
-        public static long ParsingFingerprint64(Schema s)
+        internal static long ParsingFingerprint64(Schema s)
         {
             return Fingerprint64(Encoding.UTF8.GetBytes(ToParsingForm(s)));
         }
@@ -233,7 +233,7 @@ namespace SolTechnology.Avro.Schema
         {
             private static readonly long[] fpTable = new long[256];
 
-            public static long[] FpTable
+            internal static long[] FpTable
             {
                 get { return fpTable; }
             }

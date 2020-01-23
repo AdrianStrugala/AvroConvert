@@ -22,7 +22,7 @@ namespace SolTechnology.Avro.BuildSchema
     ///     Class represents a long schema.
     ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html#schema_primitive">the specification</a>.
     /// </summary>
-    public sealed class LongSchema : PrimitiveTypeSchema
+    internal sealed class LongSchema : PrimitiveTypeSchema
     {
         internal LongSchema()
             : this(typeof(long))

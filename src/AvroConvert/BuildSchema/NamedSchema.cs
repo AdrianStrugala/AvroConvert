@@ -24,7 +24,7 @@ namespace SolTechnology.Avro.BuildSchema
     ///     Class representing an named schema: record, enumeration or fixed.
     ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html#Names">the specification</a>.
     /// </summary>
-    public abstract class NamedSchema : TypeSchema
+    internal abstract class NamedSchema : TypeSchema
     {
         private readonly NamedEntityAttributes attributes;
 
@@ -51,7 +51,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         ///     Gets the full name.
         /// </summary>
-        public string FullName
+        internal string FullName
         {
             get { return this.attributes.Name.FullName; }
         }
@@ -59,7 +59,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         ///     Gets the name.
         /// </summary>
-        public string Name
+        internal string Name
         {
             get { return this.attributes.Name.Name; }
         }
@@ -67,7 +67,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         ///     Gets the namespace.
         /// </summary>
-        public string Namespace
+        internal string Namespace
         {
             get { return this.attributes.Name.Namespace; }
         }
@@ -75,7 +75,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         ///     Gets the aliases.
         /// </summary>
-        public ReadOnlyCollection<string> Aliases
+        internal ReadOnlyCollection<string> Aliases
         {
             get { return this.attributes.Aliases.AsReadOnly(); }
         }
@@ -83,7 +83,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         ///     Gets the doc.
         /// </summary>
-        public string Doc
+        internal string Doc
         {
             get { return this.attributes.Doc; }
         }

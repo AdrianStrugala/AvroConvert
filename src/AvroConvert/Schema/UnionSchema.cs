@@ -26,17 +26,17 @@ namespace SolTechnology.Avro.Schema
     /// <summary>
     /// Class for union schemas
     /// </summary>
-    public class UnionSchema : UnnamedSchema
+    internal class UnionSchema : UnnamedSchema
     {
         /// <summary>
         /// List of schemas in the union
         /// </summary>
-        public IList<Schema> Schemas { get; private set; }
+        internal IList<Schema> Schemas { get; private set; }
 
         /// <summary>
         /// Count of schemas in the union
         /// </summary>
-        public int Count { get { return Schemas.Count; } }
+        internal int Count { get { return Schemas.Count; } }
 
         /// <summary>
         /// Static function to return instance of the union schema
@@ -83,7 +83,7 @@ namespace SolTechnology.Avro.Schema
         /// </summary>
         /// <param name="index">Index to the branch, starting with 0.</param>
         /// <returns>The branch corresponding to the given index.</returns>
-        public Schema this[int index]
+        internal Schema this[int index]
         {
             get
             {
@@ -110,7 +110,7 @@ namespace SolTechnology.Avro.Schema
         /// </summary>
         /// <param name="s">The schema to match the branches against.</param>
         /// <returns>The index of the matching branch. If non matches a -1 is returned.</returns>
-        public int MatchingBranch(Schema s)
+        internal int MatchingBranch(Schema s)
         {
             if (s is UnionSchema) throw new AvroException("Cannot find a match against union schema");
             // Try exact match.
@@ -124,7 +124,7 @@ namespace SolTechnology.Avro.Schema
         /// </summary>
         /// <param name="writerSchema">writer schema</param>
         /// <returns>true if this and writer schema are compatible based on the AVRO specification, false otherwise</returns>
-        public override bool CanRead(Schema writerSchema)
+        internal override bool CanRead(Schema writerSchema)
         {
             return writerSchema.Tag == Schema.Type.Union || MatchingBranch(writerSchema) >= 0;
         }

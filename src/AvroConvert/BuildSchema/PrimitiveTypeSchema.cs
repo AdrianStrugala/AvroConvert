@@ -24,7 +24,7 @@ namespace SolTechnology.Avro.BuildSchema
     /// <summary>
     ///     Schema for primitive types.
     /// </summary>
-    public abstract class PrimitiveTypeSchema : TypeSchema
+    internal abstract class PrimitiveTypeSchema : TypeSchema
     {
         /// <summary>
         ///     Initializes a new instance of the <see cref="PrimitiveTypeSchema" /> class.

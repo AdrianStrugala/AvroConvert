@@ -23,7 +23,7 @@ namespace SolTechnology.Avro.BuildSchema
     /// Represents an Avro generic record. It can be considered as a set of name-value pairs.
     /// Please, use the <see cref="Microsoft.Hadoop.Avro.AvroSerializer.CreateGeneric"/> method to create the corresponding <see cref="Microsoft.Hadoop.Avro.IAvroSerializer{T}"/>.
     /// </summary>
-    public sealed class AvroRecord : DynamicObject
+    internal sealed class AvroRecord : DynamicObject
     {
         private readonly object[] values;
         private readonly RecordSchema schema;
@@ -32,7 +32,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// Initializes a new instance of the <see cref="AvroRecord"/> class.
         /// </summary>
         /// <param name="schema">The schema.</param>
-        public AvroRecord(Schema schema)
+        internal AvroRecord(Schema schema)
         {
             this.schema = schema as RecordSchema;
             if (this.schema == null)
@@ -45,7 +45,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         /// Gets the schema of the record.
         /// </summary>
-        public RecordSchema Schema
+        internal RecordSchema Schema
         {
             get { return this.schema; }
         }
@@ -60,7 +60,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <returns>Field value.</returns>
         /// <exception cref="System.ArgumentException">Thrown when field value is invalid.</exception>
         /// <exception cref="System.ArgumentOutOfRangeException">Thrown when field value is out of range.</exception>
-        public object this[string name]
+        internal object this[string name]
         {
             get
             {
@@ -96,7 +96,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <typeparam name="T">The type of field.</typeparam>
         /// <param name="name">The name of field.</param>
         /// <returns>Field value.</returns>
-        public T GetField<T>(string name)
+        internal T GetField<T>(string name)
         {
             object result = this[name];
             return (T)result;
@@ -110,7 +110,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// </value>
         /// <param name="position">The position.</param>
         /// <returns>Field value.</returns>
-        public object this[int position]
+        internal object this[int position]
         {
             get
             {

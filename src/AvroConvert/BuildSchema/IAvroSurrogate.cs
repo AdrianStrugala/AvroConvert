@@ -21,7 +21,7 @@ namespace SolTechnology.Avro.BuildSchema
     ///     Provides the methods needed to substitute one type for another by the IAvroSerializer
     ///     during serialization and deserialization of C# types.
     /// </summary>
-    public interface IAvroSurrogate
+    internal interface IAvroSurrogate
     {
         /// <summary>
         /// During serialization deserialization returns a type that substitutes the specified type.

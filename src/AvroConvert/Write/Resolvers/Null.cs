@@ -19,9 +19,9 @@ using SolTechnology.Avro.Exceptions;
 
 namespace SolTechnology.Avro.Write.Resolvers
 {
-    public class Null
+    internal class Null
     {
-        public void Resolve(object value, IWriter encoder)
+        internal void Resolve(object value, IWriter encoder)
         {
             if (value != null)
             {

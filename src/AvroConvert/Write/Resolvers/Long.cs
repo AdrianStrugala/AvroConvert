@@ -20,9 +20,9 @@ using SolTechnology.Avro.Exceptions;
 
 namespace SolTechnology.Avro.Write.Resolvers
 {
-    public class Long
+    internal class Long
     {
-        public void Resolve(object value, IWriter encoder)
+        internal void Resolve(object value, IWriter encoder)
         {
             if (value is DateTime date)
             {

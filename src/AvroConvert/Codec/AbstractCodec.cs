@@ -20,17 +20,15 @@ using System.Linq;
 
 namespace SolTechnology.Avro.Codec
 {
-    public abstract class AbstractCodec
+    internal abstract class AbstractCodec
     {
-        public abstract string Name { get; }
+        internal abstract string Name { get; }
 
-        public abstract byte[] Decompress(byte[] compressedData);
+        internal abstract byte[] Decompress(byte[] compressedData);
 
-        public abstract byte[] Compress(byte[] uncompressedData);
+        internal abstract byte[] Compress(byte[] uncompressedData);
 
-        public abstract override int GetHashCode();
-
-        public static AbstractCodec CreateCodec(CodecType codecType)
+        internal static AbstractCodec CreateCodec(CodecType codecType)
         {
             switch (codecType)
             {
@@ -45,7 +43,7 @@ namespace SolTechnology.Avro.Codec
             }
         }
 
-        public static AbstractCodec CreateCodecFromString(string codecName)
+        internal static AbstractCodec CreateCodecFromString(string codecName)
         {
             Type codecType = typeof(AbstractCodec).Assembly.GetTypes().Where(t => t.IsSubclassOf(typeof(AbstractCodec)) && !t.IsAbstract)
                                               .First(t => t.Name.ToLower().Contains(codecName));

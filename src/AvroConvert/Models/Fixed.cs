@@ -22,12 +22,12 @@ using SolTechnology.Avro.Schema;
 
 namespace SolTechnology.Avro.Models
 {
-    public class Fixed
+    internal class Fixed
     {
         protected readonly byte[] _value;
         private FixedSchema _schema;
 
-        public FixedSchema Schema
+        internal FixedSchema Schema
         {
             get => _schema;
 
@@ -43,13 +43,13 @@ namespace SolTechnology.Avro.Models
             }
         }
 
-        public Fixed(FixedSchema schema)
+        internal Fixed(FixedSchema schema)
         {
             _value = new byte[schema.Size];
             Schema = schema;
         }
 
-        public Fixed(FixedSchema schema, byte[] value)
+        internal Fixed(FixedSchema schema, byte[] value)
         {
             this._value = new byte[schema.Size];
             Schema = schema;
@@ -61,7 +61,7 @@ namespace SolTechnology.Avro.Models
             this._value = new byte[size];
         }
 
-        public byte[] Value
+        internal byte[] Value
         {
             get { return this._value; }
             set

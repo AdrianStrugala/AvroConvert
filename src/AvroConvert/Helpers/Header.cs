@@ -19,15 +19,15 @@ using System.Collections.Generic;
 
 namespace SolTechnology.Avro.Helpers
 {
-    public class Header
+    internal class Header
     {
-        public IDictionary<string, byte[]> MetaData { get; }
+        internal IDictionary<string, byte[]> MetaData { get; }
 
-        public byte[] SyncData { get; }
+        internal byte[] SyncData { get; }
 
-        public Schema.Schema Schema { get; set; }
+        internal Schema.Schema Schema { get; set; }
 
-        public Header()
+        internal Header()
         {
             MetaData = new Dictionary<string, byte[]>();
             SyncData = new byte[16];

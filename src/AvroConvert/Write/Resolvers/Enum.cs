@@ -20,9 +20,9 @@ using SolTechnology.Avro.Schema;
 
 namespace SolTechnology.Avro.Write.Resolvers
 {
-    public class Enum
+    internal class Enum
     {
-        public Encoder.WriteItem Resolve(EnumSchema es)
+        internal Encoder.WriteItem Resolve(EnumSchema es)
         {
             return (value, e) =>
             {

@@ -137,3 +137,8 @@ START OF THE PROJECT
 - Added support for Snappy Codec
 - Added possibility to choose Snappy compression during serialization
 - Added possibility to choose Deflate compression during serialization
+</br>
+</br>
+**v. 2.2.0 (xxx)**
+- Added support for GZip Codec
+- Created interface for library - only AvroConvert methods are public

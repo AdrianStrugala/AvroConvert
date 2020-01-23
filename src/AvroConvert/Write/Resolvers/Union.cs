@@ -22,9 +22,9 @@ using SolTechnology.Avro.Schema;
 
 namespace SolTechnology.Avro.Write.Resolvers
 {
-    public class Union
+    internal class Union
     {
-        public Encoder.WriteItem Resolve(UnionSchema unionSchema)
+        internal Encoder.WriteItem Resolve(UnionSchema unionSchema)
         {
             var branchSchemas = unionSchema.Schemas.ToArray();
             var branchWriters = new Encoder.WriteItem[branchSchemas.Length];

@@ -21,11 +21,11 @@ using System.IO.Compression;
 
 namespace SolTechnology.Avro.Codec
 {
-    public class DeflateCodec : AbstractCodec
+    internal class DeflateCodec : AbstractCodec
     {
-        public override string Name { get; } = CodecType.Deflate.ToString().ToLower();
+        internal override string Name { get; } = CodecType.Deflate.ToString().ToLower();
 
-        public override byte[] Compress(byte[] uncompressedData)
+        internal override byte[] Compress(byte[] uncompressedData)
         {
             MemoryStream outStream = new MemoryStream();
 
@@ -38,7 +38,7 @@ namespace SolTechnology.Avro.Codec
             return outStream.ToArray();
         }
 
-        public override byte[] Decompress(byte[] compressedData)
+        internal override byte[] Decompress(byte[] compressedData)
         {
             MemoryStream inStream = new MemoryStream(compressedData);
             MemoryStream outStream = new MemoryStream();
@@ -60,11 +60,6 @@ namespace SolTechnology.Avro.Codec
             {
                 to.Write(buffer, 0, read);
             }
-        }
-
-        public override int GetHashCode()
-        {
-            return 0;
         }
     }
 }

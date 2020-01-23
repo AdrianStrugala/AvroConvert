@@ -66,7 +66,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         /// Gets the type of the original.
         /// </summary>
-        public Type SurrogateType
+        internal Type SurrogateType
         {
             get { return this.surrogateType; }
         }
@@ -74,7 +74,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         /// Gets the surrogate schema.
         /// </summary>
-        public TypeSchema Surrogate
+        internal TypeSchema Surrogate
         {
             get { return this.surrogateSchema; }
         }

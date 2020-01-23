@@ -26,7 +26,7 @@ namespace SolTechnology.Avro.BuildSchema
     /// <summary>
     ///     Class responsible for building the internal representation of the schema given a JSON string.
     /// </summary>
-    public sealed class JsonSchemaBuilder
+    internal sealed class JsonSchemaBuilder
     {
         private static readonly Dictionary<string, Func<PrimitiveTypeSchema>> PrimitiveRuntimeType
             = new Dictionary<string, Func<PrimitiveTypeSchema>>
@@ -55,7 +55,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <returns>Schema internal representation as a tree of nodes.</returns>
         /// <exception cref="System.ArgumentException">Thrown when <paramref name="schema"/> is null or empty.</exception>
         /// <exception cref="System.Runtime.Serialization.SerializationException">Thrown when <paramref name="schema"/> is invalid schema.</exception>
-        public TypeSchema BuildSchema(string schema)
+        internal TypeSchema BuildSchema(string schema)
         {
             if (string.IsNullOrEmpty(schema))
             {

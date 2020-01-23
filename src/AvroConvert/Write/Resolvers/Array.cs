@@ -21,9 +21,9 @@ using SolTechnology.Avro.Schema;
 
 namespace SolTechnology.Avro.Write.Resolvers
 {
-    public class Array
+    internal class Array
     {
-        public Encoder.WriteItem Resolve(ArraySchema schema)
+        internal Encoder.WriteItem Resolve(ArraySchema schema)
         {
             var itemWriter = Resolver.ResolveWriter(schema.ItemSchema);
             return (d, e) => WriteArray(itemWriter, d, e);

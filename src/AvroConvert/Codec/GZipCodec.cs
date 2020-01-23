@@ -21,10 +21,10 @@ using System.IO.Compression;
 
 namespace SolTechnology.Avro.Codec
 {
-    public class GZipCodec : AbstractCodec
+    internal class GZipCodec : AbstractCodec
     {
-        public override string Name { get; } = "gzip";
-        public override byte[] Decompress(byte[] compressedData)
+        internal override string Name { get; } = "gzip";
+        internal override byte[] Decompress(byte[] compressedData)
         {
             using (var compressedStream = new MemoryStream(compressedData))
             using (var zipStream = new GZipStream(compressedStream, CompressionMode.Decompress))
@@ -35,7 +35,7 @@ namespace SolTechnology.Avro.Codec
             }
         }
 
-        public override byte[] Compress(byte[] uncompressedData)
+        internal override byte[] Compress(byte[] uncompressedData)
         {
             using (var compressedStream = new MemoryStream())
             using (var zipStream = new GZipStream(compressedStream, CompressionMode.Compress))
@@ -44,11 +44,6 @@ namespace SolTechnology.Avro.Codec
                 zipStream.Close();
                 return compressedStream.ToArray();
             }
-        }
-
-        public override int GetHashCode()
-        {
-            throw new NotImplementedException();
         }
     }
 }

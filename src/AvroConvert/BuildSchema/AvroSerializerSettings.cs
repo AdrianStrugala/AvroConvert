@@ -22,12 +22,12 @@ namespace SolTechnology.Avro.BuildSchema
     /// <summary>
     ///     Specifies Avro serializer settings.
     /// </summary>
-    public sealed class AvroSerializerSettings : IEquatable<AvroSerializerSettings>
+    internal sealed class AvroSerializerSettings : IEquatable<AvroSerializerSettings>
     {
         /// <summary>
         ///     Initializes a new instance of the <see cref="AvroSerializerSettings" /> class.
         /// </summary>
-        public AvroSerializerSettings(bool usePropertyNameAsAlias, bool includeOnlyDataContractMembers)
+        internal AvroSerializerSettings(bool usePropertyNameAsAlias, bool includeOnlyDataContractMembers)
         {
             this.GenerateDeserializer = true;
             this.GenerateSerializer = true;
@@ -43,7 +43,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <value>
         ///     <c>True</c> if the serializer should be generated; otherwise, <c>false</c>.
         /// </value>
-        public bool GenerateSerializer { get; set; }
+        internal bool GenerateSerializer { get; set; }
 
         /// <summary>
         ///     Gets or sets a value indicating whether to generate a deserializer.
@@ -51,17 +51,17 @@ namespace SolTechnology.Avro.BuildSchema
         /// <value>
         ///     <c>True</c> if the deserializer should be generated; otherwise, <c>false</c>.
         /// </value>
-        public bool GenerateDeserializer { get; set; }
+        internal bool GenerateDeserializer { get; set; }
 
         /// <summary>
         ///     Gets or sets a contract resolver.
         /// </summary>
-        public AvroContractResolver Resolver { get; set; }
+        internal AvroContractResolver Resolver { get; set; }
 
         /// <summary>
         /// Gets or sets a serialization surrogate.
         /// </summary>
-        public IAvroSurrogate Surrogate { get; set; }
+        internal IAvroSurrogate Surrogate { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether DateTime values will be serialized in the Posix format (as a number
@@ -70,7 +70,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <value>
         ///   <c>True</c> if to use Posix format; otherwise, <c>false</c>.
         /// </value>
-        public bool UsePosixTime { get; set; }
+        internal bool UsePosixTime { get; set; }
 
         /// <summary>
         ///     Gets or sets the maximum number of items in the schema tree.
@@ -78,12 +78,12 @@ namespace SolTechnology.Avro.BuildSchema
         /// <value>
         ///     The maximum number of items in the schema tree.
         /// </value>
-        public int MaxItemsInSchemaTree { get; set; }
+        internal int MaxItemsInSchemaTree { get; set; }
 
         /// <summary>
         ///     Gets or sets the known types.
         /// </summary>
-        public IEnumerable<Type> KnownTypes { get; set; }
+        internal IEnumerable<Type> KnownTypes { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether to use a cache of precompiled serializers.
@@ -91,7 +91,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <value>
         ///   <c>True</c> if to use the cache; otherwise, <c>false</c>.
         /// </value>
-        public bool UseCache { get; set; }
+        internal bool UseCache { get; set; }
 
         /// <summary>
         ///     Indicates whether the current object is equal to another object of the same type.

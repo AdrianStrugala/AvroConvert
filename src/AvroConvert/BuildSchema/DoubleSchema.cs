@@ -21,7 +21,7 @@ namespace SolTechnology.Avro.BuildSchema
     ///     Class represents a double schema.
     ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html#schema_primitive">the specification</a>.
     /// </summary>
-    public sealed class DoubleSchema : PrimitiveTypeSchema
+    internal sealed class DoubleSchema : PrimitiveTypeSchema
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="DoubleSchema"/> class.

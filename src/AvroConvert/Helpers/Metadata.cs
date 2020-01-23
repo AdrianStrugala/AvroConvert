@@ -19,26 +19,26 @@ using System.Collections.Generic;
 
 namespace SolTechnology.Avro.Helpers
 {
-    public class Metadata
+    internal class Metadata
     {
         private readonly Dictionary<string, byte[]> _value;
 
-        public Metadata()
+        internal Metadata()
         {
             _value = new Dictionary<string, byte[]>();
         }
 
-        public void Add(string key, string value)
+        internal void Add(string key, string value)
         {
             _value.Add(key, System.Text.Encoding.UTF8.GetBytes(value));
         }
 
-        public int GetSize()
+        internal int GetSize()
         {
             return _value.Count;
         }
 
-        public Dictionary<string, byte[]> GetValue()
+        internal Dictionary<string, byte[]> GetValue()
         {
             return _value;
         }

@@ -19,17 +19,17 @@ namespace SolTechnology.Avro.BuildSchema
     /// </summary>
     internal static class Token
     {
-        public const string Type = "type";
-        public const string Name = "name";
-        public const string Namespace = "namespace";
-        public const string Doc = "doc";
-        public const string Aliases = "aliases";
-        public const string Fields = "fields";
-        public const string Order = "order";
-        public const string Default = "default";
-        public const string Symbols = "symbols";
-        public const string Items = "items";
-        public const string Values = "values";
-        public const string Size = "size";
+        internal const string Type = "type";
+        internal const string Name = "name";
+        internal const string Namespace = "namespace";
+        internal const string Doc = "doc";
+        internal const string Aliases = "aliases";
+        internal const string Fields = "fields";
+        internal const string Order = "order";
+        internal const string Default = "default";
+        internal const string Symbols = "symbols";
+        internal const string Items = "items";
+        internal const string Values = "values";
+        internal const string Size = "size";
     }
 }

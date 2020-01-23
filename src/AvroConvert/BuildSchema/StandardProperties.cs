@@ -22,9 +22,9 @@ namespace SolTechnology.Avro.BuildSchema
     /// </summary>
     internal static class StandardProperties
     {
-        public static readonly HashSet<string> Primitive = new HashSet<string> { Token.Type };
+        internal static readonly HashSet<string> Primitive = new HashSet<string> { Token.Type };
 
-        public static readonly HashSet<string> Record = new HashSet<string>
+        internal static readonly HashSet<string> Record = new HashSet<string>
         {
             Token.Type,
             Token.Name,
@@ -34,7 +34,7 @@ namespace SolTechnology.Avro.BuildSchema
             Token.Fields
         };
 
-        public static readonly HashSet<string> Enumeration = new HashSet<string>
+        internal static readonly HashSet<string> Enumeration = new HashSet<string>
         {
             Token.Type,
             Token.Name,

@@ -17,7 +17,7 @@ namespace SolTechnology.Avro.Attributes
     /// <summary>
     /// The Avro null class.
     /// </summary>
-    public static class AvroNull
+    internal static class AvroNull
     {
     }
 }

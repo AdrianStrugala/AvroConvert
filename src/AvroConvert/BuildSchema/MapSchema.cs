@@ -23,7 +23,7 @@ namespace SolTechnology.Avro.BuildSchema
     ///     Represents a map.
     ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html#Maps">the specification</a>.
     /// </summary>
-    public sealed class MapSchema : TypeSchema
+    internal sealed class MapSchema : TypeSchema
     {
         private readonly TypeSchema valueSchema;
         private readonly TypeSchema keySchema;
@@ -63,7 +63,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         ///     Gets the value schema.
         /// </summary>
-        public TypeSchema ValueSchema
+        internal TypeSchema ValueSchema
         {
             get { return this.valueSchema; }
         }
@@ -71,7 +71,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         /// Gets the key schema.
         /// </summary>
-        public TypeSchema KeySchema
+        internal TypeSchema KeySchema
         {
             get { return this.keySchema; }
         }

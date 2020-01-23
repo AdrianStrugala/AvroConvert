@@ -28,7 +28,7 @@ namespace SolTechnology.Avro.BuildSchema
     ///     Schema representing an enumeration.
     ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html#Enums"> the specification</a>.
     /// </summary>
-    public sealed class EnumSchema : NamedSchema
+    internal sealed class EnumSchema : NamedSchema
     {
         private readonly List<string> symbols;
         private readonly List<long> avroToCSharpValueMapping;
@@ -84,7 +84,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         ///     Gets the symbols.
         /// </summary>
-        public ReadOnlyCollection<string> Symbols
+        internal ReadOnlyCollection<string> Symbols
         {
             get { return new ReadOnlyCollection<string>(this.symbols); }
         }
@@ -94,7 +94,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// </summary>
         /// <param name="symbol">The symbol.</param>
         /// <returns>Value corresponding to the symbol.</returns>
-        public int GetValueBySymbol(string symbol)
+        internal int GetValueBySymbol(string symbol)
         {
             return this.symbolToValue[symbol];
         }
@@ -104,7 +104,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>Symbol that corresponds to the specified integer value.</returns>
-        public string GetSymbolByValue(int value)
+        internal string GetSymbolByValue(int value)
         {
             return this.valueToSymbol[value];
         }
@@ -115,7 +115,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <value>
         ///     The avro to C sharp value mapping.
         /// </value>
-        public long[] AvroToCSharpValueMapping
+        internal long[] AvroToCSharpValueMapping
         {
             get { return this.avroToCSharpValueMapping.ToArray(); }
         }

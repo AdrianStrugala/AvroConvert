@@ -33,7 +33,7 @@ namespace SolTechnology.Avro.BuildSchema
     /// </summary>
 
 
-    public class AvroDataContractResolver : AvroContractResolver
+    internal class AvroDataContractResolver : AvroContractResolver
     {
 
         private readonly bool _usePropertyNameAsAlias;
@@ -48,7 +48,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// <param name="allowNullable">If set to <c>true</c>, null values are allowed.</param>
         /// <param name="useAlphabeticalOrder">If set to <c>true</c> use alphabetical data member order during serialization/deserialization.</param>
         /// <param name="includeOnlyDataContractMembers">If set to <c>true</c> members without DataMemberAttribute won't be taken into consideration in serialization/deserialization.</param>
-        public AvroDataContractResolver(bool usePropertyNameAsAlias, bool allowNullable = false, bool useAlphabeticalOrder = false, bool includeOnlyDataContractMembers = false)
+        internal AvroDataContractResolver(bool usePropertyNameAsAlias, bool allowNullable = false, bool useAlphabeticalOrder = false, bool includeOnlyDataContractMembers = false)
         {
             _usePropertyNameAsAlias = usePropertyNameAsAlias;
             _allowNullable = allowNullable;
@@ -65,7 +65,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// An enumerable of known types.
         /// </returns>
         /// <exception cref="System.ArgumentNullException">The type argument is null.</exception>
-        public override IEnumerable<Type> GetKnownTypes(Type type)
+        internal override IEnumerable<Type> GetKnownTypes(Type type)
         {
             if (type == null)
             {
@@ -84,7 +84,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// Serialization information about the type.
         /// </returns>
         /// <exception cref="System.ArgumentNullException">The type argument is null.</exception>
-        public override TypeSerializationInfo ResolveType(Type type)
+        internal override TypeSerializationInfo ResolveType(Type type)
         {
             if (type == null)
             {
@@ -141,7 +141,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// Serialization information about the fields/properties.
         /// </returns>
         /// <exception cref="System.ArgumentNullException">The type argument is null.</exception>
-        public override MemberSerializationInfo[] ResolveMembers(Type type)
+        internal override MemberSerializationInfo[] ResolveMembers(Type type)
         {
             if (type == null)
             {

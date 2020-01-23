@@ -21,12 +21,12 @@ namespace SolTechnology.Avro.Exceptions
 {
     public class InvalidAvroObjectException : Exception
     {
-        public InvalidAvroObjectException(string s)
+        internal InvalidAvroObjectException(string s)
             : base(s)
         {
         }
 
-        public InvalidAvroObjectException(string s, Exception inner)
+        internal InvalidAvroObjectException(string s, Exception inner)
             : base(s, inner)
         {
         }

@@ -70,7 +70,7 @@ namespace SolTechnology.Avro.BuildSchema
     {
         private readonly Dictionary<TypeSchema, TypeSchema> visited = new Dictionary<TypeSchema, TypeSchema>();
 
-        public TypeSchema Build(TypeSchema w, TypeSchema r)
+        internal TypeSchema Build(TypeSchema w, TypeSchema r)
         {
             this.visited.Clear();
             return this.BuildDynamic(w, r);

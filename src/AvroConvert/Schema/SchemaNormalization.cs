@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+/** Modifications copyright(C) 2020 Adrian Strugała **/
+
 using System;
 using System.Collections.Generic;
 using System.Text;

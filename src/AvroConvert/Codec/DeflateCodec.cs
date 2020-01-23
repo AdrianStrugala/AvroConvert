@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+/** Modifications copyright(C) 2020 Adrian Strugała **/
+
 using System.IO;
 using System.IO.Compression;
 

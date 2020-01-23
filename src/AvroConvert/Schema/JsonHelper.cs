@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+/** Modifications copyright(C) 2020 Adrian Struga³a **/
+
 using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;

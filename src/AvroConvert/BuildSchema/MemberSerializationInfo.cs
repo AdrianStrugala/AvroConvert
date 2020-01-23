@@ -4,6 +4,8 @@
 // *                                                       *
 // ********************************************************/
 
+/** Modifications copyright(C) 2020 Adrian Strugała **/
+
 using System.Collections.Generic;
 using System.Reflection;
 

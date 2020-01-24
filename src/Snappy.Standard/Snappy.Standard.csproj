@@ -6,10 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Resources\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="snappy32.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

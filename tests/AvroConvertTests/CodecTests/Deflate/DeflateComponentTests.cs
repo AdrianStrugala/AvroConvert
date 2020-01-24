@@ -15,16 +15,36 @@ namespace AvroConvertTests.CodecTests.Deflate
         }
 
         [Fact]
+        public void Deflate_SerializeAndDeserializeComplexClass_NoError()
+        {
+            //Arrange
+            BiggerNestedTestClass toSerialize = _fixture.Create<BiggerNestedTestClass>();
+
+
+            //Act
+            var result = AvroConvert.Serialize(toSerialize, CodecType.Deflate);
+
+            var deserialized = AvroConvert.Deserialize<BiggerNestedTestClass>(result);
+
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(toSerialize, deserialized);
+        }
+
+        [Fact]
         public void Deflate_SerializeBiggerObjectAndReadSmaller_NoError()
         {
             //Arrange
             BiggerNestedTestClass toSerialize = _fixture.Create<BiggerNestedTestClass>();
 
-            //Act
 
+            //Act
             var result = AvroConvert.Serialize(toSerialize, CodecType.Deflate);
 
             var deserialized = AvroConvert.Deserialize<NestedTestClass>(result);
+
 
             //Assert
             Assert.NotNull(result);
@@ -40,11 +60,12 @@ namespace AvroConvertTests.CodecTests.Deflate
             //Arrange
             SmallerNestedTestClass toSerialize = _fixture.Create<SmallerNestedTestClass>();
 
-            //Act
 
+            //Act
             var result = AvroConvert.Serialize(toSerialize, CodecType.Deflate);
 
             var deserialized = AvroConvert.Deserialize<NestedTestClass>(result);
+
 
             //Assert
             Assert.NotNull(result);
@@ -58,11 +79,12 @@ namespace AvroConvertTests.CodecTests.Deflate
             //Arrange
             AttributeClass toSerialize = _fixture.Create<AttributeClass>();
 
-            //Act
 
+            //Act
             var result = AvroConvert.Serialize(toSerialize, CodecType.Deflate);
 
             var deserialized = AvroConvert.Deserialize<SmallerAttributeClass>(result);
+
 
             //Assert
             Assert.NotNull(result);

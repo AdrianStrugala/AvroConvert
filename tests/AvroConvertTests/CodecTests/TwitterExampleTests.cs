@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Snappy;
 using SolTechnology.Avro;
 using Xunit;
 
@@ -14,8 +15,6 @@ namespace AvroConvertTests.CodecTests
             _notCompressed = System.IO.File.ReadAllBytes("CodecTests/twitter.avro");
             _snappy = System.IO.File.ReadAllBytes("CodecTests/twitter.snappy.avro");
         }
-
-        //TODO ComponentTestForSnappy
 
         [Fact]
         public void Deserialize_NotCompressed_DataIsDeserialized()
@@ -35,7 +34,6 @@ namespace AvroConvertTests.CodecTests
                 Tweet = "Works as intended.  Terran is IMBA.",
                 Username = "BlizzardCS"
             });
-
 
             //Act
             var result = AvroConvert.Deserialize<List<TwitterModel>>(_notCompressed);

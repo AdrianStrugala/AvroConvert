@@ -1,0 +1,29 @@
+{
+    "version": "0.2.0-*",
+    "testRunner": "xunit",
+    "dependencies": {
+        "dotnet-test-xunit": "2.2.0-preview2-build1029",
+        "xunit": "2.2.0-beta3-build3402",
+        "Snappy.Standard": {
+            "target": "project"
+        }
+    },
+    "frameworks": {
+        "netcoreapp1.0": {
+            "dependencies": {
+                "Microsoft.NETCore.App": {
+                    "type": "platform",
+                    "version": "1.0.1"
+                }
+            }
+        }
+    },
+    "buildOptions": {
+        "copyToOutput": {
+            "include": [ "xunit.runner.json" ]
+        }
+    },
+    "tooling": {
+        "defaultNamespace": "Snappy.Tests"
+    }
+}

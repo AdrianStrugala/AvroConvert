@@ -9,11 +9,14 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <license type="expression">MIT</license>
     <projectUrl>http://project_url_here_or_delete_this_line/</projectUrl>
-    <iconUrl>http://icon_url_here_or_delete_this_line/</iconUrl>
     <description>$description$</description>
-    <releaseNotes>Summary of changes made in this release of the package.</releaseNotes>
     <copyright>Copyright 2020</copyright>
-    <tags>Tag1 Tag2</tags>
+	<dependencies>
+		<group targetFramework=".NETStandard2.0" >
+			<dependency id="AutoMapper" version="[8.0,9.0)" />
+			<dependency id="Newtonsoft.Json" version="[12.0,13.0)" />
+		</group>
+    </dependencies>
   </metadata>
     <files>
     <file src="..\Snappy.Standard\snappy32.dll" target="lib" />

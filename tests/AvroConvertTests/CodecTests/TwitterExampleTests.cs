@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Snappy;
 using SolTechnology.Avro;
 using Xunit;
 

@@ -42,6 +42,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="..\Snappy.Standard\snappy32.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\Snappy.Standard\snappy64.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+
+  <ItemGroup>
     <Content Include="$(OutputPath)\snappy32.dll">
       <Pack>true</Pack>
       <PackagePath>lib\$(TargetFramework)</PackagePath>

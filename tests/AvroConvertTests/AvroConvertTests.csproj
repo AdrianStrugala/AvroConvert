@@ -1,22 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="example.avro" />
-    <None Remove="example2.avro" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="example.avro">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="example2.avro">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AutoFixture" Version="4.6.0" />
@@ -39,6 +27,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="example.avro">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="example2.avro">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Update="Benchmark\big_dataset.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

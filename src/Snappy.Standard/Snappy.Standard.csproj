@@ -6,12 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Update="snappy32.dll">
+    <Content Include="snappy32.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="snappy64.dll">
+    </Content>
+    <Content Include="snappy64.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    </Content>
   </ItemGroup>
 
 </Project>

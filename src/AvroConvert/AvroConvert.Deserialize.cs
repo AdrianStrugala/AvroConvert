@@ -44,5 +44,15 @@ namespace SolTechnology.Avro
 
             return Mapper.Map<T>(reader.Read());
         }
+
+        public static dynamic Deserialize(byte[] avroBytes, Type targetType)
+        {
+            object result = typeof(AvroConvert)
+                            .GetMethod("Deserialize", new[] { typeof(byte[]) })
+                            ?.MakeGenericMethod(targetType)
+                            .Invoke(null, new object[] { avroBytes });
+
+            return result;
+        }
     }
 }

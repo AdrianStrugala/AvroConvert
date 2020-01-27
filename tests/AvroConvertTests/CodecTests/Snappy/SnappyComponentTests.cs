@@ -14,17 +14,38 @@ namespace AvroConvertTests.CodecTests.Snappy
             _fixture = new Fixture();
         }
 
+
+        [Fact]
+        public void Snappy_SerializeAndDeserializeComplexClass_NoError()
+        {
+            //Arrange
+            BiggerNestedTestClass toSerialize = _fixture.Create<BiggerNestedTestClass>();
+
+
+            //Act
+            var result = AvroConvert.Serialize(toSerialize, CodecType.Snappy);
+
+            var deserialized = AvroConvert.Deserialize<BiggerNestedTestClass>(result);
+
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(toSerialize, deserialized);
+        }
+
         [Fact]
         public void Snappy_SerializeBiggerObjectAndReadSmaller_NoError()
         {
             //Arrange
             BiggerNestedTestClass toSerialize = _fixture.Create<BiggerNestedTestClass>();
 
-            //Act
 
+            //Act
             var result = AvroConvert.Serialize(toSerialize, CodecType.Snappy);
 
             var deserialized = AvroConvert.Deserialize<NestedTestClass>(result);
+
 
             //Assert
             Assert.NotNull(result);
@@ -40,11 +61,12 @@ namespace AvroConvertTests.CodecTests.Snappy
             //Arrange
             SmallerNestedTestClass toSerialize = _fixture.Create<SmallerNestedTestClass>();
 
-            //Act
 
+            //Act
             var result = AvroConvert.Serialize(toSerialize, CodecType.Snappy);
 
             var deserialized = AvroConvert.Deserialize<NestedTestClass>(result);
+
 
             //Assert
             Assert.NotNull(result);
@@ -58,11 +80,12 @@ namespace AvroConvertTests.CodecTests.Snappy
             //Arrange
             AttributeClass toSerialize = _fixture.Create<AttributeClass>();
 
-            //Act
 
+            //Act
             var result = AvroConvert.Serialize(toSerialize, CodecType.Snappy);
 
             var deserialized = AvroConvert.Deserialize<SmallerAttributeClass>(result);
+
 
             //Assert
             Assert.NotNull(result);

@@ -3,26 +3,26 @@ using SolTechnology.Avro;
 using SolTechnology.Avro.Codec;
 using Xunit;
 
-namespace AvroConvertTests.CodecTests.Deflate
+namespace AvroConvertTests.CodecTests.GZip
 {
-    public class DeflateComponentTests
+    public class GZipComponentTests
     {
         private readonly Fixture _fixture;
 
-        public DeflateComponentTests()
+        public GZipComponentTests()
         {
             _fixture = new Fixture();
         }
 
         [Fact]
-        public void Deflate_SerializeAndDeserializeComplexClass_NoError()
+        public void GZip_SerializeAndDeserializeComplexClass_NoError()
         {
             //Arrange
             BiggerNestedTestClass toSerialize = _fixture.Create<BiggerNestedTestClass>();
 
 
             //Act
-            var result = AvroConvert.Serialize(toSerialize, CodecType.Deflate);
+            var result = AvroConvert.Serialize(toSerialize, CodecType.GZip);
 
             var deserialized = AvroConvert.Deserialize<BiggerNestedTestClass>(result);
 
@@ -34,14 +34,14 @@ namespace AvroConvertTests.CodecTests.Deflate
         }
 
         [Fact]
-        public void Deflate_SerializeBiggerObjectAndReadSmaller_NoError()
+        public void GZip_SerializeBiggerObjectAndReadSmaller_NoError()
         {
             //Arrange
             BiggerNestedTestClass toSerialize = _fixture.Create<BiggerNestedTestClass>();
 
 
             //Act
-            var result = AvroConvert.Serialize(toSerialize, CodecType.Deflate);
+            var result = AvroConvert.Serialize(toSerialize, CodecType.GZip);
 
             var deserialized = AvroConvert.Deserialize<NestedTestClass>(result);
 
@@ -55,14 +55,14 @@ namespace AvroConvertTests.CodecTests.Deflate
 
 
         [Fact]
-        public void Deflate_SerializeSmallerClassAndReadBigger_NoError()
+        public void GZip_SerializeSmallerClassAndReadBigger_NoError()
         {
             //Arrange
             SmallerNestedTestClass toSerialize = _fixture.Create<SmallerNestedTestClass>();
 
 
             //Act
-            var result = AvroConvert.Serialize(toSerialize, CodecType.Deflate);
+            var result = AvroConvert.Serialize(toSerialize, CodecType.GZip);
 
             var deserialized = AvroConvert.Deserialize<NestedTestClass>(result);
 
@@ -74,14 +74,14 @@ namespace AvroConvertTests.CodecTests.Deflate
         }
 
         [Fact]
-        public void Deflate_SerializeBiggerAvroObjectAndReadSmaller_NoError()
+        public void GZip_SerializeBiggerAvroObjectAndReadSmaller_NoError()
         {
             //Arrange
             AttributeClass toSerialize = _fixture.Create<AttributeClass>();
 
 
             //Act
-            var result = AvroConvert.Serialize(toSerialize, CodecType.Deflate);
+            var result = AvroConvert.Serialize(toSerialize, CodecType.GZip);
 
             var deserialized = AvroConvert.Deserialize<SmallerAttributeClass>(result);
 

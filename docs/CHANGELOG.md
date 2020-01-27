@@ -143,3 +143,4 @@ START OF THE PROJECT
 - Added support for GZip Codec
 - Created interface for library - only AvroConvert methods are public
 - Removed reference to Snappy.NET
+- Ported Snappy.Standard

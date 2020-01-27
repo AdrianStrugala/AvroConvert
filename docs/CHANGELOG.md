@@ -139,7 +139,7 @@ START OF THE PROJECT
 - Added possibility to choose Deflate compression during serialization
 </br>
 </br>
-**v. 2.2.0 (xxx)**
+**v. 2.2.0 (27.01.20)**
 - Added support for GZip Codec
 - Created interface for library - only AvroConvert methods are public
 - Removed reference to Snappy.NET

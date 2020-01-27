@@ -4,9 +4,9 @@
     <OutputType>Library</OutputType>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>Adrian Strugala</Authors>
-    <AssemblyVersion>2.1.0.0</AssemblyVersion>
-    <FileVersion>2.1.0.0</FileVersion>
-    <Version>2.1.0</Version>
+    <AssemblyVersion>2.2.0.0</AssemblyVersion>
+    <FileVersion>2.2.0.0</FileVersion>
+    <Version>2.2.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Description>Apache Avro serializer for .NET.</Description>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
@@ -41,14 +41,14 @@
     </ProjectReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <Content Include="..\Snappy.Standard\snappy32.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\Snappy.Standard\snappy64.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
+  <!-- <ItemGroup> -->
+  <!--   <Content Include="..\Snappy.Standard\snappy32.dll"> -->
+  <!--     <CopyToOutputDirectory>Always</CopyToOutputDirectory> -->
+  <!--   </Content> -->
+  <!--   <Content Include="..\Snappy.Standard\snappy64.dll"> -->
+  <!--     <CopyToOutputDirectory>Always</CopyToOutputDirectory> -->
+  <!--   </Content> -->
+  <!-- </ItemGroup> -->
 
 
   <ItemGroup>

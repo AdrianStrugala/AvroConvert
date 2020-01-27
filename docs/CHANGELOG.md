@@ -144,3 +144,4 @@ START OF THE PROJECT
 - Created interface for library - only AvroConvert methods are public
 - Removed reference to Snappy.NET
 - Ported Snappy.Standard
+- Added dynamic Deserialize method

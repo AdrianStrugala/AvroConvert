@@ -49,6 +49,7 @@ Supported encoding types:
 * Null (default)
 * Deflate
 * Snappy
+* GZip
 
 <br>
 

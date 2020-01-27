@@ -55,9 +55,12 @@ Supported encoding types:
 
 #### Deserialization
 
-Deserialization to known type
 ```csharp
+//Using generic method
 CustomClass deserializedObject = AvroConvert.Deserialize<CustomClass>(byte[] avroObject);
+
+//Using dynamic method
+CustomClass deserializedObject = AvroConvert.Deserialize(byte[] avroObject, typeof(CustomClass));
 ```
 
 Deserialization when a property value is null, but schema contains information about default value
@@ -139,6 +142,8 @@ string schemaInJsonFormat = AvroConvert.GenerateSchema(typeof(AttributeClass));
 ```csharp
   string schemaInJsonFormat = AvroConvert.GetSchema(byte[] avroObject)
 ```
+
+<br>
 
 ## Contribution
 

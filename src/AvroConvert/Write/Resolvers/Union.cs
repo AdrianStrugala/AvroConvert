@@ -69,9 +69,7 @@ namespace SolTechnology.Avro.Write.Resolvers
                 case Schema.Schema.Type.Record:
                     return true;
                 case Schema.Schema.Type.Enumeration:
-                    //return obj is GenericEnum && (obj as GenericEnum)._schema.Equals(s);
-                    return obj is Models.Enum &&
-                           (obj as Models.Enum).Schema.SchemaName.Equals((sc as EnumSchema).SchemaName);
+                    return obj is System.Enum;
                 case Schema.Schema.Type.Array:
                     return obj is System.Array && !(obj is byte[]);
                 case Schema.Schema.Type.Map:

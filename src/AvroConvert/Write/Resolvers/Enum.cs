@@ -22,17 +22,17 @@ namespace SolTechnology.Avro.Write.Resolvers
 {
     internal class Enum
     {
-        internal Encoder.WriteItem Resolve(EnumSchema es)
+        internal Encoder.WriteItem Resolve(EnumSchema schema)
         {
             return (value, e) =>
             {
-                if (!(value is Models.Enum) || !((Models.Enum)value).Schema.Equals(es))
+                if (!schema.Contains(value.ToString()))
                 {
-                    throw new AvroTypeMismatchException(
-                        "[GenericEnum] required to write against [Enum] schema but found " + value.GetType());
+                    throw new AvroTypeException(
+                        $"[Enum] Provided value is not of the enum [{schema.Name}] members");
                 }
 
-                e.WriteEnum(es.Ordinal(((Models.Enum)value).Value));
+                e.WriteEnum(schema.Ordinal(value.ToString()));
             };
         }
     }

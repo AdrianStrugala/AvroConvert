@@ -129,5 +129,19 @@ namespace AvroConvertTests
             //Assert
             Assert.NotNull(result);
         }
+
+        [Fact]
+        public void Serialize_ClassWithEnum_NoExceptionIsThrown()
+        {
+            //Arrange
+            ClassWithEnum testClass = _fixture.Create<ClassWithEnum>();
+
+            //Act
+            var result = AvroConvert.Serialize(testClass);
+
+
+            //Assert
+            Assert.NotNull(result);
+        }
     }
 }

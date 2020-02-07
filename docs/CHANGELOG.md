@@ -145,3 +145,7 @@ START OF THE PROJECT
 - Removed reference to Snappy.NET
 - Ported Snappy.Standard
 - Added dynamic Deserialize method
+</br>
+</br>
+**v. 2.2.1 (07.02.20)**
+- Added support for enum schema during serialization and deserialization

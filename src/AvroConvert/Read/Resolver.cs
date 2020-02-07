@@ -22,7 +22,6 @@ using SolTechnology.Avro.Exceptions;
 using SolTechnology.Avro.Models;
 using SolTechnology.Avro.Schema;
 using SolTechnology.Avro.Skip;
-using Enum = SolTechnology.Avro.Models.Enum;
 
 namespace SolTechnology.Avro.Read
 {
@@ -156,7 +155,9 @@ namespace SolTechnology.Avro.Read
         protected virtual object ResolveEnum(EnumSchema writerSchema, Schema.Schema readerSchema, IReader d)
         {
             EnumSchema es = readerSchema as EnumSchema;
-            return new Enum(es, writerSchema[d.ReadEnum()]);
+            int position = d.ReadEnum();
+
+            return es[position];
         }
 
 

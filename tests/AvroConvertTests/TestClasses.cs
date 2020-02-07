@@ -51,7 +51,7 @@ namespace AvroConvertTests
         public string justSomeProperty { get; set; }
         public long andLongProperty { get; set; }
         public double DoubleProp { get; set; }
-        public bool BoolProp{ get; set; }
+        public bool BoolProp { get; set; }
         public long LongToSkipProp { get; set; }
         public Guid TheGuid { get; set; }
         public int[] TheArray { get; set; }
@@ -250,7 +250,6 @@ namespace AvroConvertTests
         public long? andAnother { get; set; }
 
         public int anIntField;
-
     }
 
     public enum TestEnum
@@ -259,5 +258,11 @@ namespace AvroConvertTests
         be,
         ca,
         dlo
+    }
+
+    [Equals]
+    public class ClassWithEnum
+    {
+        public TestEnum enumVariable { get; set; }
     }
 }

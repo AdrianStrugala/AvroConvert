@@ -42,7 +42,8 @@ namespace SolTechnology.Avro
                 GenerateSchema(typeof(T), true)
                 );
 
-            return Mapper.Map<T>(reader.Read());
+            var read = reader.Read();
+            return Mapper.Map<T>(read);
         }
 
         public static dynamic Deserialize(byte[] avroBytes, Type targetType)

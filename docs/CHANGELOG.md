@@ -81,7 +81,7 @@ START OF THE PROJECT
 **v. 1.2.0 (03.06.19)**
 - Refactor of writers
 - Refactor of models
-- Support for Dictinaries with non-string keys (not matching Avro Map class)
+- Support for Dictionaries with non-string keys (not matching Avro Map class)
  </br>
 </br>
 **v. 1.3.0 (04.06.19)**

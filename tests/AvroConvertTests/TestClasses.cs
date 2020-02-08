@@ -62,6 +62,8 @@ namespace AvroConvertTests
         public double DoubleProperty { get; set; }
         public Dictionary<string, int> AvroMap { get; set; }
         public Dictionary<bool, int> OtherDictionary { get; set; }
+        public float FloatProp { get; set; }
+        public TestEnum EnumProp { get; set; }
     }
 
     [Equals]
@@ -263,6 +265,6 @@ namespace AvroConvertTests
     [Equals]
     public class ClassWithEnum
     {
-        public TestEnum enumVariable { get; set; }
+        public TestEnum EnumProp { get; set; }
     }
 }

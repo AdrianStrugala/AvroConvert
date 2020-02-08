@@ -28,14 +28,13 @@ namespace SolTechnology.Avro.Read
     internal class Resolver
     {
         private readonly Skipper _skipper;
-
-        internal Schema.Schema ReaderSchema { get; }
-        internal Schema.Schema WriterSchema { get; }
+        private readonly Schema.Schema _readerSchema;
+        private readonly Schema.Schema _writerSchema;
 
         internal Resolver(Schema.Schema writerSchema, Schema.Schema readerSchema)
         {
-            ReaderSchema = readerSchema;
-            WriterSchema = writerSchema;
+            _readerSchema = readerSchema;
+            _writerSchema = writerSchema;
 
             _skipper = new Skipper();
         }
@@ -44,10 +43,10 @@ namespace SolTechnology.Avro.Read
         {
             if (itemsCount > 1)
             {
-                return ResolveArray(WriterSchema, ((ArraySchema)ReaderSchema).ItemSchema, reader, itemsCount);
+                return ResolveArray(_writerSchema, ((ArraySchema)_readerSchema).ItemSchema, reader, itemsCount);
             }
 
-            var result = Resolve(WriterSchema, ReaderSchema, reader);
+            var result = Resolve(_writerSchema, _readerSchema, reader);
             return result;
         }
 
@@ -154,10 +153,9 @@ namespace SolTechnology.Avro.Read
 
         protected virtual object ResolveEnum(EnumSchema writerSchema, Schema.Schema readerSchema, IReader d)
         {
-            EnumSchema es = readerSchema as EnumSchema;
             int position = d.ReadEnum();
 
-            return es[position];
+            return position;
         }
 
 
@@ -239,7 +237,7 @@ namespace SolTechnology.Avro.Read
                 readerSchema = FindBranch(unionSchema, ws);
             else
             if (!readerSchema.CanRead(ws))
-                throw new AvroException("Schema mismatch. Reader: " + ReaderSchema + ", writer: " + WriterSchema);
+                throw new AvroException("Schema mismatch. Reader: " + _readerSchema + ", writer: " + _writerSchema);
 
             return Resolve(ws, readerSchema, d);
         }

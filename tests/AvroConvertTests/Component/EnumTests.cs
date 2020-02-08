@@ -31,7 +31,7 @@ namespace AvroConvertTests.Component
             //Assert
             Assert.NotNull(result);
             Assert.NotNull(deserialized);
-            Assert.Equal(toSerialize.enumVariable, deserialized.enumVariable);
+            Assert.Equal(toSerialize.EnumProp, deserialized.EnumProp);
             Assert.Equal(toSerialize, deserialized);
         }
 
@@ -72,5 +72,25 @@ namespace AvroConvertTests.Component
             Assert.NotNull(deserialized);
             Assert.Equal(toSerialize, deserialized);
         }
+
+        [Fact]
+        public void Component_SerializeDictionaryOfEnums_ResultIsTheSameAsInput()
+        {
+            //Arrange
+            Dictionary<TestEnum, TestEnum> toSerialize = _fixture.Create<Dictionary<TestEnum, TestEnum>>();
+
+
+            //Act
+            var result = AvroConvert.Serialize(toSerialize);
+
+            var deserialized = AvroConvert.Deserialize<Dictionary<TestEnum, TestEnum>>(result);
+
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(toSerialize, deserialized);
+        }
+
     }
 }

@@ -153,3 +153,7 @@ START OF THE PROJECT
 </br>
 **v. 2.2.2 (07.02.20)**
 - Deployment fixes
+</br>
+</br>
+**v. 2.2.3 (xxx)**
+- Added support for complex types including enums

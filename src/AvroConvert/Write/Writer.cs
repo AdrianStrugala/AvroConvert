@@ -186,10 +186,5 @@ namespace SolTechnology.Avro.Write
         {
             _stream.WriteByte(b);
         }
-
-        internal void Flush()
-        {
-            _stream.Flush();
-        }
     }
 }

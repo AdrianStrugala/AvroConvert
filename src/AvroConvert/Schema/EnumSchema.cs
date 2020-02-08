@@ -118,8 +118,7 @@ namespace SolTechnology.Avro.Schema
         /// <returns>position of the given symbol in this enum schema</returns>
         internal int Ordinal(string symbol)
         {
-            int result;
-            if (symbolMap.TryGetValue(symbol, out result)) return result;
+            if (symbolMap.TryGetValue(symbol, out var result)) return result;
             throw new AvroException("No such symbol: " + symbol);
         }
 

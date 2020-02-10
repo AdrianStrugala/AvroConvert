@@ -20,6 +20,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using SolTechnology.Avro.Exceptions;
+using SolTechnology.Avro.Extensions;
 using SolTechnology.Avro.Models;
 using SolTechnology.Avro.Schema;
 using SolTechnology.Avro.Skip;
@@ -44,14 +45,14 @@ namespace SolTechnology.Avro.Read
         {
             if (itemsCount > 1)
             {
-                return (T)ResolveArray<T>(_writerSchema, ((ArraySchema)_readerSchema).ItemSchema, reader, itemsCount);
+                return (T)ResolveArray(_writerSchema, ((ArraySchema)_readerSchema).ItemSchema, reader, typeof(T), itemsCount);
             }
 
-            var result = Resolve<T>(_writerSchema, _readerSchema, reader);
+            var result = Resolve(_writerSchema, _readerSchema, reader, typeof(T));
             return (T)result;
         }
 
-        internal object Resolve<T>(Schema.Schema writerSchema, Schema.Schema readerSchema, IReader d)
+        internal object Resolve(Schema.Schema writerSchema, Schema.Schema readerSchema, IReader d, Type type)
         {
             if (readerSchema.Tag == Schema.Schema.Type.Union && writerSchema.Tag != Schema.Schema.Type.Union)
             {
@@ -111,43 +112,48 @@ namespace SolTechnology.Avro.Read
                     return d.ReadBytes();
                 case Schema.Schema.Type.Error:
                 case Schema.Schema.Type.Record:
-                    return ResolveRecord<T>((RecordSchema)writerSchema, (RecordSchema)readerSchema, d);
+                    return ResolveRecord((RecordSchema)writerSchema, (RecordSchema)readerSchema, d, type);
                 case Schema.Schema.Type.Enumeration:
                     return ResolveEnum((EnumSchema)writerSchema, readerSchema, d);
                 case Schema.Schema.Type.Fixed:
                     return ResolveFixed((FixedSchema)writerSchema, readerSchema, d);
                 case Schema.Schema.Type.Array:
-                    return ResolveArray<T>(
+                    return ResolveArray(
                         ((ArraySchema)writerSchema).ItemSchema,
                         ((ArraySchema)readerSchema).ItemSchema,
-                        d);
+                        d, type);
                 case Schema.Schema.Type.Map:
-                    return ResolveMap<T>((MapSchema)writerSchema, readerSchema, d);
+                    return ResolveMap((MapSchema)writerSchema, readerSchema, d, type);
                 case Schema.Schema.Type.Union:
-                    return ResolveUnion<T>((UnionSchema)writerSchema, readerSchema, d);
+                    return ResolveUnion((UnionSchema)writerSchema, readerSchema, d, type);
                 default:
                     throw new AvroException("Unknown schema type: " + writerSchema);
             }
         }
 
-        protected virtual T ResolveRecord<T>(RecordSchema writerSchema, RecordSchema readerSchema, IReader dec)
+        protected virtual object ResolveRecord(RecordSchema writerSchema, RecordSchema readerSchema, IReader dec, Type type)
         {
-            T result = Activator.CreateInstance<T>();
+            object result = Activator.CreateInstance(type);
 
             foreach (Field wf in writerSchema)
             {
                 if (readerSchema.Contains(wf.Name))
                 {
                     Field rf = readerSchema.GetField(wf.Name);
-                    object value = Resolve<T>(wf.Schema, rf.Schema, dec) ?? wf.DefaultValue?.ToObject(typeof(object));
+                    object value = Resolve(wf.Schema, rf.Schema, dec, type) ?? wf.DefaultValue?.ToObject(typeof(object));
 
                     string name = rf.aliases?[0] ?? wf.Name;
 
                     PropertyInfo propertyInfo = result.GetType().GetProperty(name);
-
                     if (propertyInfo != null)
                     {
                         propertyInfo.SetValue(result, value, null);
+                    }
+
+                    FieldInfo fieldInfo = result.GetType().GetField(name);
+                    if (fieldInfo != null)
+                    {
+                        fieldInfo.SetValue(result, value);
                     }
                 }
                 else
@@ -166,22 +172,28 @@ namespace SolTechnology.Avro.Read
         }
 
 
-        protected virtual object ResolveArray<T>(Schema.Schema writerSchema, Schema.Schema readerSchema, IReader d, long itemsCount = 0)
+        protected virtual object ResolveArray(Schema.Schema writerSchema, Schema.Schema readerSchema, IReader d, Type type, long itemsCount = 0)
         {
-            object[] result = new object[itemsCount];
+            //            object[] result = new object[itemsCount];
+
+            if (!type.IsList())
+            {
+                throw new Exception("not IList");
+            }
+
+            var result = Activator.CreateInstance(type);
+            var resultList = result as IList;
+
+            var containingType = type.GetGenericArguments()[0];
+
             int i = 0;
             if (itemsCount == 0)
             {
                 for (int n = (int)d.ReadArrayStart(); n != 0; n = (int)d.ReadArrayNext())
                 {
-                    if (result.Length < i + n)
-                    {
-                        Array.Resize(ref result, i + n);
-                    }
-
                     for (int j = 0; j < n; j++, i++)
                     {
-                        result[i] = Resolve<T>(writerSchema, readerSchema, d);
+                        resultList.Add(Resolve(writerSchema, readerSchema, d, containingType));
                     }
                 }
             }
@@ -189,14 +201,14 @@ namespace SolTechnology.Avro.Read
             {
                 for (int k = 0; k < itemsCount; k++)
                 {
-                    result[k] = Resolve<T>(writerSchema, readerSchema, d);
+                    resultList.Add(Resolve(writerSchema, readerSchema, d, containingType));
                 }
             }
-
-            if ((result.Length > 0) && result[0] is IDictionary)
-            {
-                return ResolveDictionaryFromArray(result);
-            }
+//
+//            if ((result.Length > 0) && result[0] is IDictionary)
+//            {
+//                return ResolveDictionaryFromArray(result);
+//            }
 
             return result;
         }
@@ -219,7 +231,7 @@ namespace SolTechnology.Avro.Read
             return resultDictionary;
         }
 
-        protected virtual object ResolveMap<T>(MapSchema writerSchema, Schema.Schema readerSchema, IReader d)
+        protected virtual object ResolveMap(MapSchema writerSchema, Schema.Schema readerSchema, IReader d, Type type)
         {
             MapSchema rs = (MapSchema)readerSchema;
             Dictionary<string, object> result = new Dictionary<string, object>();
@@ -228,14 +240,14 @@ namespace SolTechnology.Avro.Read
                 for (int j = 0; j < n; j++)
                 {
                     string k = d.ReadString();
-                    result.Add(k, Resolve<T>(writerSchema.ValueSchema, rs.ValueSchema, d));
+                    result.Add(k, Resolve(writerSchema.ValueSchema, rs.ValueSchema, d, type));
                 }
             }
 
             return result;
         }
 
-        protected virtual object ResolveUnion<T>(UnionSchema writerSchema, Schema.Schema readerSchema, IReader d)
+        protected virtual object ResolveUnion(UnionSchema writerSchema, Schema.Schema readerSchema, IReader d, Type type)
         {
             int index = d.ReadUnionIndex();
             Schema.Schema ws = writerSchema[index];
@@ -246,7 +258,7 @@ namespace SolTechnology.Avro.Read
             if (!readerSchema.CanRead(ws))
                 throw new AvroException("Schema mismatch. Reader: " + _readerSchema + ", writer: " + _writerSchema);
 
-            return Resolve<T>(ws, readerSchema, d);
+            return Resolve(ws, readerSchema, d, type);
         }
 
         protected virtual object ResolveFixed(FixedSchema writerSchema, Schema.Schema readerSchema, IReader d)

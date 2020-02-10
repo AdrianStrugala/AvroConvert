@@ -191,19 +191,33 @@ namespace SolTechnology.Avro.Read
                 throw new Exception("not IList");
             }
 
-            var result = Activator.CreateInstance(type);
-            var resultList = result as IList;
 
-            var containingType = type.GetGenericArguments()[0];
+//            var result = (Activator.CreateInstance(type, new object[] { 0 })); // Length 1
+            var containingType = type.GetEnumeratedType();
+
+            Array result = Array.CreateInstance(containingType, 0);
+            //            var resultList = result as IList;
+
+
 
             int i = 0;
             if (itemsCount == 0)
             {
                 for (int n = (int)d.ReadArrayStart(); n != 0; n = (int)d.ReadArrayNext())
                 {
+                    if (result.Length < i + n)
+                    {
+                        typeof(Array)
+                                        .GetMethod("Resize", new[] { typeof(object[]), typeof(int) })
+                                        ?.MakeGenericMethod(containingType)
+                                        .Invoke(null, new object[] { result, i+n });
+
+//                        Array.Resize(ref result, i + n);
+                    }
+
                     for (int j = 0; j < n; j++, i++)
                     {
-                        resultList.Add(Resolve(writerSchema, readerSchema, d, containingType));
+                        result.Add(Resolve(writerSchema, readerSchema, d, containingType));
                     }
                 }
             }
@@ -211,7 +225,7 @@ namespace SolTechnology.Avro.Read
             {
                 for (int k = 0; k < itemsCount; k++)
                 {
-                    resultList.Add(Resolve(writerSchema, readerSchema, d, containingType));
+                    result.Add(Resolve(writerSchema, readerSchema, d, containingType));
                 }
             }
             //

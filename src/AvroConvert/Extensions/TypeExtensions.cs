@@ -290,6 +290,12 @@ namespace SolTechnology.Avro.Extensions
             return result;
         }
 
+        public static Type GetEnumeratedType(this Type type)
+        {
+            return type?.GetElementType() ?? type.GenericTypeArguments.FirstOrDefault();
+
+        }
+
         internal static bool IsValueType(this Type type)
         {
             return type.GetTypeInfo().IsValueType;

@@ -140,19 +140,19 @@ namespace SolTechnology.Avro.Read
                 if (readerSchema.Contains(wf.Name))
                 {
                     Field rf = readerSchema.GetField(wf.Name);
-                    object value = Resolve(wf.Schema, rf.Schema, dec, type) ?? wf.DefaultValue?.ToObject(typeof(object));
-
                     string name = rf.aliases?[0] ?? wf.Name;
 
                     PropertyInfo propertyInfo = result.GetType().GetProperty(name);
                     if (propertyInfo != null)
                     {
+                        object value = Resolve(wf.Schema, rf.Schema, dec, propertyInfo.PropertyType) ?? wf.DefaultValue?.ToObject(typeof(object));
                         propertyInfo.SetValue(result, value, null);
                     }
 
                     FieldInfo fieldInfo = result.GetType().GetField(name);
                     if (fieldInfo != null)
                     {
+                        object value = Resolve(wf.Schema, rf.Schema, dec, fieldInfo.FieldType) ?? wf.DefaultValue?.ToObject(typeof(object));
                         fieldInfo.SetValue(result, value);
                     }
                 }
@@ -204,11 +204,11 @@ namespace SolTechnology.Avro.Read
                     resultList.Add(Resolve(writerSchema, readerSchema, d, containingType));
                 }
             }
-//
-//            if ((result.Length > 0) && result[0] is IDictionary)
-//            {
-//                return ResolveDictionaryFromArray(result);
-//            }
+            //
+            //            if ((result.Length > 0) && result[0] is IDictionary)
+            //            {
+            //                return ResolveDictionaryFromArray(result);
+            //            }
 
             return result;
         }

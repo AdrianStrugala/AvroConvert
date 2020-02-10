@@ -186,16 +186,21 @@ namespace SolTechnology.Avro.Read
         {
             //            object[] result = new object[itemsCount];
 
-            if (!type.IsList())
-            {
-                throw new Exception("not IList");
-            }
+            //            if (!type.IsList())
+            //            {
+            //                throw new Exception("not IList");
+            //            }
 
 
-//            var result = (Activator.CreateInstance(type, new object[] { 0 })); // Length 1
+            //            var result = (Activator.CreateInstance(type, new object[] { 0 })); // Length 1
             var containingType = type.GetEnumeratedType();
 
-            Array result = Array.CreateInstance(containingType, 0);
+            var x = containingType.MakeArrayType();
+            dynamic result = Activator.CreateInstance(x, new object[] { 0 });
+
+            //            Array result = Array.CreateInstance(containingType, 0);
+
+            //            Array.ConvertAll(result)
             //            var resultList = result as IList;
 
 
@@ -208,16 +213,17 @@ namespace SolTechnology.Avro.Read
                     if (result.Length < i + n)
                     {
                         typeof(Array)
-                                        .GetMethod("Resize", new[] { typeof(object[]), typeof(int) })
+                                        .GetMethod("Resize")
                                         ?.MakeGenericMethod(containingType)
-                                        .Invoke(null, new object[] { result, i+n });
+                                        .Invoke(null, new object[] { result, i + n });
 
-//                        Array.Resize(ref result, i + n);
+                        //                        Array.Resize<typeof(containin)>(ref result, i + n);
                     }
 
                     for (int j = 0; j < n; j++, i++)
                     {
-                        result.Add(Resolve(writerSchema, readerSchema, d, containingType));
+                        dynamic y = (Resolve(writerSchema, readerSchema, d, containingType));
+                        result[i] = y;
                     }
                 }
             }
@@ -225,7 +231,7 @@ namespace SolTechnology.Avro.Read
             {
                 for (int k = 0; k < itemsCount; k++)
                 {
-                    result.Add(Resolve(writerSchema, readerSchema, d, containingType));
+                    result[k] = (Resolve(writerSchema, readerSchema, d, containingType));
                 }
             }
             //

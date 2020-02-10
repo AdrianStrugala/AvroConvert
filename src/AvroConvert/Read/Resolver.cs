@@ -18,6 +18,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using SolTechnology.Avro.Exceptions;
 using SolTechnology.Avro.Models;
 using SolTechnology.Avro.Schema;
@@ -39,15 +40,15 @@ namespace SolTechnology.Avro.Read
             _skipper = new Skipper();
         }
 
-        internal object Resolve<T>(IReader reader, long itemsCount = 1)
+        internal T Resolve<T>(IReader reader, long itemsCount = 1)
         {
             if (itemsCount > 1)
             {
-                return ResolveArray<T>(_writerSchema, ((ArraySchema)_readerSchema).ItemSchema, reader, itemsCount);
+                return (T)ResolveArray<T>(_writerSchema, ((ArraySchema)_readerSchema).ItemSchema, reader, itemsCount);
             }
 
             var result = Resolve<T>(_writerSchema, _readerSchema, reader);
-            return result;
+            return (T)result;
         }
 
         internal object Resolve<T>(Schema.Schema writerSchema, Schema.Schema readerSchema, IReader d)
@@ -129,9 +130,9 @@ namespace SolTechnology.Avro.Read
             }
         }
 
-        protected virtual IDictionary<string, object> ResolveRecord<T>(RecordSchema writerSchema, RecordSchema readerSchema, IReader dec)
+        protected virtual T ResolveRecord<T>(RecordSchema writerSchema, RecordSchema readerSchema, IReader dec)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            T result = Activator.CreateInstance<T>();
 
             foreach (Field wf in writerSchema)
             {
@@ -141,7 +142,13 @@ namespace SolTechnology.Avro.Read
                     object value = Resolve<T>(wf.Schema, rf.Schema, dec) ?? wf.DefaultValue?.ToObject(typeof(object));
 
                     string name = rf.aliases?[0] ?? wf.Name;
-                    result[name] = value;
+
+                    PropertyInfo propertyInfo = result.GetType().GetProperty(name);
+
+                    if (propertyInfo != null)
+                    {
+                        propertyInfo.SetValue(result, value, null);
+                    }
                 }
                 else
                     _skipper.Skip(wf.Schema, dec);

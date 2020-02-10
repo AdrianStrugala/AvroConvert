@@ -59,6 +59,16 @@ namespace SolTechnology.Avro.Read
                 readerSchema = FindBranch(readerSchema as UnionSchema, writerSchema);
             }
 
+            if (type == typeof(decimal))
+            {
+                return decimal.Parse(d.ReadString());
+            }
+
+            if (type == typeof(Guid))
+            {
+                return new Guid(ResolveFixed((FixedSchema)writerSchema, readerSchema, d));
+            }
+
             switch (writerSchema.Tag)
             {
                 case Schema.Schema.Type.Null:
@@ -261,7 +271,7 @@ namespace SolTechnology.Avro.Read
             return Resolve(ws, readerSchema, d, type);
         }
 
-        protected virtual object ResolveFixed(FixedSchema writerSchema, Schema.Schema readerSchema, IReader d)
+        protected virtual byte[] ResolveFixed(FixedSchema writerSchema, Schema.Schema readerSchema, IReader d)
         {
             FixedSchema rs = (FixedSchema)readerSchema;
             if (rs.Size != writerSchema.Size)
@@ -270,10 +280,10 @@ namespace SolTechnology.Avro.Read
                                         ", reader: " + readerSchema);
             }
 
-            object ru = new Fixed(rs);
+            Fixed ru = new Fixed(rs);
             byte[] bb = ((Fixed)ru).Value;
             d.ReadFixed(bb);
-            return ru;
+            return ru.Value;
         }
 
         protected static Schema.Schema FindBranch(UnionSchema us, Schema.Schema s)

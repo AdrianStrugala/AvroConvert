@@ -42,7 +42,7 @@ namespace SolTechnology.Avro
                 GenerateSchema(typeof(T), true)
                 );
 
-            var read = reader.Read();
+            var read = reader.Read<T>();
             return Mapper.Map<T>(read);
         }
 

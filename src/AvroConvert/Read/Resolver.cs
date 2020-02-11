@@ -18,6 +18,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using SolTechnology.Avro.Exceptions;
 using SolTechnology.Avro.Extensions;
@@ -245,8 +246,8 @@ namespace SolTechnology.Avro.Read
             //            {
             //                return ResolveDictionaryFromArray(result);
             //            }
-
-            return xd;
+            return Enumerable.Range(0, xd.Count).Select(o => xd[o]).ToArray();
+//            return xd;
         }
 
         protected object ResolveDictionaryFromArray(object[] array)

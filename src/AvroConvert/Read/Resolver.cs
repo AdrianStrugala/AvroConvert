@@ -246,8 +246,19 @@ namespace SolTechnology.Avro.Read
             //            {
             //                return ResolveDictionaryFromArray(result);
             //            }
-            return Enumerable.Range(0, xd.Count).Select(o => xd[o]).ToArray();
-//            return xd;
+            //            return Enumerable.Range(0, xd.Count).Select(o => xd[o]).ToArray();
+
+            if (type.IsArray)
+            {
+                dynamic lol = Activator.CreateInstance(x, new object[] { xd.Count });
+
+                xd.CopyTo(lol, 0);
+
+                var dad = lol;
+                return lol;
+            }
+
+            return xd;
         }
 
         protected object ResolveDictionaryFromArray(object[] array)

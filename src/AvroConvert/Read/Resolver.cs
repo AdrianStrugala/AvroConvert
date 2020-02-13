@@ -64,7 +64,6 @@ namespace SolTechnology.Avro.Read
             {
                 return decimal.Parse(d.ReadString());
             }
-
             if (type == typeof(Guid))
             {
                 return new Guid(ResolveFixed((FixedSchema)writerSchema, readerSchema, d));
@@ -185,51 +184,20 @@ namespace SolTechnology.Avro.Read
 
         protected virtual object ResolveArray(Schema.Schema writerSchema, Schema.Schema readerSchema, IReader d, Type type, long itemsCount = 0)
         {
-            //            object[] result = new object[itemsCount];
-
-
-            //            var result = (Activator.CreateInstance(type, new object[] { 0 })); // Length 1
-            //
-            //            List<object> list = new List<object>();
-            //            var enumerator = ((IEnumerable)result).GetEnumerator();
-            //            while (enumerator.MoveNext())
-            //            {
-            //                list.Add(enumerator.Current);
-            //            }
-
-
-
-            //            var result = (Activator.CreateInstance(type, new object[] { 0 })); // Length 1
             var containingType = type.GetEnumeratedType();
-
-            var x = containingType.MakeArrayType();
-            dynamic result = Activator.CreateInstance(x, new object[] { 0 });
-
-            //            Array result = Array.CreateInstance(containingType, 0);
-
-            //            Array.ConvertAll(result)
-            var resultList = result as IList;
-
-            var zGenericType = typeof(List<>).MakeGenericType(containingType);
-            var xd = (IList)Activator.CreateInstance(zGenericType);
-
-
+            var containingTypeArray = containingType.MakeArrayType();
+            var resultType = typeof(List<>).MakeGenericType(containingType);
+            var result = (IList)Activator.CreateInstance(resultType);
 
             int i = 0;
             if (itemsCount == 0)
             {
                 for (int n = (int)d.ReadArrayStart(); n != 0; n = (int)d.ReadArrayNext())
                 {
-                    //                    if (result.Length < i + n)
-                    //                    {
-                    //                        Array.Resize(ref result, i + n);
-                    //                    }
-
                     for (int j = 0; j < n; j++, i++)
                     {
                         dynamic y = (Resolve(writerSchema, readerSchema, d, containingType));
-                        //                        result[i] = y;
-                        xd.Add(y);
+                        result.Add(y);
                     }
                 }
             }
@@ -237,28 +205,18 @@ namespace SolTechnology.Avro.Read
             {
                 for (int k = 0; k < itemsCount; k++)
                 {
-                    //                    result[k] = (Resolve(writerSchema, readerSchema, d, containingType));?
-                    xd.Add((Resolve(writerSchema, readerSchema, d, containingType)));
+                    result.Add((Resolve(writerSchema, readerSchema, d, containingType)));
                 }
             }
-            //
-            //            if ((result.Length > 0) && result[0] is IDictionary)
-            //            {
-            //                return ResolveDictionaryFromArray(result);
-            //            }
-            //            return Enumerable.Range(0, xd.Count).Select(o => xd[o]).ToArray();
 
             if (type.IsArray)
             {
-                dynamic lol = Activator.CreateInstance(x, new object[] { xd.Count });
-
-                xd.CopyTo(lol, 0);
-
-                var dad = lol;
-                return lol;
+                dynamic resultArray = Activator.CreateInstance(containingTypeArray, new object[] { result.Count });
+                result.CopyTo(resultArray, 0);
+                return resultArray;
             }
 
-            return xd;
+            return result;
         }
 
         protected object ResolveDictionaryFromArray(object[] array)

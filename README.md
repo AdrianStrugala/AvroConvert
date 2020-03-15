@@ -24,10 +24,11 @@ Benchmark with comparison to Newtonsoft.Json:
 
 | Converter               | Compression time [ms] | Compressed size [kB] |
 |-------------------------|-----------------------|----------------------|
-| Json                    | 75                    | 9945                 |
-| Avro (null encoding)    | 307                   | 2536                 |
-| Avro (Deflate encoding) | 155                   | 207                  |
-| Avro (Snappy encoding)  | 146                   | 421                  |
+| Json                    | 140                   | 9945                 |
+| Avro (null encoding)    | 235                   | 2435                 |
+| Avro (Deflate encoding) | 144                   | 206                  |
+| Avro (Snappy encoding)  | 127                   | 420                  |
+| Avro (Gzip encoding)    | 143                   | 206                  |
 
 You can find the benchmark under tests/AvroConvertTests/Benchmark directory.
 

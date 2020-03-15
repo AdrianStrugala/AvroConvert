@@ -15,7 +15,7 @@ The main purpose of the project was to enhance communication between microservic
 ## Documentation
 
 General information: http://avro.apache.org/
-<br></br>
+\
 Wiki: https://cwiki.apache.org/confluence/display/AVRO/Index
 
 ## Why choose Avro?
@@ -46,12 +46,12 @@ Using encoding
  byte[] avroObject = AvroConvert.Serialize(object yourObject, CodecType.Snappy);
 ```
 Supported encoding types:
-* Null (default)
-* Deflate
-* Snappy
-* GZip
+- Null (default)
+- Deflate
+- Snappy
+- GZip
 
-<br>
+
 
 #### Deserialization
 
@@ -86,7 +86,7 @@ public class DefaultValueClass
 > 2137
 ```
 
-<br>
+
 
 #### Generating Avro schema for C# classes
 
@@ -136,14 +136,14 @@ string schemaInJsonFormat = AvroConvert.GenerateSchema(typeof(AttributeClass));
 "{"type":"record","name":"user.User","fields":[{"name":"name","type":["null","string"]},{"name":"favorite_number","type":["null","int"]},{"name":"favorite_color","type":["null","string"]}]}"
 ```  
 
-<br />
+
 
 #### Reading Avro schema from Avro encoded object
 ```csharp
-  string schemaInJsonFormat = AvroConvert.GetSchema(byte[] avroObject)
+string schemaInJsonFormat = AvroConvert.GetSchema(byte[] avroObject)
 ```
 
-<br>
+
 
 ## Contribution
 

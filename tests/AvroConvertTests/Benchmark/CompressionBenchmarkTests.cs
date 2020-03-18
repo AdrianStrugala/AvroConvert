@@ -58,25 +58,36 @@ namespace AvroConvertTests.Benchmark
             Stopwatch stopwatch = Stopwatch.StartNew();
 
             //Serialize
-            var avro = AvroConvert.Serialize(datasets, codec);
+            var avro = AvroConvert.Serialize1(datasets, codec);
             result.SerializeTime = stopwatch.ElapsedMilliseconds;
             stopwatch.Restart();
 
             //Deserialize
-            AvroConvert.Deserialize<List<Dataset>>(avro);
+            AvroConvert.Deserialize1<List<Dataset>>(avro);
             result.DeserializeTime = stopwatch.ElapsedMilliseconds;
+            stopwatch.Restart();
+
+            //Serialize
+            var avro2 = AvroConvert.Serialize(datasets, codec);
+            result.SerializeTime2 = stopwatch.ElapsedMilliseconds;
+            stopwatch.Restart();
+
+            //Deserialize
+            AvroConvert.Deserialize<List<Dataset>>(avro2);
+            result.DeserializeTime2 = stopwatch.ElapsedMilliseconds;
             stopwatch.Stop();
 
             //Size
             File.WriteAllBytes($"10mega.{result.Name}.avro", avro);
             result.Size = avro.Length;
+            result.Size2 = avro2.Length;
 
             return result;
         }
 
         private string ConstructLog(BenchmarkResult result)
         {
-            return $"{result.Name}: Serialize: {result.SerializeTime} ms {result.Size / 1024} kB; Deserialize: {result.DeserializeTime} ms\n";
+            return $"{result.Name}: Serialize: {result.SerializeTime} ms {result.Size / 1024} kB; Deserialize: {result.DeserializeTime} ms Serialize2: {result.SerializeTime2} Size2: {result.Size2 / 1024} kB; ms Deserialize2: {result.DeserializeTime2} ms \n ";
         }
     }
 }

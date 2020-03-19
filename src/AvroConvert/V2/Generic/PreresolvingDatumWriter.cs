@@ -46,7 +46,7 @@ namespace V2.Generic
         private readonly ArrayAccess _arrayAccess;
         private readonly MapAccess _mapAccess;
 
-        private readonly Dictionary<RecordSchema,WriteItem> _recordWriters = new Dictionary<RecordSchema,WriteItem>();
+        private readonly Dictionary<RecordSchema, WriteItem> _recordWriters = new Dictionary<RecordSchema, WriteItem>();
 
         /// <inheritdoc/>
         public void Write(object datum, Encoder encoder)
@@ -68,29 +68,29 @@ namespace V2.Generic
             _writer = ResolveWriter(schema);
         }
 
-        private WriteItem ResolveWriter( Schema.Schema schema )
+        private WriteItem ResolveWriter(Schema.Schema schema)
         {
             switch (schema.Tag)
             {
                 case V2.Schema.Schema.Type.Null:
                     return WriteNull;
                 case V2.Schema.Schema.Type.Boolean:
-                    return (v, e) => Write<bool>( v, schema.Tag, e.WriteBoolean );
+                    return (v, e) => Write<bool>(v, schema.Tag, e.WriteBoolean);
                 case V2.Schema.Schema.Type.Int:
-                    return (v, e) => Write<int>( v, schema.Tag, e.WriteInt );
+                    return (v, e) => Write<int>(v, schema.Tag, e.WriteInt);
                 case V2.Schema.Schema.Type.Long:
-                    return (v, e) => Write<long>( v, schema.Tag, e.WriteLong );
+                    return (v, e) => Write<long>(v, schema.Tag, e.WriteLong);
                 case V2.Schema.Schema.Type.Float:
-                    return (v, e) => Write<float>( v, schema.Tag, e.WriteFloat );
+                    return (v, e) => Write<float>(v, schema.Tag, e.WriteFloat);
                 case V2.Schema.Schema.Type.Double:
-                    return (v, e) => Write<double>( v, schema.Tag, e.WriteDouble );
+                    return (v, e) => Write<double>(v, schema.Tag, e.WriteDouble);
                 case V2.Schema.Schema.Type.String:
-                    return (v, e) => Write<string>( v, schema.Tag, e.WriteString );
+                    return (v, e) => ResolveString(v, e.WriteString);
                 case V2.Schema.Schema.Type.Bytes:
-                    return (v, e) => Write<byte[]>( v, schema.Tag, e.WriteBytes );
+                    return (v, e) => Write<byte[]>(v, schema.Tag, e.WriteBytes);
                 case V2.Schema.Schema.Type.Error:
                 case V2.Schema.Schema.Type.Record:
-                    return ResolveRecord((RecordSchema) schema);
+                    return ResolveRecord((RecordSchema)schema);
                 case V2.Schema.Schema.Type.Enumeration:
                     return ResolveEnum(schema as EnumSchema);
                 case V2.Schema.Schema.Type.Fixed:
@@ -131,6 +131,11 @@ namespace V2.Generic
             writer((TValue)value);
         }
 
+        protected void ResolveString(object value, Writer<string> writer)
+        {
+            writer(value.ToString());
+        }
+
 
         /// <summary>
         /// Serializes a record using the given RecordSchema. It uses GetField method
@@ -153,10 +158,10 @@ namespace V2.Generic
             foreach (Field field in recordSchema)
             {
                 var record = new RecordFieldWriter
-                                 {
-                                     WriteField = ResolveWriter(field.Schema),
-                                     Field = field
-                                 };
+                {
+                    WriteField = ResolveWriter(field.Schema),
+                    Field = field
+                };
                 writeSteps[index++] = record;
             }
 
@@ -204,7 +209,7 @@ namespace V2.Generic
         /// <param name="fieldPos">The position of field in the record</param>
         /// <param name="writer">Used to write the field value to the encoder</param>
         /// <param name="encoder">Encoder to write to</param>
-        protected abstract void WriteField(object record, string fieldName, int fieldPos, WriteItem writer, Encoder encoder );
+        protected abstract void WriteField(object record, string fieldName, int fieldPos, WriteItem writer, Encoder encoder);
 
         /// <summary>
         /// Serializes an enumeration.
@@ -223,7 +228,7 @@ namespace V2.Generic
         protected WriteItem ResolveArray(ArraySchema schema)
         {
             var itemWriter = ResolveWriter(schema.ItemSchema);
-            return (d,e) => WriteArray(itemWriter, d, e);
+            return (d, e) => WriteArray(itemWriter, d, e);
         }
 
         private void WriteArray(WriteItem itemWriter, object array, Encoder encoder)
@@ -342,7 +347,7 @@ namespace V2.Generic
         /// <returns>A new <see cref="AvroException"/> indicating a type mismatch.</returns>
         protected static AvroException TypeMismatch(object obj, string schemaType, string type)
         {
-            return new AvroException(type + " required to write against " + schemaType + " schema but found " + (null == obj ? "null" : obj.GetType().ToString()) );
+            return new AvroException(type + " required to write against " + schemaType + " schema but found " + (null == obj ? "null" : obj.GetType().ToString()));
         }
 
         private void Error(Schema.Schema schema, Object value)
@@ -447,14 +452,14 @@ namespace V2.Generic
             {
                 if (value as IDictionary == null)
                 {
-                    throw TypeMismatch( value, "map", "IDictionary" );
+                    throw TypeMismatch(value, "map", "IDictionary");
                 }
             }
 
             /// <inheritdoc/>
             public long GetMapSize(object value)
             {
-                return ((IDictionary) value).Count;
+                return ((IDictionary)value).Count;
             }
 
             /// <inheritdoc/>

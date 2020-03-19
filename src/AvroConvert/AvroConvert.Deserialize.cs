@@ -25,11 +25,22 @@ using DUPA.Specific;
 using SolTechnology.Avro.Models;
 using SolTechnology.Avro.Read;
 using SolTechnology.Avro.Read.AutoMapperConverters;
+using Decoder = SolTechnology.Avro.V4.Read.Decoder;
 
 namespace SolTechnology.Avro
 {
     public static partial class AvroConvert
     {
+        public static T DeserializeV4<T>(byte[] avroBytes)
+        {
+            var reader = Decoder.OpenReader(
+                new MemoryStream(avroBytes),
+                GenerateSchema(typeof(T))
+            );
+
+            return reader.Read<T>();
+            //            return Mapper.Map<T>(read);
+        }
 
         public static T DeserializeOrig<T>(byte[] avroBytes)
         {

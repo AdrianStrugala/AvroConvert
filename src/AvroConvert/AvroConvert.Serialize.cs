@@ -23,11 +23,26 @@ using DUPA.Reflect;
 using DUPA.Specific;
 using SolTechnology.Avro.Codec;
 using SolTechnology.Avro.Write;
+using Encoder = SolTechnology.Avro.V4.Write.Encoder;
 
 namespace SolTechnology.Avro
 {
     public static partial class AvroConvert
     {
+        public static byte[] SerializeV4(object obj, V4.Codec.CodecType codecType = V4.Codec.CodecType.Null)
+        {
+            MemoryStream resultStream = new MemoryStream();
+
+            string schema = GenerateSchema(obj.GetType());
+            using (var writer = new Encoder(V4.Schema.Schema.Parse(schema), resultStream, codecType))
+            {
+                writer.Append(obj);
+            }
+
+            var result = resultStream.ToArray();
+            return result;
+        }
+
         public static byte[] SerializeOrig(object obj, CodecType codecType = CodecType.Null)
         {
             MemoryStream resultStream = new MemoryStream();

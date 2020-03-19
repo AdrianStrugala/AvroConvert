@@ -12,7 +12,7 @@ namespace AvroConvertTests.Benchmark
 {
     public class RegressionBenchmark
     {
-        [Fact]
+       
         public void Compression_CompareSizesAndTime_NoteResults()
         {
             //Arrange
@@ -58,12 +58,12 @@ namespace AvroConvertTests.Benchmark
             stopwatch.Restart();
 
             //Serialize
-            var avro2 = AvroConvert.Serialize(datasets, codec);
+            var avro2 = AvroConvert.SerializeV4(datasets);
             result.SerializeTime2 = stopwatch.ElapsedMilliseconds;
             stopwatch.Restart();
 
             //Deserialize
-            AvroConvert.Deserialize<List<Dataset>>(avro2);
+            AvroConvert.DeserializeV4<List<Dataset>>(avro2);
             result.DeserializeTime2 = stopwatch.ElapsedMilliseconds;
             stopwatch.Stop();
 

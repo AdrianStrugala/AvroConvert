@@ -60,13 +60,23 @@ namespace SolTechnology.Avro.Read
                 readerSchema = FindBranch(readerSchema as UnionSchema, writerSchema);
             }
 
-            if (type == typeof(decimal))
+            //Types not supported by Avro schema
+            switch (type)
             {
-                return decimal.Parse(d.ReadString());
-            }
-            if (type == typeof(Guid))
-            {
-                return new Guid(ResolveFixed((FixedSchema)writerSchema, readerSchema, d));
+                case var _ when type == typeof(decimal):
+                    return decimal.Parse(d.ReadString());
+
+                case var _ when type == typeof(Guid):
+                    return new Guid(ResolveFixed((FixedSchema)writerSchema, readerSchema, d));
+
+                case var _ when type == typeof(DateTimeOffset):
+                    return DateTimeOffset.Parse(d.ReadString());
+
+                case var _ when type == typeof(DateTime):
+                    return ResolveDateTime(d);
+
+                default:
+                    break;
             }
 
             switch (writerSchema.Tag)
@@ -179,6 +189,18 @@ namespace SolTechnology.Avro.Read
             int position = d.ReadEnum();
 
             return position;
+        }
+
+        protected virtual object ResolveDateTime(IReader d)
+        {
+            var dateTime = d.ReadLong();
+            DateTime unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+            var result = new DateTime();
+            result = result.AddTicks(unixEpoch.Ticks);
+            result = result.AddSeconds(dateTime);
+
+            return result;
         }
 
 

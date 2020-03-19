@@ -184,6 +184,11 @@ namespace SolTechnology.Avro.Read
 
         protected virtual object ResolveArray(Schema.Schema writerSchema, Schema.Schema readerSchema, IReader d, Type type, long itemsCount = 0)
         {
+            if (type.IsDictionary())
+            {
+                return ResolveDictionary((RecordSchema)writerSchema, (RecordSchema)readerSchema, d, type);
+            }
+
             var containingType = type.GetEnumeratedType();
             var containingTypeArray = containingType.MakeArrayType();
             var resultType = typeof(List<>).MakeGenericType(containingType);
@@ -196,7 +201,7 @@ namespace SolTechnology.Avro.Read
                 {
                     for (int j = 0; j < n; j++, i++)
                     {
-                        dynamic y = (Resolve(writerSchema, readerSchema, d, containingType));
+                        dynamic y = Resolve(writerSchema, readerSchema, d, containingType);
                         result.Add(y);
                     }
                 }
@@ -205,7 +210,7 @@ namespace SolTechnology.Avro.Read
             {
                 for (int k = 0; k < itemsCount; k++)
                 {
-                    result.Add((Resolve(writerSchema, readerSchema, d, containingType)));
+                    result.Add(Resolve(writerSchema, readerSchema, d, containingType));
                 }
             }
 
@@ -216,37 +221,56 @@ namespace SolTechnology.Avro.Read
                 return resultArray;
             }
 
+            if (type.IsList())
+            {
+                return result;
+            }
+
+            var hashSetType = typeof(HashSet<>).MakeGenericType(containingType);
+            if (type == hashSetType)
+            {
+                dynamic resultHashSet = Activator.CreateInstance(hashSetType);
+                foreach (dynamic item in result)
+                {
+                    resultHashSet.Add(item);
+                }
+
+                return resultHashSet;
+            }
+
             return result;
         }
 
-        protected object ResolveDictionaryFromArray(object[] array)
+        protected object ResolveDictionary(RecordSchema writerSchema, RecordSchema readerSchema, IReader d, Type type)
         {
-            //HACK for reading c# dictionaries, which are not avro maps
+            var containingTypes = type.GetGenericArguments();
+            dynamic resultDictionary = Activator.CreateInstance(type);
 
-            Dictionary<object, object> resultDictionary = new Dictionary<object, object>();
-            foreach (Dictionary<string, object> keyValue in array)
+            for (int n = (int)d.ReadArrayStart(); n != 0; n = (int)d.ReadArrayNext())
             {
-                if (!keyValue.ContainsKey("Key") || !keyValue.ContainsKey("Value"))
+                for (int j = 0; j < n; j++)
                 {
-                    return array;
+                    dynamic key = Resolve(writerSchema.GetField("Key").Schema, readerSchema.GetField("Key").Schema, d, containingTypes[0]);
+                    dynamic value = Resolve(writerSchema.GetField("Value").Schema, readerSchema.GetField("Value").Schema, d, containingTypes[1]);
+                    resultDictionary.Add(key, value);
                 }
-
-                resultDictionary.Add(keyValue["Key"], keyValue["Value"]);
             }
-
             return resultDictionary;
         }
 
         protected virtual object ResolveMap(MapSchema writerSchema, Schema.Schema readerSchema, IReader d, Type type)
         {
+            var containingTypes = type.GetGenericArguments();
+            dynamic result = Activator.CreateInstance(type);
+
             MapSchema rs = (MapSchema)readerSchema;
-            Dictionary<string, object> result = new Dictionary<string, object>();
             for (int n = (int)d.ReadMapStart(); n != 0; n = (int)d.ReadMapNext())
             {
                 for (int j = 0; j < n; j++)
                 {
                     string k = d.ReadString();
-                    result.Add(k, Resolve(writerSchema.ValueSchema, rs.ValueSchema, d, type));
+                    dynamic value = Resolve(writerSchema.ValueSchema, rs.ValueSchema, d, containingTypes[1]);
+                    result.Add(k, value);
                 }
             }
 

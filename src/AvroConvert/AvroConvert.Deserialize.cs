@@ -49,7 +49,7 @@ namespace SolTechnology.Avro
                 //                GenerateSchema(typeof(T), true)
                 //                );
 
-                var schema = DUPA.Schema.Schema.Parse(GenerateSchema(typeof(T), true));
+                var schema = DUPA.Schema.Schema.Parse(GenerateSchema(typeof(T)));
 
                 var decoder = new BinaryDecoder(ms);
 

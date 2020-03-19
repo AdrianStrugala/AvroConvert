@@ -39,7 +39,7 @@ namespace SolTechnology.Avro
             {
                 var reader = Decoder.OpenReader(
                     new MemoryStream(avroBytes),
-                    GenerateSchema(typeof(T), true)
+                    GenerateSchema(typeof(T))
                     );
 
 //                var schema = DUPA.Schema.Schema.Parse(GenerateSchema(typeof(T), true));

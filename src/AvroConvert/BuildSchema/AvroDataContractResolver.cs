@@ -38,7 +38,6 @@ namespace SolTechnology.Avro.BuildSchema
     internal class AvroDataContractResolver : AvroContractResolver
     {
 
-        private readonly bool _usePropertyNameAsAlias;
         private readonly bool _allowNullable;
         private readonly bool _useAlphabeticalOrder;
         private readonly bool _includeOnlyDataContractMembers;
@@ -50,9 +49,8 @@ namespace SolTechnology.Avro.BuildSchema
         /// <param name="allowNullable">If set to <c>true</c>, null values are allowed.</param>
         /// <param name="useAlphabeticalOrder">If set to <c>true</c> use alphabetical data member order during serialization/deserialization.</param>
         /// <param name="includeOnlyDataContractMembers">If set to <c>true</c> members without DataMemberAttribute won't be taken into consideration in serialization/deserialization.</param>
-        internal AvroDataContractResolver(bool usePropertyNameAsAlias, bool allowNullable = false, bool useAlphabeticalOrder = false, bool includeOnlyDataContractMembers = false)
+        internal AvroDataContractResolver(bool allowNullable = false, bool useAlphabeticalOrder = false, bool includeOnlyDataContractMembers = false)
         {
-            _usePropertyNameAsAlias = usePropertyNameAsAlias;
             _allowNullable = allowNullable;
             _useAlphabeticalOrder = useAlphabeticalOrder;
             _includeOnlyDataContractMembers = includeOnlyDataContractMembers;
@@ -158,8 +156,7 @@ namespace SolTechnology.Avro.BuildSchema
                 {
                     Name = p.Name,
                     MemberInfo = p,
-                    Nullable = false,
-                    Aliases = _usePropertyNameAsAlias ? new List<string> { p.Name } : new List<string>()
+                    Nullable = false
                 }).ToArray();
             }
 
@@ -193,7 +190,7 @@ namespace SolTechnology.Avro.BuildSchema
                 Name = m.Attribute?.Name ?? m.Member.Name,
                 MemberInfo = m.Member,
                 Nullable = m.Nullable,
-                Aliases = _usePropertyNameAsAlias ? new List<string> { m.Member.Name } : new List<string>(),
+                Aliases = m.Attribute?.Name != null ? new List<string> { m.Member.Name } : new List<string>(),
                 HasDefaultValue = m.HasDefaultValue,
                 DefaultValue = m.DefaultValue,
             });

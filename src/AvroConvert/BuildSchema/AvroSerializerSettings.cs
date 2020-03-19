@@ -29,11 +29,11 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         ///     Initializes a new instance of the <see cref="AvroSerializerSettings" /> class.
         /// </summary>
-        internal AvroSerializerSettings(bool usePropertyNameAsAlias, bool includeOnlyDataContractMembers)
+        internal AvroSerializerSettings( bool includeOnlyDataContractMembers)
         {
             this.GenerateDeserializer = true;
             this.GenerateSerializer = true;
-            this.Resolver = new AvroDataContractResolver(usePropertyNameAsAlias, includeOnlyDataContractMembers: includeOnlyDataContractMembers);
+            this.Resolver = new AvroDataContractResolver(includeOnlyDataContractMembers: includeOnlyDataContractMembers);
             this.MaxItemsInSchemaTree = 1024;
             this.UsePosixTime = false;
             this.KnownTypes = new List<Type>();

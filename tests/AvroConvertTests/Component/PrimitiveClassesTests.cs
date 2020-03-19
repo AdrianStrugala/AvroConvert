@@ -14,7 +14,7 @@ namespace AvroConvertTests.Component
         }
 
         [Fact]
-        public void Serialize_ThenDeserialize_ObjectsAreEqual()
+        public void Serialize_Object_ResultIsTheSameAsInput()
         {
             //Arrange
             User user = new User();

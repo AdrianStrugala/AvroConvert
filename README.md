@@ -144,6 +144,9 @@ string schemaInJsonFormat = AvroConvert.GenerateSchema(typeof(AttributeClass));
 string schemaInJsonFormat = AvroConvert.GetSchema(byte[] avroObject)
 ```
 
+## License  
+
+AvroConvert is licensed under [Attribution-NonCommercial-ShareAlike 3.0 Unported (CC BY-NC-SA 3.0)](https://creativecommons.org/licenses/by-nc-sa/3.0/) - see [License](LICENSE.md) for details. For commercial purposes purchase AvroConvert on website - [Xabe](https://xabe.net/product/avroconvert/)
 
 
 ## Contribution

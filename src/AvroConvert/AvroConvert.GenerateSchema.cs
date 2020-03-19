@@ -22,9 +22,9 @@ namespace SolTechnology.Avro
 {
     public static partial class AvroConvert
     {
-        public static string GenerateSchema(Type type, bool usePropertyNameAsAlias = false, bool includeOnlyDataContractMembers = false)
+        public static string GenerateSchema(Type type, bool includeOnlyDataContractMembers = false)
         {
-            var reader = new ReflectionSchemaBuilder(new AvroSerializerSettings(usePropertyNameAsAlias, includeOnlyDataContractMembers)).BuildSchema(type);
+            var reader = new ReflectionSchemaBuilder(new AvroSerializerSettings(includeOnlyDataContractMembers)).BuildSchema(type);
 
             return reader.ToString();
         }

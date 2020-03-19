@@ -54,7 +54,7 @@ namespace SolTechnology.Avro
                 //                GenerateSchema(typeof(T), true)
                 //                );
 
-                var schema = V2.Schema.Schema.Parse(GenerateSchema(typeof(T), true));
+                var schema = V2.Schema.Schema.Parse(GenerateSchema(typeof(T)));
 
                 var decoder = new BinaryDecoder(ms);
 

@@ -29,7 +29,7 @@ namespace SolTechnology.Avro
         {
             MemoryStream resultStream = new MemoryStream();
 
-            string schema = GenerateSchema(obj.GetType(), false);
+            string schema = GenerateSchema(obj.GetType());
             var dchema = V2.Schema.Schema.Parse(schema);
 
             //            using (var writer = new Encoder(Schema.Schema.Parse(schema), resultStream, codecType))

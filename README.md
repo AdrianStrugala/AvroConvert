@@ -1,6 +1,6 @@
 
-[![Nuget](https://img.shields.io/badge/Nuget-v2.2.2-blue?logo=nuget)](https://www.nuget.org/packages/AvroConvert)
-[![Github](https://img.shields.io/badge/Downloads-5k-blue?logo=github)](https://github.com/AdrianStrugala/AvroConvert)
+[![Nuget](https://img.shields.io/badge/Nuget-v2.3.0-blue?logo=nuget)](https://www.nuget.org/packages/AvroConvert)
+[![Github](https://img.shields.io/badge/Downloads-6k-blue?logo=github)](https://github.com/AdrianStrugala/AvroConvert)
 
 # AvroConvert
 

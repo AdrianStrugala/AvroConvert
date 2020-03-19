@@ -9,7 +9,10 @@
     <Version>2.3.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Description>Apache Avro serializer for .NET.</Description>
-    <PackageLicenseExpression>CC-BY-NC-SA-3.0</PackageLicenseExpression>
+	<PackageLicenseUrl>https://creativecommons.org/licenses/by-nc-sa/3.0/</PackageLicenseUrl>
+    <PackageProjectUrl>https://xabe.net/product/avroconvert/</PackageProjectUrl>
+    <RepositoryType>Dependency</RepositoryType>
+    <PackageTags>avro serialization deserialization standard apache core microservice big data bigdata apache.avro</PackageTags>
     <ApplicationIcon />
     <StartupObject />
     <Product>AvroConvert</Product>

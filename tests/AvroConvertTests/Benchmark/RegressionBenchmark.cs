@@ -12,8 +12,8 @@ namespace AvroConvertTests.Benchmark
 {
     public class RegressionBenchmark
     {
-       
-        public void Compression_CompareSizesAndTime_NoteResults()
+        [Fact]
+        public void Regression_CompareSizesAndTime_NoteResults()
         {
             //Arrange
             var fixture = new Fixture();
@@ -36,6 +36,9 @@ namespace AvroConvertTests.Benchmark
             mean.Size = benchmarkResults.Sum(r => r.Size) / noOfRuns;
             mean.Size2 = benchmarkResults.Sum(r => r.Size2) / noOfRuns;
 
+            mean.DeserializeTime3 = benchmarkResults.Sum(r => r.DeserializeTime3) / noOfRuns;
+            mean.SerializeTime3 = benchmarkResults.Sum(r => r.SerializeTime3) / noOfRuns;
+
 
             File.WriteAllText("regression.json", ConstructLog(mean));
         }
@@ -47,22 +50,32 @@ namespace AvroConvertTests.Benchmark
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            //Serialize
+            //Serialize Apache.Avro
             var avro = AvroConvert.SerializeOrig(datasets, codec);
             result.SerializeTime = stopwatch.ElapsedMilliseconds;
             stopwatch.Restart();
 
-            //Deserialize
+            //Deserialize Apache.Avro
             AvroConvert.DeserializeOrig<List<Dataset>>(avro);
             result.DeserializeTime = stopwatch.ElapsedMilliseconds;
             stopwatch.Restart();
 
-            //Serialize
+            //Serialize AvroConvert 2.2.2
+            var avro3 = AvroConvert.Serialize1(datasets, codec);
+            result.SerializeTime3 = stopwatch.ElapsedMilliseconds;
+            stopwatch.Restart();
+
+            //Deserialize AvroConvert 2.2.2
+            AvroConvert.Deserialize1<List<Dataset>>(avro3);
+            result.DeserializeTime3 = stopwatch.ElapsedMilliseconds;
+            stopwatch.Restart();
+
+            //Serialize AvroConvert 2.4.0
             var avro2 = AvroConvert.SerializeV4(datasets);
             result.SerializeTime2 = stopwatch.ElapsedMilliseconds;
             stopwatch.Restart();
 
-            //Deserialize
+            //Deserialize AvroConvert 2.4.0
             AvroConvert.DeserializeV4<List<Dataset>>(avro2);
             result.DeserializeTime2 = stopwatch.ElapsedMilliseconds;
             stopwatch.Stop();
@@ -76,7 +89,10 @@ namespace AvroConvertTests.Benchmark
 
         private string ConstructLog(BenchmarkResult result)
         {
-            return $"ORIG: Serialize: {result.SerializeTime} ms {result.Size / 1024} kB; Deserialize: {result.DeserializeTime} ms  NEW Serialize: {result.SerializeTime2} ms Size: {result.Size2 / 1024} kB; ms Deserialize: {result.DeserializeTime2} ms \n ";
+            return $@"
+Apache.Avro: Serialize: {result.SerializeTime} ms {result.Size / 1024} kB; Deserialize: {result.DeserializeTime} ms
+AvroConvert 2.2.2 Serialize: {result.SerializeTime3} ms Size: {result.Size2 / 1024} kB; ms Deserialize: {result.DeserializeTime3} ms
+AvroConvert 2.4.0 Serialize: {result.SerializeTime2} ms Size: {result.Size2 / 1024} kB; ms Deserialize: {result.DeserializeTime2} ms \n ";
         }
     }
 }

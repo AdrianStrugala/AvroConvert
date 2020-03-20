@@ -11,5 +11,8 @@
 
         public long SerializeTime2 { get; set; }
         public long DeserializeTime2 { get; set; }
+
+        public long SerializeTime3 { get; set; }
+        public long DeserializeTime3 { get; set; }
     }
 }

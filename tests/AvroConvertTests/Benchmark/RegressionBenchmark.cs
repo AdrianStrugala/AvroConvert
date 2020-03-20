@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using AutoFixture;
-using Newtonsoft.Json;
 using SolTechnology.Avro;
 using SolTechnology.Avro.Codec;
 using Xunit;
@@ -12,7 +11,6 @@ namespace AvroConvertTests.Benchmark
 {
     public class RegressionBenchmark
     {
-        [Fact]
         public void Regression_CompareSizesAndTime_NoteResults()
         {
             //Arrange
@@ -25,7 +23,7 @@ namespace AvroConvertTests.Benchmark
             List<BenchmarkResult> benchmarkResults = new List<BenchmarkResult>();
             for (int i = 0; i < noOfRuns; i++)
             {
-                benchmarkResults.Add(RunBenchmark(datasets, CodecType.Null));
+                benchmarkResults.Add(RunBenchmark(datasets, CodecType.GZip));
             }
 
             BenchmarkResult mean = new BenchmarkResult();
@@ -71,12 +69,12 @@ namespace AvroConvertTests.Benchmark
             stopwatch.Restart();
 
             //Serialize AvroConvert 2.4.0
-            var avro2 = AvroConvert.SerializeV4(datasets);
+            var avro2 = AvroConvert.Serialize(datasets, codec);
             result.SerializeTime2 = stopwatch.ElapsedMilliseconds;
             stopwatch.Restart();
 
             //Deserialize AvroConvert 2.4.0
-            AvroConvert.DeserializeV4<List<Dataset>>(avro2);
+            AvroConvert.Deserialize<List<Dataset>>(avro2);
             result.DeserializeTime2 = stopwatch.ElapsedMilliseconds;
             stopwatch.Stop();
 
@@ -90,8 +88,8 @@ namespace AvroConvertTests.Benchmark
         private string ConstructLog(BenchmarkResult result)
         {
             return $@"
-Apache.Avro: Serialize: {result.SerializeTime} ms {result.Size / 1024} kB; Deserialize: {result.DeserializeTime} ms
-AvroConvert 2.2.2 Serialize: {result.SerializeTime3} ms Size: {result.Size2 / 1024} kB; ms Deserialize: {result.DeserializeTime3} ms
+Apache.Avro: Serialize: {result.SerializeTime} ms {result.Size / 1024} kB; Deserialize: {result.DeserializeTime} ms \n 
+AvroConvert 2.2.2 Serialize: {result.SerializeTime3} ms Size: {result.Size2 / 1024} kB; ms Deserialize: {result.DeserializeTime3} ms \n 
 AvroConvert 2.4.0 Serialize: {result.SerializeTime2} ms Size: {result.Size2 / 1024} kB; ms Deserialize: {result.DeserializeTime2} ms \n ";
         }
     }

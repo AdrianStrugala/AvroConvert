@@ -17,21 +17,13 @@
 
 using System;
 using System.IO;
-using AutoMapper;
-using DUPA.File;
-using DUPA.IO;
-using DUPA.Reflect;
-using DUPA.Specific;
-using SolTechnology.Avro.Models;
-using SolTechnology.Avro.Read;
-using SolTechnology.Avro.Read.AutoMapperConverters;
-using Decoder = SolTechnology.Avro.V4.Read.Decoder;
+using SolTechnology.Avro.V4.Read;
 
 namespace SolTechnology.Avro
 {
     public static partial class AvroConvert
     {
-        public static T DeserializeV4<T>(byte[] avroBytes)
+        public static T Deserialize<T>(byte[] avroBytes)
         {
             var reader = Decoder.OpenReader(
                 new MemoryStream(avroBytes),
@@ -39,51 +31,16 @@ namespace SolTechnology.Avro
             );
 
             return reader.Read<T>();
-            //            return Mapper.Map<T>(read);
         }
 
-        public static T DeserializeOrig<T>(byte[] avroBytes)
+        public static dynamic Deserialize(byte[] avroBytes, Type targetType)
         {
+            object result = typeof(AvroConvert)
+                            .GetMethod("Deserialize", new[] { typeof(byte[]) })
+                            ?.MakeGenericMethod(targetType)
+                            .Invoke(null, new object[] { avroBytes });
 
-            using (var ms = new MemoryStream(avroBytes))
-            {
-
-
-                //            CreateReader = (stream, schema) => DataFileReader<T>.OpenReader(stream, schema,
-                //                                                                            (ws, rs) => new SpecificDatumReader<T>(ws, rs)),
-                //            CreateWriter = (stream, schema, codec) =>
-                //                               DataFileWriter<T>.OpenWriter(new SpecificDatumWriter<T>(schema), stream, codec)
-
-
-                //            var reader = Decoder.OpenReader(
-                //                new MemoryStream(avroBytes),
-                //                GenerateSchema(typeof(T), true)
-                //                );
-
-                var schema = DUPA.Schema.Schema.Parse(GenerateSchema(typeof(T)));
-
-                var decoder = new BinaryDecoder(ms);
-
-                //                var reader3 = DataFileReader<T>.OpenReader(ms, schema);
-
-
-                var reader2 = new SpecificDatumReader<T>(schema, schema);
-                var read = reader2.Read(decoder);
-                //                var read = reader3.Next();
-
-                // var read = reader.Read();
-
-                //                var avroReader = new ReflectReader<T>(schema, schema);
-
-                //                using (var stream = new MemoryStream(avroBytes))
-                //                {
-                //                   var deserialized = avroReader.Read(new BinaryDecoder(stream));
-                //
-                //                   return Mapper.Map<T>(deserialized);
-                //                }
-
-                return read;
-            }
+            return result;
         }
     }
 }

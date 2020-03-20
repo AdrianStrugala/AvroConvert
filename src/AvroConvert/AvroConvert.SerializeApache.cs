@@ -16,21 +16,20 @@
 #endregion
 
 using System.IO;
+using DUPA.IO;
+using DUPA.Specific;
 using SolTechnology.Avro.Codec;
-using SolTechnology.Avro.Write;
-using V2.IO;
-using V2.Specific;
 
 namespace SolTechnology.Avro
 {
     public static partial class AvroConvert
     {
-        public static byte[] Serialize(object obj, CodecType codecType = CodecType.Null)
+        public static byte[] SerializeOrig(object obj, CodecType codecType = CodecType.Null)
         {
             MemoryStream resultStream = new MemoryStream();
 
             string schema = GenerateSchema(obj.GetType());
-            var dchema = V2.Schema.Schema.Parse(schema);
+            var dchema = DUPA.Schema.Schema.Parse(schema);
 
             //            using (var writer = new Encoder(Schema.Schema.Parse(schema), resultStream, codecType))
             //            {

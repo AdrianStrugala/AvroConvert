@@ -23,7 +23,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using SolTechnology.Avro.V4.Codec;
+using SolTechnology.Avro.Codec;
 using SolTechnology.Avro.V4.Constants;
 using SolTechnology.Avro.V4.Exceptions;
 using SolTechnology.Avro.V4.Helpers;

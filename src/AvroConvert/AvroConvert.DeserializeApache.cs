@@ -18,25 +18,20 @@
 using System;
 using System.IO;
 using AutoMapper;
+using DUPA.File;
+using DUPA.IO;
+using DUPA.Reflect;
+using DUPA.Specific;
 using SolTechnology.Avro.Models;
+using SolTechnology.Avro.Read;
 using SolTechnology.Avro.Read.AutoMapperConverters;
-using V2.IO;
-using V2.Specific;
+using Decoder = SolTechnology.Avro.V4.Read.Decoder;
 
 namespace SolTechnology.Avro
 {
     public static partial class AvroConvert
     {
-        static AvroConvert()
-        {
-            Mapper.Initialize(cfg =>
-                              {
-                                  cfg.CreateMap<long, DateTime>().ConvertUsing(new DateTimeConverter());
-                                  cfg.CreateMap<Fixed, Guid>().ConvertUsing(new GuidConverter());
-                              });
-        }
-
-        public static T Deserialize<T>(byte[] avroBytes)
+        public static T DeserializeOrig<T>(byte[] avroBytes)
         {
 
             using (var ms = new MemoryStream(avroBytes))
@@ -54,7 +49,7 @@ namespace SolTechnology.Avro
                 //                GenerateSchema(typeof(T), true)
                 //                );
 
-                var schema = V2.Schema.Schema.Parse(GenerateSchema(typeof(T)));
+                var schema = DUPA.Schema.Schema.Parse(GenerateSchema(typeof(T)));
 
                 var decoder = new BinaryDecoder(ms);
 

@@ -1,4 +1,5 @@
-﻿using SolTechnology.Avro;
+﻿using System;
+using SolTechnology.Avro;
 using AutoFixture;
 using Xunit;
 
@@ -172,6 +173,23 @@ namespace AvroConvertTests.Component
             var result = AvroConvert.Serialize(testObject);
 
             var deserialized = AvroConvert.Deserialize<string>(result);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(testObject, deserialized);
+        }
+
+        [Fact]
+        public void Serialize_Uri_ResultIsTheSameAsInput()
+        {
+            //Arrange
+            var testObject = new Uri("https://dreamtravels.azurewebsites.net");
+
+            //Act
+            var result = AvroConvert.Serialize(testObject);
+
+            var deserialized = AvroConvert.Deserialize<Uri>(result);
 
             //Assert
             Assert.NotNull(result);

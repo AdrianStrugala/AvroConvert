@@ -16,20 +16,14 @@
 #endregion
 
 using System.IO;
-using DUPA.File;
-using DUPA.Generic;
-using DUPA.IO;
-using DUPA.Reflect;
-using DUPA.Specific;
 using SolTechnology.Avro.Codec;
-using SolTechnology.Avro.Write;
-using Encoder = SolTechnology.Avro.V4.Write.Encoder;
+using SolTechnology.Avro.V4.Write;
 
 namespace SolTechnology.Avro
 {
     public static partial class AvroConvert
     {
-        public static byte[] SerializeV4(object obj, V4.Codec.CodecType codecType = V4.Codec.CodecType.Null)
+        public static byte[] Serialize(object obj, CodecType codecType = CodecType.Null)
         {
             MemoryStream resultStream = new MemoryStream();
 
@@ -41,40 +35,6 @@ namespace SolTechnology.Avro
 
             var result = resultStream.ToArray();
             return result;
-        }
-
-        public static byte[] SerializeOrig(object obj, CodecType codecType = CodecType.Null)
-        {
-            MemoryStream resultStream = new MemoryStream();
-
-            string schema = GenerateSchema(obj.GetType());
-            var dchema = DUPA.Schema.Schema.Parse(schema);
-
-            //            using (var writer = new Encoder(Schema.Schema.Parse(schema), resultStream, codecType))
-            //            {
-            //                writer.Append(obj);
-            //            }
-            //
-            //            var result = resultStream.ToArray();
-            //            return result;
-            //
-
-            //            using (var x = DataFileWriter.OpenWriter(new GenericWriter(DUPA.Schema.Schema.Parse(schema)), resultStream, DUPA.File.Codec.CreateCodecFromString("Null")))
-            //            {
-            //                x.Append(obj);
-            //            }
-
-            var decoder = new BinaryEncoder(resultStream);
-
-            var x = new SpecificDatumWriter(dchema);
-            x.Write(obj, decoder);
-
-            //            var avroWriter = new ReflectWriter(dchema, null);
-
-            //                avroWriter.Write(obj, new BinaryEncoder(resultStream));
-
-
-            return resultStream.ToArray();
         }
     }
 }

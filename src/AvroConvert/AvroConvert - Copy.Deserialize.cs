@@ -31,7 +31,14 @@ namespace SolTechnology.Avro
 {
     public static partial class AvroConvert
     {
-
+        static AvroConvert()
+        {
+            Mapper.Initialize(cfg =>
+                              {
+                                  cfg.CreateMap<long, DateTime>().ConvertUsing(new DateTimeConverter());
+                                  cfg.CreateMap<Fixed, Guid>().ConvertUsing(new GuidConverter());
+                              });
+        }
         public static T Deserialize1<T>(byte[] avroBytes)
         {
 
@@ -42,15 +49,15 @@ namespace SolTechnology.Avro
                     GenerateSchema(typeof(T))
                     );
 
-//                var schema = DUPA.Schema.Schema.Parse(GenerateSchema(typeof(T), true));
+                //                var schema = DUPA.Schema.Schema.Parse(GenerateSchema(typeof(T), true));
 
-//                var decoder = new BinaryDecoder(ms);
+                //                var decoder = new BinaryDecoder(ms);
 
                 //                var reader3 = DataFileReader<T>.OpenReader(ms, schema);
 
 
-//                var reader2 = new SpecificDatumReader<T>(schema, schema);
-//                var read = reader2.Read(decoder);
+                //                var reader2 = new SpecificDatumReader<T>(schema, schema);
+                //                var read = reader2.Read(decoder);
                 //                var read = reader3.Next();
 
                 var read = reader.Read();
@@ -68,14 +75,6 @@ namespace SolTechnology.Avro
             }
         }
 
-        public static dynamic Deserialize(byte[] avroBytes, Type targetType)
-        {
-            object result = typeof(AvroConvert)
-                            .GetMethod("Deserialize", new[] { typeof(byte[]) })
-                            ?.MakeGenericMethod(targetType)
-                            .Invoke(null, new object[] { avroBytes });
 
-            return result;
-        }
     }
 }

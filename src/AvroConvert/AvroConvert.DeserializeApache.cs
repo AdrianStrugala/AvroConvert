@@ -24,7 +24,6 @@ using DUPA.Reflect;
 using DUPA.Specific;
 using SolTechnology.Avro.Models;
 using SolTechnology.Avro.Read;
-using SolTechnology.Avro.Read.AutoMapperConverters;
 using Decoder = SolTechnology.Avro.V4.Read.Decoder;
 
 namespace SolTechnology.Avro

@@ -24,8 +24,7 @@ using DUPA.Reflect;
 using DUPA.Specific;
 using SolTechnology.Avro.Models;
 using SolTechnology.Avro.Read;
-using SolTechnology.Avro.Read.AutoMapperConverters;
-using Decoder = SolTechnology.Avro.Read.Decoder;
+using SolTechnology.Avro.V4.Read.AutoMapperConverters;
 
 namespace SolTechnology.Avro
 {
@@ -44,7 +43,7 @@ namespace SolTechnology.Avro
 
             using (var ms = new MemoryStream(avroBytes))
             {
-                var reader = Decoder.OpenReader(
+                var reader = Avro.V4.Read.Decoder.OpenReader(
                     new MemoryStream(avroBytes),
                     GenerateSchema(typeof(T))
                     );

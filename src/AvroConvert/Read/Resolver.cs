@@ -61,19 +61,22 @@ namespace SolTechnology.Avro.Read
             }
 
             //Types not supported by Avro schema
-            switch (type)
+            switch (type.Name.ToLowerInvariant())
             {
-                case var _ when type == typeof(decimal):
+                case "decimal":
                     return decimal.Parse(d.ReadString());
 
-                case var _ when type == typeof(Guid):
+                case "guid":
                     return new Guid(ResolveFixed((FixedSchema)writerSchema, readerSchema, d));
 
-                case var _ when type == typeof(DateTimeOffset):
+                case "datetimeoffset":
                     return DateTimeOffset.Parse(d.ReadString());
 
-                case var _ when type == typeof(DateTime):
+                case "datetime":
                     return ResolveDateTime(d);
+
+                case "uri":
+                    return new Uri(d.ReadString());
 
                 default:
                     break;
@@ -134,7 +137,7 @@ namespace SolTechnology.Avro.Read
                 case Schema.Schema.Type.Record:
                     return ResolveRecord((RecordSchema)writerSchema, (RecordSchema)readerSchema, d, type);
                 case Schema.Schema.Type.Enumeration:
-                    return ResolveEnum((EnumSchema)writerSchema, readerSchema, d);
+                    return ResolveEnum((EnumSchema)writerSchema, readerSchema, d, type);
                 case Schema.Schema.Type.Fixed:
                     return ResolveFixed((FixedSchema)writerSchema, readerSchema, d);
                 case Schema.Schema.Type.Array:
@@ -184,11 +187,11 @@ namespace SolTechnology.Avro.Read
         }
 
 
-        protected virtual object ResolveEnum(EnumSchema writerSchema, Schema.Schema readerSchema, IReader d)
+        protected virtual object ResolveEnum(EnumSchema writerSchema, Schema.Schema readerSchema, IReader d, Type type)
         {
             int position = d.ReadEnum();
-
-            return position;
+            string value = writerSchema.Symbols[position];
+            return Enum.Parse(type, value);
         }
 
         protected virtual object ResolveDateTime(IReader d)
@@ -285,14 +288,16 @@ namespace SolTechnology.Avro.Read
             var containingTypes = type.GetGenericArguments();
             dynamic result = Activator.CreateInstance(type);
 
+            Schema.Schema stringSchema = PrimitiveSchema.NewInstance("string");
+
             MapSchema rs = (MapSchema)readerSchema;
             for (int n = (int)d.ReadMapStart(); n != 0; n = (int)d.ReadMapNext())
             {
                 for (int j = 0; j < n; j++)
                 {
-                    string k = d.ReadString();
+                    dynamic key = Resolve(stringSchema, stringSchema, d, containingTypes[0]);
                     dynamic value = Resolve(writerSchema.ValueSchema, rs.ValueSchema, d, containingTypes[1]);
-                    result.Add(k, value);
+                    result.Add(key, value);
                 }
             }
 

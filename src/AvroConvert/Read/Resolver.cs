@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -261,6 +262,18 @@ namespace SolTechnology.Avro.Read
                 }
 
                 return resultHashSet;
+            }
+
+            var concurrentBagType = typeof(ConcurrentBag<>).MakeGenericType(containingType);
+            if (type == concurrentBagType)
+            {
+                dynamic resultConcurrentBag = Activator.CreateInstance(concurrentBagType);
+                foreach (dynamic item in result)
+                {
+                    resultConcurrentBag.Add(item);
+                }
+
+                return resultConcurrentBag;
             }
 
             return result;

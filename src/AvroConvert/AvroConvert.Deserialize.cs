@@ -17,7 +17,7 @@
 
 using System;
 using System.IO;
-using SolTechnology.Avro.V4.Read;
+using SolTechnology.Avro.Read;
 
 namespace SolTechnology.Avro
 {

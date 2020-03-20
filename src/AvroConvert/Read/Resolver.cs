@@ -17,8 +17,12 @@
 
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using SolTechnology.Avro.Exceptions;
+using SolTechnology.Avro.Extensions;
 using SolTechnology.Avro.Models;
 using SolTechnology.Avro.Schema;
 using SolTechnology.Avro.Skip;
@@ -39,22 +43,44 @@ namespace SolTechnology.Avro.Read
             _skipper = new Skipper();
         }
 
-        internal object Resolve(IReader reader, long itemsCount = 1)
+        internal T Resolve<T>(IReader reader, long itemsCount = 1)
         {
             if (itemsCount > 1)
             {
-                return ResolveArray(_writerSchema, ((ArraySchema)_readerSchema).ItemSchema, reader, itemsCount);
+                return (T)ResolveArray(_writerSchema, ((ArraySchema)_readerSchema).ItemSchema, reader, typeof(T), itemsCount);
             }
 
-            var result = Resolve(_writerSchema, _readerSchema, reader);
-            return result;
+            var result = Resolve(_writerSchema, _readerSchema, reader, typeof(T));
+            return (T)result;
         }
 
-        internal object Resolve(Schema.Schema writerSchema, Schema.Schema readerSchema, IReader d)
+        internal object Resolve(Schema.Schema writerSchema, Schema.Schema readerSchema, IReader d, Type type)
         {
             if (readerSchema.Tag == Schema.Schema.Type.Union && writerSchema.Tag != Schema.Schema.Type.Union)
             {
                 readerSchema = FindBranch(readerSchema as UnionSchema, writerSchema);
+            }
+
+            //Types not supported by Avro schema
+            switch (type.Name.ToLowerInvariant())
+            {
+                case "decimal":
+                    return decimal.Parse(d.ReadString());
+
+                case "guid":
+                    return new Guid(ResolveFixed((FixedSchema)writerSchema, readerSchema, d));
+
+                case "datetimeoffset":
+                    return DateTimeOffset.Parse(d.ReadString());
+
+                case "datetime":
+                    return ResolveDateTime(d);
+
+                case "uri":
+                    return new Uri(d.ReadString());
+
+                default:
+                    break;
             }
 
             switch (writerSchema.Tag)
@@ -110,38 +136,49 @@ namespace SolTechnology.Avro.Read
                     return d.ReadBytes();
                 case Schema.Schema.Type.Error:
                 case Schema.Schema.Type.Record:
-                    return ResolveRecord((RecordSchema)writerSchema, (RecordSchema)readerSchema, d);
+                    return ResolveRecord((RecordSchema)writerSchema, (RecordSchema)readerSchema, d, type);
                 case Schema.Schema.Type.Enumeration:
-                    return ResolveEnum((EnumSchema)writerSchema, readerSchema, d);
+                    return ResolveEnum((EnumSchema)writerSchema, readerSchema, d, type);
                 case Schema.Schema.Type.Fixed:
                     return ResolveFixed((FixedSchema)writerSchema, readerSchema, d);
                 case Schema.Schema.Type.Array:
                     return ResolveArray(
-                        ((ArraySchema)writerSchema).ItemSchema,
-                        ((ArraySchema)readerSchema).ItemSchema,
-                        d);
+                    ((ArraySchema)writerSchema).ItemSchema,
+                    ((ArraySchema)readerSchema).ItemSchema,
+                    d, type);
                 case Schema.Schema.Type.Map:
-                    return ResolveMap((MapSchema)writerSchema, readerSchema, d);
+                    return ResolveMap((MapSchema)writerSchema, readerSchema, d, type);
                 case Schema.Schema.Type.Union:
-                    return ResolveUnion((UnionSchema)writerSchema, readerSchema, d);
+                    return ResolveUnion((UnionSchema)writerSchema, readerSchema, d, type);
                 default:
                     throw new AvroException("Unknown schema type: " + writerSchema);
             }
         }
 
-        protected virtual IDictionary<string, object> ResolveRecord(RecordSchema writerSchema, RecordSchema readerSchema, IReader dec)
+        protected virtual object ResolveRecord(RecordSchema writerSchema, RecordSchema readerSchema, IReader dec, Type type)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            object result = Activator.CreateInstance(type);
 
             foreach (Field wf in writerSchema)
             {
                 if (readerSchema.Contains(wf.Name))
                 {
                     Field rf = readerSchema.GetField(wf.Name);
-                    object value = Resolve(wf.Schema, rf.Schema, dec) ?? wf.DefaultValue?.ToObject(typeof(object));
-
                     string name = rf.aliases?[0] ?? wf.Name;
-                    result[name] = value;
+
+                    PropertyInfo propertyInfo = result.GetType().GetProperty(name);
+                    if (propertyInfo != null)
+                    {
+                        object value = Resolve(wf.Schema, rf.Schema, dec, propertyInfo.PropertyType) ?? wf.DefaultValue?.ToObject(typeof(object));
+                        propertyInfo.SetValue(result, value, null);
+                    }
+
+                    FieldInfo fieldInfo = result.GetType().GetField(name);
+                    if (fieldInfo != null)
+                    {
+                        object value = Resolve(wf.Schema, rf.Schema, dec, fieldInfo.FieldType) ?? wf.DefaultValue?.ToObject(typeof(object));
+                        fieldInfo.SetValue(result, value);
+                    }
                 }
                 else
                     _skipper.Skip(wf.Schema, dec);
@@ -151,30 +188,47 @@ namespace SolTechnology.Avro.Read
         }
 
 
-        protected virtual object ResolveEnum(EnumSchema writerSchema, Schema.Schema readerSchema, IReader d)
+        protected virtual object ResolveEnum(EnumSchema writerSchema, Schema.Schema readerSchema, IReader d, Type type)
         {
             int position = d.ReadEnum();
+            string value = writerSchema.Symbols[position];
+            return Enum.Parse(type, value);
+        }
 
-            return position;
+        protected virtual object ResolveDateTime(IReader d)
+        {
+            var dateTime = d.ReadLong();
+            DateTime unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+            var result = new DateTime();
+            result = result.AddTicks(unixEpoch.Ticks);
+            result = result.AddSeconds(dateTime);
+
+            return result;
         }
 
 
-        protected virtual object ResolveArray(Schema.Schema writerSchema, Schema.Schema readerSchema, IReader d, long itemsCount = 0)
+        protected virtual object ResolveArray(Schema.Schema writerSchema, Schema.Schema readerSchema, IReader d, Type type, long itemsCount = 0)
         {
-            object[] result = new object[itemsCount];
+            if (type.IsDictionary())
+            {
+                return ResolveDictionary((RecordSchema)writerSchema, (RecordSchema)readerSchema, d, type);
+            }
+
+            var containingType = type.GetEnumeratedType();
+            var containingTypeArray = containingType.MakeArrayType();
+            var resultType = typeof(List<>).MakeGenericType(containingType);
+            var result = (IList)Activator.CreateInstance(resultType);
+
             int i = 0;
             if (itemsCount == 0)
             {
                 for (int n = (int)d.ReadArrayStart(); n != 0; n = (int)d.ReadArrayNext())
                 {
-                    if (result.Length < i + n)
-                    {
-                        Array.Resize(ref result, i + n);
-                    }
-
                     for (int j = 0; j < n; j++, i++)
                     {
-                        result[i] = Resolve(writerSchema, readerSchema, d);
+                        dynamic y = Resolve(writerSchema, readerSchema, d, containingType);
+                        result.Add(y);
                     }
                 }
             }
@@ -182,53 +236,88 @@ namespace SolTechnology.Avro.Read
             {
                 for (int k = 0; k < itemsCount; k++)
                 {
-                    result[k] = Resolve(writerSchema, readerSchema, d);
+                    result.Add(Resolve(writerSchema, readerSchema, d, containingType));
                 }
             }
 
-            if ((result.Length > 0) && result[0] is IDictionary)
+            if (type.IsArray)
             {
-                return ResolveDictionaryFromArray(result);
+                dynamic resultArray = Activator.CreateInstance(containingTypeArray, new object[] { result.Count });
+                result.CopyTo(resultArray, 0);
+                return resultArray;
+            }
+
+            if (type.IsList())
+            {
+                return result;
+            }
+
+            var hashSetType = typeof(HashSet<>).MakeGenericType(containingType);
+            if (type == hashSetType)
+            {
+                dynamic resultHashSet = Activator.CreateInstance(hashSetType);
+                foreach (dynamic item in result)
+                {
+                    resultHashSet.Add(item);
+                }
+
+                return resultHashSet;
+            }
+
+            var concurrentBagType = typeof(ConcurrentBag<>).MakeGenericType(containingType);
+            if (type == concurrentBagType)
+            {
+                dynamic resultConcurrentBag = Activator.CreateInstance(concurrentBagType);
+                foreach (dynamic item in result)
+                {
+                    resultConcurrentBag.Add(item);
+                }
+
+                return resultConcurrentBag;
             }
 
             return result;
         }
 
-        protected object ResolveDictionaryFromArray(object[] array)
+        protected object ResolveDictionary(RecordSchema writerSchema, RecordSchema readerSchema, IReader d, Type type)
         {
-            //HACK for reading c# dictionaries, which are not avro maps
+            var containingTypes = type.GetGenericArguments();
+            dynamic resultDictionary = Activator.CreateInstance(type);
 
-            Dictionary<object, object> resultDictionary = new Dictionary<object, object>();
-            foreach (Dictionary<string, object> keyValue in array)
+            for (int n = (int)d.ReadArrayStart(); n != 0; n = (int)d.ReadArrayNext())
             {
-                if (!keyValue.ContainsKey("Key") || !keyValue.ContainsKey("Value"))
+                for (int j = 0; j < n; j++)
                 {
-                    return array;
+                    dynamic key = Resolve(writerSchema.GetField("Key").Schema, readerSchema.GetField("Key").Schema, d, containingTypes[0]);
+                    dynamic value = Resolve(writerSchema.GetField("Value").Schema, readerSchema.GetField("Value").Schema, d, containingTypes[1]);
+                    resultDictionary.Add(key, value);
                 }
-
-                resultDictionary.Add(keyValue["Key"], keyValue["Value"]);
             }
-
             return resultDictionary;
         }
 
-        protected virtual object ResolveMap(MapSchema writerSchema, Schema.Schema readerSchema, IReader d)
+        protected virtual object ResolveMap(MapSchema writerSchema, Schema.Schema readerSchema, IReader d, Type type)
         {
+            var containingTypes = type.GetGenericArguments();
+            dynamic result = Activator.CreateInstance(type);
+
+            Schema.Schema stringSchema = PrimitiveSchema.NewInstance("string");
+
             MapSchema rs = (MapSchema)readerSchema;
-            Dictionary<string, object> result = new Dictionary<string, object>();
             for (int n = (int)d.ReadMapStart(); n != 0; n = (int)d.ReadMapNext())
             {
                 for (int j = 0; j < n; j++)
                 {
-                    string k = d.ReadString();
-                    result.Add(k, Resolve(writerSchema.ValueSchema, rs.ValueSchema, d));
+                    dynamic key = Resolve(stringSchema, stringSchema, d, containingTypes[0]);
+                    dynamic value = Resolve(writerSchema.ValueSchema, rs.ValueSchema, d, containingTypes[1]);
+                    result.Add(key, value);
                 }
             }
 
             return result;
         }
 
-        protected virtual object ResolveUnion(UnionSchema writerSchema, Schema.Schema readerSchema, IReader d)
+        protected virtual object ResolveUnion(UnionSchema writerSchema, Schema.Schema readerSchema, IReader d, Type type)
         {
             int index = d.ReadUnionIndex();
             Schema.Schema ws = writerSchema[index];
@@ -239,10 +328,10 @@ namespace SolTechnology.Avro.Read
             if (!readerSchema.CanRead(ws))
                 throw new AvroException("Schema mismatch. Reader: " + _readerSchema + ", writer: " + _writerSchema);
 
-            return Resolve(ws, readerSchema, d);
+            return Resolve(ws, readerSchema, d, type);
         }
 
-        protected virtual object ResolveFixed(FixedSchema writerSchema, Schema.Schema readerSchema, IReader d)
+        protected virtual byte[] ResolveFixed(FixedSchema writerSchema, Schema.Schema readerSchema, IReader d)
         {
             FixedSchema rs = (FixedSchema)readerSchema;
             if (rs.Size != writerSchema.Size)
@@ -251,10 +340,10 @@ namespace SolTechnology.Avro.Read
                                         ", reader: " + readerSchema);
             }
 
-            object ru = new Fixed(rs);
+            Fixed ru = new Fixed(rs);
             byte[] bb = ((Fixed)ru).Value;
             d.ReadFixed(bb);
-            return ru;
+            return ru.Value;
         }
 
         protected static Schema.Schema FindBranch(UnionSchema us, Schema.Schema s)

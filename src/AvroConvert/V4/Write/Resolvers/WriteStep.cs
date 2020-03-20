@@ -20,7 +20,7 @@
 /** Modifications copyright(C) 2020 Adrian Strugała **/
 #endregion
 
-using SolTechnology.Avro.V4.Schema;
+using SolTechnology.Avro.Schema;
 
 namespace SolTechnology.Avro.V4.Write.Resolvers
 {

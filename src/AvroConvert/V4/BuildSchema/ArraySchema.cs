@@ -86,6 +86,6 @@ namespace SolTechnology.Avro.V4.BuildSchema
         /// <summary>
         /// Gets the type of the schema as string.
         /// </summary>
-        internal override global::SolTechnology.Avro.V4.Schema.Schema.Type Type => global::SolTechnology.Avro.V4.Schema.Schema.Type.Array;
+        internal override global::SolTechnology.Avro.Schema.Schema.Type Type => global::SolTechnology.Avro.Schema.Schema.Type.Array;
     }
 }

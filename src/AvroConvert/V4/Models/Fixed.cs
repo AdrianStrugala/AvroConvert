@@ -22,8 +22,8 @@
 
 using System;
 using System.Linq;
+using SolTechnology.Avro.Schema;
 using SolTechnology.Avro.V4.Exceptions;
-using SolTechnology.Avro.V4.Schema;
 
 namespace SolTechnology.Avro.V4.Models
 {

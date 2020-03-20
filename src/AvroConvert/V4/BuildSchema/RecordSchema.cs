@@ -128,6 +128,6 @@ namespace SolTechnology.Avro.V4.BuildSchema
             writer.WriteEndObject();
         }
 
-        internal override global::SolTechnology.Avro.V4.Schema.Schema.Type Type => global::SolTechnology.Avro.V4.Schema.Schema.Type.Record;
+        internal override global::SolTechnology.Avro.Schema.Schema.Type Type => global::SolTechnology.Avro.Schema.Schema.Type.Record;
     }
 }

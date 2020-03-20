@@ -140,10 +140,10 @@ namespace SolTechnology.Avro.V4.Read
         }
 
 
-        internal T Read<T>()
+        internal object Read()
         {
             long remainingBlocks = GetRemainingBlocksCount();
-            var result = _resolver.Resolve<T>(_datumReader, remainingBlocks);
+            var result = _resolver.Resolve(_datumReader, remainingBlocks);
 
             return result;
         }

@@ -15,7 +15,8 @@
 */
 #endregion
 
-using SolTechnology.Avro.V4.Schema;
+using SolTechnology.Avro.Schema;
+using SolTechnology.Avro.Schema;
 
 namespace SolTechnology.Avro.V4.Write.Resolvers
 {

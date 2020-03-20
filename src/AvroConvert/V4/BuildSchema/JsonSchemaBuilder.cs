@@ -132,22 +132,22 @@ namespace SolTechnology.Avro.V4.BuildSchema
             JToken tokenType = token[Token.Type];
             if (tokenType.Type == JTokenType.String)
             {
-                var type = token.RequiredProperty<global::SolTechnology.Avro.V4.Schema.Schema.Type>(Token.Type);
+                var type = token.RequiredProperty<global::SolTechnology.Avro.Schema.Schema.Type>(Token.Type);
                 if (PrimitiveRuntimeType.ContainsKey(type.ToString()))
                 {
                     return this.ParsePrimitiveTypeFromObject(token);
                 }
                 switch (type)
                 {
-                    case global::SolTechnology.Avro.V4.Schema.Schema.Type.Record:
+                    case global::SolTechnology.Avro.Schema.Schema.Type.Record:
                         return this.ParseRecordType(token, parent, namedSchemas);
-                    case global::SolTechnology.Avro.V4.Schema.Schema.Type.Enumeration:
+                    case global::SolTechnology.Avro.Schema.Schema.Type.Enumeration:
                         return this.ParseEnumType(token, parent, namedSchemas);
-                    case global::SolTechnology.Avro.V4.Schema.Schema.Type.Array:
+                    case global::SolTechnology.Avro.Schema.Schema.Type.Array:
                         return this.ParseArrayType(token, parent, namedSchemas);
-                    case global::SolTechnology.Avro.V4.Schema.Schema.Type.Map:
+                    case global::SolTechnology.Avro.Schema.Schema.Type.Map:
                         return this.ParseMapType(token, parent, namedSchemas);
-                    case global::SolTechnology.Avro.V4.Schema.Schema.Type.Fixed:
+                    case global::SolTechnology.Avro.Schema.Schema.Type.Fixed:
                         return this.ParseFixedType(token, parent);
                     default:
                         throw new SerializationException(
@@ -181,7 +181,7 @@ namespace SolTechnology.Avro.V4.BuildSchema
             foreach (var typeAlternative in unionToken.Children())
             {
                 var schema = this.Parse(typeAlternative, parent, namedSchemas);
-                if (schema.Type == global::SolTechnology.Avro.V4.Schema.Schema.Type.Union)
+                if (schema.Type == global::SolTechnology.Avro.Schema.Schema.Type.Union)
                 {
                     throw new SerializationException(
                         string.Format(CultureInfo.InvariantCulture, "Union schemas cannot be nested:'{0}'.", unionToken));

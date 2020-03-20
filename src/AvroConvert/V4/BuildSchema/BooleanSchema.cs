@@ -35,6 +35,6 @@ namespace SolTechnology.Avro.V4.BuildSchema
         {
         }
 
-        internal override global::SolTechnology.Avro.V4.Schema.Schema.Type Type => global::SolTechnology.Avro.V4.Schema.Schema.Type.Boolean;
+        internal override global::SolTechnology.Avro.Schema.Schema.Type Type => global::SolTechnology.Avro.Schema.Schema.Type.Boolean;
     }
 }

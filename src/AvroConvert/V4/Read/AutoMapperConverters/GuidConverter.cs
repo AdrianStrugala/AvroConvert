@@ -17,7 +17,7 @@
 
 using System;
 using AutoMapper;
-using SolTechnology.Avro.V4.Models;
+using SolTechnology.Avro.Models;
 
 namespace SolTechnology.Avro.V4.Read.AutoMapperConverters
 {

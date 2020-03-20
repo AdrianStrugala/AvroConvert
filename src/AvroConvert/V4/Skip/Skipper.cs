@@ -17,7 +17,7 @@
 
 using SolTechnology.Avro.V4.Exceptions;
 using SolTechnology.Avro.V4.Read;
-using SolTechnology.Avro.V4.Schema;
+using SolTechnology.Avro.Schema;
 
 namespace SolTechnology.Avro.V4.Skip
 {

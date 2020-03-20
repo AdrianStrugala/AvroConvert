@@ -49,27 +49,9 @@ namespace SolTechnology.Avro
                     GenerateSchema(typeof(T))
                     );
 
-                //                var schema = DUPA.Schema.Schema.Parse(GenerateSchema(typeof(T), true));
-
-                //                var decoder = new BinaryDecoder(ms);
-
-                //                var reader3 = DataFileReader<T>.OpenReader(ms, schema);
-
-
-                //                var reader2 = new SpecificDatumReader<T>(schema, schema);
-                //                var read = reader2.Read(decoder);
-                //                var read = reader3.Next();
 
                 var read = reader.Read();
 
-                //                var avroReader = new ReflectReader<T>(schema, schema);
-
-                //                using (var stream = new MemoryStream(avroBytes))
-                //                {
-                //                   var deserialized = avroReader.Read(new BinaryDecoder(stream));
-                //
-                //                   return Mapper.Map<T>(deserialized);
-                //                }
 
                 return Mapper.Map<T>(read);
             }

@@ -55,7 +55,7 @@ namespace SolTechnology.Avro.V4.BuildSchema
             get { return this.valueSchema; }
         }
 
-        internal override global::SolTechnology.Avro.V4.Schema.Schema.Type Type => valueSchema.Type;
+        internal override global::SolTechnology.Avro.Schema.Schema.Type Type => valueSchema.Type;
 
         internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
         {

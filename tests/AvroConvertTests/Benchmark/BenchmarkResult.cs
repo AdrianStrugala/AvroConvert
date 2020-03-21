@@ -14,5 +14,6 @@
 
         public long SerializeTime3 { get; set; }
         public long DeserializeTime3 { get; set; }
+        public int Size3 { get; set; }
     }
 }

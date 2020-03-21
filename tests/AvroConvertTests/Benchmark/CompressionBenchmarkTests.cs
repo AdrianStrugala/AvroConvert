@@ -58,7 +58,7 @@ namespace AvroConvertTests.Benchmark
             Stopwatch stopwatch = Stopwatch.StartNew();
 
             //Serialize
-            var avro = AvroConvert.Serialize1(datasets, codec);
+            var avro = AvroConvert.Serialize(datasets, codec);
             result.SerializeTime = stopwatch.ElapsedMilliseconds;
             stopwatch.Restart();
 

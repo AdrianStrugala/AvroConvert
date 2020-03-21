@@ -37,14 +37,14 @@ namespace SolTechnology.Avro
             return result;
         }
 
-        public static byte[] Serialize(object obj, string schema, CodecType codecType = CodecType.Null)
+        public static byte[] SerializeHeadless(object obj, string schema, CodecType codecType = CodecType.Null)
         {
             MemoryStream resultStream = new MemoryStream();
+            var encoder = new Writer(resultStream);
 
-            using (var writer = new Encoder(Schema.Schema.Parse(schema), resultStream, codecType))
-            {
-                writer.Append(obj);
-            }
+            var writer = Resolver.ResolveWriter(Schema.Schema.Parse(schema));
+            writer(obj, encoder);
+
 
             var result = resultStream.ToArray();
             return result;

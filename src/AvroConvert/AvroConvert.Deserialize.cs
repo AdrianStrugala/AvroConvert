@@ -33,6 +33,17 @@ namespace SolTechnology.Avro
             return reader.Read<T>();
         }
 
+        public static T Deserialize<T>(byte[] avroBytes, string schema)
+        {
+            var reader = Decoder.OpenReader(
+                new MemoryStream(avroBytes),
+                schema
+                );
+
+
+            return reader.Read<T>();
+        }
+
         public static dynamic Deserialize(byte[] avroBytes, Type targetType)
         {
             object result = typeof(AvroConvert)

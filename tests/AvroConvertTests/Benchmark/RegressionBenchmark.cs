@@ -11,19 +11,22 @@ namespace AvroConvertTests.Benchmark
 {
     public class RegressionBenchmark
     {
+        [Fact]
         public void Regression_CompareSizesAndTime_NoteResults()
         {
             //Arrange
             var fixture = new Fixture();
             List<Dataset> datasets = fixture.CreateMany<Dataset>(100000).ToList();
 
-            int noOfRuns = 20;
+            int noOfRuns = 5;
+
+            string schema = AvroConvert.GenerateSchema(typeof(List<Dataset>));
 
             //Act
             List<BenchmarkResult> benchmarkResults = new List<BenchmarkResult>();
             for (int i = 0; i < noOfRuns; i++)
             {
-                benchmarkResults.Add(RunBenchmark(datasets, CodecType.GZip));
+                benchmarkResults.Add(RunBenchmark(datasets, CodecType.Null));
             }
 
             BenchmarkResult mean = new BenchmarkResult();
@@ -88,9 +91,9 @@ namespace AvroConvertTests.Benchmark
         private string ConstructLog(BenchmarkResult result)
         {
             return $@"
-Apache.Avro: Serialize: {result.SerializeTime} ms {result.Size / 1024} kB; Deserialize: {result.DeserializeTime} ms \n 
-AvroConvert 2.2.2 Serialize: {result.SerializeTime3} ms Size: {result.Size2 / 1024} kB; ms Deserialize: {result.DeserializeTime3} ms \n 
-AvroConvert 2.4.0 Serialize: {result.SerializeTime2} ms Size: {result.Size2 / 1024} kB; ms Deserialize: {result.DeserializeTime2} ms \n ";
+Apache.Avro: Serialize: {result.SerializeTime} ms {result.Size / 1024} kB; Deserialize: {result.DeserializeTime} ms
+AvroConvert 2.2.2 Serialize: {result.SerializeTime3} ms Size: {result.Size2 / 1024} kB; ms Deserialize: {result.DeserializeTime3} ms 
+AvroConvert 2.4.0 Serialize: {result.SerializeTime2} ms Size: {result.Size2 / 1024} kB; ms Deserialize: {result.DeserializeTime2} ms ";
         }
     }
 }

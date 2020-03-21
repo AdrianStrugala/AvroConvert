@@ -26,7 +26,7 @@ namespace AvroConvertTests.Benchmark
             List<BenchmarkResult> benchmarkResults = new List<BenchmarkResult>();
             for (int i = 0; i < noOfRuns; i++)
             {
-                benchmarkResults.Add(RunBenchmark(datasets, CodecType.Null));
+                benchmarkResults.Add(RunBenchmark(datasets, CodecType.Null, schema));
             }
 
             BenchmarkResult mean = new BenchmarkResult();
@@ -44,7 +44,7 @@ namespace AvroConvertTests.Benchmark
             File.WriteAllText("regression.json", ConstructLog(mean));
         }
 
-        private BenchmarkResult RunBenchmark(List<Dataset> datasets, CodecType codec)
+        private BenchmarkResult RunBenchmark(List<Dataset> datasets, CodecType codec, string schema)
         {
             var result = new BenchmarkResult();
             result.Name = codec.ToString();
@@ -61,13 +61,13 @@ namespace AvroConvertTests.Benchmark
             result.DeserializeTime = stopwatch.ElapsedMilliseconds;
             stopwatch.Restart();
 
-            //Serialize AvroConvert 2.2.2
-            var avro3 = AvroConvert.Serialize1(datasets, codec);
+            //Serialize AvroConvert Headerless
+            var avro3 = AvroConvert.Serialize(datasets, schema, codec);
             result.SerializeTime3 = stopwatch.ElapsedMilliseconds;
             stopwatch.Restart();
 
-            //Deserialize AvroConvert 2.2.2
-            AvroConvert.Deserialize1<List<Dataset>>(avro3);
+            //Deserialize AvroConvert Headerless
+            AvroConvert.Deserialize<List<Dataset>>(avro3, schema);
             result.DeserializeTime3 = stopwatch.ElapsedMilliseconds;
             stopwatch.Restart();
 
@@ -92,7 +92,7 @@ namespace AvroConvertTests.Benchmark
         {
             return $@"
 Apache.Avro: Serialize: {result.SerializeTime} ms {result.Size / 1024} kB; Deserialize: {result.DeserializeTime} ms
-AvroConvert 2.2.2 Serialize: {result.SerializeTime3} ms Size: {result.Size2 / 1024} kB; ms Deserialize: {result.DeserializeTime3} ms 
+AvroConvert Headless Serialize: {result.SerializeTime3} ms Size: {result.Size2 / 1024} kB; ms Deserialize: {result.DeserializeTime3} ms 
 AvroConvert 2.4.0 Serialize: {result.SerializeTime2} ms Size: {result.Size2 / 1024} kB; ms Deserialize: {result.DeserializeTime2} ms ";
         }
     }

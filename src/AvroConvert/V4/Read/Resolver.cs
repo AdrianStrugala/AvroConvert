@@ -21,7 +21,6 @@ using System.Collections.Generic;
 using SolTechnology.Avro.Schema;
 using SolTechnology.Avro.V4.Exceptions;
 using SolTechnology.Avro.V4.Models;
-using SolTechnology.Avro.Schema;
 using SolTechnology.Avro.V4.Skip;
 
 namespace SolTechnology.Avro.V4.Read

@@ -8,15 +8,13 @@
 
   <ItemGroup>
     <PackageReference Include="Apache.Avro" Version="1.9.2" />
+    <PackageReference Include="AutoFixture" Version="4.11.0" />
     <PackageReference Include="AvroConvert" Version="2.3.0" />
     <PackageReference Include="Equals.Fody" Version="4.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="10mb_dataset.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="FodyWeavers.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

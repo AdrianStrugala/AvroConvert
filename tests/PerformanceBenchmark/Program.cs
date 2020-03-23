@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
+using AutoFixture;
 using Avro;
 using Avro.Generic;
 using Avro.IO;
-using Avro.Specific;
 using Newtonsoft.Json;
 using SolTechnology.Avro;
 using SolTechnology.Avro.Codec;
-using SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Write.Resolvers;
 
 namespace SolTechnology.PerformanceBenchmark
 {
@@ -18,14 +18,13 @@ namespace SolTechnology.PerformanceBenchmark
     {
         static void Main(string[] args)
         {
-            //TODO: new input object (prob autofixture). Avro sucks
-
-            string rawDataset = File.ReadAllText("10mb_dataset.json");
-            var data = JsonConvert.DeserializeObject<Dataset[]>(rawDataset);
+            var fixture = new Fixture();
+            var data = fixture.CreateMany<Dataset>(70000).ToArray();
 
 
             Console.WriteLine("AvroConvert Benchmark - fire!");
-            Console.Write("The Benchmark compares Newtonsoft.Json, Apache.Avro, AvroConvert (nuget version) and AvroConvert local version");
+            Console.WriteLine("");
+            Console.WriteLine("The Benchmark compares Newtonsoft.Json, Apache.Avro, AvroConvert (nuget version) and AvroConvert local version");
 
             int noOfRuns = 10;
             Console.WriteLine($"Number of runs: {noOfRuns}");
@@ -38,7 +37,7 @@ namespace SolTechnology.PerformanceBenchmark
             for (int i = 0; i < noOfRuns; i++)
             {
                 benchmarkResults.Add(RunBenchmark(data, schema));
-                Console.WriteLine($"Run: {i + 1}/{noOfRuns}");
+                Console.WriteLine($"Progress: {i + 1}/{noOfRuns}");
             }
 
 
@@ -75,12 +74,12 @@ namespace SolTechnology.PerformanceBenchmark
             Stopwatch stopwatch = Stopwatch.StartNew();
 
             //Serialize Json
-            var data = JsonConvert.SerializeObject(datasets);
+            var json = JsonConvert.SerializeObject(datasets);
             result.JsonSerializeTime = stopwatch.ElapsedMilliseconds;
             stopwatch.Restart();
 
             //Deserialize Json
-            JsonConvert.DeserializeObject<Dataset[]>(data);
+            JsonConvert.DeserializeObject<Dataset[]>(json);
             result.JsonDeserializeTime = stopwatch.ElapsedMilliseconds;
             stopwatch.Restart();
 
@@ -102,15 +101,21 @@ namespace SolTechnology.PerformanceBenchmark
             stopwatch.Restart();
 
             //Deserialize Apache.Avro
+
+            List<Dataset> apacheResult = new List<Dataset>();
+
             using (var ms = new MemoryStream(apacheAvro))
             {
                 apacheSchema = Schema.Parse(AvroConvert.GenerateSchema(typeof(Dataset)));
                 var apacheReader = new GenericDatumReader<GenericRecord>(apacheSchema, apacheSchema);
                 var decoder = new BinaryDecoder(ms);
-                apacheReader.Read(null, decoder);
-                result.ApacheAvroDeserializeTime = stopwatch.ElapsedMilliseconds;
-                stopwatch.Restart();
+                foreach (var dataset in datasets)
+                {
+                    apacheResult.Add(Decreate<Dataset>(apacheReader.Read(null, decoder)));
+                }
             }
+            result.ApacheAvroDeserializeTime = stopwatch.ElapsedMilliseconds;
+            stopwatch.Restart();
 
 
             //Serialize AvroConvert Headerless
@@ -147,7 +152,7 @@ namespace SolTechnology.PerformanceBenchmark
 
 
             //Size
-            result.JsonSize = 9945 * 1024;
+            result.JsonSize = Encoding.UTF8.GetBytes(json).Length;
             result.ApacheAvroSize = apacheAvro.Length;
             result.AvroConvertDeflateSize = avroDeflate.Length;
             result.AvroConvertVNextSize = newAvro.Length;
@@ -157,11 +162,26 @@ namespace SolTechnology.PerformanceBenchmark
 
         private static void ConstructLog(BenchmarkResult result)
         {
+            Console.WriteLine("");
             Console.WriteLine($"Json:          Serialize: {result.JsonSerializeTime} ms {result.JsonSize / 1024} kB; Deserialize: {result.JsonDeserializeTime} ms");
             Console.WriteLine($"Apache.Avro:   Serialize: {result.ApacheAvroSerializeTime} ms {result.ApacheAvroSize / 1024} kB; Deserialize: {result.ApacheAvroDeserializeTime} ms");
             Console.WriteLine($"Avro Headless: Serialize: {result.AvroConvertHeadlessSerializeTime} ms {result.AvroConvertHeadlessSize / 1024} kB; Deserialize: {result.AvroConvertHeadlessDeserializeTime} ms");
             Console.WriteLine($"Avro Deflate:  Serialize: {result.AvroConvertDeflateSerializeTime} ms {result.AvroConvertDeflateSize / 1024} kB; Deserialize: {result.AvroConvertDeflateDeserializeTime} ms");
             Console.WriteLine($"Avro vNext:    Serialize: {result.AvroConvertVNextSerializeTime} ms {result.AvroConvertVNextSize / 1024} kB; Deserialize: {result.AvroConvertVNextDeserializeTime} ms");
+            Console.WriteLine("");
+            Console.WriteLine("");
+            Console.WriteLine("Summarize:");
+            Console.WriteLine("Let's produce one value for each of the records. Assume internet speed 100mb/s and calculate how fast the data is send between to microservices:");
+            Console.WriteLine("");
+
+            //How the time is calculated: size to megabits => divide by network speed => multiply x 1000 to have ms 
+            double jsonTime = (double)result.JsonSize * 8 * 1000 / (1024 * 1024 * 100); // ms
+
+            Console.WriteLine($"Json:          {result.JsonSerializeTime + jsonTime + result.JsonDeserializeTime} ms");
+            Console.WriteLine($"Apache.Avro:   {result.ApacheAvroSerializeTime + ((double)result.ApacheAvroSize * 8 * 1000 / (1024 * 1024 * 100)) + result.ApacheAvroDeserializeTime} ms");
+            Console.WriteLine($"Avro Headless: {result.AvroConvertHeadlessSerializeTime + ((double)result.AvroConvertHeadlessSize * 8 * 1000 / (1024 * 1024 * 100)) + result.AvroConvertHeadlessDeserializeTime} ms");
+            Console.WriteLine($"Avro Deflate:  {result.AvroConvertDeflateSerializeTime + ((double)result.AvroConvertDeflateSize * 8 * 1000 / (1024 * 1024 * 100)) + result.AvroConvertDeflateDeserializeTime} ms");
+            Console.WriteLine($"Avro vNext:    Serialize: {result.AvroConvertVNextSerializeTime + ((double)result.AvroConvertVNextSize * 8 * 1000 / (1024 * 1024 * 100)) + result.AvroConvertVNextDeserializeTime} ms");
         }
 
         private static GenericRecord Create(object item, Schema schema)
@@ -176,6 +196,20 @@ namespace SolTechnology.PerformanceBenchmark
             }
 
             return genericRecord;
+        }
+
+        private static T Decreate<T>(GenericRecord genericRecord) where T : new()
+        {
+            T result = new T();
+            var props = typeof(T).GetProperties();
+
+            foreach (var propertyInfo in props)
+            {
+                genericRecord.TryGetValue(propertyInfo.Name, out var value);
+                propertyInfo.SetValue(result, value);
+            }
+
+            return result;
         }
     }
 }

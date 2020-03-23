@@ -154,5 +154,7 @@ START OF THE PROJECT
 - Deployment fixes
 \
 \
-**v. 2.2.3 (xxx)**
+**v. 2.3.0 (19.03.20)**
+- Changed license to CC BY-NC-SA 3.0
 - Added support for complex types including enums
+- Improved Schema compatibility with Apache.Avro

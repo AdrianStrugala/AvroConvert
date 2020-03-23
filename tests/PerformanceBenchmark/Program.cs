@@ -19,7 +19,7 @@ namespace SolTechnology.PerformanceBenchmark
         static void Main(string[] args)
         {
             var fixture = new Fixture();
-            var data = fixture.CreateMany<Dataset>(70000).ToArray();
+            var data = fixture.CreateMany<Dataset>(30000).ToArray();
 
 
             Console.WriteLine("AvroConvert Benchmark - fire!");
@@ -181,7 +181,7 @@ namespace SolTechnology.PerformanceBenchmark
             Console.WriteLine($"Apache.Avro:   {result.ApacheAvroSerializeTime + ((double)result.ApacheAvroSize * 8 * 1000 / (1024 * 1024 * 100)) + result.ApacheAvroDeserializeTime} ms");
             Console.WriteLine($"Avro Headless: {result.AvroConvertHeadlessSerializeTime + ((double)result.AvroConvertHeadlessSize * 8 * 1000 / (1024 * 1024 * 100)) + result.AvroConvertHeadlessDeserializeTime} ms");
             Console.WriteLine($"Avro Deflate:  {result.AvroConvertDeflateSerializeTime + ((double)result.AvroConvertDeflateSize * 8 * 1000 / (1024 * 1024 * 100)) + result.AvroConvertDeflateDeserializeTime} ms");
-            Console.WriteLine($"Avro vNext:    Serialize: {result.AvroConvertVNextSerializeTime + ((double)result.AvroConvertVNextSize * 8 * 1000 / (1024 * 1024 * 100)) + result.AvroConvertVNextDeserializeTime} ms");
+            Console.WriteLine($"Avro vNext:    {result.AvroConvertVNextSerializeTime + ((double)result.AvroConvertVNextSize * 8 * 1000 / (1024 * 1024 * 100)) + result.AvroConvertVNextDeserializeTime} ms");
         }
 
         private static GenericRecord Create(object item, Schema schema)

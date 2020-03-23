@@ -158,3 +158,13 @@ START OF THE PROJECT
 - Changed license to CC BY-NC-SA 3.0
 - Added support for complex types including enums
 - Improved Schema compatibility with Apache.Avro
+\
+\
+**v. 2.4.0 (xxx)**
+- Improved performance of AvroConvert
+- Removed reference to AutoMapper
+- Added performance benchmark (comparison to Newtonsoft.Json and Apache.Avro)
+- Added Headless Serialization and Deserialization:
+  - Resolver does't generate schema by it's own
+  - Requires providing schema for serialization and deserialization. Schemas have to be *exactly* the same
+  - Solution with higher performance

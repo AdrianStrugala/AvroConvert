@@ -210,12 +210,10 @@ namespace SolTechnology.Avro.Extensions
 
         internal static bool CanContainNull(this Type type)
         {
-            var underlyingType = Nullable.GetUnderlyingType(type);
+            //            var underlyingType = Nullable.GetUnderlyingType(type);
             //            return !type.IsValueType() || underlyingType != null;
 
-            //            return Nullable.GetUnderlyingType(type) != null || type == typeof(string);
-
-            return underlyingType != null;
+            return Nullable.GetUnderlyingType(type) != null || type == typeof(string);
         }
 
         internal static bool IsKeyValuePair(this Type type)

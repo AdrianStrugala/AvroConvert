@@ -27,7 +27,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 
-namespace SolTechnology.Avro.Extensions
+namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Extensions
 {
     internal static class TypeExtensions
     {

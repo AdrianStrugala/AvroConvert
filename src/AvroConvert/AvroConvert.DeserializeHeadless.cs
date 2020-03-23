@@ -23,23 +23,12 @@ namespace SolTechnology.Avro
 {
     public static partial class AvroConvert
     {
-        public static T Deserialize<T>(byte[] avroBytes)
+        public static T DeserializeHeadless<T>(byte[] avroBytes, string schema)
         {
-            var reader = Decoder.OpenReader(
-                new MemoryStream(avroBytes),
-                GenerateSchema(typeof(T))
-            );
-
-            return reader.Read<T>();
-        }
-
-
-        public static dynamic Deserialize(byte[] avroBytes, Type targetType)
-        {
-            object result = typeof(AvroConvert)
-                            .GetMethod("Deserialize", new[] { typeof(byte[]) })
-                            ?.MakeGenericMethod(targetType)
-                            .Invoke(null, new object[] { avroBytes });
+            Schema.Schema avroSchema = Schema.Schema.Parse(schema);
+            var reader = new Reader(new MemoryStream(avroBytes));
+            var resolver = new Resolver(avroSchema, avroSchema);
+            var result = resolver.Resolve<T>(reader, 1);
 
             return result;
         }

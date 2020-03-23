@@ -1,0 +1,11 @@
+
+1. Comparison to times:
+   First 3 columns: AvroConvert with different codecs
+   Last 3 columns:  Apache.Avro with PRERESOLVED SPECFIC serialization - the best one according to their benchmark (and no possiblity to provide codec)
+
+Json: Serialize: 217 ms 9945 kB; Deserialize: 188 ms Serialize2: 0 Size2: 0 kB; ms Deserialize2: 0 ms 
+Avro: Serialize: 505 ms 2435 kB; Deserialize: 885 ms Serialize2: 204 Size2: 2434 kB; ms Deserialize2: 431 ms 
+Deflate: Serialize: 220 ms 205 kB; Deserialize: 740 ms Serialize2: 127 Size2: 2434 kB; ms Deserialize2: 340 ms 
+Snappy: Serialize: 212 ms 420 kB; Deserialize: 716 ms Serialize2: 143 Size2: 2434 kB; ms Deserialize2: 264 ms 
+GZip: Serialize: 190 ms 205 kB; Deserialize: 661 ms Serialize2: 137 Size2: 2434 kB; ms Deserialize2: 295 ms 
+ 

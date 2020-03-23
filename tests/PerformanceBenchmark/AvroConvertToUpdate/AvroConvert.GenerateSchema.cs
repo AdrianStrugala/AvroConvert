@@ -16,32 +16,17 @@
 #endregion
 
 using System;
-using System.IO;
-using SolTechnology.Avro.Read;
+using SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.BuildSchema;
 
-namespace SolTechnology.Avro
+namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate
 {
     public static partial class AvroConvert
     {
-        public static T Deserialize<T>(byte[] avroBytes)
+        public static string GenerateSchema(Type type, bool includeOnlyDataContractMembers = false)
         {
-            var reader = Decoder.OpenReader(
-                new MemoryStream(avroBytes),
-                GenerateSchema(typeof(T))
-            );
+            var reader = new ReflectionSchemaBuilder(new AvroSerializerSettings(includeOnlyDataContractMembers)).BuildSchema(type);
 
-            return reader.Read<T>();
-        }
-
-
-        public static dynamic Deserialize(byte[] avroBytes, Type targetType)
-        {
-            object result = typeof(AvroConvert)
-                            .GetMethod("Deserialize", new[] { typeof(byte[]) })
-                            ?.MakeGenericMethod(targetType)
-                            .Invoke(null, new object[] { avroBytes });
-
-            return result;
+            return reader.ToString();
         }
     }
 }

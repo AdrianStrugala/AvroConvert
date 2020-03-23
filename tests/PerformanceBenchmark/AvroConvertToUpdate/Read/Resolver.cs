@@ -19,15 +19,14 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using SolTechnology.Avro.Exceptions;
-using SolTechnology.Avro.Extensions;
-using SolTechnology.Avro.Models;
-using SolTechnology.Avro.Schema;
-using SolTechnology.Avro.Skip;
+using SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Exceptions;
+using SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Extensions;
+using SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Models;
+using SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Schema;
+using SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Skip;
 
-namespace SolTechnology.Avro.Read
+namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Read
 {
     internal class Resolver
     {

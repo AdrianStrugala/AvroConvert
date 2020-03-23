@@ -15,32 +15,21 @@
 */
 #endregion
 
-using System;
 using System.IO;
-using SolTechnology.Avro.Read;
+using SolTechnology.Avro.Write;
 
 namespace SolTechnology.Avro
 {
     public static partial class AvroConvert
     {
-        public static T Deserialize<T>(byte[] avroBytes)
+        public static byte[] SerializeHeadless(object obj, string schema)
         {
-            var reader = Decoder.OpenReader(
-                new MemoryStream(avroBytes),
-                GenerateSchema(typeof(T))
-            );
+            MemoryStream resultStream = new MemoryStream();
+            var encoder = new Writer(resultStream);
+            var writer = Resolver.ResolveWriter(Schema.Schema.Parse(schema));
+            writer(obj, encoder);
 
-            return reader.Read<T>();
-        }
-
-
-        public static dynamic Deserialize(byte[] avroBytes, Type targetType)
-        {
-            object result = typeof(AvroConvert)
-                            .GetMethod("Deserialize", new[] { typeof(byte[]) })
-                            ?.MakeGenericMethod(targetType)
-                            .Invoke(null, new object[] { avroBytes });
-
+            var result = resultStream.ToArray();
             return result;
         }
     }

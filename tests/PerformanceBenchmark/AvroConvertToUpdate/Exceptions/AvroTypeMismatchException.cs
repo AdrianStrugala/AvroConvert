@@ -16,16 +16,20 @@
 #endregion
 
 using System;
-using AutoMapper;
-using SolTechnology.Avro.Models;
 
-namespace SolTechnology.Avro.Read.AutoMapperConverters
+namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Exceptions
 {
-    internal class GuidConverter : ITypeConverter<Fixed, Guid>
+    internal class AvroTypeMismatchException : Exception
     {
-        public Guid Convert(Fixed source, Guid destination, ResolutionContext context)
+        internal AvroTypeMismatchException(string s)
+            : base(s)
         {
-            return new Guid(source.Value);
+
+        }
+        internal AvroTypeMismatchException(string s, Exception inner)
+            : base(s, inner)
+        {
+
         }
     }
 }

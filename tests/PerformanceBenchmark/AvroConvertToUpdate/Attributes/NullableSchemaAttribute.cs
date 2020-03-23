@@ -16,21 +16,11 @@
 #endregion
 
 using System;
-using AutoMapper;
 
-namespace SolTechnology.Avro.Read.AutoMapperConverters
+namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Attributes
 {
-    internal class DateTimeConverter : ITypeConverter<long, DateTime>
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+    public sealed class NullableSchemaAttribute : Attribute
     {
-        public DateTime Convert(long source, DateTime destination, ResolutionContext context)
-        {
-            DateTime unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-
-            var result = new DateTime();
-            result = result.AddTicks(unixEpoch.Ticks);
-            result = result.AddSeconds(source);
-
-            return result;
-        }
     }
 }

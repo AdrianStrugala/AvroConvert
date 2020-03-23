@@ -19,12 +19,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using SolTechnology.Avro.Codec;
-using SolTechnology.Avro.Constants;
-using SolTechnology.Avro.Exceptions;
-using SolTechnology.Avro.Helpers;
+using SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Codec;
+using SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Constants;
+using SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Exceptions;
+using SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Helpers;
 
-namespace SolTechnology.Avro.Read
+namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Read
 {
     internal class Decoder : IDisposable
     {

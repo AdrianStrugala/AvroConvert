@@ -17,9 +17,9 @@
 
 using System;
 using System.IO;
-using SolTechnology.Avro.Read;
+using SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Read;
 
-namespace SolTechnology.Avro
+namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate
 {
     public static partial class AvroConvert
     {
@@ -31,6 +31,16 @@ namespace SolTechnology.Avro
             );
 
             return reader.Read<T>();
+        }
+
+        public static T DeserializeHeadless<T>(byte[] avroBytes, string schema)
+        {
+            Schema.Schema schema2 = Schema.Schema.Parse(schema);
+            var _reader = new Reader(new MemoryStream(avroBytes));
+            var _resolver = new Resolver(schema2, schema2);
+            var result = _resolver.Resolve<T>(_reader, 1);
+
+            return result;
         }
 
 

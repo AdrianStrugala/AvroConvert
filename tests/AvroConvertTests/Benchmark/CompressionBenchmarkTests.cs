@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using Newtonsoft.Json;
 using SolTechnology.Avro;
 using SolTechnology.Avro.Codec;
@@ -22,7 +23,6 @@ namespace AvroConvertTests.Benchmark
             //Act
             var json = new BenchmarkResult();
             json.Name = "Json";
-            json.Size = 9945 * 1024;
 
             Stopwatch stopwatch = Stopwatch.StartNew();
             var data = JsonConvert.SerializeObject(datasets);
@@ -31,6 +31,8 @@ namespace AvroConvertTests.Benchmark
             JsonConvert.DeserializeObject<List<Dataset>>(data);
             json.DeserializeTime = stopwatch.ElapsedMilliseconds;
             stopwatch.Stop();
+
+            json.Size = Encoding.UTF8.GetBytes(data).Length;
 
             File.WriteAllText("10mega.json", rawDataset);
 
@@ -67,27 +69,16 @@ namespace AvroConvertTests.Benchmark
             result.DeserializeTime = stopwatch.ElapsedMilliseconds;
             stopwatch.Restart();
 
-            //Serialize
-            var avro2 = AvroConvert.Serialize(datasets, codec);
-            result.SerializeTime2 = stopwatch.ElapsedMilliseconds;
-            stopwatch.Restart();
-
-            //Deserialize
-            AvroConvert.Deserialize<List<Dataset>>(avro2);
-            result.DeserializeTime2 = stopwatch.ElapsedMilliseconds;
-            stopwatch.Stop();
-
             //Size
             File.WriteAllBytes($"10mega.{result.Name}.avro", avro);
             result.Size = avro.Length;
-            result.Size2 = avro2.Length;
 
             return result;
         }
 
         private string ConstructLog(BenchmarkResult result)
         {
-            return $"{result.Name}: Serialize: {result.SerializeTime} ms {result.Size / 1024} kB; Deserialize: {result.DeserializeTime} ms Serialize2: {result.SerializeTime2} Size2: {result.Size2 / 1024} kB; ms Deserialize2: {result.DeserializeTime2} ms \n ";
+            return $"{result.Name}: Serialize: {result.SerializeTime} ms {result.Size / 1024} kB; Deserialize: {result.DeserializeTime} ms \n ";
         }
     }
 }

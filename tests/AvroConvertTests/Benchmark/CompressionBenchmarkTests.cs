@@ -65,7 +65,7 @@ namespace AvroConvertTests.Benchmark
             stopwatch.Restart();
 
             //Deserialize
-            AvroConvert.Deserialize1<List<Dataset>>(avro);
+            AvroConvert.Deserialize<List<Dataset>>(avro);
             result.DeserializeTime = stopwatch.ElapsedMilliseconds;
             stopwatch.Restart();
 

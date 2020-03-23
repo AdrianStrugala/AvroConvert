@@ -15,20 +15,22 @@
 */
 #endregion
 
-using System;
+using System.IO;
+using SolTechnology.Avro.Write;
 
-namespace SolTechnology.Avro.V4.Exceptions
+namespace SolTechnology.Avro
 {
-    public class InvalidAvroObjectException : Exception
+    public static partial class AvroConvert
     {
-        internal InvalidAvroObjectException(string s)
-            : base(s)
+        public static byte[] SerializeHeadless(object obj, string schema)
         {
-        }
+            MemoryStream resultStream = new MemoryStream();
+            var encoder = new Writer(resultStream);
+            var writer = Resolver.ResolveWriter(Schema.Schema.Parse(schema));
+            writer(obj, encoder);
 
-        internal InvalidAvroObjectException(string s, Exception inner)
-            : base(s, inner)
-        {
+            var result = resultStream.ToArray();
+            return result;
         }
     }
 }

@@ -15,30 +15,22 @@
 */
 #endregion
 
+using System;
 using System.IO;
-using DUPA.File;
-using DUPA.Generic;
-using DUPA.IO;
-using DUPA.Reflect;
-using DUPA.Specific;
-using SolTechnology.Avro.Codec;
+using SolTechnology.Avro.Read;
 
 namespace SolTechnology.Avro
 {
     public static partial class AvroConvert
     {
-        public static byte[] Serialize1(object obj, CodecType codecType = CodecType.Null)
+        public static T DeserializeHeadless<T>(byte[] avroBytes, string schema)
         {
-            MemoryStream resultStream = new MemoryStream();
+            Schema.Schema avroSchema = Schema.Schema.Parse(schema);
+            var reader = new Reader(new MemoryStream(avroBytes));
+            var resolver = new Resolver(avroSchema, avroSchema);
+            var result = resolver.Resolve<T>(reader, 1);
 
-            string schema = GenerateSchema(obj.GetType());
-
-            using (var writer = new Avro.V4.Write.Encoder(Schema.Schema.Parse(schema), resultStream, codecType))
-            {
-                writer.Append(obj);
-            }
-
-            return resultStream.ToArray();
+            return result;
         }
     }
 }

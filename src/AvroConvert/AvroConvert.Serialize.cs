@@ -17,7 +17,7 @@
 
 using System.IO;
 using SolTechnology.Avro.Codec;
-using SolTechnology.Avro.V4.Write;
+using SolTechnology.Avro.Write;
 
 namespace SolTechnology.Avro
 {
@@ -32,19 +32,6 @@ namespace SolTechnology.Avro
             {
                 writer.Append(obj);
             }
-
-            var result = resultStream.ToArray();
-            return result;
-        }
-
-        public static byte[] SerializeHeadless(object obj, string schema, CodecType codecType = CodecType.Null)
-        {
-            MemoryStream resultStream = new MemoryStream();
-            var encoder = new Writer(resultStream);
-
-            var writer = Resolver.ResolveWriter(Schema.Schema.Parse(schema));
-            writer(obj, encoder);
-
 
             var result = resultStream.ToArray();
             return result;

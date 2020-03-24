@@ -1,0 +1,47 @@
+\documentclass[]{article}
+\usepackage{indentfirst}
+
+%opening
+\title{Why Avro API is the best choice?}
+\author{Adrian Strugala}
+
+\begin{document}
+
+\maketitle
+
+\section{Intruduction}
+
+Hi! I am a software developer working in C\# .NET environment. I'm focused mostly on the backend side of the applications. That means I am delivering the data. Fetching the data. Synchronizing the data. Downloading the data. Checking data quality. Pulling the data. Mixing together data from various sources to produce new data. I think you know what I am talking about.
+
+Fortunately, I am living in a microservice world. The data is well organized. The flag project of my company is build of 40-50 services. Each of them exposes from 5 up to 100 API endpoints. Even my side project is build of 6 services, 20 endpoints in total. I am using 3rd party APIs, public APIs, and open APIs. I mean - I know how to communicate between microservices. I do this every day.
+
+Believe me or not, services love to talk to each other. They do this without any break. All the time. That's good. My customers are able to see the data, manipulate it and delete it. Background jobs are generating reports, documents and whatever they want. The problem starts, when the communication slows down the services and they are not able to play their role correctly.
+
+
+\section{The problem}
+
+Some time ago developers in my company were kindly asked to try to not call on-premise microservices more than it's needed. Surprisingly problem was the local internet bandwidth throughput. Funny or not, the solution from management was really to reduce traffic between microservices.
+
+A few days later I heard a conversation between my colleague and his product owner. The PO asked If there is any quick-win on how to improve response time of his service. It wasn't that bad - just a little bit to slow for the users. The colleague started to explain what's the root cause of the problem: his service was fetching data from one API, then another, then 3rd one, authorizing and validating in the meantime. That means service A response time was strongly dependent on services B, C, D, and E. Then colleague as a great professionalist started to enumerate possible solutions: cache part of the data, go in the direction of CQRS and Event Sourcing - start pre- generating view models as soon as the data changes. His answers were right. But caching in live-APIs is sometimes impossible. Implementation of Event Sourcing is very, very expensive in the existing environment.
+
+
+I thought about those problems and I found out one, really simple solution which bringed 3 main benefits:
+\begin{itemize}
+	\item Decrease the microservices communication time
+	\item Reduce the network traffic 
+	\item Increase security between microservices
+\end{itemize}
+
+First things first, though. I'll start with a few words about why we are all in love with Json.
+
+
+\section{Why Json is amazing}
+
+
+\section{Why Avro is better}
+
+\section{How to build Avro API}
+
+\section{My results}
+
+\end{document}

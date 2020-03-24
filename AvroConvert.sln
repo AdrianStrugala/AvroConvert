@@ -25,7 +25,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Snappy.Standard", "src\Snap
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Snappy.StandardTests", "tests\Snappy.StandardTests\Snappy.StandardTests.csproj", "{0F37E039-71E7-46A7-A7E7-FD21D009169B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerformanceBenchmark", "tests\PerformanceBenchmark\PerformanceBenchmark.csproj", "{3216A422-1A2B-40DE-AC10-4C60E5C067A2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PerformanceBenchmark", "tests\PerformanceBenchmark\PerformanceBenchmark.csproj", "{3216A422-1A2B-40DE-AC10-4C60E5C067A2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

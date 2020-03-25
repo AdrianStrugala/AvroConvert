@@ -1,5 +1,39 @@
 \documentclass[]{article}
 \usepackage{indentfirst}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\colorlet{punct}{red!60!black}
+\definecolor{delim}{RGB}{20,105,176}
+\colorlet{numb}{magenta!60!black}
+
+\lstdefinelanguage{json}{
+	basicstyle=\normalfont\ttfamily,
+	numbers=left,
+	numberstyle=\scriptsize,
+	stepnumber=1,
+	numbersep=8pt,
+	showstringspaces=false,
+	breaklines=true,
+	frame=lines,
+	literate=
+	*{0}{{{\color{numb}0}}}{1}
+	{1}{{{\color{numb}1}}}{1}
+	{2}{{{\color{numb}2}}}{1}
+	{3}{{{\color{numb}3}}}{1}
+	{4}{{{\color{numb}4}}}{1}
+	{5}{{{\color{numb}5}}}{1}
+	{6}{{{\color{numb}6}}}{1}
+	{7}{{{\color{numb}7}}}{1}
+	{8}{{{\color{numb}8}}}{1}
+	{9}{{{\color{numb}9}}}{1}
+	{:}{{{\color{punct}{:}}}}{1}
+	{,}{{{\color{punct}{,}}}}{1}
+	{\{}{{{\color{delim}{\{}}}}{1}
+	{\}}{{{\color{delim}{\}}}}}{1}
+	{[}{{{\color{delim}{[}}}}{1}
+	{]}{{{\color{delim}{]}}}}{1},
+}
 
 %opening
 \title{Why Avro API is the best choice?}
@@ -30,16 +64,56 @@ I thought about those problems and I found out one, really simple solution which
 	\item Decrease the microservices communication time
 	\item Reduce the network traffic 
 	\item Increase security between microservices
-\end{itemize}
+\end{itemize}
+
 
 First things first, though. I'll start with a few words about why we are all in love with Json.
 
 
 \section{Why Json is amazing}
+That's simple - just try to imagine communication without Json. What would you miss the most? The clear and easily readable format? Consistent data model? Maybe the number of tools you can use to parse, read or edit Jsons and even generate it automatically from C\# models?
 
+If fact Json has only one disadvantage that comes to my mind - every response and request is sent as plain text. Sometimes it's not a big deal, but in other cases response time of not compresses nor encoded Json API could be a real problem.  
 
 \section{Why Avro is better}
 
+At first, I will give you an example:
+
+Json:
+
+\begin{lstlisting}[language=json,firstnumber=1]
+[
+	{
+		"minPosition": 188,
+		"hasMoreItems": true,
+		"itemsHtml": "items_html6e64c2b9-dc87-4be3-b8ba-eca0da96ce78",
+		"newLatentCount": 85,
+		"itemIds": [
+		174,
+		43,
+		249
+		],
+		"isAvailable": false
+	},
+	{
+		"minPosition": 160,
+		"hasMoreItems": true,
+		"itemsHtml": "items_htmlaa233d3b-d6ea-41ff-b50f-f099c0c79991",
+		"newLatentCount": 163,
+		"itemIds": [
+		60,
+		153,
+		131
+		],
+		"isAvailable": false
+	}
+]
+\end{lstlisting}
+
+Avro:
+\begin{lstlisting}[language=json,firstnumber=1]
+Objavro.codecnullavro.schema¨{"type":"array","items":{"type":"record","name":"Dataset","fields":[{"name":"minPosition","type":"int"},{"name":"hasMoreItems","type":"boolean"},{"name":"itemsHtml","type":["null","string"]},{"name":"newLatentCount","type":"int"},{"name":"itemIds","type":{"type":"array","items":"int"}},{"name":"isAvailable","type":"boolean"}]}} /Âźľ)|ř OČëHE řř\items_html6e64c2b9-dc87-4be3-b8ba-eca0da96ce78ŞÜVň  Ŕ\items_htmlaa233d3b-d6ea-41ff-b50f-f099c0c79991Ćx˛†   /Âźľ)|ř OČëHE
+\end{lstlisting}
 \section{How to build Avro API}
 
 \section{My results}

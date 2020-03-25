@@ -73,7 +73,7 @@ First things first, though. I'll start with a few words about why we are all in 
 \section{Why Json is amazing}
 That's simple - just try to imagine communication without Json. What would you miss the most? The clear and easily readable format? Consistent data model? Maybe the number of tools you can use to parse, read or edit Jsons and even generate it automatically from C\# models?
 
-If fact Json has only one disadvantage that comes to my mind - every response and request is sent as plain text. Sometimes it's not a big deal, but in other cases response time of not compresses nor encoded Json API could be a real problem.  
+If fact Json has only one disadvantage that comes to my mind - every response and request is sent as plain text. Sometimes it's not a big deal, but in other cases response time of not compressesd nor encoded Json API could be a real problem.  
 
 \section{Why Avro is better}
 
@@ -114,6 +114,18 @@ Avro:
 \begin{lstlisting}[language=json,firstnumber=1]
 Objavro.codecnullavro.schema¨{"type":"array","items":{"type":"record","name":"Dataset","fields":[{"name":"minPosition","type":"int"},{"name":"hasMoreItems","type":"boolean"},{"name":"itemsHtml","type":["null","string"]},{"name":"newLatentCount","type":"int"},{"name":"itemIds","type":{"type":"array","items":"int"}},{"name":"isAvailable","type":"boolean"}]}} /Âźľ)|ř OČëHE řř\items_html6e64c2b9-dc87-4be3-b8ba-eca0da96ce78ŞÜVň  Ŕ\items_htmlaa233d3b-d6ea-41ff-b50f-f099c0c79991Ćx˛†   /Âźľ)|ř OČëHE
 \end{lstlisting}
+
+Both of the examples contains exactly the same data. I don't have to introduce Json. Let me focus on Avro.
+
+Avro file is build of few pieces:
+\begin{enumerate}
+	\item Magic number
+	\item Chosen codec (null in example)
+	\item Schema of the data written in Json format
+	\item The data itself compressed to binary representation
+\end{enumerate}
+
+
 \section{How to build Avro API}
 
 \section{My results}

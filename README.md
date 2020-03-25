@@ -5,7 +5,6 @@
 # AvroConvert
 
 **Avro format combines readability of JSON format and compression of binary data serialization.**
-<br></br>
 
 The main purpose of the project was to enhance communication between microservices. Replacing JSON with Avro brought two main benefits:
 * Reduced amount of data send via HTTP by about 30%

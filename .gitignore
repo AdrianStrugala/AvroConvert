@@ -52,3 +52,7 @@
 **/bin/**/**
 Avro/obj/Avro.csproj.nuget.g.targets
 .vs/Avro/**
+.vs/AvroConvert/v16/Server/sqlite3/storage.ide-wal
+.vs/AvroConvert/v16/Server/sqlite3/storage.ide-shm
+.vs/AvroConvert/v16/Server/sqlite3/storage.ide
+.vs/AvroConvert/v16/Server/sqlite3/db.lock

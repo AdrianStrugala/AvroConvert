@@ -160,7 +160,7 @@ START OF THE PROJECT
 - Improved Schema compatibility with Apache.Avro
 \
 \
-**v. 2.4.0 (xxx)**
+**v. 2.4.0 (25.03.20)**
 - Improved performance of AvroConvert
 - Removed reference to AutoMapper
 - Added performance benchmark (comparison to Newtonsoft.Json and Apache.Avro)

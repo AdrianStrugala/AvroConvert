@@ -119,12 +119,12 @@ namespace SolTechnology.PerformanceBenchmark
 
 
             //Serialize AvroConvert Headerless
-            //            var avroHeadless = AvroConvert.SerializeHeadless(datasets, schema, codec);
+            var avroHeadless = AvroConvert.SerializeHeadless(datasets, schema);
             result.AvroConvertHeadlessSerializeTime = stopwatch.ElapsedMilliseconds;
             stopwatch.Restart();
 
             //Deserialize AvroConvert Headerless
-            //            AvroConvert.DeserializeHeadless<List<Dataset>>(avroHeadless, schema);
+            AvroConvert.DeserializeHeadless<List<Dataset>>(avroHeadless, schema);
             result.AvroConvertHeadlessDeserializeTime = stopwatch.ElapsedMilliseconds;
             stopwatch.Restart();
 
@@ -154,6 +154,7 @@ namespace SolTechnology.PerformanceBenchmark
             //Size
             result.JsonSize = Encoding.UTF8.GetBytes(json).Length;
             result.ApacheAvroSize = apacheAvro.Length;
+            result.AvroConvertHeadlessSize = avroHeadless.Length;
             result.AvroConvertDeflateSize = avroDeflate.Length;
             result.AvroConvertVNextSize = newAvro.Length;
 

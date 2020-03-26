@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 2.9.7350 64-bit) (preloaded format=pdflatex 2020.3.24)  25 MAR 2020 18:07
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 2.9.7350 64-bit) (preloaded format=pdflatex 2020.3.24)  26 MAR 2020 15:19
 entering extended mode
 **./AvroAPIArticle.tex
 (AvroAPIArticle.tex
@@ -123,13 +123,13 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 {C:/Users/ext.adrian.strugala/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map
 }]
 LaTeX Font Info:    Trying to load font information for OMS+cmtt on input line 
-86.
-LaTeX Font Info:    No file OMScmtt.fd. on input line 86.
+94.
+LaTeX Font Info:    No file OMScmtt.fd. on input line 94.
 
 
 LaTeX Font Warning: Font shape `OMS/cmtt/m/n' undefined
 (Font)              using `OMS/cmsy/m/n' instead
-(Font)              for symbol `textbraceleft' on input line 86.
+(Font)              for symbol `textbraceleft' on input line 94.
 
 [2]
 
@@ -140,7 +140,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 Obj
+l.123 Obj
           avro.codecnullavro.schema¨{"type":"array","items":{"type":"r...
 
 You may provide a definition with
@@ -154,7 +154,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 Obj
+l.123 Obj
            avro.codecnullavro.schema¨{"type":"array","items":{"type":"r...
 
 You may provide a definition with
@@ -168,7 +168,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 Obj
+l.123 Obj
             avro.codecnullavro.schema¨{"type":"array","items":{"type":"r...
 
 You may provide a definition with
@@ -182,7 +182,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 Objavro.codec
+l.123 Objavro.codec
                        nullavro.schema¨{"type":"array","items":{"type":"r...
 
 You may provide a definition with
@@ -196,7 +196,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 Objavro.codecnull
+l.123 Objavro.codecnull
                             avro.schema¨{"type":"array","items":{"type":"r...
 
 You may provide a definition with
@@ -210,7 +210,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 Objavro.codecnullavro.schema¨
+l.123 Objavro.codecnullavro.schema¨
                                           {"type":"array","items":{"type":"r...
 
 You may provide a definition with
@@ -223,7 +223,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 Objavro.codecnullavro.schema¨{
+l.123 Objavro.codecnullavro.schema¨{
                                            "type":"array","items":{"type":"r...
 
 The document does not appear to be in UTF-8 encoding.
@@ -239,7 +239,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 Objavro.codecnullavro.schema¨{
+l.123 Objavro.codecnullavro.schema¨{
                                            "type":"array","items":{"type":"r...
 
 The document does not appear to be in UTF-8 encoding.
@@ -255,7 +255,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...sAvailable","type":"boolean"}]}} /Âźľ)
+l.123 ...sAvailable","type":"boolean"}]}} /Âźľ)
                                                   |ř OČëHE řř\...
 
 The document does not appear to be in UTF-8 encoding.
@@ -271,7 +271,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...sAvailable","type":"boolean"}]}} /Âźľ)
+l.123 ...sAvailable","type":"boolean"}]}} /Âźľ)
                                                   |ř OČëHE řř\...
 
 The document does not appear to be in UTF-8 encoding.
@@ -287,7 +287,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...sAvailable","type":"boolean"}]}} /Âźľ)
+l.123 ...sAvailable","type":"boolean"}]}} /Âźľ)
                                                   |ř OČëHE řř\...
 
 The document does not appear to be in UTF-8 encoding.
@@ -303,7 +303,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...sAvailable","type":"boolean"}]}} /Âźľ)
+l.123 ...sAvailable","type":"boolean"}]}} /Âźľ)
                                                   |ř OČëHE řř\...
 
 The document does not appear to be in UTF-8 encoding.
@@ -320,7 +320,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...Available","type":"boolean"}]}} /Âźľ)
+l.123 ...Available","type":"boolean"}]}} /Âźľ)
                                                   |ř OČëHE řř\i...
 
 You may provide a definition with
@@ -334,7 +334,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...type":"boolean"}]}} /Âźľ)|ř OČëH
+l.123 ...type":"boolean"}]}} /Âźľ)|ř OČëH
                                                   E řř\items_html6e6...
 
 You may provide a definition with
@@ -347,7 +347,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...pe":"boolean"}]}} /Âźľ)|ř OČëHE 
+l.123 ...pe":"boolean"}]}} /Âźľ)|ř OČëHE 
                                                   řř\items_html6e64c...
 
 The document does not appear to be in UTF-8 encoding.
@@ -363,7 +363,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...pe":"boolean"}]}} /Âźľ)|ř OČëHE 
+l.123 ...pe":"boolean"}]}} /Âźľ)|ř OČëHE 
                                                   řř\items_html6e64c...
 
 The document does not appear to be in UTF-8 encoding.
@@ -379,7 +379,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...pe":"boolean"}]}} /Âźľ)|ř OČëHE 
+l.123 ...pe":"boolean"}]}} /Âźľ)|ř OČëHE 
                                                   řř\items_html6e64c...
 
 The document does not appear to be in UTF-8 encoding.
@@ -395,7 +395,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...pe":"boolean"}]}} /Âźľ)|ř OČëHE 
+l.123 ...pe":"boolean"}]}} /Âźľ)|ř OČëHE 
                                                   řř\items_html6e64c...
 
 The document does not appear to be in UTF-8 encoding.
@@ -411,7 +411,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...pe":"boolean"}]}} /Âźľ)|ř OČëHE 
+l.123 ...pe":"boolean"}]}} /Âźľ)|ř OČëHE 
                                                   řř\items_html6e64c...
 
 The document does not appear to be in UTF-8 encoding.
@@ -428,7 +428,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...e":"boolean"}]}} /Âźľ)|ř OČëHE 
+l.123 ...e":"boolean"}]}} /Âźľ)|ř OČëHE 
                                                   řř\items_html6e64c2...
 
 You may provide a definition with
@@ -442,7 +442,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ..."boolean"}]}} /Âźľ)|ř OČëHE ř
+l.123 ..."boolean"}]}} /Âźľ)|ř OČëHE ř
                                                   ř\items_html6e64c2b9-...
 
 You may provide a definition with
@@ -456,7 +456,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...boolean"}]}} /Âźľ)|ř OČëHE ř
+l.123 ...boolean"}]}} /Âźľ)|ř OČëHE ř
                                                   ř\items_html6e64c2b9-d...
 
 You may provide a definition with
@@ -470,7 +470,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...lean"}]}} /Âźľ)|ř OČëHE řř
+l.123 ...lean"}]}} /Âźľ)|ř OČëHE řř
                                                   \items_html6e64c2b9-dc87...
 
 You may provide a definition with
@@ -484,7 +484,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...ean"}]}} /Âźľ)|ř OČëHE řř
+l.123 ...ean"}]}} /Âźľ)|ř OČëHE řř
                                                   \items_html6e64c2b9-dc87-...
 
 You may provide a definition with
@@ -498,7 +498,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...an"}]}} /Âźľ)|ř OČëHE řř
+l.123 ...an"}]}} /Âźľ)|ř OČëHE řř
                                                   \items_html6e64c2b9-dc87-4...
 
 You may provide a definition with
@@ -511,7 +511,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ..."}]}} /Âźľ)|ř OČëHE řř\i
+l.123 ..."}]}} /Âźľ)|ř OČëHE řř\i
                                                   tems_html6e64c2b9-dc87-4be...
 
 The document does not appear to be in UTF-8 encoding.
@@ -527,7 +527,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ..."}]}} /Âźľ)|ř OČëHE řř\i
+l.123 ..."}]}} /Âźľ)|ř OČëHE řř\i
                                                   tems_html6e64c2b9-dc87-4be...
 
 The document does not appear to be in UTF-8 encoding.
@@ -543,7 +543,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ..."}]}} /Âźľ)|ř OČëHE řř\i
+l.123 ..."}]}} /Âźľ)|ř OČëHE řř\i
                                                   tems_html6e64c2b9-dc87-4be...
 
 The document does not appear to be in UTF-8 encoding.
@@ -560,7 +560,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...ml6e64c2b9-dc87-4be3-b8ba-eca0da96ce78Ş
+l.123 ...ml6e64c2b9-dc87-4be3-b8ba-eca0da96ce78Ş
                                                   ÜVň  Ŕ\items_html...
 
 You may provide a definition with
@@ -574,7 +574,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...l6e64c2b9-dc87-4be3-b8ba-eca0da96ce78Ş
+l.123 ...l6e64c2b9-dc87-4be3-b8ba-eca0da96ce78Ş
                                                   ÜVň  Ŕ\items_htmla...
 
 You may provide a definition with
@@ -588,7 +588,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...64c2b9-dc87-4be3-b8ba-eca0da96ce78ŞÜ
+l.123 ...64c2b9-dc87-4be3-b8ba-eca0da96ce78ŞÜ
                                                   Vň  Ŕ\items_htmlaa23...
 
 You may provide a definition with
@@ -602,7 +602,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...b9-dc87-4be3-b8ba-eca0da96ce78ŞÜVň
+l.123 ...b9-dc87-4be3-b8ba-eca0da96ce78ŞÜVň
                                                     Ŕ\items_htmlaa233d3b...
 
 You may provide a definition with
@@ -615,7 +615,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...9-dc87-4be3-b8ba-eca0da96ce78ŞÜVň 
+l.123 ...9-dc87-4be3-b8ba-eca0da96ce78ŞÜVň 
                                                    Ŕ\items_htmlaa233d3b-...
 
 The document does not appear to be in UTF-8 encoding.
@@ -631,7 +631,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...9-dc87-4be3-b8ba-eca0da96ce78ŞÜVň 
+l.123 ...9-dc87-4be3-b8ba-eca0da96ce78ŞÜVň 
                                                    Ŕ\items_htmlaa233d3b-...
 
 The document does not appear to be in UTF-8 encoding.
@@ -647,7 +647,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...9-dc87-4be3-b8ba-eca0da96ce78ŞÜVň 
+l.123 ...9-dc87-4be3-b8ba-eca0da96ce78ŞÜVň 
                                                    Ŕ\items_htmlaa233d3b-...
 
 The document does not appear to be in UTF-8 encoding.
@@ -663,7 +663,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...9-dc87-4be3-b8ba-eca0da96ce78ŞÜVň 
+l.123 ...9-dc87-4be3-b8ba-eca0da96ce78ŞÜVň 
                                                    Ŕ\items_htmlaa233d3b-...
 
 The document does not appear to be in UTF-8 encoding.
@@ -680,7 +680,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...87-4be3-b8ba-eca0da96ce78ŞÜVň  Ŕ
+l.123 ...87-4be3-b8ba-eca0da96ce78ŞÜVň  Ŕ
                                                   \items_htmlaa233d3b-d6ea...
 
 You may provide a definition with
@@ -694,7 +694,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...7-4be3-b8ba-eca0da96ce78ŞÜVň  Ŕ
+l.123 ...7-4be3-b8ba-eca0da96ce78ŞÜVň  Ŕ
                                                   \items_htmlaa233d3b-d6ea-...
 
 You may provide a definition with
@@ -708,7 +708,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...-4be3-b8ba-eca0da96ce78ŞÜVň  Ŕ
+l.123 ...-4be3-b8ba-eca0da96ce78ŞÜVň  Ŕ
                                                   \items_htmlaa233d3b-d6ea-4...
 
 You may provide a definition with
@@ -721,7 +721,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...be3-b8ba-eca0da96ce78ŞÜVň  Ŕ\i
+l.123 ...be3-b8ba-eca0da96ce78ŞÜVň  Ŕ\i
                                                   tems_htmlaa233d3b-d6ea-41f...
 
 The document does not appear to be in UTF-8 encoding.
@@ -737,7 +737,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...be3-b8ba-eca0da96ce78ŞÜVň  Ŕ\i
+l.123 ...be3-b8ba-eca0da96ce78ŞÜVň  Ŕ\i
                                                   tems_htmlaa233d3b-d6ea-41f...
 
 The document does not appear to be in UTF-8 encoding.
@@ -754,7 +754,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...mlaa233d3b-d6ea-41ff-b50f-f099c0c79991Ć
+l.123 ...mlaa233d3b-d6ea-41ff-b50f-f099c0c79991Ć
                                                   x˛†   /Âźľ)|ř ...
 
 You may provide a definition with
@@ -768,7 +768,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...laa233d3b-d6ea-41ff-b50f-f099c0c79991Ć
+l.123 ...laa233d3b-d6ea-41ff-b50f-f099c0c79991Ć
                                                   x˛†   /Âźľ)|ř O...
 
 You may provide a definition with
@@ -782,7 +782,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...33d3b-d6ea-41ff-b50f-f099c0c79991Ćx˛
+l.123 ...33d3b-d6ea-41ff-b50f-f099c0c79991Ćx˛
                                                   †   /Âźľ)|ř OČëHE
 
 You may provide a definition with
@@ -796,7 +796,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...b-d6ea-41ff-b50f-f099c0c79991Ćx˛†
+l.123 ...b-d6ea-41ff-b50f-f099c0c79991Ćx˛†
                                                      /Âźľ)|ř OČëHE
 You may provide a definition with
 \DeclareUnicodeCharacter 
@@ -808,7 +808,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...-d6ea-41ff-b50f-f099c0c79991Ćx˛† 
+l.123 ...-d6ea-41ff-b50f-f099c0c79991Ćx˛† 
                                                     /Âźľ)|ř OČëHE
 The document does not appear to be in UTF-8 encoding.
 Try adding \UseRawInputEncoding as the first line of the file
@@ -823,7 +823,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...-d6ea-41ff-b50f-f099c0c79991Ćx˛† 
+l.123 ...-d6ea-41ff-b50f-f099c0c79991Ćx˛† 
                                                     /Âźľ)|ř OČëHE
 The document does not appear to be in UTF-8 encoding.
 Try adding \UseRawInputEncoding as the first line of the file
@@ -838,7 +838,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...-d6ea-41ff-b50f-f099c0c79991Ćx˛† 
+l.123 ...-d6ea-41ff-b50f-f099c0c79991Ćx˛† 
                                                     /Âźľ)|ř OČëHE
 The document does not appear to be in UTF-8 encoding.
 Try adding \UseRawInputEncoding as the first line of the file
@@ -853,7 +853,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...-d6ea-41ff-b50f-f099c0c79991Ćx˛† 
+l.123 ...-d6ea-41ff-b50f-f099c0c79991Ćx˛† 
                                                     /Âźľ)|ř OČëHE
 The document does not appear to be in UTF-8 encoding.
 Try adding \UseRawInputEncoding as the first line of the file
@@ -868,7 +868,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...-b50f-f099c0c79991Ćx˛†   /Âźľ)
+l.123 ...-b50f-f099c0c79991Ćx˛†   /Âźľ)
                                                   |ř OČëHE
 The document does not appear to be in UTF-8 encoding.
 Try adding \UseRawInputEncoding as the first line of the file
@@ -883,7 +883,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...-b50f-f099c0c79991Ćx˛†   /Âźľ)
+l.123 ...-b50f-f099c0c79991Ćx˛†   /Âźľ)
                                                   |ř OČëHE
 The document does not appear to be in UTF-8 encoding.
 Try adding \UseRawInputEncoding as the first line of the file
@@ -898,7 +898,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...-b50f-f099c0c79991Ćx˛†   /Âźľ)
+l.123 ...-b50f-f099c0c79991Ćx˛†   /Âźľ)
                                                   |ř OČëHE
 The document does not appear to be in UTF-8 encoding.
 Try adding \UseRawInputEncoding as the first line of the file
@@ -913,7 +913,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...-b50f-f099c0c79991Ćx˛†   /Âźľ)
+l.123 ...-b50f-f099c0c79991Ćx˛†   /Âźľ)
                                                   |ř OČëHE
 The document does not appear to be in UTF-8 encoding.
 Try adding \UseRawInputEncoding as the first line of the file
@@ -929,7 +929,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...b50f-f099c0c79991Ćx˛†   /Âźľ)
+l.123 ...b50f-f099c0c79991Ćx˛†   /Âźľ)
                                                   |ř OČëHE
 You may provide a definition with
 \DeclareUnicodeCharacter 
@@ -942,7 +942,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...79991Ćx˛†   /Âźľ)|ř OČëH
+l.123 ...79991Ćx˛†   /Âźľ)|ř OČëH
                                                   E
 You may provide a definition with
 \DeclareUnicodeCharacter 
@@ -954,7 +954,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...9991Ćx˛†   /Âźľ)|ř OČëHE
+l.123 ...9991Ćx˛†   /Âźľ)|ř OČëHE
                                                   
 The document does not appear to be in UTF-8 encoding.
 Try adding \UseRawInputEncoding as the first line of the file
@@ -969,7 +969,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...9991Ćx˛†   /Âźľ)|ř OČëHE
+l.123 ...9991Ćx˛†   /Âźľ)|ř OČëHE
                                                   
 The document does not appear to be in UTF-8 encoding.
 Try adding \UseRawInputEncoding as the first line of the file
@@ -984,7 +984,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...9991Ćx˛†   /Âźľ)|ř OČëHE
+l.123 ...9991Ćx˛†   /Âźľ)|ř OČëHE
                                                   
 The document does not appear to be in UTF-8 encoding.
 Try adding \UseRawInputEncoding as the first line of the file
@@ -999,7 +999,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...9991Ćx˛†   /Âźľ)|ř OČëHE
+l.123 ...9991Ćx˛†   /Âźľ)|ř OČëHE
                                                   
 The document does not appear to be in UTF-8 encoding.
 Try adding \UseRawInputEncoding as the first line of the file
@@ -1014,7 +1014,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.115 ...9991Ćx˛†   /Âźľ)|ř OČëHE
+l.123 ...9991Ćx˛†   /Âźľ)|ř OČëHE
                                                   
 The document does not appear to be in UTF-8 encoding.
 Try adding \UseRawInputEncoding as the first line of the file
@@ -1022,7 +1022,7 @@ or specify an encoding such as \usepackage [latin1]{inputenc}
 in the document preamble.
 Alternatively, save the file in UTF-8 using your editor or another tool
 
-[3] (AvroAPIArticle.aux)
+[3] [4] (AvroAPIArticle.aux)
 
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
@@ -1030,7 +1030,7 @@ LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 Here is how much of TeX's memory you used:
  2998 strings out of 480932
  40012 string characters out of 2909628
- 362225 words of memory out of 3000000
+ 371225 words of memory out of 3000000
  18900 multiletter control sequences out of 15000+200000
  536481 words of font info for 38 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -1043,9 +1043,9 @@ mr10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr12.pfb>
 am Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr7.pfb><C:/Program Files/M
 iKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/MiKTeX 2.
 9/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
-Output written on AvroAPIArticle.pdf (3 pages, 102387 bytes).
+Output written on AvroAPIArticle.pdf (4 pages, 104894 bytes).
 PDF statistics:
- 45 PDF objects out of 1000 (max. 8388607)
+ 48 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 

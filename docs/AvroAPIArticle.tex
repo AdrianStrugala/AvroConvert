@@ -77,7 +77,15 @@ If fact Json has only one disadvantage that comes to my mind - every response an
 
 \section{Why Avro is better}
 
-At first, I will give you an example:
+Avro file is build of few pieces:
+\begin{enumerate}
+	\item Magic number
+	\item Chosen codec (null in example)
+	\item Schema of the data written in Json format
+	\item The data itself compressed to binary representation
+\end{enumerate}
+
+An example of exactly the same data:
 
 Json:
 
@@ -115,19 +123,20 @@ Avro:
 Objavro.codecnullavro.schema¨{"type":"array","items":{"type":"record","name":"Dataset","fields":[{"name":"minPosition","type":"int"},{"name":"hasMoreItems","type":"boolean"},{"name":"itemsHtml","type":["null","string"]},{"name":"newLatentCount","type":"int"},{"name":"itemIds","type":{"type":"array","items":"int"}},{"name":"isAvailable","type":"boolean"}]}} /Âźľ)|ř OČëHE řř\items_html6e64c2b9-dc87-4be3-b8ba-eca0da96ce78ŞÜVň  Ŕ\items_htmlaa233d3b-d6ea-41ff-b50f-f099c0c79991Ćx˛†   /Âźľ)|ř OČëHE
 \end{lstlisting}
 
-Both of the examples contains exactly the same data. I don't have to introduce Json. Let me focus on Avro.
+It doesn't look really different here. But imagine very, very long Json. The size of the file would increase lineary with amount of records. While for Avro header and schema stays the same - what increases is amount of encoded and well compressed data.
 
-Avro file is build of few pieces:
-\begin{enumerate}
-	\item Magic number
-	\item Chosen codec (null in example)
-	\item Schema of the data written in Json format
-	\item The data itself compressed to binary representation
-\end{enumerate}
+Avro format inherits redability of Json. Note the schema representation - it could be easily read and extracted from the content. In real life cases this is very helpful. During integration tests I can call an API, and read just schema for the data model - to prepair my classes for deserialization.
+
+Take a look at the data - you are not able to read it at first glace. And that's also a benefit. API responses could be easly catched by network tools. You can even peek the responses in internet browsers. And from time to time happens, that someone spots the data that shouldn't be read by unauthorized person. Keeping data encoded increases security of the solution. Reading Avro is not a big problem for motivated person, but reduces probability of accidential data leaks.
+
+In a real world case API responses are usually a little bit more complex than in example. How beneficial is serialization using Avro in comparison to Json? 2 times for this example. 3 times for simple API responses. I was able to reach 50 times using right codec for nested model structures containing huge amount of data.
+
+\section{My benchmark results}
+
 
 
 \section{How to build Avro API}
 
-\section{My results}
+
 
 \end{document}

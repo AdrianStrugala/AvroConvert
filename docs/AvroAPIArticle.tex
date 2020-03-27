@@ -2,10 +2,14 @@
 \usepackage{indentfirst}
 \usepackage{listings}
 \usepackage{xcolor}
+\usepackage[cp1250]{inputenc}
+\usepackage{graphicx} 
+\usepackage{hyperref}
 
 \colorlet{punct}{red!60!black}
 \definecolor{delim}{RGB}{20,105,176}
 \colorlet{numb}{magenta!60!black}
+
 
 \lstdefinelanguage{json}{
 	basicstyle=\normalfont\ttfamily,
@@ -129,14 +133,38 @@ Avro format inherits redability of Json. Note the schema representation - it cou
 
 Take a look at the data - you are not able to read it at first glace. And that's also a benefit. API responses could be easly catched by network tools. You can even peek the responses in internet browsers. And from time to time happens, that someone spots the data that shouldn't be read by unauthorized person. Keeping data encoded increases security of the solution. Reading Avro is not a big problem for motivated person, but reduces probability of accidential data leaks.
 
-In a real world case API responses are usually a little bit more complex than in example. How beneficial is serialization using Avro in comparison to Json? 2 times for this example. 3 times for simple API responses. I was able to reach 50 times using right codec for nested model structures containing huge amount of data.
+In a real world case API responses are usually a little bit more complex than in this example. How beneficial is serialization using Avro in comparison to Json? 2 times for this example. 3 times for simple API responses. I was able to reach 50 times using right codec for nested model structures containing huge amount of data.
 
 \section{My benchmark results}
 
+Enought talking, lets now focus on numbers. Screen below shows data compressed with different formats and encoding. Take carefull look at the sizes. Json file, which size is about 10 000 KB was compressed to Avro file occupying about 2 500 KB (that's 4 times smaller). 
+
+One of the greates features of Avro format is possiblity to choose codec type (compression algorithm in fact) used for serialization of the data. In this examples GZip and Deflate encodings are clear winners. Enabling one of them decreases file size to only 200 KB - this means: 50 time less than Json.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{size_comparison}
+	\caption{Comparison of the same file compressed with different options}
+\end{figure}
+
+At this point let me introduce library that I've created in purpose of handling serializaiton and deserialization C\# objects to Avro format: AvroConvert: 
+\href{https://github.com/AdrianStrugala/AvroConvert}{Github page}.
+I've strongly focused on dev workflow and usability of the package. It's interface should be clear and familiar for every user.  
+
+Bechmark below mimics sending API response. Calculates time of serialization of the messege, time for used for transport (based on size) and time of deserialization: 
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{benchmark}
+	\caption{Comparison of result from AvroConvert benchmark}
+\end{figure}
+
+Winner in this category is official implemetation of Avro format in the C\# world: Apache.Avro. Unfortunetaly it doesn't support many of key types like: decimal, dictionary, list or Guid.
 
 
 \section{How to build Avro API}
 
+\section{Useful links}
 
 
 \end{document}

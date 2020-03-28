@@ -234,7 +234,7 @@ To sum up - in the given scenario it doesn't really matter which Avro serializat
 
 \section{How to build Avro API}
 
-And finally - let's code this! The implementation in .NET Core 3.0 is very easy, in fact we need just 3 classes: 
+And finally - let's code this! The implementation in .NET Core 3.0 is very easy, in fact, we need just 3 classes: 
 
 \begin{itemize}
 	\item AvroInputFormatter
@@ -247,7 +247,6 @@ In my implementation serializaiton is done by AvroConvert. Every implementation 
 \subsection{AvroInputFormatter}
 
 \begin{lstlisting}[language={[Sharp]C}, label={Script}]
-
 public class AvroInputFormatter : InputFormatter
 {
 	public AvroInputFormatter()
@@ -274,8 +273,6 @@ public class AvroInputFormatter : InputFormatter
 \subsection{AvroOutputFormatter}
 
 \begin{lstlisting}[language={[Sharp]C}, label={Script}]
-
-
 public class AvroOutputFormatter : OutputFormatter
 	{
 	public AvroOutputFormatter()
@@ -297,7 +294,40 @@ public class AvroOutputFormatter : OutputFormatter
 }
 \end{lstlisting}
 
+\subsection{HttpClient extensions}
 
+\begin{lstlisting}[language={[Sharp]C}, label={Script}]
+public static class HttpClientExtensions
+{
+	public static async Task<HttpResponseMessage> PostAsAvro(this HttpClient httpClient, string requestUri, object content)
+	{
+		var body = new ByteArrayContent(AvroConvert.Serialize(content));
+		body.Headers.ContentType = new MediaTypeHeaderValue("application/avro");
+		return await httpClient.PostAsync(requestUri, body);
+	}
+	
+	public static async Task<T> GetAsAvro<T>(this HttpClient httpClient, string requestUri)
+	{
+		var response = await httpClient.GetByteArrayAsync(requestUri);
+		T result = AvroConvert.Deserialize<T>(response);
+		return result;
+	}
+}
+\end{lstlisting}
+
+
+\subsection{Modify Startup}
+\begin{lstlisting}[language={[Sharp]C}, label={Script}]
+services.AddMvc(options =>
+{
+	options.InputFormatters.Insert(0, new AvroInputFormatter());
+	options.OutputFormatters.Insert(0, new AvroOutputFormatter());
+});
+\end{lstlisting}
+
+And - that's it. You've just speeded up responses of your APIs by at least 30\%. Play with the serialization options, you can achieve even better results. I've gathered the methods used for communication in the separate library: \href{https://github.com/AdrianStrugala/SolTechnology.Avro.Http}{SolTechnology.Avro.Http}.
+
+Thank you for reading the article. I hope you can make good use of the knowledge I just shared. In case of any questions, contact me at strugala.adrian@gmail.com. See you!
 
 \section{Useful links}
 \begin{itemize}

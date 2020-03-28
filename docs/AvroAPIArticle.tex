@@ -119,14 +119,14 @@ Believe me or not, services love to talk to each other. They do this without any
 
 Some time ago developers in my company were kindly asked to try to not call on-premise microservices more than it's needed. Surprisingly problem was the local internet bandwidth throughput. Funny or not, the solution from management was really to reduce traffic between microservices.
 
-A few days later I heard a conversation between my colleague and his product owner. The PO asked If there is any quick-win on how to improve response time of his service. It wasn't that bad - just a little bit to slow for the users. The colleague started to explain what's the root cause of the problem: his service was fetching data from one API, then another, then 3rd one, authorizing and validating in the meantime. That means service A response time was strongly dependent on services B, C, D, and E. Then colleague as a great professionalist started to enumerate possible solutions: cache part of the data, go in the direction of CQRS and Event Sourcing - start pre- generating view models as soon as the data changes. His answers were right. But caching in live-APIs is sometimes impossible. Implementation of Event Sourcing is very, very expensive in the existing environment.
+A few days later I heard a conversation between my colleague and his product owner. The PO asked If there is any quick-win on how to improve response time of his service. It wasn't that bad - just a little bit too slow for the users. The colleague started to explain what's the root cause of the problem: his service was fetching data from one API, then another, then 3rd one, authorizing and validating in the meantime. That means service A response time was strongly dependent on services B, C, D, and E. Then colleague as a great professionalist started to enumerate possible solutions: cache part of the data, go in the direction of CQRS and Event Sourcing - start pre- generating view models as soon as the data changes. His answers were right. But caching in live-APIs is sometimes impossible. Implementation of Event Sourcing is very, very expensive in the existing environment.
 
 
 I thought about those problems and I found out one, really simple solution which bringed 3 main benefits:
 \begin{itemize}
 	\item Decrease the microservices communication time
 	\item Reduce the network traffic 
-	\item Increase security between microservices
+	\item Increase communication security
 \end{itemize}
 
 
@@ -189,7 +189,7 @@ Objavro.codecnullavro.schema¨{"type":"array","items":{"type":"record","na
 
 It doesn't look really different here. But imagine very, very long Json. The size of the file would increase lineary with amount of records. While for Avro header and schema stays the same - what increases is amount of encoded and well compressed data.
 
-Avro format inherits redability of Json. Note the schema representation - it could be easily read and extracted from the content. In real life cases this is very helpful. During integration tests I can call an API, and read just schema for the data model - to prepair my classes for deserialization.
+Avro format inherits redability of Json. Note the schema representation - it could be easily read and extracted from the content. In real life cases this is very helpful. During integration tests I can call an API, and read just schema of the data model - to prepair my classes for deserialization.
 
 Take a look at the data - you are not able to read it at first glace. And that's also a benefit. API responses could be easly catched by network tools. You can even peek the responses in internet browsers. And from time to time happens, that someone spots the data that shouldn't be read by unauthorized person. Keeping data encoded increases security of the solution. Reading Avro is not a big problem for motivated person, but reduces probability of accidential data leaks.
 
@@ -229,7 +229,7 @@ AvroConvert supports few serialization scenarios:
 	\item Headless serialization  - result contains only data. Assumes, that schema is known upfront. Decreases size of the result, serialization and deserialization time.
 \end{enumerate}
 
-To sum up - in the given scenario it doesn't really matter which Avro serialization you will choose. Each of them speed's up the response for about 25-30%.
+To sum up - in the given scenario it doesn't really matter which Avro serialization you will choose. Each of them speed's up the response for about 25-30\%.
 
 
 \section{How to build Avro API}

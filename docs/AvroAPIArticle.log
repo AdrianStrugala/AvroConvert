@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 2.9.7350 64-bit) (preloaded format=pdflatex 2020.3.24)  28 MAR 2020 19:12
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 2.9.7350 64-bit) (preloaded format=pdflatex 2020.3.24)  28 MAR 2020 19:25
 entering extended mode
 **./AvroAPIArticle.tex
 (AvroAPIArticle.tex
@@ -841,11 +841,11 @@ Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 341.
 Here is how much of TeX's memory you used:
  8799 strings out of 480932
  133099 string characters out of 2909628
- 670293 words of memory out of 3000000
+ 670295 words of memory out of 3000000
  24426 multiletter control sequences out of 15000+200000
  537253 words of font info for 41 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
- 41i,6n,42p,908b,1875s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 41i,6n,42p,909b,1875s stack positions out of 5000i,500n,10000p,200000b,50000s
  <C:\Users\ext.adrian.strugala\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknap
 pen/ec/dpi600\tctt1000.pk> <C:\Users\ext.adrian.strugala\AppData\Local\MiKTeX\2
 .9\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm1000.pk><C:/Program Files/MiKTeX 2.9/
@@ -857,7 +857,7 @@ s/cm/cmr17.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr5
 rogram Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program F
 iles/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmtt10.pfb><C:/Program Files/MiK
 TeX 2.9/fonts/type1/public/amsfonts/cm/cmtt8.pfb>
-Output written on AvroAPIArticle.pdf (7 pages, 252525 bytes).
+Output written on AvroAPIArticle.pdf (7 pages, 252534 bytes).
 PDF statistics:
  262 PDF objects out of 1000 (max. 8388607)
  122 named destinations out of 1000 (max. 500000)

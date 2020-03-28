@@ -5,6 +5,7 @@
 \usepackage[cp1250]{inputenc}
 \usepackage{graphicx} 
 \usepackage{hyperref}
+\usepackage{float}
 
 \colorlet{punct}{red!60!black}
 \definecolor{delim}{RGB}{20,105,176}
@@ -124,7 +125,7 @@ Json:
 
 Avro:
 \begin{lstlisting}[language=json,firstnumber=1]
-Objavro.codecnullavro.schema¨{"type":"array","items":{"type":"record","name":"Dataset","fields":[{"name":"minPosition","type":"int"},{"name":"hasMoreItems","type":"boolean"},{"name":"itemsHtml","type":["null","string"]},{"name":"newLatentCount","type":"int"},{"name":"itemIds","type":{"type":"array","items":"int"}},{"name":"isAvailable","type":"boolean"}]}} /Âźľ)|ř OČëHE řř\items_html6e64c2b9-dc87-4be3-b8ba-eca0da96ce78ŞÜVň  Ŕ\items_htmlaa233d3b-d6ea-41ff-b50f-f099c0c79991Ćx˛†   /Âźľ)|ř OČëHE
+Objavro.codecnullavro.schema¨{"type":"array","items":{"type":"record","name":"Dataset","fields":[{"name":"minPosition","type":"int"},{"name":"hasMoreItems","type":"boolean"},{"name":"itemsHtml","type":["null","string"]},{"name":"newLatentCount","type":"int"},{"name":"itemIds","type":{"type":"array","items":"int"}},{"name":"isAvailable","type":"boolean"}]}} /Âźľ)|ř OČëHE řř\items_html6e64c2b9-dc87-4be3-b8ba-eca0da96ce78ŞÜV�?  Ŕ\items_htmlaa233d3b-d6ea-41ff-b50f-f099c0c79991Ćx˛†   /Âźľ)|ř OČëHE
 \end{lstlisting}
 
 It doesn't look really different here. But imagine very, very long Json. The size of the file would increase lineary with amount of records. While for Avro header and schema stays the same - what increases is amount of encoded and well compressed data.
@@ -141,7 +142,7 @@ Enought talking, lets now focus on numbers. Screen below shows data compressed w
 
 One of the greates features of Avro format is possiblity to choose codec type (compression algorithm in fact) used for serialization of the data. In this examples GZip and Deflate encodings are clear winners. Enabling one of them decreases file size to only 200 KB - this means: 50 time less than Json.
 
-\begin{figure}[h]
+\begin{figure}[H]
 	\centering
 	\includegraphics[width=\textwidth]{size_comparison}
 	\caption{Comparison of the same file compressed with different options}
@@ -153,14 +154,20 @@ I've strongly focused on dev workflow and usability of the package. It's interfa
 
 Bechmark below mimics sending API response. Calculates time of serialization of the messege, time for used for transport (based on size) and time of deserialization: 
 
-\begin{figure}[h]
+\begin{figure}[H]
 	\centering
 	\includegraphics[width=\textwidth]{benchmark}
 	\caption{Comparison of result from AvroConvert benchmark}
 \end{figure}
 
-Winner in this category is official implemetation of Avro format in the C\# world: Apache.Avro. Unfortunetaly it doesn't support many of key types like: decimal, dictionary, list or Guid.
+Winner in this category is official implemetation of Avro format in the C\# world: Apache.Avro. Unfortunetaly it doesn't support many of key types like: decimal, dictionary, list or Guid. That was the main reason why I decided to create AvroConvert.
 
+AvroConvert supports few serialization scenarios:
+\begin{enumerate}
+	\item Standard serialization - result contains header and data. Like in the given example.
+	\item Serialization with additional encoding - result contains header (with information about codec type) and encoded data. Decreases size of result, but increases serializaiton and deserializaiton time. Look at the AvroConvert Deflate on the benchmark screen.
+	\item Headless serializaiton - result contains only data. Assumes, that schema is known upfront.
+\end{enumerate}
 
 \section{How to build Avro API}
 

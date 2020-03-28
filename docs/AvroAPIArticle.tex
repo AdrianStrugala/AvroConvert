@@ -6,6 +6,63 @@
 \usepackage{graphicx} 
 \usepackage{hyperref}
 \usepackage{float}
+\usepackage{listings}
+\usepackage{color}
+\lstloadlanguages{C,C++,csh,Java}
+
+\definecolor{red}{rgb}{0.6,0,0} 
+\definecolor{blue}{rgb}{0,0,0.6}
+\definecolor{green}{rgb}{0,0.8,0}
+\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+
+\lstset{
+	language=csh,
+	basicstyle=\footnotesize\ttfamily,
+	numbers=left,
+	numberstyle=\tiny,
+	numbersep=5pt,
+	tabsize=2,
+	extendedchars=true,
+	breaklines=true,
+	frame=b,
+	stringstyle=\color{red}\ttfamily,
+	showspaces=false,
+	showtabs=false,
+	xleftmargin=17pt,
+	framexleftmargin=17pt,
+	framexrightmargin=5pt,
+	framexbottommargin=4pt,
+	commentstyle=\color{green},
+	morecomment=[l]{//}, %use comment-line-style!
+	morecomment=[s]{/*}{*/}, %for multiline comments
+	showstringspaces=false,
+	morekeywords={ abstract, event, new, struct,
+		as, explicit, null, switch,
+		base, extern, object, this,
+		bool, false, operator, throw,
+		break, finally, out, true,
+		byte, fixed, override, try,
+		case, float, params, typeof,
+		catch, for, private, uint,
+		char, foreach, protected, ulong,
+		checked, goto, public, unchecked,
+		class, if, readonly, unsafe,
+		const, implicit, ref, ushort,
+		continue, in, return, using,
+		decimal, int, sbyte, virtual,
+		default, interface, sealed, volatile,
+		delegate, internal, short, void,
+		do, is, sizeof, while,
+		double, lock, stackalloc,
+		else, long, static,
+		enum, namespace, string},
+	keywordstyle=\color{blue}
+}
+
+\usepackage{caption}
+\DeclareCaptionFont{white}{\color{white}}
+\DeclareCaptionFormat{listing}{\colorbox{blue}{\parbox{\textwidth}{\hspace{15pt}#1#2#3}}}
+\captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white, singlelinecheck=false, margin=0pt, font={bf,footnotesize}}
 
 \colorlet{punct}{red!60!black}
 \definecolor{delim}{RGB}{20,105,176}
@@ -48,6 +105,7 @@
 
 \maketitle
 
+
 \section{Intruduction}
 
 Hi! I am a software developer working in C\# .NET environment. I'm focused mostly on the backend side of the applications. That means I am delivering the data. Fetching the data. Synchronizing the data. Downloading the data. Checking data quality. Pulling the data. Mixing together data from various sources to produce new data. I think you know what I am talking about.
@@ -79,6 +137,7 @@ First things first, though. I'll start with a few words about why we are all in 
 That's simple - just try to imagine communication without Json. What would you miss the most? The clear and easily readable format? Consistent data model? Maybe the number of tools you can use to parse, read or edit Jsons and even generate it automatically from C\# models?
 
 If fact Json has only one disadvantage that comes to my mind - every response and request is sent as plain text. Sometimes it's not a big deal, but in other cases response time of not compressesd nor encoded Json API could be a real problem.  
+
 
 \section{Why Avro is better}
 
@@ -136,11 +195,12 @@ Take a look at the data - you are not able to read it at first glace. And that's
 
 In a real world case API responses are usually a little bit more complex than in this example. How beneficial is serialization using Avro in comparison to Json? 2 times for this example. 3 times for simple API responses. I was able to reach 50 times using right codec for nested model structures containing huge amount of data.
 
+
 \section{My benchmark results}
 
-Enought talking, lets now focus on numbers. Screen below shows data compressed with different formats and encoding. Take carefull look at the sizes. Json file, which size is about 10 000 KB was compressed to Avro file occupying about 2 500 KB (that's 4 times smaller). 
+Enough talking, lets now focus on numbers. The screen below shows data compressed with different formats and encodings. Take a careful look at the sizes. Json file, which size is about 10 000 KB was compressed to Avro file occupying about 2 500 KB (that's 4 times smaller). 
 
-One of the greates features of Avro format is possiblity to choose codec type (compression algorithm in fact) used for serialization of the data. In this examples GZip and Deflate encodings are clear winners. Enabling one of them decreases file size to only 200 KB - this means: 50 time less than Json.
+One of the greatest features of Avro format is the possibility to choose codec type (compression algorithm in fact) used for serialization of the data. In these examples, GZip and Deflate encodings are clear winners. Enabling one of them decreases file size to only 200 KB - this means: 50 time less than Json.
 
 \begin{figure}[H]
 	\centering
@@ -148,11 +208,11 @@ One of the greates features of Avro format is possiblity to choose codec type (c
 	\caption{Comparison of the same file compressed with different options}
 \end{figure}
 
-At this point let me introduce library that I've created in purpose of handling serializaiton and deserialization C\# objects to Avro format: AvroConvert: 
+At this point let me introduce a library that I've created in the purpose of handling serialization and deserialization C\# objects to Avro format: AvroConvert: 
 \href{https://github.com/AdrianStrugala/AvroConvert}{Github page}.
-I've strongly focused on dev workflow and usability of the package. It's interface should be clear and familiar for every user.  
+I've strongly focused on the dev workflow and usability of the package. Its interface should be clear and familiar for every user.   
 
-Bechmark below mimics sending API response. Calculates time of serialization of the messege, time for used for transport (based on size) and time of deserialization: 
+Benchmark below mimics sending API response. Calculates the time of serialization of the message, time for used for transport (based on size) and time of deserialization:  
 
 \begin{figure}[H]
 	\centering
@@ -160,18 +220,92 @@ Bechmark below mimics sending API response. Calculates time of serialization of 
 	\caption{Comparison of result from AvroConvert benchmark}
 \end{figure}
 
-Winner in this category is official implemetation of Avro format in the C\# world: Apache.Avro. Unfortunetaly it doesn't support many of key types like: decimal, dictionary, list or Guid. That was the main reason why I decided to create AvroConvert.
+Winner in this category is the official implementation of Avro format in the C\# world: Apache.Avro. Unfortunately, it doesn't support many key types like decimal, dictionary, list or Guid. That was the main reason why I decided to create AvroConvert.
 
 AvroConvert supports few serialization scenarios:
 \begin{enumerate}
 	\item Standard serialization - result contains header and data. Like in the given example.
-	\item Serialization with additional encoding - result contains header (with information about codec type) and encoded data. Decreases size of result, but increases serializaiton and deserializaiton time. Look at the AvroConvert Deflate on the benchmark screen.
-	\item Headless serializaiton - result contains only data. Assumes, that schema is known upfront.
+	\item Serialization with additional encoding -  result contains a header (with information about codec type) and encoded data. It decreases the size of the result but increases serialization and deserialization time. Look at the AvroConvert Deflate on the benchmark screen.
+	\item Headless serialization  - result contains only data. Assumes, that schema is known upfront. Decreases size of the result, serialization and deserialization time.
 \end{enumerate}
+
+To sum up - in the given scenario it doesn't really matter which Avro serialization you will choose. Each of them speed's up the response for about 25-30%.
+
 
 \section{How to build Avro API}
 
+And finally - let's code this! The implementation in .NET Core 3.0 is very easy, in fact we need just 3 classes: 
+
+\begin{itemize}
+	\item AvroInputFormatter
+	\item AvroOutputFormatter
+	\item HttpClient extensions that support Avro format
+\end{itemize}
+
+In my implementation serializaiton is done by AvroConvert. Every implementation of Avro serializaiton should be compatible with each other, though.
+
+\subsection{AvroInputFormatter}
+
+\begin{lstlisting}[language={[Sharp]C}, label={Script}]
+
+public class AvroInputFormatter : InputFormatter
+{
+	public AvroInputFormatter()
+	{
+		this.SupportedMediaTypes.Clear();
+		
+		this.SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/avro"));
+	}
+	
+	public override Task<InputFormatterResult> ReadRequestBodyAsync(InputFormatterContext context)
+	{
+		using (MemoryStream ms = new MemoryStream())
+		{
+			context.HttpContext.Request.Body.CopyTo(ms);
+			var type = context.ModelType;
+			
+			object result = AvroConvert.Deserialize(ms.ToArray(), type);
+			return InputFormatterResult.SuccessAsync(result);
+		}
+	}
+}
+\end{lstlisting}
+
+\subsection{AvroOutputFormatter}
+
+\begin{lstlisting}[language={[Sharp]C}, label={Script}]
+
+
+public class AvroOutputFormatter : OutputFormatter
+	{
+	public AvroOutputFormatter()
+	{
+		this.SupportedMediaTypes.Clear();
+		
+		this.SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/avro"));
+	}
+	
+	public override async Task WriteResponseBodyAsync(OutputFormatterWriteContext context)
+	{
+		var avroBody = AvroConvert.Serialize(context.Object);
+		
+		var response = context.HttpContext.Response;
+		response.ContentLength = avroBody.Length;
+		
+		await response.Body.WriteAsync(avroBody);
+	}
+}
+\end{lstlisting}
+
+
+
 \section{Useful links}
+\begin{itemize}
+	\item http://avro.apache.org/
+	\item https://cwiki.apache.org/confluence/display/AVRO/Index
+	\item https://github.com/AdrianStrugala/AvroConvert
+	\item https://github.com/AdrianStrugala/SolTechnology.Avro.Http
+\end{itemize}
 
 
 \end{document}

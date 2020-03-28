@@ -4,4 +4,6 @@
 \BOOKMARK [1][-]{section.4}{Why Avro is better}{}% 4
 \BOOKMARK [1][-]{section.5}{My benchmark results}{}% 5
 \BOOKMARK [1][-]{section.6}{How to build Avro API}{}% 6
-\BOOKMARK [1][-]{section.7}{Useful links}{}% 7
+\BOOKMARK [2][-]{subsection.6.1}{AvroInputFormatter}{section.6}% 7
+\BOOKMARK [2][-]{subsection.6.2}{AvroOutputFormatter}{section.6}% 8
+\BOOKMARK [1][-]{section.7}{Useful links}{}% 9

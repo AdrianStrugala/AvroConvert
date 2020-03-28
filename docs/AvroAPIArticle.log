@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 2.9.7350 64-bit) (preloaded format=pdflatex 2020.3.24)  28 MAR 2020 16:52
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 2.9.7350 64-bit) (preloaded format=pdflatex 2020.3.24)  28 MAR 2020 18:01
 entering extended mode
 **./AvroAPIArticle.tex
 (AvroAPIArticle.tex
@@ -230,44 +230,74 @@ Package: float 2001/11/08 v1.3d Float enhancements (AL)
 \@float@everytoks=\toks20
 \@floatcapt=\box48
 )
+("C:\Program Files\MiKTeX 2.9\tex/latex/listings\lstlang1.sty"
+File: lstlang1.sty 2019/09/10 1.8c listings language file
+)
+("C:\Program Files\MiKTeX 2.9\tex/latex/listings\lstmisc.sty"
+File: lstmisc.sty 2019/09/10 1.8c (Carsten Heinz)
+)
+("C:\Program Files\MiKTeX 2.9\tex/latex/caption\caption.sty"
+Package: caption 2020/01/03 v3.4h Customizing captions (AR)
+
+("C:\Program Files\MiKTeX 2.9\tex/latex/caption\caption3.sty"
+Package: caption3 2020/01/03 v1.8h caption3 kernel (AR)
+Package caption3 Info: TeX engine: e-TeX on input line 61.
+\captionmargin=\dimen145
+\captionmargin@=\dimen146
+\captionwidth=\dimen147
+\caption@tempdima=\dimen148
+\caption@indent=\dimen149
+\caption@parindent=\dimen150
+\caption@hangindent=\dimen151
+Package caption Info: Standard document class detected.
+)
+\c@caption@flags=\count194
+\c@continuedfloat=\count195
+Package caption Info: float package is loaded.
+Package caption Info: hyperref package is loaded.
+Package caption Info: listings package is loaded.
+)
 ("C:\Program Files\MiKTeX 2.9\tex/latex/l3backend\l3backend-pdfmode.def"
 File: l3backend-pdfmode.def 2020-03-12 L3 backend support: PDF mode
-\l__kernel_color_stack_int=\count194
+\l__kernel_color_stack_int=\count196
 \l__pdf_internal_box=\box49
 )
-(AvroAPIArticle.aux)
+(AvroAPIArticle.aux
+
+LaTeX Warning: Label `Script' multiply defined.
+
+)
 \openout1 = `AvroAPIArticle.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 47.
-LaTeX Font Info:    ... okay on input line 47.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 47.
-LaTeX Font Info:    ... okay on input line 47.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 47.
-LaTeX Font Info:    ... okay on input line 47.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 47.
-LaTeX Font Info:    ... okay on input line 47.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 47.
-LaTeX Font Info:    ... okay on input line 47.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 47.
-LaTeX Font Info:    ... okay on input line 47.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 47.
-LaTeX Font Info:    ... okay on input line 47.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 47.
-LaTeX Font Info:    ... okay on input line 47.
-\c@lstlisting=\count195
-
-("C:\Program Files\MiKTeX 2.9\tex/context/base/mkii\supp-pdf.mkii"
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 104.
+LaTeX Font Info:    ... okay on input line 104.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 104.
+LaTeX Font Info:    ... okay on input line 104.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 104.
+LaTeX Font Info:    ... okay on input line 104.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 104.
+LaTeX Font Info:    ... okay on input line 104.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 104.
+LaTeX Font Info:    ... okay on input line 104.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 104.
+LaTeX Font Info:    ... okay on input line 104.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 104.
+LaTeX Font Info:    ... okay on input line 104.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 104.
+LaTeX Font Info:    ... okay on input line 104.
+\c@lstlisting=\count197
+ ("C:\Program Files\MiKTeX 2.9\tex/context/base/mkii\supp-pdf.mkii"
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count196
-\scratchdimen=\dimen145
+\scratchcounter=\count198
+\scratchdimen=\dimen152
 \scratchbox=\box50
-\nofMPsegments=\count197
-\nofMParguments=\count198
+\nofMPsegments=\count199
+\nofMParguments=\count266
 \everyMPshowfont=\toks21
-\MPscratchCnt=\count199
-\MPscratchDim=\dimen146
-\MPnumerator=\count266
-\makeMPintoPDFobject=\count267
+\MPscratchCnt=\count267
+\MPscratchDim=\dimen153
+\MPnumerator=\count268
+\makeMPintoPDFobject=\count269
 \everyMPtoPDFconversion=\toks22
 ) ("C:\Program Files\MiKTeX 2.9\tex/latex/epstopdf-pkg\epstopdf-base.sty"
 Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
@@ -275,7 +305,7 @@ Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
 85.
 )
 \AtBeginShipoutBox=\box51
-Package hyperref Info: Link coloring OFF on input line 47.
+Package hyperref Info: Link coloring OFF on input line 104.
 
 ("C:\Program Files\MiKTeX 2.9\tex/latex/hyperref\nameref.sty"
 Package: nameref 2019/09/16 v2.46 Cross-referencing by name of section
@@ -286,34 +316,36 @@ Package: refcount 2019/12/15 v3.6 Data extraction from label references (HO)
 ("C:\Program Files\MiKTeX 2.9\tex/generic/gettitlestring\gettitlestring.sty"
 Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
 )
-\c@section@level=\count268
+\c@section@level=\count270
 )
-LaTeX Info: Redefining \ref on input line 47.
-LaTeX Info: Redefining \pageref on input line 47.
-LaTeX Info: Redefining \nameref on input line 47.
+LaTeX Info: Redefining \ref on input line 104.
+LaTeX Info: Redefining \pageref on input line 104.
+LaTeX Info: Redefining \nameref on input line 104.
 
 (AvroAPIArticle.out) (AvroAPIArticle.out)
 \@outlinefile=\write3
 \openout3 = `AvroAPIArticle.out'.
 
+Package caption Info: Begin \AtBeginDocument code.
+Package caption Info: End \AtBeginDocument code.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <12> on input line 50.
+(Font)              <12> on input line 107.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 50.
+(Font)              <8> on input line 107.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 50.
+(Font)              <6> on input line 107.
  [1
 
 {C:/Users/ext.adrian.strugala/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map
 }]
 LaTeX Font Info:    Trying to load font information for OMS+cmtt on input line 
-99.
-LaTeX Font Info:    No file OMScmtt.fd. on input line 99.
+158.
+LaTeX Font Info:    No file OMScmtt.fd. on input line 158.
 
 
 LaTeX Font Warning: Font shape `OMS/cmtt/m/n' undefined
 (Font)              using `OMS/cmsy/m/n' instead
-(Font)              for symbol `textbraceleft' on input line 99.
+(Font)              for symbol `textbraceleft' on input line 158.
 
 [2]
 
@@ -324,7 +356,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 Obj
+l.187 Obj
           avro.codecnullavro.schema¨{"type":"array","items":{"type":"r...
 
 You need to provide a definition with \DeclareInputText 
@@ -338,7 +370,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 Obj
+l.187 Obj
            avro.codecnullavro.schema¨{"type":"array","items":{"type":"r...
 
 You need to provide a definition with \DeclareInputText 
@@ -352,7 +384,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 Obj
+l.187 Obj
             avro.codecnullavro.schema¨{"type":"array","items":{"type":"r...
 
 You need to provide a definition with \DeclareInputText 
@@ -366,7 +398,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 Objavro.codec
+l.187 Objavro.codec
                        nullavro.schema¨{"type":"array","items":{"type":"r...
 
 You need to provide a definition with \DeclareInputText 
@@ -380,7 +412,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 Objavro.codecnull
+l.187 Objavro.codecnull
                             avro.schema¨{"type":"array","items":{"type":"r...
 
 You need to provide a definition with \DeclareInputText 
@@ -394,7 +426,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 Objavro.codecnullavro.schema¨
+l.187 Objavro.codecnullavro.schema¨
                                           {"type":"array","items":{"type":"r...
 
 You need to provide a definition with \DeclareInputText 
@@ -407,7 +439,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 ...sAvailable","type":"boolean"}]}} /Âźľ)
+l.187 ...sAvailable","type":"boolean"}]}} /Âźľ)
                                                   |ř OČëHE řř\...
 
 Your command was ignored.
@@ -422,7 +454,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 ...Available","type":"boolean"}]}} /Âźľ)
+l.187 ...Available","type":"boolean"}]}} /Âźľ)
                                                   |ř OČëHE řř\i...
 
 You need to provide a definition with \DeclareInputText 
@@ -436,14 +468,14 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 ...type":"boolean"}]}} /Âźľ)|ř OČëH
+l.187 ...type":"boolean"}]}} /Âźľ)|ř OČëH
                                                   E řř\items_html6e6...
 
 You need to provide a definition with \DeclareInputText 
 or \DeclareInputMath before using this key.
 
 LaTeX Font Info:    Trying to load font information for TS1+cmtt on input line 
-128.
+187.
 ("C:\Program Files\MiKTeX 2.9\tex/latex/base\ts1cmtt.fd"
 File: ts1cmtt.fd 2019/12/16 v2.5j Standard LaTeX font definitions
 )
@@ -454,7 +486,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 ...pe":"boolean"}]}} /Âźľ)|ř OČëHE 
+l.187 ...pe":"boolean"}]}} /Âźľ)|ř OČëHE 
                                                   řř\items_html6e64c...
 
 Your command was ignored.
@@ -469,7 +501,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 ...e":"boolean"}]}} /Âźľ)|ř OČëHE 
+l.187 ...e":"boolean"}]}} /Âźľ)|ř OČëHE 
                                                   řř\items_html6e64c2...
 
 You need to provide a definition with \DeclareInputText 
@@ -483,7 +515,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 ..."boolean"}]}} /Âźľ)|ř OČëHE ř
+l.187 ..."boolean"}]}} /Âźľ)|ř OČëHE ř
                                                   ř\items_html6e64c2b9-...
 
 You need to provide a definition with \DeclareInputText 
@@ -497,7 +529,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 ...boolean"}]}} /Âźľ)|ř OČëHE ř
+l.187 ...boolean"}]}} /Âźľ)|ř OČëHE ř
                                                   ř\items_html6e64c2b9-d...
 
 You need to provide a definition with \DeclareInputText 
@@ -511,7 +543,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 ...lean"}]}} /Âźľ)|ř OČëHE řř
+l.187 ...lean"}]}} /Âźľ)|ř OČëHE řř
                                                   \items_html6e64c2b9-dc87...
 
 You need to provide a definition with \DeclareInputText 
@@ -525,7 +557,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 ...ean"}]}} /Âźľ)|ř OČëHE řř
+l.187 ...ean"}]}} /Âźľ)|ř OČëHE řř
                                                   \items_html6e64c2b9-dc87-...
 
 You need to provide a definition with \DeclareInputText 
@@ -539,7 +571,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 ...an"}]}} /Âźľ)|ř OČëHE řř
+l.187 ...an"}]}} /Âźľ)|ř OČëHE řř
                                                   \items_html6e64c2b9-dc87-4...
 
 You need to provide a definition with \DeclareInputText 
@@ -553,7 +585,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 ...ml6e64c2b9-dc87-4be3-b8ba-eca0da96ce78Ş
+l.187 ...ml6e64c2b9-dc87-4be3-b8ba-eca0da96ce78Ş
                                                   ÜV�?  Ŕ\items_html...
 
 You need to provide a definition with \DeclareInputText 
@@ -567,7 +599,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 ...l6e64c2b9-dc87-4be3-b8ba-eca0da96ce78Ş
+l.187 ...l6e64c2b9-dc87-4be3-b8ba-eca0da96ce78Ş
                                                   ÜV�?  Ŕ\items_htmla...
 
 You need to provide a definition with \DeclareInputText 
@@ -581,7 +613,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 ...64c2b9-dc87-4be3-b8ba-eca0da96ce78ŞÜ
+l.187 ...64c2b9-dc87-4be3-b8ba-eca0da96ce78ŞÜ
                                                   V�?  Ŕ\items_htmlaa23...
 
 You need to provide a definition with \DeclareInputText 
@@ -595,7 +627,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 ...b9-dc87-4be3-b8ba-eca0da96ce78ŞÜV�?
+l.187 ...b9-dc87-4be3-b8ba-eca0da96ce78ŞÜV�?
                                                     Ŕ\items_htmlaa233d3b...
 
 You need to provide a definition with \DeclareInputText 
@@ -609,7 +641,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 ...87-4be3-b8ba-eca0da96ce78ŞÜV�?  Ŕ
+l.187 ...87-4be3-b8ba-eca0da96ce78ŞÜV�?  Ŕ
                                                   \items_htmlaa233d3b-d6ea...
 
 You need to provide a definition with \DeclareInputText 
@@ -623,7 +655,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 ...7-4be3-b8ba-eca0da96ce78ŞÜV�?  Ŕ
+l.187 ...7-4be3-b8ba-eca0da96ce78ŞÜV�?  Ŕ
                                                   \items_htmlaa233d3b-d6ea-...
 
 You need to provide a definition with \DeclareInputText 
@@ -637,7 +669,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 ...-4be3-b8ba-eca0da96ce78ŞÜV�?  Ŕ
+l.187 ...-4be3-b8ba-eca0da96ce78ŞÜV�?  Ŕ
                                                   \items_htmlaa233d3b-d6ea-4...
 
 You need to provide a definition with \DeclareInputText 
@@ -651,7 +683,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 ...mlaa233d3b-d6ea-41ff-b50f-f099c0c79991Ć
+l.187 ...mlaa233d3b-d6ea-41ff-b50f-f099c0c79991Ć
                                                   x˛†   /Âźľ)|ř ...
 
 You need to provide a definition with \DeclareInputText 
@@ -665,7 +697,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 ...laa233d3b-d6ea-41ff-b50f-f099c0c79991Ć
+l.187 ...laa233d3b-d6ea-41ff-b50f-f099c0c79991Ć
                                                   x˛†   /Âźľ)|ř O...
 
 You need to provide a definition with \DeclareInputText 
@@ -679,7 +711,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 ...33d3b-d6ea-41ff-b50f-f099c0c79991Ćx˛
+l.187 ...33d3b-d6ea-41ff-b50f-f099c0c79991Ćx˛
                                                   †   /Âźľ)|ř OČëHE
 
 You need to provide a definition with \DeclareInputText 
@@ -693,7 +725,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 ...b-d6ea-41ff-b50f-f099c0c79991Ćx˛†
+l.187 ...b-d6ea-41ff-b50f-f099c0c79991Ćx˛†
                                                      /Âźľ)|ř OČëHE
 You need to provide a definition with \DeclareInputText 
 or \DeclareInputMath before using this key.
@@ -705,7 +737,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 ...-d6ea-41ff-b50f-f099c0c79991Ćx˛† 
+l.187 ...-d6ea-41ff-b50f-f099c0c79991Ćx˛† 
                                                     /Âźľ)|ř OČëHE
 Your command was ignored.
 Type  I <command> <return>  to replace it with another command,
@@ -718,7 +750,7 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 ...-b50f-f099c0c79991Ćx˛†   /Âźľ)
+l.187 ...-b50f-f099c0c79991Ćx˛†   /Âźľ)
                                                   |ř OČëHE
 Your command was ignored.
 Type  I <command> <return>  to replace it with another command,
@@ -732,7 +764,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 ...b50f-f099c0c79991Ćx˛†   /Âźľ)
+l.187 ...b50f-f099c0c79991Ćx˛†   /Âźľ)
                                                   |ř OČëHE
 You need to provide a definition with \DeclareInputText 
 or \DeclareInputMath before using this key.
@@ -745,7 +777,7 @@ See the inputenc package documentation for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 ...79991Ćx˛†   /Âźľ)|ř OČëH
+l.187 ...79991Ćx˛†   /Âźľ)|ř OČëH
                                                   E
 You need to provide a definition with \DeclareInputText 
 or \DeclareInputMath before using this key.
@@ -757,70 +789,66 @@ See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.128 ...9991Ćx˛†   /Âźľ)|ř OČëHE
+l.187 ...9991Ćx˛†   /Âźľ)|ř OČëHE
                                                   
 Your command was ignored.
 Type  I <command> <return>  to replace it with another command,
 or  <return>  to continue without it.
 
 [3]
-<size_comparison.jpg, id=86, 542.025pt x 95.6072pt>
+<size_comparison.jpg, id=94, 542.025pt x 95.6072pt>
 File: size_comparison.jpg Graphic file (type jpg)
 <use size_comparison.jpg>
-Package pdftex.def Info: size_comparison.jpg  used on input line 147.
+Package pdftex.def Info: size_comparison.jpg  used on input line 207.
 (pdftex.def)             Requested size: 345.0pt x 60.85576pt.
-<benchmark.jpg, id=88, 880.03781pt x 368.1253pt>
+<benchmark.jpg, id=96, 880.03781pt x 368.1253pt>
 File: benchmark.jpg Graphic file (type jpg)
 <use benchmark.jpg>
-Package pdftex.def Info: benchmark.jpg  used on input line 159.
+Package pdftex.def Info: benchmark.jpg  used on input line 219.
 (pdftex.def)             Requested size: 345.0pt x 144.31537pt.
- [4pdfTeX warning (ext4): destination with the same identifier (name{figure.1})
- has been already used, duplicate ignored
-
-\AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
-                                                  \fi \fi 
-l.162 
-       <./size_comparison.jpg>]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 177.
- [5pdfTeX warning (ext4): destination with the same identifier (name{figure.2})
- has been already used, duplicate ignored
-
-\AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
-                                                  \fi \fi 
-l.177 \end{document}
-                     <./benchmark.jpg>]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 177.
+ [4 <./size_comparison.jpg>]
+("C:\Program Files\MiKTeX 2.9\tex/latex/listings\lstlang1.sty"
+File: lstlang1.sty 2019/09/10 1.8c listings language file
+) [5 <./benchmark.jpg>] [6]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 311.
+ [7]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 311.
  (AvroAPIArticle.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 177.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 177.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 311.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 311.
 Package rerunfilecheck Info: File `AvroAPIArticle.out' has not changed.
-(rerunfilecheck)             Checksum: 3BC30459DC25DAC0102BFECC434F99D6;358.
+(rerunfilecheck)             Checksum: 96C7CDA7C9FCCC5586735F51A37058E1;493.
 
 
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 177.
+
+LaTeX Warning: There were multiply-defined labels.
+
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 311.
  ) 
 Here is how much of TeX's memory you used:
- 7427 strings out of 480932
- 109251 string characters out of 2909628
- 467508 words of memory out of 3000000
- 23140 multiletter control sequences out of 15000+200000
- 536778 words of font info for 39 fonts, out of 3000000 for 9000
+ 8754 strings out of 480932
+ 132434 string characters out of 2909628
+ 670290 words of memory out of 3000000
+ 24403 multiletter control sequences out of 15000+200000
+ 537253 words of font info for 41 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
- 34i,6n,37p,908b,1852s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 41i,6n,42p,908b,1875s stack positions out of 5000i,500n,10000p,200000b,50000s
  <C:\Users\ext.adrian.strugala\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknap
 pen/ec/dpi600\tctt1000.pk> <C:\Users\ext.adrian.strugala\AppData\Local\MiKTeX\2
 .9\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm1000.pk><C:/Program Files/MiKTeX 2.9/
 fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Program Files/MiKTeX 2.9/fonts/ty
 pe1/public/amsfonts/cm/cmr10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/publi
 c/amsfonts/cm/cmr12.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfont
-s/cm/cmr17.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr7
-.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:
-/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
-Output written on AvroAPIArticle.pdf (5 pages, 212813 bytes).
+s/cm/cmr17.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr5
+.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr7.pfb><C:/P
+rogram Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program F
+iles/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmtt10.pfb><C:/Program Files/MiK
+TeX 2.9/fonts/type1/public/amsfonts/cm/cmtt8.pfb>
+Output written on AvroAPIArticle.pdf (7 pages, 244982 bytes).
 PDF statistics:
- 148 PDF objects out of 1000 (max. 8388607)
- 51 named destinations out of 1000 (max. 500000)
- 67 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 228 PDF objects out of 1000 (max. 8388607)
+ 100 named destinations out of 1000 (max. 500000)
+ 83 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -105,38 +105,40 @@
 
 \maketitle
 
+In the first section, I will briefly introduce myself. Then I will describe the problem resolved in the article and compare Json and Avro formats. Finally, I will present the results of my benchmark and provide implementation details. 
 
-\section{Intruduction}
+\section{Introduction}
 
-Hi! I am a software developer working in C\# .NET environment. I'm focused mostly on the backend side of the applications. That means I am delivering the data. Fetching the data. Synchronizing the data. Downloading the data. Checking data quality. Pulling the data. Mixing together data from various sources to produce new data. I think you know what I am talking about.
+Hi! I am a software developer working in C\# .NET environment. I am focused mostly on the backend side of the applications. That means I am delivering the data. Fetching the data. Synchronizing the data. Downloading the data. Checking data quality. Pulling the data. Mixing together data from various sources to provide new data. I think you know what I am talking about.
 
-Fortunately, I am living in a microservice world. The data is well organized. The flag project of my company is build of 40-50 services. Each of them exposes from 5 up to 100 API endpoints. Even my side project is build of 6 services, 20 endpoints in total. I am using 3rd party APIs, public APIs, and open APIs. I mean - I know how to communicate between microservices. I do this every day.
+Fortunately, I am living in a microservice world, where the data is well organized. The flag project of my company is build of 40-50 services which exposes about 500 endpoints in total. Even my side project is built of 6 services (20 APIs). I am using 3rd party APIs and open APIs. During this everyday job, I noticed how to improve the most popular JSON APIs.
 
-Believe me or not, services love to talk to each other. They do this without any break. All the time. That's good. My customers are able to see the data, manipulate it and delete it. Background jobs are generating reports, documents and whatever they want. The problem starts, when the communication slows down the services and they are not able to play their role correctly.
+Believe me or not, services love to talk to each other. They do this all the time and that's good. My customers are able to see the data, manipulate it and delete it. Background jobs are generating reports, documents or whatever they want. The problem starts, when the communication slows the services down and they are not able to do their job properly.
 
 
 \section{The problem}
 
-Some time ago developers in my company were kindly asked to try to not call on-premise microservices more than it's needed. Surprisingly problem was the local internet bandwidth throughput. Funny or not, the solution from management was really to reduce traffic between microservices.
+Some time ago developers in my company were kindly asked to limit calls performed against on-premise microservices, as surprisingly the problem was the local internet bandwidth throughput. Funny or not, the solution from the management was really to reduce the traffic between microservices.
 
-A few days later I heard a conversation between my colleague and his product owner. The PO asked If there is any quick-win on how to improve response time of his service. It wasn't that bad - just a little bit too slow for the users. The colleague started to explain what's the root cause of the problem: his service was fetching data from one API, then another, then 3rd one, authorizing and validating in the meantime. That means service A response time was strongly dependent on services B, C, D, and E. Then colleague as a great professionalist started to enumerate possible solutions: cache part of the data, go in the direction of CQRS and Event Sourcing - start pre- generating view models as soon as the data changes. His answers were right. But caching in live-APIs is sometimes impossible. Implementation of Event Sourcing is very, very expensive in the existing environment.
+A few days later I heard a conversation between my colleague and his Product Owner. The PO asked If there is any quick-win on how to improve the response time of his service. The colleague started to explain what is the root cause of the problem: his service was fetching data from API A, then B, C, D, and E. The final response time was strongly dependent on the connected services. 
 
+Then colleague, who is a great professional started to enumerate possible solutions: cache part of the data, go in the direction of CQRS and Event Sourcing - start pre-generating view models as soon as the data changes. His answers were right, but caching in live-APIs is sometimes impossible. Implementation of Event Sourcing is very, very expensive both in terms of implementation as well as changing developers' approach in the existing environment.
 
-I thought about those problems and I found out one, really simple solution which bringed 3 main benefits:
+I thought about those problems and I found out one, really simple solution that can bring 3 main benefits:
 \begin{itemize}
-	\item Decrease the microservices communication time
+	\item Decrease the communication time between microservices 
 	\item Reduce the network traffic 
 	\item Increase communication security
 \end{itemize}
 
 
-First things first, though. I'll start with a few words about why we are all in love with Json.
+But, first things first. I'll start with a few words about why we are all currently using Json APIs.
 
 
 \section{Why Json is amazing}
 That's simple - just try to imagine communication without Json. What would you miss the most? The clear and easily readable format? Consistent data model? Maybe the number of tools you can use to parse, read or edit Jsons and even generate it automatically from C\# models?
 
-If fact Json has only one disadvantage that comes to my mind - every response and request is sent as plain text. Sometimes it's not a big deal, but in other cases response time of not compressesd nor encoded Json API could be a real problem.  
+If fact Json has only one main disadvantage that comes to my mind - every response and request is sent as plain text. Sometimes it's not a big deal, but in other cases response time of not compressesd nor encoded Json API could be a real problem.  
 
 
 \section{Why Avro is better}
@@ -187,13 +189,13 @@ Avro:
 Objavro.codecnullavro.schema¨{"type":"array","items":{"type":"record","name":"Dataset","fields":[{"name":"minPosition","type":"int"},{"name":"hasMoreItems","type":"boolean"},{"name":"itemsHtml","type":["null","string"]},{"name":"newLatentCount","type":"int"},{"name":"itemIds","type":{"type":"array","items":"int"}},{"name":"isAvailable","type":"boolean"}]}} /Âźľ)|ř OČëHE řř\items_html6e64c2b9-dc87-4be3-b8ba-eca0da96ce78ŞÜV�?  Ŕ\items_htmlaa233d3b-d6ea-41ff-b50f-f099c0c79991Ćx˛†   /Âźľ)|ř OČëHE
 \end{lstlisting}
 
-It doesn't look really different here. But imagine very, very long Json. The size of the file would increase lineary with amount of records. While for Avro header and schema stays the same - what increases is amount of encoded and well compressed data.
+It doesn't look really different here. But imagine a very, very long Json. The size of the file would increase linearly with the number of records. While for Avro header and schema stays the same - what increases is the amount of encoded and well-compressed data.
 
-Avro format inherits redability of Json. Note the schema representation - it could be easily read and extracted from the content. In real life cases this is very helpful. During integration tests I can call an API, and read just schema of the data model - to prepair my classes for deserialization.
+Avro format inherits the readability of Json. Note the schema representation - it could be easily read and extracted from the content. In real-life cases, this is very helpful e.g. during integration tests I can call an API, and read just the schema of the data model - to prepare my classes for deserialization.
 
-Take a look at the data - you are not able to read it at first glace. And that's also a benefit. API responses could be easly catched by network tools. You can even peek the responses in internet browsers. And from time to time happens, that someone spots the data that shouldn't be read by unauthorized person. Keeping data encoded increases security of the solution. Reading Avro is not a big problem for motivated person, but reduces probability of accidential data leaks.
+Take a look at the data - you are not able to read it at first glance. And that is also a benefit. API responses could be easily hijacked by network tools. You can even peek the responses in internet browsers. And from time to time it happens, that someone spots the data that shouldn't be read by an unauthorized person. Keeping the data encoded increases the security of the solution. Reading Avro is not a big problem for a motivated person, but reduces the probability of accidental data leaks.
 
-In a real world case API responses are usually a little bit more complex than in this example. How beneficial is serialization using Avro in comparison to Json? 2 times for this example. 3 times for simple API responses. I was able to reach 50 times using right codec for nested model structures containing huge amount of data.
+In a real-world case API responses are usually a little bit more complex than in this example. How beneficial is serialization using Avro in comparison to Json? Two times for this example. Three times for simple API responses. I was able to reach fifty(!) times using the right codec for nested model structures containing a huge amount of data - look at the screen below.
 
 
 \section{My benchmark results}

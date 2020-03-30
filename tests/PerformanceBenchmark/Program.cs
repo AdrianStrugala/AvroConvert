@@ -24,9 +24,9 @@ namespace SolTechnology.PerformanceBenchmark
 
             Console.WriteLine("AvroConvert Benchmark - fire!");
             Console.WriteLine("");
-            Console.WriteLine("The Benchmark compares Newtonsoft.Json, Apache.Avro, AvroConvert (nuget version) and AvroConvert local version");
+            Console.WriteLine("The Benchmark compares Newtonsoft.Json, Apache.Avro, AvroConvert (nuget version) \nand AvroConvert local version");
 
-            int noOfRuns = 10;
+            int noOfRuns = 50;
             Console.WriteLine($"Number of runs: {noOfRuns}");
 
             string schema = AvroConvert.GenerateSchema(typeof(Dataset[]));
@@ -37,7 +37,11 @@ namespace SolTechnology.PerformanceBenchmark
             for (int i = 0; i < noOfRuns; i++)
             {
                 benchmarkResults.Add(RunBenchmark(data, schema));
-                Console.WriteLine($"Progress: {i + 1}/{noOfRuns}");
+                if ((i + 1) % 10 == 0)
+                {
+                    Console.WriteLine($"Progress: {i + 1}/{noOfRuns}");
+                }
+               
             }
 
 
@@ -172,7 +176,7 @@ namespace SolTechnology.PerformanceBenchmark
             Console.WriteLine("");
             Console.WriteLine("");
             Console.WriteLine("Summarize:");
-            Console.WriteLine("Let's produce one value for each of the records. Assume internet speed 100mb/s and calculate how fast the data is send between to microservices:");
+            Console.WriteLine("Let's produce one value for each of the records. Assume internet speed 100mb/s \nand calculate how fast the data is send between to microservices:");
             Console.WriteLine("");
 
             //How the time is calculated: size to megabits => divide by network speed => multiply x 1000 to have ms 

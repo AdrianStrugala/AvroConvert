@@ -60,3 +60,5 @@ Avro/obj/Avro.csproj.nuget.g.targets
 *.ide
 *.lock
 src/SolTechnology.Avro.Http/.vs/SolTechnology.Avro.Http/DesignTimeBuild/.dtbcache
+*.ide-wal
+*.ide-shm

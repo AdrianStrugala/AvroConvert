@@ -134,13 +134,13 @@ I thought about those problems and I found out one, really simple solution that 
 \end{itemize}
 
 
-But, first things first. I'll start with a few words about why we are all currently using Json APIs.
+But, first things first. I will start with a few words about why we are all currently using Json APIs.
 
 
 \section{Why Json is amazing}
 That's simple - just try to imagine communication without Json. What would you miss the most? The clear and easily readable format? Consistent data model? Maybe the number of tools you can use to parse, read or edit Jsons and even generate it automatically from C\# models?
 
-If fact Json has only one main disadvantage that comes to my mind - every response and request is sent as plain text. Sometimes it's not a big deal, but in other cases response time of not compressesd nor encoded Json API could be a real problem.  
+If fact Json has only one main disadvantage that comes to my mind - every response and request is sent as plain text. Sometimes it iss not a big deal, but in other cases response time of not compressesd nor encoded Json API could be a real problem.  
 
 
 \section{Why Avro is better}
@@ -214,9 +214,9 @@ For the purpose of comparison, I have included also gzipped Json file. This solu
 	\caption{Comparison of the same file compressed with different options}
 \end{figure}
 
-At this point let me introduce a library that I've created in the purpose of handling serialization and deserialization C\# objects to Avro format: AvroConvert: 
+At this point let me introduce a library that I have created in the purpose of handling serialization and deserialization C\# objects to Avro format: AvroConvert: 
 \href{https://github.com/AdrianStrugala/AvroConvert}{Github page}.
-I've strongly focused on the dev workflow and usability of the package. Its interface should be clear and familiar for every user.   
+I have strongly focused on the dev workflow and usability of the package. Its interface should be clear and familiar for every user.   
 
 Benchmark below mimics sending API response. Calculates the time of serialization of the message, time for used for transport (based on size) and time of deserialization:  
 

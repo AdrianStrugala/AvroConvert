@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 2.9.7350 64-bit) (preloaded format=pdflatex 2020.3.24)  31 MAR 2020 11:29
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 2.9.7350 64-bit) (preloaded format=pdflatex 2020.3.24)  31 MAR 2020 11:32
 entering extended mode
 **./AvroAPIArticle.tex
 (AvroAPIArticle.tex
@@ -262,17 +262,7 @@ File: l3backend-pdfmode.def 2020-03-12 L3 backend support: PDF mode
 \l__kernel_color_stack_int=\count196
 \l__pdf_internal_box=\box49
 )
-(AvroAPIArticle.aux
-
-LaTeX Warning: Label `Script' multiply defined.
-
-
-LaTeX Warning: Label `Script' multiply defined.
-
-
-LaTeX Warning: Label `Script' multiply defined.
-
-)
+(AvroAPIArticle.aux)
 \openout1 = `AvroAPIArticle.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 104.
@@ -292,7 +282,8 @@ LaTeX Font Info:    ... okay on input line 104.
 LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 104.
 LaTeX Font Info:    ... okay on input line 104.
 \c@lstlisting=\count197
- ("C:\Program Files\MiKTeX 2.9\tex/context/base/mkii\supp-pdf.mkii"
+
+("C:\Program Files\MiKTeX 2.9\tex/context/base/mkii\supp-pdf.mkii"
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count198
 \scratchdimen=\dimen152
@@ -340,10 +331,10 @@ l.1 \BOOKMARK [1][-]{section.1}{Introduction}{}
 
  
 Here is how much of TeX's memory you used:
- 8089 strings out of 480932
- 125051 string characters out of 2909628
+ 8088 strings out of 480932
+ 125043 string characters out of 2909628
  557402 words of memory out of 3000000
- 23865 multiletter control sequences out of 15000+200000
+ 23864 multiletter control sequences out of 15000+200000
  532338 words of font info for 24 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
  41i,0n,42p,248b,217s stack positions out of 5000i,500n,10000p,200000b,50000s

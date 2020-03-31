@@ -105,7 +105,7 @@
 
 \maketitle
 
-In the first section, I will briefly introduce myself. Then I will describe the problem resolved in the article and compare Json and Avro formats. Finally, I will present the results of my benchmark and provide implementation details. 
+In the first section, I will briefly introduce myself. Then I will describe the problem resolved in the article. Finally, I will present the results of my benchmark comparing Json and Avro formats and provide implementation details. 
 
 \section{Introduction}
 
@@ -123,6 +123,8 @@ Some time ago developers in my company were kindly asked to limit calls performe
 A few days later I heard a conversation between my colleague and his Product Owner. The PO asked If there is any quick-win on how to improve the response time of his service. The colleague started to explain what is the root cause of the problem: his service was fetching data from API A, then B, C, D, and E. The final response time was strongly dependent on the connected services. 
 
 Then colleague, who is a great professional started to enumerate possible solutions: cache part of the data, go in the direction of CQRS and Event Sourcing - start pre-generating view models as soon as the data changes. His answers were right, but caching in live-APIs is sometimes impossible. Implementation of Event Sourcing is very, very expensive both in terms of implementation as well as changing developers' approach in the existing environment.
+
+There is also an additional reason, why my company wants to reduce communication time and reduce storage costs. We are slowly moving to the Internet of Things and Big Data technologies. And, in fact, Big Data workshops was the place where I learned about Avro format.
 
 I thought about those problems and I found out one, really simple solution that can bring 3 main benefits:
 \begin{itemize}
@@ -200,9 +202,11 @@ In a real-world case API responses are usually a little bit more complex than in
 
 \section{My benchmark results}
 
-Enough talking, lets now focus on numbers. The screen below shows data compressed with different formats and encodings. Take a careful look at the sizes. Json file, which size is about 10 000 KB was compressed to Avro file occupying about 2 500 KB (that's 4 times smaller). 
+Enough talking, lets now focus on numbers. The screen below shows data compressed with different formats and encodings. Take a careful look at the sizes. Json file, which size is about 10 000 KB was compressed to Avro file occupying about 2 500 KB (that is 4 times smaller). 
 
 One of the greatest features of Avro format is the possibility to choose codec type (compression algorithm in fact) used for serialization of the data. In these examples, GZip and Deflate encodings are clear winners. Enabling one of them decreases file size to only 200 KB - this means: 50 time less than Json.
+
+For the purpose of comparison, I have included also gzipped Json file. This solution greatly decrease the file size but deprived all of the advantages of Json format (readability etc.)
 
 \begin{figure}[H]
 	\centering
@@ -222,7 +226,7 @@ Benchmark below mimics sending API response. Calculates the time of serializatio
 	\caption{Comparison of result from AvroConvert benchmark}
 \end{figure}
 
-Winner in this category is the official implementation of Avro format in the C\# world: Apache.Avro. Unfortunately, it doesn't support many key types like decimal, dictionary, list or Guid. That was the main reason why I decided to create AvroConvert.
+All of the implementations of Avro provides quite similar results. The reason, why I didn't choose the official implementation of Avro format in the C\# world (Apache.Avro) is that it doesn't support many key types like decimal, dictionary, list or Guid. 
 
 AvroConvert supports few serialization scenarios:
 \begin{enumerate}

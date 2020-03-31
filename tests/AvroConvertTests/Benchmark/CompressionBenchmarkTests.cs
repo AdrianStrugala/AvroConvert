@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Text;
 using Newtonsoft.Json;
 using SolTechnology.Avro;
@@ -30,11 +31,27 @@ namespace AvroConvertTests.Benchmark
             stopwatch.Restart();
             JsonConvert.DeserializeObject<List<Dataset>>(data);
             json.DeserializeTime = stopwatch.ElapsedMilliseconds;
-            stopwatch.Stop();
 
             json.Size = Encoding.UTF8.GetBytes(data).Length;
-
             File.WriteAllText("10mega.json", rawDataset);
+
+            stopwatch.Restart();
+
+            var jsonGzip = new BenchmarkResult();
+            jsonGzip.Name = "JsonGzip";
+
+            var jsonGzipData = JsonConvert.SerializeObject(datasets);
+            var compressedJson = GzipJson(jsonGzipData);
+            jsonGzip.SerializeTime = stopwatch.ElapsedMilliseconds;
+            stopwatch.Restart();
+            var uncompressedJson = UnGzipJson(compressedJson);
+            JsonConvert.DeserializeObject<List<Dataset>>(uncompressedJson);
+            jsonGzip.DeserializeTime = stopwatch.ElapsedMilliseconds;
+            stopwatch.Stop();
+
+            jsonGzip.Size = compressedJson.Length;
+            File.WriteAllBytes("10mega.json.gz", compressedJson);
+
 
 
             var avro = RunBenchmark(datasets, CodecType.Null);
@@ -44,12 +61,7 @@ namespace AvroConvertTests.Benchmark
             var gzip = RunBenchmark(datasets, CodecType.GZip);
 
 
-            File.WriteAllText("times.json",
-                                ConstructLog(json) +
-                                        ConstructLog(avro) +
-                                        ConstructLog(deflate) +
-                                        ConstructLog(snappy) +
-                                        ConstructLog(gzip));
+            File.WriteAllText("times.json", ConstructLog(json) + ConstructLog(avro) + ConstructLog(deflate) + ConstructLog(snappy) + ConstructLog(gzip));
         }
 
         private BenchmarkResult RunBenchmark(List<Dataset> datasets, CodecType codec)
@@ -79,6 +91,27 @@ namespace AvroConvertTests.Benchmark
         private string ConstructLog(BenchmarkResult result)
         {
             return $"{result.Name}: Serialize: {result.SerializeTime} ms {result.Size / 1024} kB; Deserialize: {result.DeserializeTime} ms \n ";
+        }
+
+        static byte[] GzipJson(string json)
+        {
+            var data = Encoding.UTF8.GetBytes(json);
+            using var compressedStream = new MemoryStream();
+            using var zipStream = new GZipStream(compressedStream, CompressionMode.Compress);
+            zipStream.Write(data, 0, data.Length);
+            zipStream.Close();
+            return compressedStream.ToArray();
+        }
+
+        static string UnGzipJson(byte[] data)
+        {
+            using (var compressedStream = new MemoryStream(data))
+            using (var zipStream = new GZipStream(compressedStream, CompressionMode.Decompress))
+            using (var resultStream = new MemoryStream())
+            {
+                zipStream.CopyTo(resultStream);
+                return Encoding.UTF8.GetString(resultStream.ToArray());
+            }
         }
     }
 }

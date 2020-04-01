@@ -1,5 +1,0 @@
-Json: Serialize: 189 ms 9945 kB; Deserialize: 151 ms
-Avro: Serialize: 409 ms 2435 kB; Deserialize: 839 ms
-Deflate: Serialize: 197 ms 206 kB; Deserialize: 619 ms
-Snappy: Serialize: 188 ms 420 kB; Deserialize: 617 ms
-GZip: Serialize: 175 ms 206 kB; Deserialize: 595 ms

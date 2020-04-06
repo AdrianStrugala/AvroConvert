@@ -6,13 +6,16 @@
 
 **Avro format combines readability of JSON format and compression of binary data serialization.**
 
-The main purpose of the project was to enhance communication between microservices. Replacing JSON with Avro brought two main benefits:
-* Reduced amount of data send via HTTP by about 30%
+The main purpose of the project was to enhance communication between microservices. Replacing JSON with Avro brought three main benefits:
+* Decreased the communication time between microservices
+* Reduced the network traffic by about 30%
 * Increased communication security - the data was not visible in plain JSON text
 
 
 ## Documentation
 
+Introduction article: https://xabe.net/why-avro-api-is-the-best-choice/
+\
 General information: http://avro.apache.org/
 \
 Wiki: https://cwiki.apache.org/confluence/display/AVRO/Index
@@ -21,18 +24,19 @@ Wiki: https://cwiki.apache.org/confluence/display/AVRO/Index
 
 Benchmark with comparison to Newtonsoft.Json:
 
-| Converter               | Compression time [ms] | Compressed size [kB] |
+| Converter               | Request time [ms]     | Compressed size [kB] |
 |-------------------------|-----------------------|----------------------|
-| Json                    | 140                   | 9945                 |
-| Avro (null encoding)    | 235                   | 2435                 |
-| Avro (Deflate encoding) | 144                   | 206                  |
-| Avro (Snappy encoding)  | 127                   | 420                  |
-| Avro (Gzip encoding)    | 143                   | 206                  |
+| Json                    | 1104                  | 9945                 |
+| Avro (null encoding)    | 549                   | 2435                 |
+| Avro (Headless)         | 503                   | 2434                 |
+| Avro (Deflate encoding) | 519                   | 206                  |
 
-You can find the benchmark under tests/AvroConvertTests/Benchmark directory.
+In the purpose of introducing Avro API, I've written an article, which you can read here: https://xabe.net/why-avro-api-is-the-best-choice/
+\
+It contains also description of the format, detailed results of the benchmarks and implementation details.
 
 **Conclusion:** <br>
-Using Avro for communication between your services reduces up to almost 50 times (!!!) network traffic. This makes huge time and bandwidth savings.
+Using Avro for communication between your services significantly reduces communication time and network traffic. Additionally choosing encoding (compression algorithm) can improve the results even further.
 
 ## Code samples
 

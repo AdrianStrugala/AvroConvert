@@ -210,11 +210,12 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Extensions
 
         internal static bool CanContainNull(this Type type)
         {
-            //            var underlyingType = Nullable.GetUnderlyingType(type);
-            //            return !type.IsValueType() || underlyingType != null;
+            var underlyingType = Nullable.GetUnderlyingType(type);
 
-            return Nullable.GetUnderlyingType(type) != null || type == typeof(string);
+            //            return !type.IsValueType() || underlyingType != null;
+            return underlyingType != null;
         }
+
 
         internal static bool IsKeyValuePair(this Type type)
         {

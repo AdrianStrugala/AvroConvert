@@ -20,6 +20,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
+using SolTechnology.Avro.Extensions;
 using SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Exceptions;
 using SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Extensions;
 using SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Models;
@@ -58,6 +59,11 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Read
             if (readerSchema.Tag == Schema.Schema.Type.Union && writerSchema.Tag != Schema.Schema.Type.Union)
             {
                 readerSchema = FindBranch(readerSchema as UnionSchema, writerSchema);
+            }
+
+            if (writerSchema.Tag == Schema.Schema.Type.Union)
+            {
+                return ResolveUnion((UnionSchema)writerSchema, readerSchema, d, type);
             }
 
             //Types not supported by Avro schema
@@ -147,8 +153,6 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Read
                     d, type);
                 case Schema.Schema.Type.Map:
                     return ResolveMap((MapSchema)writerSchema, readerSchema, d, type);
-                case Schema.Schema.Type.Union:
-                    return ResolveUnion((UnionSchema)writerSchema, readerSchema, d, type);
                 default:
                     throw new AvroException("Unknown schema type: " + writerSchema);
             }

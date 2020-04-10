@@ -95,6 +95,8 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Schema
                     return t == Type.Int || t == Type.Long;
                 case Type.Long:
                     return t == Type.Int;
+                case Type.String:
+                    return t == Type.String || t == Type.Null;
                 default:
                     return false;
             }

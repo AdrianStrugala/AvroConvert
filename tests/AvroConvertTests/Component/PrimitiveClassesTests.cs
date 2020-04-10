@@ -33,7 +33,7 @@ namespace AvroConvertTests.Component
             Assert.NotNull(serialized);
             Assert.NotNull(deserialized);
             Assert.Equal(user.name, deserialized.name);
-            Assert.True(deserialized.favorite_color.IsNullOrEmpty());
+            Assert.True(Comparison.AreEqual(user.favorite_color, deserialized.favorite_color));
             Assert.Equal(user.favorite_number, deserialized.favorite_number);
         }
 

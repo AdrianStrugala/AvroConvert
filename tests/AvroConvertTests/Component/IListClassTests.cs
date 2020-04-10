@@ -182,10 +182,12 @@ namespace AvroConvertTests.Component
             //Assert
             Assert.NotNull(result);
             Assert.NotNull(deserialized);
-            Assert.Equal(testClass, deserialized);
+            Assert.Equal(testClass.anotherList, deserialized.anotherList);
+            Assert.Equal(testClass.nestedList, deserialized.nestedList);
+            Assert.True(Comparison.AreEqual(testClass.stringProperty, deserialized.stringProperty));
         }
 
-        [Fact (Skip = "MultidimensionalArray is not supported yet")]
+        [Fact(Skip = "MultidimensionalArray is not supported yet")]
         public void Component_MultidimensionalArray_ResultIsTheSameAsInput()
         {
             //Arrange

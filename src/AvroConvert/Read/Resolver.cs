@@ -61,6 +61,11 @@ namespace SolTechnology.Avro.Read
                 readerSchema = FindBranch(readerSchema as UnionSchema, writerSchema);
             }
 
+            if (writerSchema.Tag == Schema.Schema.Type.Union)
+            {
+                return ResolveUnion((UnionSchema)writerSchema, readerSchema, d, type);
+            }
+
             //Types not supported by Avro schema
             switch (type.Name.ToLowerInvariant())
             {
@@ -148,8 +153,6 @@ namespace SolTechnology.Avro.Read
                     d, type);
                 case Schema.Schema.Type.Map:
                     return ResolveMap((MapSchema)writerSchema, readerSchema, d, type);
-                case Schema.Schema.Type.Union:
-                    return ResolveUnion((UnionSchema)writerSchema, readerSchema, d, type);
                 default:
                     throw new AvroException("Unknown schema type: " + writerSchema);
             }

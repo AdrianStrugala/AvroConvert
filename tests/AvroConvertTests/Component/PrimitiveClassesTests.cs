@@ -1,6 +1,7 @@
 ﻿using System;
 using SolTechnology.Avro;
 using AutoFixture;
+using Castle.Core.Internal;
 using Xunit;
 
 namespace AvroConvertTests.Component
@@ -32,7 +33,7 @@ namespace AvroConvertTests.Component
             Assert.NotNull(serialized);
             Assert.NotNull(deserialized);
             Assert.Equal(user.name, deserialized.name);
-            Assert.Equal(user.favorite_color, deserialized.favorite_color);
+            Assert.True(deserialized.favorite_color.IsNullOrEmpty());
             Assert.Equal(user.favorite_number, deserialized.favorite_number);
         }
 

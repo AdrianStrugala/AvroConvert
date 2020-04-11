@@ -45,7 +45,7 @@ namespace SolTechnology.PerformanceBenchmark
             var apacheWriter = new GenericDatumWriter<GenericRecord>(apacheSchema);
             foreach (var x in dataset)
             {
-                apacheWriter.Write(ApacheAvroHelpers.Create(dataset, apacheSchema), encoder);
+                apacheWriter.Write(ApacheAvroHelpers.Create(x, apacheSchema), encoder);
             }
 
             var apacheSerialized = apacheAvroSerializeStream.ToArray();

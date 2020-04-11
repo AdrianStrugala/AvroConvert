@@ -50,9 +50,9 @@ namespace SolTechnology.PerformanceBenchmark
 
             var apacheSerialized = apacheAvroSerializeStream.ToArray();
 
-            var acroConvertDeserialized = AvroConvert.DeserializeHeadless<Dataset[]>(apacheSerialized, schema);
+            var avroConvertDeserialized = AvroConvert.DeserializeHeadless<Dataset[]>(apacheSerialized);
 
-            Contract.Assert(dataset == acroConvertDeserialized);
+            Contract.Assert(dataset == avroConvertDeserialized);
 
         }
     }

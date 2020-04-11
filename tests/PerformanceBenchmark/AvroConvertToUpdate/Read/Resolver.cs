@@ -34,6 +34,7 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Read
         private readonly Skipper _skipper;
         private readonly Schema.Schema _readerSchema;
         private readonly Schema.Schema _writerSchema;
+        private long _remainingBlocks = 0;
 
         internal Resolver(Schema.Schema writerSchema, Schema.Schema readerSchema)
         {
@@ -43,12 +44,9 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Read
             _skipper = new Skipper();
         }
 
-        internal T Resolve<T>(IReader reader, long itemsCount = 1)
+        internal T Resolve<T>(IReader reader, long itemsCount = 0)
         {
-            if (itemsCount > 1)
-            {
-                return (T)ResolveArray(_writerSchema, ((ArraySchema)_readerSchema).ItemSchema, reader, typeof(T), itemsCount);
-            }
+            _remainingBlocks = itemsCount;
 
             var result = Resolve(_writerSchema, _readerSchema, reader, typeof(T));
             return (T)result;
@@ -147,6 +145,13 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Read
                 case Schema.Schema.Type.Fixed:
                     return ResolveFixed((FixedSchema)writerSchema, readerSchema, d);
                 case Schema.Schema.Type.Array:
+                    if (writerSchema.Tag != Schema.Schema.Type.Array)
+                    {
+                        return ResolveArray(
+                            _writerSchema,
+                            ((ArraySchema)_readerSchema).ItemSchema,
+                            d, type);
+                    }
                     return ResolveArray(
                     ((ArraySchema)writerSchema).ItemSchema,
                     ((ArraySchema)readerSchema).ItemSchema,
@@ -211,7 +216,7 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Read
         }
 
 
-        protected virtual object ResolveArray(Schema.Schema writerSchema, Schema.Schema readerSchema, IReader d, Type type, long itemsCount = 0)
+        protected virtual object ResolveArray(Schema.Schema writerSchema, Schema.Schema readerSchema, IReader d, Type type)
         {
             if (type.IsDictionary())
             {
@@ -224,7 +229,7 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Read
             var result = (IList)Activator.CreateInstance(resultType);
 
             int i = 0;
-            if (itemsCount == 0)
+            if (_remainingBlocks == 0)
             {
                 for (int n = (int)d.ReadArrayStart(); n != 0; n = (int)d.ReadArrayNext())
                 {
@@ -235,9 +240,27 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Read
                     }
                 }
             }
+            else if (_remainingBlocks == -1)
+            {
+                dynamic y;
+
+                do
+                {
+                    try
+                    {
+                        y = Resolve(writerSchema, readerSchema, d, containingType);
+                        result.Add(y);
+                    }
+                    catch (EndOfStreamReachedException)
+                    {
+                        y = null;
+                    }
+                } while (y != null);
+
+            }
             else
             {
-                for (int k = 0; k < itemsCount; k++)
+                for (int k = 0; k < _remainingBlocks; k++)
                 {
                     result.Add(Resolve(writerSchema, readerSchema, d, containingType));
                 }

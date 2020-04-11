@@ -257,7 +257,7 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Read
         {
             int n = stream.ReadByte();
             if (n >= 0) return (byte)n;
-            throw new AvroException("End of stream reached");
+            throw new EndOfStreamReachedException();
         }
 
         private void Read(byte[] buffer, int start, int len)
@@ -265,7 +265,7 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Read
             while (len > 0)
             {
                 int n = stream.Read(buffer, start, len);
-                if (n <= 0) throw new AvroException("End of stream reached");
+                if (n <= 0) throw new EndOfStreamReachedException();
                 start += n;
                 len -= n;
             }

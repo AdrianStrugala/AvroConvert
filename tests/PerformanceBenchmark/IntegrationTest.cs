@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
+using System.Linq;
 using AutoFixture;
 using Avro;
 using Avro.Generic;
@@ -14,11 +15,8 @@ namespace SolTechnology.PerformanceBenchmark
         public static void Invoke()
         {
             //Arrange
-            var fixture = new AutoFixture.Fixture();
-            Dataset dataset = fixture.Create<Dataset>();
-            dataset.min_position = 1;
-            dataset.isActive = true;
-            dataset.MoreString = "StringForTestPurpose";
+            var fixture = new Fixture();
+            Dataset[] dataset = fixture.CreateMany<Dataset>(2).ToArray();
 
             var schema = AvroConvert.GenerateSchema(typeof(Dataset));
             Schema apacheSchema = Schema.Parse(AvroConvert.GenerateSchema(typeof(Dataset)));
@@ -27,31 +25,34 @@ namespace SolTechnology.PerformanceBenchmark
             //AvroConvert to Apache
             var avroConvertSerialized = AvroConvert.SerializeHeadless(dataset, schema);
 
-            Dataset apacheDeserialized = new Dataset();
+            List<Dataset> apacheDeserialized = new List<Dataset>();
             using (var ms = new MemoryStream(avroConvertSerialized))
             {
                 var apacheReader = new GenericDatumReader<GenericRecord>(apacheSchema, apacheSchema);
                 var decoder = new BinaryDecoder(ms);
-                apacheDeserialized = (ApacheAvroHelpers.Decreate<Dataset>(apacheReader.Read(null, decoder)));
+                foreach (var x in dataset)
+                {
+                    apacheDeserialized.Add(ApacheAvroHelpers.Decreate<Dataset>(apacheReader.Read(null, decoder)));
+                }
             }
 
-            Contract.Assert(dataset.min_position == apacheDeserialized.min_position);
-            Contract.Assert(dataset.isActive == apacheDeserialized.isActive);
-            Contract.Assert(dataset.MoreString == apacheDeserialized.MoreString);
+            Contract.Assert(dataset == apacheDeserialized.ToArray());
 
 
             //Apache to AvroConvert
             MemoryStream apacheAvroSerializeStream = new MemoryStream();
             var encoder = new BinaryEncoder(apacheAvroSerializeStream);
             var apacheWriter = new GenericDatumWriter<GenericRecord>(apacheSchema);
-            apacheWriter.Write(ApacheAvroHelpers.Create(dataset, apacheSchema), encoder);
+            foreach (var x in dataset)
+            {
+                apacheWriter.Write(ApacheAvroHelpers.Create(dataset, apacheSchema), encoder);
+            }
+
             var apacheSerialized = apacheAvroSerializeStream.ToArray();
 
-            var acroConvertDeserialized = AvroConvert.DeserializeHeadless<Dataset>(apacheSerialized, schema);
+            var acroConvertDeserialized = AvroConvert.DeserializeHeadless<Dataset[]>(apacheSerialized, schema);
 
-            Contract.Assert(dataset.min_position == acroConvertDeserialized.min_position);
-            Contract.Assert(dataset.isActive == acroConvertDeserialized.isActive);
-            Contract.Assert(dataset.MoreString == acroConvertDeserialized.MoreString);
+            Contract.Assert(dataset == acroConvertDeserialized);
 
         }
     }

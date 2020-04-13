@@ -1,7 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics.Contracts;
+﻿using System.Diagnostics.Contracts;
 using System.IO;
-using System.Linq;
 using AutoFixture;
 using Avro;
 using Avro.Generic;
@@ -16,41 +14,35 @@ namespace SolTechnology.PerformanceBenchmark
         {
             //Arrange
             var fixture = new Fixture();
-            Dataset[] dataset = fixture.CreateMany<Dataset>(2).ToArray();
+            Dataset dataset = fixture.Create<Dataset>();
 
             var schema = AvroConvert.GenerateSchema(typeof(Dataset));
-            Schema apacheSchema = Schema.Parse(AvroConvert.GenerateSchema(typeof(Dataset)));
+            Schema apacheSchema = Schema.Parse(schema);
 
 
             //AvroConvert to Apache
             var avroConvertSerialized = AvroConvert.SerializeHeadless(dataset, schema);
 
-            List<Dataset> apacheDeserialized = new List<Dataset>();
+            Dataset apacheDeserialized;
             using (var ms = new MemoryStream(avroConvertSerialized))
             {
                 var apacheReader = new GenericDatumReader<GenericRecord>(apacheSchema, apacheSchema);
                 var decoder = new BinaryDecoder(ms);
-                foreach (var x in dataset)
-                {
-                    apacheDeserialized.Add(ApacheAvroHelpers.Decreate<Dataset>(apacheReader.Read(null, decoder)));
-                }
+                apacheDeserialized = (ApacheAvroHelpers.Decreate<Dataset>(apacheReader.Read(null, decoder)));
             }
 
-            Contract.Assert(dataset == apacheDeserialized.ToArray());
+            Contract.Assert(dataset == apacheDeserialized);
 
 
             //Apache to AvroConvert
             MemoryStream apacheAvroSerializeStream = new MemoryStream();
             var encoder = new BinaryEncoder(apacheAvroSerializeStream);
             var apacheWriter = new GenericDatumWriter<GenericRecord>(apacheSchema);
-            foreach (var x in dataset)
-            {
-                apacheWriter.Write(ApacheAvroHelpers.Create(x, apacheSchema), encoder);
-            }
+            apacheWriter.Write(ApacheAvroHelpers.Create(dataset, apacheSchema), encoder);
 
             var apacheSerialized = apacheAvroSerializeStream.ToArray();
 
-            var avroConvertDeserialized = AvroConvert.DeserializeHeadless<Dataset[]>(apacheSerialized);
+            var avroConvertDeserialized = AvroConvert.DeserializeHeadless<Dataset>(apacheSerialized);
 
             Contract.Assert(dataset == avroConvertDeserialized);
 

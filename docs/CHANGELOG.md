@@ -168,3 +168,8 @@ START OF THE PROJECT
   - Resolver does't generate schema by it's own
   - Requires providing schema for serialization and deserialization. Schemas have to be *exactly* the same
   - Solution with higher performance
+\
+\
+**v. 2.4.1 (xxx)**
+- Improved performance of deserialization
+- Adjusted generated schema to match Apache.Avro

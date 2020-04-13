@@ -23,7 +23,12 @@ namespace SolTechnology.Avro
 {
     public static partial class AvroConvert
     {
-        public static byte[] Serialize(object obj, CodecType codecType = CodecType.Null)
+        public static byte[] Serialize(object obj)
+        {
+            return Serialize(obj, CodecType.Null);
+        }
+
+        public static byte[] Serialize(object obj, CodecType codecType)
         {
             MemoryStream resultStream = new MemoryStream();
 

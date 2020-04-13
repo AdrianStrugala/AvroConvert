@@ -16,20 +16,14 @@
 #endregion
 
 using System;
-using System.Collections;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using SolTechnology.Avro.Exceptions;
-using SolTechnology.Avro.Extensions;
-using SolTechnology.Avro.Models;
 using SolTechnology.Avro.Schema;
 using SolTechnology.Avro.Skip;
 
 namespace SolTechnology.Avro.Read
 {
-    internal class Resolver
+    internal partial class Resolver
     {
         private readonly Skipper _skipper;
         private readonly Schema.Schema _readerSchema;
@@ -43,49 +37,29 @@ namespace SolTechnology.Avro.Read
             _skipper = new Skipper();
         }
 
-        internal T Resolve<T>(IReader reader, long itemsCount = 1)
+        internal T Resolve<T>(IReader reader, long itemsCount = 0)
         {
             if (itemsCount > 1)
             {
-                return (T)ResolveArray(_writerSchema, ((ArraySchema)_readerSchema).ItemSchema, reader, typeof(T), itemsCount);
+                return (T)ResolveArray(
+                        _writerSchema,
+                        _readerSchema,
+                        reader, typeof(T), itemsCount);
             }
 
             var result = Resolve(_writerSchema, _readerSchema, reader, typeof(T));
             return (T)result;
         }
 
-        internal object Resolve(Schema.Schema writerSchema, Schema.Schema readerSchema, IReader d, Type type)
+        internal object Resolve(
+            Schema.Schema writerSchema,
+            Schema.Schema readerSchema,
+            IReader d,
+            Type type)
         {
             if (readerSchema.Tag == Schema.Schema.Type.Union && writerSchema.Tag != Schema.Schema.Type.Union)
             {
                 readerSchema = FindBranch(readerSchema as UnionSchema, writerSchema);
-            }
-
-            if (writerSchema.Tag == Schema.Schema.Type.Union)
-            {
-                return ResolveUnion((UnionSchema)writerSchema, readerSchema, d, type);
-            }
-
-            //Types not supported by Avro schema
-            switch (type.Name.ToLowerInvariant())
-            {
-                case "decimal":
-                    return decimal.Parse(d.ReadString());
-
-                case "guid":
-                    return new Guid(ResolveFixed((FixedSchema)writerSchema, readerSchema, d));
-
-                case "datetimeoffset":
-                    return DateTimeOffset.Parse(d.ReadString());
-
-                case "datetime":
-                    return ResolveDateTime(d);
-
-                case "uri":
-                    return new Uri(d.ReadString());
-
-                default:
-                    break;
             }
 
             switch (writerSchema.Tag)
@@ -111,16 +85,7 @@ namespace SolTechnology.Avro.Read
                     }
                 case Schema.Schema.Type.Long:
                     {
-                        long l = d.ReadLong();
-                        switch (readerSchema.Tag)
-                        {
-                            case Schema.Schema.Type.Float:
-                                return (float)l;
-                            case Schema.Schema.Type.Double:
-                                return (double)l;
-                            default:
-                                return l;
-                        }
+                        return ResolveLong(type, d);
                     }
                 case Schema.Schema.Type.Float:
                     {
@@ -136,7 +101,7 @@ namespace SolTechnology.Avro.Read
                 case Schema.Schema.Type.Double:
                     return d.ReadDouble();
                 case Schema.Schema.Type.String:
-                    return d.ReadString();
+                    return ResolveString(type, d);
                 case Schema.Schema.Type.Bytes:
                     return d.ReadBytes();
                 case Schema.Schema.Type.Error:
@@ -145,14 +110,16 @@ namespace SolTechnology.Avro.Read
                 case Schema.Schema.Type.Enumeration:
                     return ResolveEnum((EnumSchema)writerSchema, readerSchema, d, type);
                 case Schema.Schema.Type.Fixed:
-                    return ResolveFixed((FixedSchema)writerSchema, readerSchema, d);
+                    return ResolveFixed((FixedSchema)writerSchema, readerSchema, d, type);
                 case Schema.Schema.Type.Array:
                     return ResolveArray(
-                    ((ArraySchema)writerSchema).ItemSchema,
-                    ((ArraySchema)readerSchema).ItemSchema,
+                    writerSchema,
+                    readerSchema,
                     d, type);
                 case Schema.Schema.Type.Map:
                     return ResolveMap((MapSchema)writerSchema, readerSchema, d, type);
+                case Schema.Schema.Type.Union:
+                    return ResolveUnion((UnionSchema)writerSchema, readerSchema, d, type);
                 default:
                     throw new AvroException("Unknown schema type: " + writerSchema);
             }
@@ -190,113 +157,11 @@ namespace SolTechnology.Avro.Read
             return result;
         }
 
-
         protected virtual object ResolveEnum(EnumSchema writerSchema, Schema.Schema readerSchema, IReader d, Type type)
         {
             int position = d.ReadEnum();
             string value = writerSchema.Symbols[position];
             return Enum.Parse(type, value);
-        }
-
-        protected virtual object ResolveDateTime(IReader d)
-        {
-            var dateTime = d.ReadLong();
-            DateTime unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-
-            var result = new DateTime();
-            result = result.AddTicks(unixEpoch.Ticks);
-            result = result.AddSeconds(dateTime);
-
-            return result;
-        }
-
-
-        protected virtual object ResolveArray(Schema.Schema writerSchema, Schema.Schema readerSchema, IReader d, Type type, long itemsCount = 0)
-        {
-            if (type.IsDictionary())
-            {
-                return ResolveDictionary((RecordSchema)writerSchema, (RecordSchema)readerSchema, d, type);
-            }
-
-            var containingType = type.GetEnumeratedType();
-            var containingTypeArray = containingType.MakeArrayType();
-            var resultType = typeof(List<>).MakeGenericType(containingType);
-            var result = (IList)Activator.CreateInstance(resultType);
-
-            int i = 0;
-            if (itemsCount == 0)
-            {
-                for (int n = (int)d.ReadArrayStart(); n != 0; n = (int)d.ReadArrayNext())
-                {
-                    for (int j = 0; j < n; j++, i++)
-                    {
-                        dynamic y = Resolve(writerSchema, readerSchema, d, containingType);
-                        result.Add(y);
-                    }
-                }
-            }
-            else
-            {
-                for (int k = 0; k < itemsCount; k++)
-                {
-                    result.Add(Resolve(writerSchema, readerSchema, d, containingType));
-                }
-            }
-
-            if (type.IsArray)
-            {
-                dynamic resultArray = Activator.CreateInstance(containingTypeArray, new object[] { result.Count });
-                result.CopyTo(resultArray, 0);
-                return resultArray;
-            }
-
-            if (type.IsList())
-            {
-                return result;
-            }
-
-            var hashSetType = typeof(HashSet<>).MakeGenericType(containingType);
-            if (type == hashSetType)
-            {
-                dynamic resultHashSet = Activator.CreateInstance(hashSetType);
-                foreach (dynamic item in result)
-                {
-                    resultHashSet.Add(item);
-                }
-
-                return resultHashSet;
-            }
-
-            var concurrentBagType = typeof(ConcurrentBag<>).MakeGenericType(containingType);
-            if (type == concurrentBagType)
-            {
-                dynamic resultConcurrentBag = Activator.CreateInstance(concurrentBagType);
-                foreach (dynamic item in result)
-                {
-                    resultConcurrentBag.Add(item);
-                }
-
-                return resultConcurrentBag;
-            }
-
-            return result;
-        }
-
-        protected object ResolveDictionary(RecordSchema writerSchema, RecordSchema readerSchema, IReader d, Type type)
-        {
-            var containingTypes = type.GetGenericArguments();
-            dynamic resultDictionary = Activator.CreateInstance(type);
-
-            for (int n = (int)d.ReadArrayStart(); n != 0; n = (int)d.ReadArrayNext())
-            {
-                for (int j = 0; j < n; j++)
-                {
-                    dynamic key = Resolve(writerSchema.GetField("Key").Schema, readerSchema.GetField("Key").Schema, d, containingTypes[0]);
-                    dynamic value = Resolve(writerSchema.GetField("Value").Schema, readerSchema.GetField("Value").Schema, d, containingTypes[1]);
-                    resultDictionary.Add(key, value);
-                }
-            }
-            return resultDictionary;
         }
 
         protected virtual object ResolveMap(MapSchema writerSchema, Schema.Schema readerSchema, IReader d, Type type)
@@ -332,21 +197,6 @@ namespace SolTechnology.Avro.Read
                 throw new AvroException("Schema mismatch. Reader: " + _readerSchema + ", writer: " + _writerSchema);
 
             return Resolve(ws, readerSchema, d, type);
-        }
-
-        protected virtual byte[] ResolveFixed(FixedSchema writerSchema, Schema.Schema readerSchema, IReader d)
-        {
-            FixedSchema rs = (FixedSchema)readerSchema;
-            if (rs.Size != writerSchema.Size)
-            {
-                throw new AvroException("Size mismatch between reader and writer fixed schemas. Encoder: " + writerSchema +
-                                        ", reader: " + readerSchema);
-            }
-
-            Fixed ru = new Fixed(rs);
-            byte[] bb = ((Fixed)ru).Value;
-            d.ReadFixed(bb);
-            return ru.Value;
         }
 
         protected static Schema.Schema FindBranch(UnionSchema us, Schema.Schema s)

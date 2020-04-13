@@ -92,8 +92,7 @@ namespace SolTechnology.Avro.BuildSchema
             return this.CreateSchema(false, type, new Dictionary<string, NamedSchema>(), 0);
         }
 
-        private TypeSchema 
-            CreateSchema(bool forceNullable, Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth, Type prioritizedType = null)
+        private TypeSchema CreateSchema(bool forceNullable, Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth, Type prioritizedType = null)
         {
             if (currentDepth == this.settings.MaxItemsInSchemaTree)
             {

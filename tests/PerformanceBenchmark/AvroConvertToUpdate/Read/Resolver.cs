@@ -20,7 +20,6 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
-using SolTechnology.Avro.Extensions;
 using SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Exceptions;
 using SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Extensions;
 using SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Models;
@@ -34,7 +33,6 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Read
         private readonly Skipper _skipper;
         private readonly Schema.Schema _readerSchema;
         private readonly Schema.Schema _writerSchema;
-        private long _remainingBlocks = 0;
 
         internal Resolver(Schema.Schema writerSchema, Schema.Schema readerSchema)
         {
@@ -46,13 +44,16 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Read
 
         internal T Resolve<T>(IReader reader, long itemsCount = 0)
         {
-            _remainingBlocks = itemsCount;
-
-            var result = Resolve(_writerSchema, _readerSchema, reader, typeof(T));
+            var result = Resolve(_writerSchema, _readerSchema, reader, typeof(T), itemsCount);
             return (T)result;
         }
 
-        internal object Resolve(Schema.Schema writerSchema, Schema.Schema readerSchema, IReader d, Type type)
+        internal object Resolve(
+            Schema.Schema writerSchema,
+            Schema.Schema readerSchema,
+            IReader d,
+            Type type,
+            long itemsCount = 0)
         {
             if (readerSchema.Tag == Schema.Schema.Type.Union && writerSchema.Tag != Schema.Schema.Type.Union)
             {
@@ -150,12 +151,12 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Read
                         return ResolveArray(
                             _writerSchema,
                             ((ArraySchema)_readerSchema).ItemSchema,
-                            d, type);
+                            d, type, itemsCount);
                     }
                     return ResolveArray(
                     ((ArraySchema)writerSchema).ItemSchema,
                     ((ArraySchema)readerSchema).ItemSchema,
-                    d, type);
+                    d, type, itemsCount);
                 case Schema.Schema.Type.Map:
                     return ResolveMap((MapSchema)writerSchema, readerSchema, d, type);
                 default:
@@ -216,7 +217,7 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Read
         }
 
 
-        protected virtual object ResolveArray(Schema.Schema writerSchema, Schema.Schema readerSchema, IReader d, Type type)
+        protected virtual object ResolveArray(Schema.Schema writerSchema, Schema.Schema readerSchema, IReader d, Type type, long itemsCount)
         {
             if (type.IsDictionary())
             {
@@ -229,7 +230,7 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Read
             var result = (IList)Activator.CreateInstance(resultType);
 
             int i = 0;
-            if (_remainingBlocks == 0)
+            if (itemsCount == 0)
             {
                 for (int n = (int)d.ReadArrayStart(); n != 0; n = (int)d.ReadArrayNext())
                 {
@@ -240,27 +241,9 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Read
                     }
                 }
             }
-            else if (_remainingBlocks == -1)
-            {
-                dynamic y;
-
-                do
-                {
-                    try
-                    {
-                        y = Resolve(writerSchema, readerSchema, d, containingType);
-                        result.Add(y);
-                    }
-                    catch (EndOfStreamReachedException)
-                    {
-                        y = null;
-                    }
-                } while (y != null);
-
-            }
             else
             {
-                for (int k = 0; k < _remainingBlocks; k++)
+                for (int k = 0; k < itemsCount; k++)
                 {
                     result.Add(Resolve(writerSchema, readerSchema, d, containingType));
                 }

@@ -17,8 +17,6 @@
 
 using System.IO;
 using SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Codec;
-using SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Extensions;
-using SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Schema;
 using SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Write;
 
 namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate
@@ -29,22 +27,10 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate
         {
             MemoryStream resultStream = new MemoryStream();
             string schema = GenerateSchema(obj.GetType());
-            var avroSchema = Schema.Schema.Parse(schema);
 
-            var (isArray, reducedSchema) = ReduceSchemaIfArray(obj, avroSchema);
-            using (var writer = new Encoder(reducedSchema, resultStream, codecType))
+            using (var writer = new Encoder(Schema.Schema.Parse(schema), resultStream, codecType))
             {
-                if (isArray)
-                {
-                    foreach (object o in (object[])obj)
-                    {
-                        writer.Append(o);
-                    }
-                }
-                else
-                {
-                    writer.Append(obj);
-                }
+                writer.Append(obj);
             }
 
             var result = resultStream.ToArray();
@@ -55,40 +41,12 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate
         {
             MemoryStream resultStream = new MemoryStream();
             var encoder = new Writer(resultStream);
-            var avroSchema = Schema.Schema.Parse(schema);
 
-            var (isArray, reducedSchema) = ReduceSchemaIfArray(obj, avroSchema);
-            var writer = Resolver.ResolveWriter(reducedSchema);
-
-            if (isArray)
-            {
-                foreach (object o in (object[])obj)
-                {
-                    writer(o, encoder);
-                }
-            }
-            else
-            {
-                writer(obj, encoder);
-            }
+            var writer = Resolver.ResolveWriter(Schema.Schema.Parse(schema));
+            writer(obj, encoder);
 
             var result = resultStream.ToArray();
             return result;
-        }
-
-        private static (bool isArray, Schema.Schema schema) ReduceSchemaIfArray(object obj, Schema.Schema schema)
-        {
-            if (!(obj.GetType().IsList() || obj.GetType().IsArray))
-            {
-                return (false, schema);
-            }
-
-            if (schema.Tag == Schema.Schema.Type.Array)
-            {
-                return (true, ((ArraySchema)schema).ItemSchema);
-            }
-
-            return (true, schema);
         }
     }
 }

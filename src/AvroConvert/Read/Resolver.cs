@@ -69,35 +69,11 @@ namespace SolTechnology.Avro.Read
                 case Schema.Schema.Type.Boolean:
                     return d.ReadBoolean();
                 case Schema.Schema.Type.Int:
-                    {
-                        int i = d.ReadInt();
-                        switch (readerSchema.Tag)
-                        {
-                            case Schema.Schema.Type.Long:
-                                return (long)i;
-                            case Schema.Schema.Type.Float:
-                                return (float)i;
-                            case Schema.Schema.Type.Double:
-                                return (double)i;
-                            default:
-                                return i;
-                        }
-                    }
+                    return d.ReadInt();
                 case Schema.Schema.Type.Long:
-                    {
-                        return ResolveLong(type, d);
-                    }
+                    return ResolveLong(type, d);
                 case Schema.Schema.Type.Float:
-                    {
-                        float f = d.ReadFloat();
-                        switch (readerSchema.Tag)
-                        {
-                            case Schema.Schema.Type.Double:
-                                return (double)f;
-                            default:
-                                return f;
-                        }
-                    }
+                    return d.ReadFloat();
                 case Schema.Schema.Type.Double:
                     return d.ReadDouble();
                 case Schema.Schema.Type.String:

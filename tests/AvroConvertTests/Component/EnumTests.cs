@@ -50,7 +50,6 @@ namespace AvroConvertTests.Component
 
             //Assert
             Assert.NotNull(result);
-            Assert.NotNull(deserialized);
             Assert.Equal(toSerialize, deserialized);
         }
 

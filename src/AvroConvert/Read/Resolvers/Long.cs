@@ -25,17 +25,11 @@ namespace SolTechnology.Avro.Read
         {
             long value = reader.ReadLong();
 
-            switch (type.Name.ToLowerInvariant())
+            if (type == typeof(DateTime))
             {
-                case "float":
-                    return (float)value;
-                case "double":
-                    return (double)value;
-                case "datetime":
-                    return ResolveDateTime(value);
-                default:
-                    return value;
+                return ResolveDateTime(value);
             }
+            return value;
         }
 
         protected virtual object ResolveDateTime(long value)

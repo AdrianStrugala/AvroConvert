@@ -170,6 +170,6 @@ START OF THE PROJECT
   - Solution with higher performance
 \
 \
-**v. 2.4.1 (xxx)**
+**v. 2.4.1 (14.04.20)**
 - Improved performance of deserialization
 - Adjusted generated schema to match Apache.Avro

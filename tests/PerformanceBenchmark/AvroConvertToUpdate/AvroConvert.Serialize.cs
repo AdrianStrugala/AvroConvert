@@ -26,8 +26,8 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate
         public static byte[] Serialize(object obj, CodecType codecType = CodecType.Null)
         {
             MemoryStream resultStream = new MemoryStream();
-
             string schema = GenerateSchema(obj.GetType());
+
             using (var writer = new Encoder(Schema.Schema.Parse(schema), resultStream, codecType))
             {
                 writer.Append(obj);
@@ -44,7 +44,6 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate
 
             var writer = Resolver.ResolveWriter(Schema.Schema.Parse(schema));
             writer(obj, encoder);
-
 
             var result = resultStream.ToArray();
             return result;

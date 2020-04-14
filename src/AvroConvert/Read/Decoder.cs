@@ -47,13 +47,9 @@ namespace SolTechnology.Avro.Read
             return OpenReader(new FileStream(filePath, FileMode.Open));
         }
 
-        internal static Decoder OpenReader(Stream inStream, string schema)
+        internal static Decoder OpenReader(Stream inStream, Schema.Schema schema)
         {
-            if (schema != null)
-            {
-                _readerSchema = Schema.Schema.Parse(schema);
-            }
-
+            _readerSchema = schema;
             return OpenReader(inStream);
         }
 

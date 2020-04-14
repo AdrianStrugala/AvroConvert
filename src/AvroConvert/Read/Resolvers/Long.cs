@@ -15,30 +15,31 @@
 */
 #endregion
 
-using System.IO;
-using SolTechnology.Avro.Codec;
-using SolTechnology.Avro.Write;
+using System;
 
-namespace SolTechnology.Avro
+namespace SolTechnology.Avro.Read
 {
-    public static partial class AvroConvert
+    internal partial class Resolver
     {
-        public static byte[] Serialize(object obj)
+        internal object ResolveLong(Type type, IReader reader)
         {
-            return Serialize(obj, CodecType.Null);
+            long value = reader.ReadLong();
+
+            if (type == typeof(DateTime))
+            {
+                return ResolveDateTime(value);
+            }
+            return value;
         }
 
-        public static byte[] Serialize(object obj, CodecType codecType)
+        protected virtual object ResolveDateTime(long value)
         {
-            MemoryStream resultStream = new MemoryStream();
+            DateTime unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
-            string schema = GenerateSchema(obj.GetType());
-            using (var writer = new Encoder(Schema.Schema.Parse(schema), resultStream, codecType))
-            {
-                writer.Append(obj);
-            }
+            var result = new DateTime();
+            result = result.AddTicks(unixEpoch.Ticks);
+            result = result.AddSeconds(value);
 
-            var result = resultStream.ToArray();
             return result;
         }
     }

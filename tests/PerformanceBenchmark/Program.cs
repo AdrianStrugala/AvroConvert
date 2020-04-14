@@ -18,6 +18,9 @@ namespace SolTechnology.PerformanceBenchmark
     {
         static void Main(string[] args)
         {
+
+            IntegrationTest.Invoke();
+
             var fixture = new Fixture();
             var data = fixture.CreateMany<Dataset>(30000).ToArray();
 
@@ -41,7 +44,7 @@ namespace SolTechnology.PerformanceBenchmark
                 {
                     Console.WriteLine($"Progress: {i + 1}/{noOfRuns}");
                 }
-               
+
             }
 
 
@@ -97,7 +100,7 @@ namespace SolTechnology.PerformanceBenchmark
 
             foreach (var dataset in datasets)
             {
-                apacheWriter.Write(Create(dataset, apacheSchema), encoder);
+                apacheWriter.Write(ApacheAvroHelpers.Create(dataset, apacheSchema), encoder);
             }
 
             var apacheAvro = apacheAvroSerializeStream.ToArray();
@@ -115,7 +118,7 @@ namespace SolTechnology.PerformanceBenchmark
                 var decoder = new BinaryDecoder(ms);
                 foreach (var dataset in datasets)
                 {
-                    apacheResult.Add(Decreate<Dataset>(apacheReader.Read(null, decoder)));
+                    apacheResult.Add(ApacheAvroHelpers.Decreate<Dataset>(apacheReader.Read(null, decoder)));
                 }
             }
             result.ApacheAvroDeserializeTime = stopwatch.ElapsedMilliseconds;
@@ -187,34 +190,6 @@ namespace SolTechnology.PerformanceBenchmark
             Console.WriteLine($"Avro Headless: {result.AvroConvertHeadlessSerializeTime + ((double)result.AvroConvertHeadlessSize * 8 * 1000 / (1024 * 1024 * 100)) + result.AvroConvertHeadlessDeserializeTime} ms");
             Console.WriteLine($"Avro Deflate:  {result.AvroConvertDeflateSerializeTime + ((double)result.AvroConvertDeflateSize * 8 * 1000 / (1024 * 1024 * 100)) + result.AvroConvertDeflateDeserializeTime} ms");
             Console.WriteLine($"Avro vNext:    {result.AvroConvertVNextSerializeTime + ((double)result.AvroConvertVNextSize * 8 * 1000 / (1024 * 1024 * 100)) + result.AvroConvertVNextDeserializeTime} ms");
-        }
-
-        private static GenericRecord Create(object item, Schema schema)
-        {
-            var genericRecord = new GenericRecord((RecordSchema)schema);
-
-            var props = item.GetType().GetProperties();
-
-            foreach (var propertyInfo in props)
-            {
-                genericRecord.Add(propertyInfo.Name, propertyInfo.GetValue(item));
-            }
-
-            return genericRecord;
-        }
-
-        private static T Decreate<T>(GenericRecord genericRecord) where T : new()
-        {
-            T result = new T();
-            var props = typeof(T).GetProperties();
-
-            foreach (var propertyInfo in props)
-            {
-                genericRecord.TryGetValue(propertyInfo.Name, out var value);
-                propertyInfo.SetValue(result, value);
-            }
-
-            return result;
         }
     }
 }

@@ -14,19 +14,23 @@ namespace AvroConvertTests
         public void Deserialize_CustomSchema_OnlyValuesFromCustomSchemaAreReturned()
         {
             //Arrange
-            var expectedResult = new List<UserNameClass>();
-            expectedResult.Add(new UserNameClass
+            var expectedResult = new List<User>();
+            expectedResult.Add(new User
             {
-                name = "Alyssa"
+                name = "Alyssa",
+                favorite_number = 256,
+                favorite_color = null
             });
 
-            expectedResult.Add(new UserNameClass
+            expectedResult.Add(new User
             {
-                name = "Ben"
+                name = "Ben",
+                favorite_number = 7,
+                favorite_color = "red"
             });
 
             //Act
-            var result = AvroConvert.Deserialize<List<UserNameClass>>(_avroBytes);
+            var result = AvroConvert.Deserialize<List<User>>(_avroBytes);
 
 
             //Assert

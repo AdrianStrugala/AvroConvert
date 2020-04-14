@@ -64,16 +64,16 @@ namespace SolTechnology.Avro.Write.Resolvers
                 case Schema.Schema.Type.Bytes:
                     return obj is byte[];
                 case Schema.Schema.Type.String:
-                    return obj is string;
+                    return true;
                 case Schema.Schema.Type.Error:
                 case Schema.Schema.Type.Record:
                     return true;
                 case Schema.Schema.Type.Enumeration:
                     return obj is System.Enum;
                 case Schema.Schema.Type.Array:
-                    return obj is System.Array && !(obj is byte[]);
+                    return !(obj is byte[]);
                 case Schema.Schema.Type.Map:
-                    return obj is IDictionary<string, object>;
+                    return true;
                 case Schema.Schema.Type.Union:
                     return false; // Union directly within another union not allowed!
                 case Schema.Schema.Type.Fixed:

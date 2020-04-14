@@ -27,18 +27,18 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate
         {
             var reader = Decoder.OpenReader(
                 new MemoryStream(avroBytes),
-                GenerateSchema(typeof(T))
+                Schema.Schema.Parse(GenerateSchema(typeof(T)))
             );
 
             return reader.Read<T>();
         }
 
-        public static T DeserializeHeadless<T>(byte[] avroBytes, string schema)
+        public static T DeserializeHeadless<T>(byte[] avroBytes, string schema = null)
         {
-            Schema.Schema schema2 = Schema.Schema.Parse(schema);
+            var readerSchema = Schema.Schema.Parse(schema ?? GenerateSchema(typeof(T)));
             var _reader = new Reader(new MemoryStream(avroBytes));
-            var _resolver = new Resolver(schema2, schema2);
-            var result = _resolver.Resolve<T>(_reader, 1);
+            var _resolver = new Resolver(readerSchema, readerSchema);
+            var result = _resolver.Resolve<T>(_reader, -1);
 
             return result;
         }

@@ -224,6 +224,7 @@ namespace AvroConvertTests
     public class DefaultValueClass
     {
         [DefaultValue("Let's go")]
+        [NullableSchema]
         public string justSomeProperty { get; set; }
 
         public long? andLongProperty { get; set; }

@@ -85,7 +85,8 @@ public class AttributeClass
 	[NullableSchema]
 	public int? NullableIntProperty { get; set; }
 
-	[DataMember(Name = "favorite_color")]
+        [DataMember(Name = "favorite_color")]
+        [NullableSchema]
 	public string AndAnotherString { get; set; }
 }
 
@@ -95,7 +96,7 @@ string schemaInJsonFormat = AvroConvert.GenerateSchema(typeof(AttributeClass));
 
 
 //Produces following schema:
-"{"type":"record","name":"user.User","fields":[{"name":"name","type":["null","string"]},{"name":"favorite_number","type":["null","int"]},{"name":"favorite_color","type":["null","string"]}]}"
+"{"type":"record","name":"user.User","fields":[{"name":"name","type":,"string"},{"name":"favorite_number","type":["null","int"]},{"name":"favorite_color","type":["null","string"]}]}"
 ```  
 
 
@@ -103,4 +104,18 @@ string schemaInJsonFormat = AvroConvert.GenerateSchema(typeof(AttributeClass));
 ### Reading Avro schema from Avro encoded object
 ```csharp
 string schemaInJsonFormat = AvroConvert.GetSchema(byte[] avroObject)
+```
+
+### Headless serialization and deserialization
+
+**Schemas provided for serialization and deserialization have to be *exactly* the same**
+
+```csharp
+
+string schema = "{"type":"record","name":"user.User","fields":[{"name":"name","type":,"string"},{"name":"favorite_number","type":["null","int"]},{"name":"favorite_color","type":["null","string"]}]}";
+
+var serialized = AvroConvert.SerializeHeadless(toSerialize, schema);
+
+var deserialized = AvroConvert.DeserializeHeadless<User>(serialized, schema);
+
 ```

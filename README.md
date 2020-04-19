@@ -28,7 +28,7 @@
 
 [General information](http://avro.apache.org/)
 
-[Documentation](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/documentation.md)
+[Documentation](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md)
 
 ## Benefits
 
@@ -39,10 +39,10 @@ The main purpose of the project was to enhance communication between microservic
 
 | Converter               | Request time [ms]     | Compressed size [kB] |
 |-------------------------|-----------------------|----------------------|
-| Json                    | 1104                  | 9945                 |
-| Avro (null encoding)    | 549                   | 2435                 |
-| Avro (Headless)         | 503                   | 2434                 |
-| Avro (Deflate encoding) | 519                   | 206                  |
+| Json                    | 1076                  | 9945                 |
+| Avro (default)          | 509                   | 2435                 |
+| Avro (Headless)         | 465                   | 2434                 |
+| Avro (Deflate encoding) | 453                   | 206                  |
 
 In the purpose of introducing Avro API, I've written an article, which you can read here: https://xabe.net/why-avro-api-is-the-best-choice/
 \
@@ -97,6 +97,8 @@ string schemaInJsonFormat = AvroConvert.GenerateSchema(typeof(SimpleTestClass));
 //Read schema from Avro file
 string schemaInJsonFormat = AvroConvert.GetSchema(byte[] avroObject)
 ```
+
+[Full Documentation](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md)
 
 ## License  
 

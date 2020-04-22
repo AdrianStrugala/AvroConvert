@@ -165,10 +165,11 @@ START OF THE PROJECT
 - Removed reference to AutoMapper
 - Added performance benchmark (comparison to Newtonsoft.Json and Apache.Avro)
 - Added Headless Serialization and Deserialization:
-  - Resolver does't generate schema by it's own
+  - Resolver doesn't generate schema by it's own
   - Requires providing schema for serialization and deserialization. Schemas have to be *exactly* the same
   - Solution with higher performance
-\
+
+
 \
 **v. 2.4.1 (14.04.20)**
 - Improved performance of deserialization

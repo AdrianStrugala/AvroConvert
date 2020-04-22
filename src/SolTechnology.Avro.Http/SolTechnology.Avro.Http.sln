@@ -3,7 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29519.87
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SolTechnology.Avro.Http", "SolTechnology.Avro.Http.csproj", "{F8BFB48E-D2EC-4D54-9C60-CB8D98F821D9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SolTechnology.Avro.Http", "SolTechnology.Avro.Http.csproj", "{F8BFB48E-D2EC-4D54-9C60-CB8D98F821D9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{D7E6BECC-2913-4910-8144-9FD82B55B424}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Http.Server", "..\..\tests\Http.Server\Http.Server.csproj", "{296BBD20-0C76-4CB0-9483-399C9FE3107D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,9 +19,16 @@ Global
 		{F8BFB48E-D2EC-4D54-9C60-CB8D98F821D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F8BFB48E-D2EC-4D54-9C60-CB8D98F821D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F8BFB48E-D2EC-4D54-9C60-CB8D98F821D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{296BBD20-0C76-4CB0-9483-399C9FE3107D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{296BBD20-0C76-4CB0-9483-399C9FE3107D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{296BBD20-0C76-4CB0-9483-399C9FE3107D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{296BBD20-0C76-4CB0-9483-399C9FE3107D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{296BBD20-0C76-4CB0-9483-399C9FE3107D} = {D7E6BECC-2913-4910-8144-9FD82B55B424}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EC116B6B-03A4-4E28-8A7E-F1305B4B602E}

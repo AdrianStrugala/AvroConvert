@@ -62,3 +62,6 @@ Avro/obj/Avro.csproj.nuget.g.targets
 src/SolTechnology.Avro.Http/.vs/SolTechnology.Avro.Http/DesignTimeBuild/.dtbcache
 *.ide-wal
 *.ide-shm
+src/SolTechnology.Avro.Http/.vs/SolTechnology.Avro.Http/v16/TestStore/0/testlog.manifest
+src/SolTechnology.Avro.Http/.vs/SolTechnology.Avro.Http/config/applicationhost.config
+src/SolTechnology.Avro.Http/.vs/SolTechnology.Avro.Http/v16/TestStore/0/000-0000.testlog

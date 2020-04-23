@@ -57,47 +57,51 @@ namespace SolTechnology.Avro.Read
             IReader d,
             Type type)
         {
-            if (readerSchema.Tag == Schema.Schema.Type.Union && writerSchema.Tag != Schema.Schema.Type.Union)
+            try
             {
-                readerSchema = FindBranch(readerSchema as UnionSchema, writerSchema);
-            }
+                if (readerSchema.Tag == Schema.Schema.Type.Union && writerSchema.Tag != Schema.Schema.Type.Union)
+                {
+                    readerSchema = FindBranch(readerSchema as UnionSchema, writerSchema);
+                }
 
-            switch (writerSchema.Tag)
+                switch (writerSchema.Tag)
+                {
+                    case Schema.Schema.Type.Null:
+                        return null;
+                    case Schema.Schema.Type.Boolean:
+                        return d.ReadBoolean();
+                    case Schema.Schema.Type.Int:
+                        return d.ReadInt();
+                    case Schema.Schema.Type.Long:
+                        return ResolveLong(type, d);
+                    case Schema.Schema.Type.Float:
+                        return d.ReadFloat();
+                    case Schema.Schema.Type.Double:
+                        return d.ReadDouble();
+                    case Schema.Schema.Type.String:
+                        return ResolveString(type, d);
+                    case Schema.Schema.Type.Bytes:
+                        return d.ReadBytes();
+                    case Schema.Schema.Type.Error:
+                    case Schema.Schema.Type.Record:
+                        return ResolveRecord((RecordSchema)writerSchema, (RecordSchema)readerSchema, d, type);
+                    case Schema.Schema.Type.Enumeration:
+                        return ResolveEnum((EnumSchema)writerSchema, readerSchema, d, type);
+                    case Schema.Schema.Type.Fixed:
+                        return ResolveFixed((FixedSchema)writerSchema, readerSchema, d, type);
+                    case Schema.Schema.Type.Array:
+                        return ResolveArray(writerSchema, readerSchema, d, type);
+                    case Schema.Schema.Type.Map:
+                        return ResolveMap((MapSchema)writerSchema, readerSchema, d, type);
+                    case Schema.Schema.Type.Union:
+                        return ResolveUnion((UnionSchema)writerSchema, readerSchema, d, type);
+                    default:
+                        throw new AvroException("Unknown schema type: " + writerSchema);
+                }
+            }
+            catch (Exception e)
             {
-                case Schema.Schema.Type.Null:
-                    return null;
-                case Schema.Schema.Type.Boolean:
-                    return d.ReadBoolean();
-                case Schema.Schema.Type.Int:
-                    return d.ReadInt();
-                case Schema.Schema.Type.Long:
-                    return ResolveLong(type, d);
-                case Schema.Schema.Type.Float:
-                    return d.ReadFloat();
-                case Schema.Schema.Type.Double:
-                    return d.ReadDouble();
-                case Schema.Schema.Type.String:
-                    return ResolveString(type, d);
-                case Schema.Schema.Type.Bytes:
-                    return d.ReadBytes();
-                case Schema.Schema.Type.Error:
-                case Schema.Schema.Type.Record:
-                    return ResolveRecord((RecordSchema)writerSchema, (RecordSchema)readerSchema, d, type);
-                case Schema.Schema.Type.Enumeration:
-                    return ResolveEnum((EnumSchema)writerSchema, readerSchema, d, type);
-                case Schema.Schema.Type.Fixed:
-                    return ResolveFixed((FixedSchema)writerSchema, readerSchema, d, type);
-                case Schema.Schema.Type.Array:
-                    return ResolveArray(
-                    writerSchema,
-                    readerSchema,
-                    d, type);
-                case Schema.Schema.Type.Map:
-                    return ResolveMap((MapSchema)writerSchema, readerSchema, d, type);
-                case Schema.Schema.Type.Union:
-                    return ResolveUnion((UnionSchema)writerSchema, readerSchema, d, type);
-                default:
-                    throw new AvroException("Unknown schema type: " + writerSchema);
+                throw new AvroTypeMismatchException($"Unable to deserialize [{writerSchema.Name}] of schema [{writerSchema.Tag}] to the target type [{type}]", e);
             }
         }
 

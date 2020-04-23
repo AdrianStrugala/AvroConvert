@@ -15,8 +15,10 @@
 */
 #endregion
 
+using System.Runtime.CompilerServices;
 using System;
 
+[assembly: InternalsVisibleTo("AvroConvertTests")]
 namespace SolTechnology.Avro.Exceptions
 {
     internal class AvroTypeMismatchException : Exception

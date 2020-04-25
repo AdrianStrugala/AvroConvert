@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
+using Newtonsoft.Json;
 using SolTechnology.Avro.Http;
 
 namespace Http.Client
@@ -10,11 +12,14 @@ namespace Http.Client
         static void Main(string[] args)
         {
             Console.WriteLine("Http Client running!");
+            string url = "https://localhost:2137/WeatherForecast";
 
             HttpClient httpClient = new HttpClient();
-            var avroResult = httpClient.GetAsAvro<List<WeatherForecast>>("https://localhost:2137/WeatherForecast").Result;
+            List<WeatherForecast> avroResult = httpClient.GetAsAvro<List<WeatherForecast>>(url).Result;
+            Console.WriteLine(JsonConvert.SerializeObject(avroResult));
 
-            Console.WriteLine(avroResult.ToString());
+            HttpResponseMessage postResponse = httpClient.PostAsAvro(url, avroResult.First()).Result;
+            Console.WriteLine(JsonConvert.SerializeObject(postResponse));
 
             Console.ReadLine();
         }

@@ -14,16 +14,14 @@ namespace SolTechnology.Avro.Http
             this.SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/avro"));
         }
 
-        public override Task<InputFormatterResult> ReadRequestBodyAsync(InputFormatterContext context)
+        public override async Task<InputFormatterResult> ReadRequestBodyAsync(InputFormatterContext context)
         {
-            using (MemoryStream ms = new MemoryStream())
-            {
-                context.HttpContext.Request.Body.CopyTo(ms);
-                var type = context.ModelType;
+            await using MemoryStream ms = new MemoryStream();
+            await context.HttpContext.Request.Body.CopyToAsync(ms);
+            var type = context.ModelType;
 
-                object result = AvroConvert.Deserialize(ms.ToArray(), type);
-                return InputFormatterResult.SuccessAsync(result);
-            }
+            object result = AvroConvert.Deserialize(ms.ToArray(), type);
+            return await InputFormatterResult.SuccessAsync(result);
         }
     }
 }

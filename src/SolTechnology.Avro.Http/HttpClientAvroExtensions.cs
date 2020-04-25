@@ -19,5 +19,19 @@ namespace SolTechnology.Avro.Http
             T result = AvroConvert.Deserialize<T>(response);
             return result;
         }
+
+        public static async Task<HttpResponseMessage> PutAsAvro(this HttpClient httpClient, string requestUri, object content)
+        {
+            var body = new ByteArrayContent(AvroConvert.Serialize(content));
+            body.Headers.ContentType = new MediaTypeHeaderValue("application/avro");
+            return await httpClient.PutAsync(requestUri, body);
+        }
+
+        public static async Task<HttpResponseMessage> PatchAsAvro(this HttpClient httpClient, string requestUri, object content)
+        {
+            var body = new ByteArrayContent(AvroConvert.Serialize(content));
+            body.Headers.ContentType = new MediaTypeHeaderValue("application/avro");
+            return await httpClient.PatchAsync(requestUri, body);
+        }
     }
 }

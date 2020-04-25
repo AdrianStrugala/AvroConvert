@@ -4,7 +4,7 @@
     <OutputType>Library</OutputType>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <Authors>Adrian Strugala</Authors>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <Description>Library containing functionalities, which enable communication between microservices using Avro data format</Description>
     <PackageLicenseUrl>https://creativecommons.org/licenses/by-nc-sa/3.0/</PackageLicenseUrl>
     <PackageProjectUrl>https://xabe.net/product/avroconvert/</PackageProjectUrl>
@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AvroConvert" Version="2.4.0" />
+    <PackageReference Include="AvroConvert" Version="2.4.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
   </ItemGroup>
 

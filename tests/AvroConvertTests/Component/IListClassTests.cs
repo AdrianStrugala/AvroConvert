@@ -1,4 +1,5 @@
-﻿using SolTechnology.Avro;
+﻿using System.Collections.Immutable;
+using SolTechnology.Avro;
 
 namespace AvroConvertTests.Component
 {
@@ -164,6 +165,24 @@ namespace AvroConvertTests.Component
             Assert.NotNull(result);
             Assert.NotNull(deserialized);
             Assert.Equal(hashset, deserialized);
+        }
+
+        [Fact]
+        public void Component_ObjectIsIImmutableSet_ResultIsTheSameAsInput()
+        {
+            //Arrange
+            IImmutableSet<SomeTestClass> set = _fixture.Create<IEnumerable<SomeTestClass>>().ToImmutableHashSet();
+
+            //Act
+
+            var result = AvroConvert.Serialize(set);
+
+            var deserialized = AvroConvert.Deserialize<ImmutableHashSet<SomeTestClass>>(result);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(set, deserialized);
         }
 
         [Fact]

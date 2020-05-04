@@ -51,7 +51,7 @@ namespace SolTechnology.Avro.Extensions
                 && type != typeof(Uri)
                 && !type.IsAbstract()
                 && !type.IsInterface()
-                && !(type.IsGenericType() && SupportedInterfaces.Contains(type.GetGenericTypeDefinition())));
+                && !(type.IsGenericType() && type.ImplementsSupportedInterface()));
         }
 
         private static readonly HashSet<Type> NativelySupported = new HashSet<Type>
@@ -91,8 +91,22 @@ namespace SolTechnology.Avro.Extensions
         private static readonly HashSet<Type> SupportedInterfaces = new HashSet<Type>
         {
             typeof(IList<>),
-            typeof(IDictionary<,>)
+            typeof(IDictionary<,>),
+            typeof(IEnumerable<>)
         };
+
+        private static bool ImplementsSupportedInterface(this Type type)
+        {
+            foreach (var interfaceType in type.GetInterfaces())
+            {
+                if (SupportedInterfaces.Contains(interfaceType.GetGenericTypeDefinition()))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         internal static bool IsAnonymous(this Type type)
         {

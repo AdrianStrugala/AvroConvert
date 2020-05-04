@@ -17,7 +17,6 @@
 
 using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using SolTechnology.Avro.Extensions;
 using SolTechnology.Avro.Schema;
@@ -76,6 +75,7 @@ namespace SolTechnology.Avro.Read
                 return result;
             }
 
+
             var hashSetType = typeof(HashSet<>).MakeGenericType(containingType);
             if (type == hashSetType)
             {
@@ -88,19 +88,15 @@ namespace SolTechnology.Avro.Read
                 return resultHashSet;
             }
 
-            var concurrentBagType = typeof(ConcurrentBag<>).MakeGenericType(containingType);
-            if (type == concurrentBagType)
-            {
-                dynamic resultConcurrentBag = Activator.CreateInstance(concurrentBagType);
-                foreach (dynamic item in result)
-                {
-                    resultConcurrentBag.Add(item);
-                }
 
-                return resultConcurrentBag;
+            var reflectionResult = type.GetField("Empty")?.GetValue(null);
+            var addMethod = type.GetMethod("Add");
+            foreach (dynamic item in result)
+            {
+                reflectionResult = addMethod.Invoke(reflectionResult, new[] { item });
             }
 
-            return result;
+            return reflectionResult;
         }
 
         protected object ResolveDictionary(RecordSchema writerSchema, RecordSchema readerSchema, IReader d, Type type)

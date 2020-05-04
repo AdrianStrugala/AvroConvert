@@ -20,7 +20,8 @@
     <RepositoryUrl>https://github.com/AdrianStrugala/AvroConvert</RepositoryUrl>
     <AssemblyName>SolTechnology.Avro</AssemblyName>
     <RootNamespace>SolTechnology.Avro</RootNamespace>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <PropertyGroup>

@@ -6,6 +6,7 @@ namespace AvroConvertTests.AvroToJson
 {
     public class JsonTests
     {
+        [Fact]
         public void Json_SerializeObjectAndDictionaryWithItemsNamedLikeProperties_TheyAreEqual()
         {
             //Arrange
@@ -22,6 +23,13 @@ namespace AvroConvertTests.AvroToJson
 
             //Act
             var json1 = JsonConvert.SerializeObject(user);
+
+            var xd = JsonConvert.SerializeObject(null);
+            //Test na:
+            // - typ prosty
+            // - obiekt
+            // - null
+            // - array
 
             var json2 = JsonConvert.SerializeObject(userDictionary);
 

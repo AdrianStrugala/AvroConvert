@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
+using SolTechnology.Avro;
 using Xunit;
 
 namespace AvroConvertTests.AvroToJson
@@ -23,14 +24,6 @@ namespace AvroConvertTests.AvroToJson
 
             //Act
             var json1 = JsonConvert.SerializeObject(user);
-
-            var xd = JsonConvert.SerializeObject(null);
-            //Test na:
-            // - typ prosty
-            // - obiekt
-            // - null
-            // - array
-
             var json2 = JsonConvert.SerializeObject(userDictionary);
 
 

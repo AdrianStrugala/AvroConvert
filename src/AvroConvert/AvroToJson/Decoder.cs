@@ -1,22 +1,4 @@
-﻿#region license
-/**Copyright (c) 2020 Adrian Strugała
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* https://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
-#endregion
-
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using SolTechnology.Avro.Codec;
@@ -27,121 +9,92 @@ using SolTechnology.Avro.Read;
 
 namespace SolTechnology.Avro.AvroToJson
 {
-    internal class Decoder : IDisposable
+    internal class Decoder
     {
-        private readonly Resolver _resolver;
-        private readonly IReader _reader;
-        private IReader _datumReader;
-        private readonly Header _header;
-        private readonly AbstractCodec _codec;
-        private byte[] _currentBlock;
-        private long _blockRemaining;
-        private long _blockSize;
-        private bool _availableBlock;
-        private readonly byte[] _syncBuffer;
-        private readonly Stream _stream;
-        private static Schema.Schema _readerSchema;
-
-        internal static Decoder OpenReader(Stream inStream, string schema)
+        internal object Decode(Stream stream, Schema.Schema schema)
         {
-            if (schema != null)
-            {
-                _readerSchema = Schema.Schema.Parse(schema);
-            }
-
-            return OpenReader(inStream);
-        }
-
-
-        internal static Decoder OpenReader(Stream inStream)
-        {
-            if (!inStream.CanSeek)
-                throw new AvroRuntimeException("Not a valid input stream - must be seekable!");
-
-            return new Decoder(inStream);         // (not supporting 1.2 or below, format)           
-        }
-
-        private Decoder(Stream stream)
-        {
-            _stream = stream;
-            _header = new Header();
-            _reader = new Reader(stream);
-            _syncBuffer = new byte[DataFileConstants.SyncSize];
+            var reader = new Reader(stream);
+            var header = new Header();
 
             // validate header 
             byte[] firstBytes = new byte[DataFileConstants.AvroHeader.Length];
+
             try
             {
-                _reader.ReadFixed(firstBytes);
+                reader.ReadFixed(firstBytes);
             }
-            catch (Exception)
+            catch (EndOfStreamException)
             {
-                throw new InvalidAvroObjectException("Cannot read length of Avro Header");
+                //stream shorter than AvroHeader
             }
+
+            //does not contain header
             if (!firstBytes.SequenceEqual(DataFileConstants.AvroHeader))
-                throw new InvalidAvroObjectException("Cannot read Avro Header");
-
-            // read meta data 
-            long len = _reader.ReadMapStart();
-            if (len > 0)
             {
-                do
+                if (schema == null)
                 {
-                    for (long i = 0; i < len; i++)
+                    throw new MissingSchemaException("Provide valid schema for the Avro data");
+                }
+                var resolver = new Resolver(schema);
+                stream.Seek(0, SeekOrigin.Begin);
+                return resolver.Resolve(reader);
+            }
+            else
+            {
+                // read meta data 
+                long len = reader.ReadMapStart();
+                if (len > 0)
+                {
+                    do
                     {
-                        string key = _reader.ReadString();
-                        byte[] val = _reader.ReadBytes();
-                        _header.MetaData.Add(key, val);
-                    }
-                } while ((len = _reader.ReadMapNext()) != 0);
-            }
+                        for (long i = 0; i < len; i++)
+                        {
+                            string key = reader.ReadString();
+                            byte[] val = reader.ReadBytes();
+                            header.MetaData.Add(key, val);
+                        }
+                    } while ((len = reader.ReadMapNext()) != 0);
+                }
 
-            // read in sync data 
-            _reader.ReadFixed(_header.SyncData);
+                schema = schema ?? Schema.Schema.Parse(GetMetaString(header.MetaData[DataFileConstants.SchemaMetadataKey]));
+                var resolver = new Resolver(schema);
 
-            // parse schema and set codec
-            if (_readerSchema == null)
-            {
-                _readerSchema = Schema.Schema.Parse(GetMetaString(DataFileConstants.SchemaMetadataKey));
-            }
+                // read in sync data 
+                reader.ReadFixed(header.SyncData);
+                var codec = AbstractCodec.CreateCodecFromString(GetMetaString(header.MetaData[DataFileConstants.CodecMetadataKey]));
 
-            _resolver = new Resolver(_readerSchema);
-            _codec = AbstractCodec.CreateCodecFromString(GetMetaString(DataFileConstants.CodecMetadataKey));
-        }
 
-        internal byte[] GetMeta(string key)
-        {
-            try
-            {
-                return _header.MetaData[key];
-            }
-            catch (KeyNotFoundException)
-            {
-                return null;
+                return Read(reader, header, codec, resolver);
             }
         }
 
-        internal string GetMetaString(string key)
+
+        internal string GetMetaString(byte[] value)
         {
-            byte[] value = GetMeta(key);
             if (value == null)
             {
                 return null;
             }
-            try
-            {
-                return System.Text.Encoding.UTF8.GetString(value);
-            }
-            catch (Exception e)
-            {
-                throw new AvroRuntimeException($"Error fetching meta data for key: {key}", e);
-            }
+            return System.Text.Encoding.UTF8.GetString(value);
         }
 
 
-        internal object Read()
+        internal object Read(IReader reader, Header header, AbstractCodec codec, Resolver resolver)
         {
-            long remainingBlocks = GetRemainingBlocksCount();
+            var remainingBlocks = reader.ReadLong();
+            var blockSize = reader.ReadLong();
+            var syncBuffer = new byte[DataFileConstants.SyncSize];
+
+            var dataBlock = new byte[blockSize];
+
+            reader.ReadFixed(dataBlock, 0, (int)blockSize);
+            reader.ReadFixed(syncBuffer);
+
+            if (!syncBuffer.SequenceEqual(header.SyncData))
+                throw new AvroRuntimeException("Invalid sync!");
+
+            dataBlock = codec.Decompress(dataBlock);
+            reader = new Reader(new MemoryStream(dataBlock));
 
             if (remainingBlocks > 1)
             {
@@ -149,82 +102,16 @@ namespace SolTechnology.Avro.AvroToJson
 
                 for (int i = 0; i < remainingBlocks; i++)
                 {
-                    result.Add(_resolver.Resolve(_datumReader));
+                    result.Add(resolver.Resolve(reader));
                 }
 
                 return result;
             }
             else
             {
-                return _resolver.Resolve(_datumReader);
+                return resolver.Resolve(reader);
             }
         }
 
-        internal long GetRemainingBlocksCount()
-        {
-            if (_blockRemaining == 0)
-            {
-                if (HasNextBlock())
-                {
-                    _currentBlock = NextRawBlock();
-                    _currentBlock = _codec.Decompress(_currentBlock);
-                    _datumReader = new Reader(new MemoryStream(_currentBlock));
-                }
-            }
-
-            return _blockRemaining;
-        }
-
-        public void Dispose()
-        {
-            _stream.Dispose();
-        }
-
-        private byte[] NextRawBlock()
-        {
-            if (!HasNextBlock())
-                throw new AvroRuntimeException("No data remaining in block!");
-
-            var dataBlock = new byte[_blockSize];
-
-            _reader.ReadFixed(dataBlock, 0, (int)_blockSize);
-            _reader.ReadFixed(_syncBuffer);
-
-            if (!_syncBuffer.SequenceEqual(_header.SyncData))
-                throw new AvroRuntimeException("Invalid sync!");
-
-            _availableBlock = false;
-            return dataBlock;
-        }
-
-
-        private bool HasNextBlock()
-        {
-            try
-            {
-                // block currently being read 
-                if (_availableBlock)
-                    return true;
-
-                // check to ensure still data to read 
-                if (_stream.Position == _stream.Length)
-                    return false;
-
-                _blockRemaining = _reader.ReadLong();      // read block count
-                _blockSize = _reader.ReadLong();           // read block size
-
-                if (_blockSize > int.MaxValue || _blockSize < 0)
-                {
-                    throw new AvroRuntimeException("Block size invalid or too large for this " +
-                                                   "implementation: " + _blockSize);
-                }
-                _availableBlock = true;
-                return true;
-            }
-            catch (Exception e)
-            {
-                throw new AvroRuntimeException($"Error ascertaining if data has next block: {e}");
-            }
-        }
     }
 }

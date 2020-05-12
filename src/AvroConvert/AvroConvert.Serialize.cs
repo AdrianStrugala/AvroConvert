@@ -30,16 +30,17 @@ namespace SolTechnology.Avro
 
         public static byte[] Serialize(object obj, CodecType codecType)
         {
-            MemoryStream resultStream = new MemoryStream();
-
-            string schema = GenerateSchema(obj.GetType());
-            using (var writer = new Encoder(Schema.Schema.Parse(schema), resultStream, codecType))
+            using (MemoryStream resultStream = new MemoryStream())
             {
-                writer.Append(obj);
-            }
+                string schema = GenerateSchema(obj?.GetType());
+                using (var writer = new Encoder(Schema.Schema.Parse(schema), resultStream, codecType))
+                {
+                    writer.Append(obj);
+                }
 
-            var result = resultStream.ToArray();
-            return result;
+                var result = resultStream.ToArray();
+                return result;
+            }
         }
     }
 }

@@ -69,7 +69,7 @@ namespace AvroConvertTests.AvroToJson
             Assert.Equal(expectedJson, resultJson);
         }
 
-        [Fact (Skip = "has to be fixed")]
+        [Fact]
         public void Avro2Json_ConvertNull_ProducedDesiredJson()
         {
             //Arrange
@@ -82,7 +82,7 @@ namespace AvroConvertTests.AvroToJson
 
 
             //Act
-            var resultJson = AvroConvert.Avro2Json(avroSerialized);
+            var resultJson = AvroConvert.Avro2Json(avroSerialized, schema);
 
 
             //Assert

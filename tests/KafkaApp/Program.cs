@@ -1,7 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
+using Avro;
 using Avro.Generic;
+using Confluent.Kafka;
+using KafkaHelperLib;
+using Newtonsoft.Json;
 using SolTechnology.Avro.Kafka;
 
 namespace KafkaApp
@@ -25,22 +30,35 @@ namespace KafkaApp
                 { KafkaPropNames.Offset, 0 },
             };
 
+            var genericRecordConfig = new RecordConfig((string)config[KafkaPropNames.SchemaRegistryUrl]);
+            var RecordSchema = genericRecordConfig.RecordSchema;
 
-            var kafkaConsumer = new KafkaConsumer(config,
-                                                  // Callback to process consumed (key -> value) item
-                                                  (key, value, utcTimestamp) =>
-                                                  {
-                                                      Console.Write($"C#     {key}  ->  ");
-                                                      Console.Write($"{nameof(value.BatchId)} = {value.BatchId}   ");
-                                                      Console.Write($"{nameof(value.Id)} = {value.Id}   ");
-                                                      Console.Write($"{nameof(value.Name)} = {value.Name}   ");
-                                                      Console.Write($"{nameof(value.NumericData)} = {value.NumericData}   ");
-                                                      Console.Write($"{nameof(value.TextData)} = {value.TextData}   ");
-                                                      Console.WriteLine($"   {utcTimestamp}");
-                                                  },
-                                                  // Callback to process log message
-                                                  s => Console.WriteLine(s))
-                    .StartConsuming();
+
+            var consumer = new ConsumerBuilder<string, RecordModel>(new ConsumerConfig
+            {
+                BootstrapServers = (string)config[KafkaPropNames.BootstrapServers],
+                GroupId = (string)config[KafkaPropNames.GroupId],
+                AutoOffsetReset = AutoOffsetReset.Earliest
+            }).SetKeyDeserializer(Deserializers.Utf8).SetAvroValueDeserializer(RecordSchema.ToString())
+              .Build();
+
+            var topic = (string)config[KafkaPropNames.Topic];
+
+            consumer.Assign(new List<TopicPartitionOffset>
+            {
+                new TopicPartitionOffset(topic, (int)config[KafkaPropNames.Partition], (int)config[KafkaPropNames.Offset])
+            });
+
+
+            var kafkaConsumer = new KafkaConsumer<string, RecordModel>(consumer,
+                    (key, value, utcTimestamp) =>
+                     {
+                         Console.WriteLine($"C#     {key}  ->  ");
+                         Console.WriteLine($"   {utcTimestamp}");
+                         Console.WriteLine(JsonConvert.SerializeObject(value));
+
+                     }, CancellationToken.None)
+                .StartConsuming();
 
 
             var kafkaProducer = new KafkaProducer(config,

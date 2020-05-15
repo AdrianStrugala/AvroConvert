@@ -258,7 +258,7 @@ namespace SolTechnology.Avro.Read
         {
             int n = stream.ReadByte();
             if (n >= 0) return (byte)n;
-            throw new EndOfStreamReachedException();
+            throw new EndOfStreamException();
         }
 
         private void Read(byte[] buffer, int start, int len)
@@ -266,7 +266,7 @@ namespace SolTechnology.Avro.Read
             while (len > 0)
             {
                 int n = stream.Read(buffer, start, len);
-                if (n <= 0) throw new EndOfStreamReachedException();
+                if (n <= 0) throw new EndOfStreamException();
                 start += n;
                 len -= n;
             }

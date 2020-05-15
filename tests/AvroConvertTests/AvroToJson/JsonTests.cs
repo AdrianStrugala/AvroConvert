@@ -1,11 +1,13 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
+using SolTechnology.Avro;
 using Xunit;
 
 namespace AvroConvertTests.AvroToJson
 {
     public class JsonTests
     {
+        [Fact]
         public void Json_SerializeObjectAndDictionaryWithItemsNamedLikeProperties_TheyAreEqual()
         {
             //Arrange
@@ -22,7 +24,6 @@ namespace AvroConvertTests.AvroToJson
 
             //Act
             var json1 = JsonConvert.SerializeObject(user);
-
             var json2 = JsonConvert.SerializeObject(userDictionary);
 
 

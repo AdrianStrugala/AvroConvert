@@ -20,7 +20,7 @@
 
 namespace SolTechnology.Avro.Exceptions
 {
-    internal class SchemaParseException:AvroException
+    internal class SchemaParseException : AvroException
     {
         internal SchemaParseException(string s)
             : base(s)

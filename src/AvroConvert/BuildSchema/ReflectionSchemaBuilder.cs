@@ -84,7 +84,7 @@ namespace SolTechnology.Avro.BuildSchema
         {
             if (type == null)
             {
-                throw new ArgumentNullException("type");
+                return new NullSchema();
             }
 
             AvroContractResolver resolver = this.settings.Resolver;

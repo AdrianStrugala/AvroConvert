@@ -25,12 +25,15 @@ namespace SolTechnology.Avro
     {
         public static T Deserialize<T>(byte[] avroBytes)
         {
-            var reader = Decoder.OpenReader(
-                new MemoryStream(avroBytes),
-                Schema.Schema.Parse(GenerateSchema(typeof(T)))
-            );
-
-            return reader.Read<T>();
+            using (var stream = new MemoryStream(avroBytes))
+            {
+                var decoder = new Decoder();
+                var deserialized = decoder.Decode<T>(
+                    stream,
+                    Schema.Schema.Parse(GenerateSchema(typeof(T)))
+                );
+                return deserialized;
+            }
         }
 
 

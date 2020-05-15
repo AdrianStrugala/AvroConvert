@@ -176,5 +176,7 @@ START OF THE PROJECT
 - Adjusted generated schema to match Apache.Avro
 
 \
-**v. 2.4.2 (xxx)**
+**v. 2.5.0 (15.05.20)**
+- Added Avro2Json feature
 - Added support for number of types implementing IEnumerable
+- Improved deserialization time

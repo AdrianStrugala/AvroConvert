@@ -16,8 +16,7 @@
 #endregion
 
 using System.IO;
-using SolTechnology.Avro.Constants;
-using SolTechnology.Avro.Read;
+using SolTechnology.Avro.GetSchema;
 
 namespace SolTechnology.Avro
 {
@@ -25,26 +24,32 @@ namespace SolTechnology.Avro
     {
         public static string GetSchema(byte[] avroBytes)
         {
-            var reader = Decoder.OpenReader(new MemoryStream(avroBytes));
-            var schemaString = reader.GetMetaString(DataFileConstants.SchemaMetadataKey);
+            using (var stream = new MemoryStream(avroBytes))
+            {
+                var headerDecoder = new HeaderDecoder();
+                var schema = headerDecoder.GetSchema(stream);
 
-            return schemaString;
+                return schema;
+            }
         }
 
         public static string GetSchema(string filePath)
         {
-            var reader = Decoder.OpenReader(filePath);
-            var schemaString = reader.GetMetaString(DataFileConstants.SchemaMetadataKey);
+            using (var stream = new FileStream(filePath, FileMode.Open))
+            {
+                var headerDecoder = new HeaderDecoder();
+                var schema = headerDecoder.GetSchema(stream);
 
-            return schemaString;
+                return schema;
+            }
         }
 
         public static string GetSchema(Stream avroStream)
         {
-            var reader = Decoder.OpenReader(avroStream);
-            var schemaString = reader.GetMetaString(DataFileConstants.SchemaMetadataKey);
+            var headerDecoder = new HeaderDecoder();
+            var schema = headerDecoder.GetSchema(avroStream);
 
-            return schemaString;
+            return schema;
         }
     }
 }

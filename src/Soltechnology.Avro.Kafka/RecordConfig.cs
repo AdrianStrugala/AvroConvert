@@ -37,7 +37,8 @@ namespace SolTechnology.Avro.Kafka
 
             try
             {
-                str = "";
+                str =
+                    "{\r\n\t\"subject\":\"aa-value\",\r\n            \"version\":3,\r\n            \"id\":1395,\r\n            \"schema\":\r\n\t{\r\n\t\t\"type\":\"record\",\r\n\t\t\"name\":\"aa\",\r\n\t\t\"namespace\":\"il.aa\",\r\n\t\t\"fields\":\r\n\t\t[\r\n\t\t\t{\"name\":\"Id\",           \"type\":\"int\"},\r\n\t\t\t{\"name\":\"Name\",         \"type\":\"string\"},\r\n\t\t\t{\"name\":\"BatchId\",      \"type\":[\"null\", \"int\"]},\r\n\t\t\t{\"name\":\"TextData\",     \"type\":[\"null\", \"string\"]},\r\n\t\t\t{\"name\":\"NumericData\",  \"type\":[\"null\", \"long\"], \"default\":null}\r\n\t\t]\r\n\t}\r\n}";
 
                 //                str = Encoding.Default.GetString(new HttpClient().Get(schemaRegistryUrl, 100));
             }

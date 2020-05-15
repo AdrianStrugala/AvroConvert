@@ -46,6 +46,5 @@ namespace SolTechnology.Avro.Kafka
         {
             _taskConsumer?.Wait(_cancellationToken);
         }
-
     }
 }

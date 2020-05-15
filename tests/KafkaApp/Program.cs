@@ -39,7 +39,8 @@ namespace KafkaApp
                 BootstrapServers = (string)config[KafkaPropNames.BootstrapServers],
                 GroupId = (string)config[KafkaPropNames.GroupId],
                 AutoOffsetReset = AutoOffsetReset.Earliest
-            }).SetKeyDeserializer(Deserializers.Utf8).SetAvroValueDeserializer(RecordSchema.ToString())
+            }).SetKeyDeserializer(Deserializers.Utf8)
+              .SetAvroValueDeserializer(RecordSchema.ToString())
               .Build();
 
             var topic = (string)config[KafkaPropNames.Topic];
@@ -50,14 +51,17 @@ namespace KafkaApp
             });
 
 
-            var kafkaConsumer = new KafkaConsumer<string, RecordModel>(consumer,
-                    (key, value, utcTimestamp) =>
-                     {
-                         Console.WriteLine($"C#     {key}  ->  ");
-                         Console.WriteLine($"   {utcTimestamp}");
-                         Console.WriteLine(JsonConvert.SerializeObject(value));
+            var x = new Handler();
 
-                     }, CancellationToken.None)
+            var kafkaConsumer = new KafkaConsumer<string, RecordModel>(
+                    consumer,
+                    (key, value, utcTimestamp) =>
+                    {
+                        Console.WriteLine($"C#     {key}  ->  ");
+                        Console.WriteLine($"   {utcTimestamp}");
+                        x.Handle(value);
+                        Console.WriteLine("");
+                    }, CancellationToken.None)
                 .StartConsuming();
 
 
@@ -93,6 +97,14 @@ namespace KafkaApp
             timer.Dispose();
             kafkaProducer.Dispose();
             kafkaConsumer.Dispose();
+        }
+    }
+
+    public class Handler
+    {
+        public void Handle(RecordModel recordModel)
+        {
+            Console.WriteLine(JsonConvert.SerializeObject(recordModel));
         }
     }
 }

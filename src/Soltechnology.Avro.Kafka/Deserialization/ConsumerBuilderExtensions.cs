@@ -1,6 +1,6 @@
 ﻿using Confluent.Kafka;
 
-namespace KafkaHelperLib
+namespace SolTechnology.Avro.Kafka.Deserialization
 {
     public static class ConsumerBuilderExtensions
     {

@@ -1,6 +1,6 @@
 ﻿using SolTechnology.Avro.Attributes;
 
-namespace SolTechnology.Avro.Kafka
+namespace KafkaApp
 {
     public class RecordModel
     {

@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
-using Avro;
 using Avro.Generic;
 using Confluent.Kafka;
-using KafkaHelperLib;
 using Newtonsoft.Json;
 using SolTechnology.Avro.Kafka;
+using SolTechnology.Avro.Kafka.Deserialization;
 
 namespace KafkaApp
 {
@@ -15,6 +13,9 @@ namespace KafkaApp
     {
         static void Main(string[] args)
         {
+            var schema =
+                "{\r\n\t\"subject\":\"aa-value\",\r\n            \"version\":3,\r\n            \"id\":1395,\r\n            \"schema\":\r\n\t{\r\n\t\t\"type\":\"record\",\r\n\t\t\"name\":\"aa\",\r\n\t\t\"namespace\":\"il.aa\",\r\n\t\t\"fields\":\r\n\t\t[\r\n\t\t\t{\"name\":\"Id\",           \"type\":\"int\"},\r\n\t\t\t{\"name\":\"Name\",         \"type\":\"string\"},\r\n\t\t\t{\"name\":\"BatchId\",      \"type\":[\"null\", \"int\"]},\r\n\t\t\t{\"name\":\"TextData\",     \"type\":[\"null\", \"string\"]},\r\n\t\t\t{\"name\":\"NumericData\",  \"type\":[\"null\", \"long\"], \"default\":null}\r\n\t\t]\r\n\t}\r\n}";
+
             const bool isFromLocalFile = true; //1
 
             const string schemaFileName = "schema.json";
@@ -30,9 +31,6 @@ namespace KafkaApp
                 { KafkaPropNames.Offset, 0 },
             };
 
-            var genericRecordConfig = new RecordConfig((string)config[KafkaPropNames.SchemaRegistryUrl]);
-            var RecordSchema = genericRecordConfig.RecordSchema;
-
 
             var consumer = new ConsumerBuilder<string, RecordModel>(new ConsumerConfig
             {
@@ -40,7 +38,7 @@ namespace KafkaApp
                 GroupId = (string)config[KafkaPropNames.GroupId],
                 AutoOffsetReset = AutoOffsetReset.Earliest
             }).SetKeyDeserializer(Deserializers.Utf8)
-              .SetAvroValueDeserializer(RecordSchema.ToString())
+              .SetAvroValueDeserializer(schema)
               .Build();
 
             var topic = (string)config[KafkaPropNames.Topic];

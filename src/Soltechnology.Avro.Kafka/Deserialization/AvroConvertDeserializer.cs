@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Linq;
 using Confluent.Kafka;
-using SolTechnology.Avro;
 
-namespace KafkaHelperLib
+namespace SolTechnology.Avro.Kafka.Deserialization
 {
     public class AvroConvertDeserializer<T> : IDeserializer<T>
     {
-        private string _schema;
+        private readonly string _schema;
 
         public AvroConvertDeserializer(string schema)
         {
-            _schema = schema;
+            var confluentSchema = new ConfluentSchema(schema);
+            _schema = confluentSchema.SchemaString;
         }
 
         public T Deserialize(ReadOnlySpan<byte> data, bool isNull, SerializationContext context)

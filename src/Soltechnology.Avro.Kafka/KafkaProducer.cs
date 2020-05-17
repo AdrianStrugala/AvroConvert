@@ -52,16 +52,6 @@ namespace SolTechnology.Avro.Kafka
         public async Task SendAsync(string key, GenericRecord value)
         {
 
-            var x = new RecordModel();
-            x.Id = (int)value["Id"];
-            x.Name = value["Name"].ToString();
-            x.BatchId = (int)value["BatchId"];
-            x.Name = value["Name"].ToString();
-            x.TextData = "Some text data";
-            x.NumericData = (long)value["NumericData"];
-
-//            File.WriteAllBytes("y.avro", AvroConvert.SerializeHeadless(x, RecordSchema.ToString()));
-
             await _producer.ProduceAsync(_topic, new Message<string, GenericRecord>
             { Key = key, Value = value })
                            .ContinueWith(task =>

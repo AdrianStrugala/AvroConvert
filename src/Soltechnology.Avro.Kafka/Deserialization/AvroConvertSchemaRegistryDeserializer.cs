@@ -10,7 +10,7 @@ namespace SolTechnology.Avro.Kafka.Deserialization
     public class AvroConvertSchemaRegistryDeserializer<T> : IAsyncDeserializer<T>
     {
         public ISchemaRegistryClient RegistryClient { get; }
-        private ConcurrentDictionary<int, string> cache = new ConcurrentDictionary<int, string>();
+        private readonly ConcurrentDictionary<int, string> cache = new ConcurrentDictionary<int, string>();
 
         public AvroConvertSchemaRegistryDeserializer(
             ISchemaRegistryClient registryClient
@@ -43,6 +43,7 @@ namespace SolTechnology.Avro.Kafka.Deserialization
                 else
                 {
                     schema = await RegistryClient.GetSchemaAsync(id);
+                    cache.AddOrUpdate(id, schema, (key, oldValue) => schema);
                 }
 
                 var confluentSchema = new ConfluentSchema(schema);

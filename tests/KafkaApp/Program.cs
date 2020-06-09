@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
-using Avro.Generic;
 using Confluent.Kafka;
 using Newtonsoft.Json;
 using SolTechnology.Avro.Kafka;
 using SolTechnology.Avro.Kafka.Deserialization;
+using SolTechnology.Avro.Kafka.Serialization;
 
 namespace KafkaApp
 {
@@ -49,7 +49,7 @@ namespace KafkaApp
             });
 
 
-            var x = new Handler();
+            var handler = new Handler();
 
             var kafkaConsumer = new KafkaConsumer<string, RecordModel>(
                     consumer,
@@ -57,43 +57,47 @@ namespace KafkaApp
                     {
                         Console.WriteLine($"C#     {key}  ->  ");
                         Console.WriteLine($"   {utcTimestamp}");
-                        x.Handle(value);
+                        handler.Handle(value);
                         Console.WriteLine("");
                     }, CancellationToken.None)
                 .StartConsuming();
 
 
-            var kafkaProducer = new KafkaProducer(config,
-                                                  // Callback to process log message
-                                                  s => Console.WriteLine(s));
+
+            var producer = new ProducerBuilder<string, RecordModel>(
+                    new ProducerConfig { BootstrapServers = (string)config[KafkaPropNames.BootstrapServers] })
+                    .SetKeySerializer(Serializers.Utf8)
+                    .SetValueSerializer(new AvroConvertSerializer<RecordModel>(schema))
+                    .Build();
+
 
             var count = 0;
             var random = new Random(15);
 
-            var timer = new Timer(_ =>
+            for (var i = 0; i < 10; i++)
             {
-                for (var i = 0; i < 10; i++)
+                count++;
+
+
+                var record = new RecordModel
                 {
-                    count++;
+                    Id = count,
+                    Name = $"{config[KafkaPropNames.GroupId]}-{count}",
+                    BatchId = (count / 10) + 1,
+                    TextData = "Some text data",
+                    NumericData = (long)random.Next(0, 100_000)
+                };
 
-
-                    var gr = new GenericRecord(kafkaProducer.RecordSchema);
-                    gr.Add("Id", count);
-                    gr.Add("Name", $"{config[KafkaPropNames.GroupId]}-{count}");
-                    gr.Add("BatchId", (count / 10) + 1);
-                    gr.Add("TextData", "Some text data");
-                    gr.Add("NumericData", (long)random.Next(0, 100_000));
-
-                    kafkaProducer.SendAsync($"{count}", gr).Wait();
-                }
-            },
-            null, 0, 5000);
+                producer.Produce(topic, new Message<string, RecordModel>
+                {
+                    Key = count.ToString(),
+                    Value = record
+                });
+            }
 
             Console.WriteLine("Press any key to quit...");
             Console.ReadKey();
 
-            timer.Dispose();
-            kafkaProducer.Dispose();
             kafkaConsumer.Dispose();
         }
     }

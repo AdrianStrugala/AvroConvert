@@ -180,3 +180,7 @@ START OF THE PROJECT
 - Added Avro2Json feature
 - Added support for number of types implementing IEnumerable
 - Improved deserialization time
+
+\
+**v. 2.5.1 (11.06.20)**
+- Properties are mapped to model fields in case insensitive convention 

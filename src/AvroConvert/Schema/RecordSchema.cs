@@ -45,9 +45,9 @@ namespace SolTechnology.Avro.Schema
         /// <summary>
         /// Map of field name and Field object for faster field lookups
         /// </summary>
-        private readonly IDictionary<string, Field> fieldLookup;
+        private readonly Dictionary<string, Field> fieldLookup;
 
-        private readonly IDictionary<string, Field> fieldAliasLookup;
+        private readonly Dictionary<string, Field> fieldAliasLookup;
         private bool request;
 
         /// <summary>
@@ -75,8 +75,8 @@ namespace SolTechnology.Avro.Schema
             var name = GetName(jtok, encspace);
             var aliases = NamedSchema.GetAliases(jtok, name.Space, name.EncSpace);
             var fields = new List<Field>();
-            var fieldMap = new Dictionary<string, Field>();
-            var fieldAliasMap = new Dictionary<string, Field>();
+            var fieldMap = new Dictionary<string, Field>(StringComparer.InvariantCultureIgnoreCase);
+            var fieldAliasMap = new Dictionary<string, Field>(StringComparer.InvariantCultureIgnoreCase);
             var result = new RecordSchema(type, name, aliases, props, fields, request, fieldMap, fieldAliasMap, names);
 
             int fieldPos = 0;
@@ -106,8 +106,8 @@ namespace SolTechnology.Avro.Schema
         /// <param name="fieldMap">map of field names and field objects</param>
         /// <param name="names">list of named schema already read</param>
         private RecordSchema(Type type, SchemaName name, IList<SchemaName> aliases, PropertyMap props,
-                                List<Field> fields, bool request, IDictionary<string, Field> fieldMap,
-                                IDictionary<string, Field> fieldAliasMap, SchemaNames names)
+                                List<Field> fields, bool request, Dictionary<string, Field> fieldMap,
+                                Dictionary<string, Field> fieldAliasMap, SchemaNames names)
                                 : base(type, name, aliases, props, names)
         {
             if (!request && null == name.Name) throw new SchemaParseException("name cannot be null for record schema.");

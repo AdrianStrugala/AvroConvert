@@ -40,6 +40,14 @@ namespace AvroConvertTests
     }
 
     [Equals]
+    public class DifferentCaseNestedTestClass
+    {
+        public string JustSomeProperty { get; set; }
+
+        public long AndLongProperty { get; set; }
+    }
+
+    [Equals]
     public class SmallerNestedTestClass
     {
         public string justSomeProperty { get; set; }

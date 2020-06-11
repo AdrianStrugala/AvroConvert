@@ -1,4 +1,5 @@
-﻿using SolTechnology.Avro;
+﻿using Newtonsoft.Json;
+using SolTechnology.Avro;
 
 namespace AvroConvertTests.Component
 {
@@ -69,6 +70,26 @@ namespace AvroConvertTests.Component
             Assert.NotNull(deserialized);
             Assert.Equal(toSerialize.StringProperty, deserialized.StringProperty);
             Assert.Equal(toSerialize.NullableIntProperty, deserialized.NullableIntProperty);
+        }
+
+        [Fact]
+        public void Component_SerializeAndDeserializeClassesWithDifferentPropertyCases_NoError()
+        {
+            //Arrange
+            NestedTestClass toSerialize = _fixture.Create<NestedTestClass>();
+
+
+            //Act
+            var result = AvroConvert.Serialize(toSerialize);
+
+            var deserialized = AvroConvert.Deserialize<DifferentCaseNestedTestClass>(result);
+
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(toSerialize.justSomeProperty, deserialized.JustSomeProperty);
+            Assert.Equal(toSerialize.andLongProperty, deserialized.AndLongProperty);
         }
     }
 }

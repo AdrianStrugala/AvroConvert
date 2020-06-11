@@ -116,14 +116,14 @@ namespace SolTechnology.Avro.Read
                     Field rf = readerSchema.GetField(wf.Name);
                     string name = rf.aliases?[0] ?? wf.Name;
 
-                    PropertyInfo propertyInfo = result.GetType().GetProperty(name);
+                    PropertyInfo propertyInfo = result.GetType().GetProperty(name, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
                     if (propertyInfo != null)
                     {
                         object value = Resolve(wf.Schema, rf.Schema, dec, propertyInfo.PropertyType) ?? wf.DefaultValue?.ToObject(typeof(object));
                         propertyInfo.SetValue(result, value, null);
                     }
 
-                    FieldInfo fieldInfo = result.GetType().GetField(name);
+                    FieldInfo fieldInfo = result.GetType().GetField(name, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
                     if (fieldInfo != null)
                     {
                         object value = Resolve(wf.Schema, rf.Schema, dec, fieldInfo.FieldType) ?? wf.DefaultValue?.ToObject(typeof(object));

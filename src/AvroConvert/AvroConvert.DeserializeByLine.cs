@@ -17,32 +17,17 @@
 
 using System;
 using System.IO;
-using SolTechnology.Avro.Read;
+using SolTechnology.Avro.DeserializeByLine;
 
 namespace SolTechnology.Avro
 {
     public static partial class AvroConvert
     {
-        public static T OpenDeserializer<T>(Stream stream)
+        public static LineReader<T> OpenDeserializer<T>(Stream stream)
         {
-            var reader = Decoder.OpenReader(stream, Schema.Schema.Parse(GenerateSchema(typeof(T))));
+            var reader = Decoder.OpenReader<T>(stream, Schema.Schema.Parse(GenerateSchema(typeof(T))));
 
-            return reader.Read<T>();
-        }
-    }
-
-    public class LineReader<T>
-    {
-        private readonly Decoder decoder;
-
-        internal LineReader(Decoder decoder)
-        {
-            this.decoder = decoder;
-        }
-
-        public T ReadNext()
-        {
-            decoder.Read<>()
+            return reader;
         }
     }
 }

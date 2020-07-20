@@ -11,7 +11,7 @@ namespace SolTechnology.Avro.DeserializeByLine
 {
     internal class Decoder
     {
-        internal static LineReader<T> OpenReader<T>(Stream stream, Schema.Schema readSchema)
+        internal static BlockLineReader<T> OpenReader<T>(Stream stream, Schema.Schema readSchema)
         {
             var reader = new Reader(stream);
             var header = new Header();
@@ -37,7 +37,7 @@ namespace SolTechnology.Avro.DeserializeByLine
                 }
                 var resolver = new Resolver(readSchema, readSchema);
                 stream.Seek(0, SeekOrigin.Begin);
-                return new LineReader<T>(reader, resolver);
+                return new BlockLineReader<T>(reader, resolver, 0);
             }
             else
             {
@@ -86,7 +86,7 @@ namespace SolTechnology.Avro.DeserializeByLine
                 dataBlock = codec.Decompress(dataBlock);
                 reader = new Reader(new MemoryStream(dataBlock));
 
-                return new LineReader<T>(reader, resolver);
+                return new BlockLineReader<T>(reader, resolver, remainingBlocks);
             }
         }
 

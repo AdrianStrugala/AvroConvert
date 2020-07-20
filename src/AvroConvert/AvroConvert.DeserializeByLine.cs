@@ -23,7 +23,7 @@ namespace SolTechnology.Avro
 {
     public static partial class AvroConvert
     {
-        public static LineReader<T> OpenDeserializer<T>(Stream stream)
+        public static BlockLineReader<T> OpenDeserializer<T>(Stream stream)
         {
             var reader = Decoder.OpenReader<T>(stream, Schema.Schema.Parse(GenerateSchema(typeof(T))));
 

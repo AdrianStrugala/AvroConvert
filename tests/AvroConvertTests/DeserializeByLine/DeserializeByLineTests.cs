@@ -8,13 +8,50 @@ using Xunit;
 
 namespace AvroConvertTests.DeserializeByLine
 {
-    public class DeserilizeByLineTests
+    public class DeserializeByLineTests
     {
         private readonly Fixture _fixture;
+        private readonly byte[] _avroBytes = System.IO.File.ReadAllBytes("example2.avro");
 
-        public DeserilizeByLineTests()
+        public DeserializeByLineTests()
         {
             _fixture = new Fixture();
+        }
+
+        [Fact]
+        public void Deserialize_BlockData_ItIsCorrectlyDeserialized()
+        {
+            //Arrange
+            var expectedResult = new List<User>();
+            expectedResult.Add(new User
+            {
+                name = "Alyssa",
+                favorite_number = 256,
+                favorite_color = null
+            });
+
+            expectedResult.Add(new User
+            {
+                name = "Ben",
+                favorite_number = 7,
+                favorite_color = "red"
+            });
+
+            //Act
+            var result = new List<User>();
+            using (var reader = AvroConvert.OpenDeserializer<User>(new MemoryStream(_avroBytes)))
+            {
+                while (reader.HasNext())
+                {
+                    var item = reader.ReadNext();
+
+                    result.Add(item);
+                }
+            }
+
+
+            //Assert
+            Assert.Equal(expectedResult, result);
         }
 
         [Fact]
@@ -47,6 +84,10 @@ namespace AvroConvertTests.DeserializeByLine
 
             //Act
             var serialized = AvroConvert.Serialize(someTestClasses);
+
+            //            File.WriteAllBytes("x", serialized);
+
+            var xd = AvroConvert.Deserialize<SomeTestClass[]>(serialized);
 
             var result = new List<SomeTestClass>();
 

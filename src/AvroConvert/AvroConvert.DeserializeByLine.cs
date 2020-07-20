@@ -15,7 +15,6 @@
 */
 #endregion
 
-using System;
 using System.IO;
 using SolTechnology.Avro.DeserializeByLine;
 
@@ -23,7 +22,7 @@ namespace SolTechnology.Avro
 {
     public static partial class AvroConvert
     {
-        public static BlockLineReader<T> OpenDeserializer<T>(Stream stream)
+        public static ILineReader<T> OpenDeserializer<T>(Stream stream)
         {
             var reader = Decoder.OpenReader<T>(stream, Schema.Schema.Parse(GenerateSchema(typeof(T))));
 

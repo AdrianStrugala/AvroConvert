@@ -11,7 +11,7 @@ namespace SolTechnology.Avro.DeserializeByLine
 {
     internal class Decoder
     {
-        internal static BlockLineReader<T> OpenReader<T>(Stream stream, Schema.Schema readSchema)
+        internal static ILineReader<T> OpenReader<T>(Stream stream, Schema.Schema readSchema)
         {
             var reader = new Reader(stream);
             var header = new Header();
@@ -37,7 +37,7 @@ namespace SolTechnology.Avro.DeserializeByLine
                 }
                 var resolver = new Resolver(readSchema, readSchema);
                 stream.Seek(0, SeekOrigin.Begin);
-                return new BlockLineReader<T>(reader, resolver, 0);
+                return new ListLineReader<T>(reader, resolver);
             }
             else
             {
@@ -58,11 +58,6 @@ namespace SolTechnology.Avro.DeserializeByLine
 
                 readSchema = readSchema ?? Schema.Schema.Parse(GetMetaString(header.MetaData[DataFileConstants.SchemaMetadataKey]));
                 Schema.Schema writeSchema = Schema.Schema.Parse(GetMetaString(header.MetaData[DataFileConstants.SchemaMetadataKey]));
-
-                if (writeSchema.Tag == Schema.Schema.Type.Array)
-                {
-                    writeSchema = ((ArraySchema)writeSchema).ItemSchema;
-                }
 
                 var resolver = new Resolver(writeSchema, readSchema);
 
@@ -86,7 +81,18 @@ namespace SolTechnology.Avro.DeserializeByLine
                 dataBlock = codec.Decompress(dataBlock);
                 reader = new Reader(new MemoryStream(dataBlock));
 
-                return new BlockLineReader<T>(reader, resolver, remainingBlocks);
+
+                if (remainingBlocks > 1)
+                {
+                    return new BlockLineReader<T>(reader, resolver, remainingBlocks);
+                }
+
+                if (writeSchema.Tag == Schema.Schema.Type.Array)
+                {
+                    return new ListLineReader<T>(reader, new Resolver(((ArraySchema)writeSchema).ItemSchema, readSchema));
+                }
+
+                return new ListLineReader<T>(reader, new Resolver(writeSchema, readSchema));
             }
         }
 

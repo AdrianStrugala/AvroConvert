@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
-using System.Runtime.InteropServices;
 using AutoFixture;
 using SolTechnology.Avro;
 using Xunit;
@@ -85,10 +83,6 @@ namespace AvroConvertTests.DeserializeByLine
             //Act
             var serialized = AvroConvert.Serialize(someTestClasses);
 
-            //            File.WriteAllBytes("x", serialized);
-
-            var xd = AvroConvert.Deserialize<SomeTestClass[]>(serialized);
-
             var result = new List<SomeTestClass>();
 
             using (var reader = AvroConvert.OpenDeserializer<SomeTestClass>(new MemoryStream(serialized)))
@@ -108,81 +102,32 @@ namespace AvroConvertTests.DeserializeByLine
         }
 
         [Fact]
-        public void Component_ObjectContainsLists_ResultIsTheSameAsInput()
-        {
-            //Arrange
-            ClassWithSimpleList
-                testClass = _fixture.Create<ClassWithSimpleList>();
-
-            //Act
-
-            var result = AvroConvert.Serialize(testClass);
-
-            var deserialized = AvroConvert.Deserialize<ClassWithSimpleList>(result);
-
-            //Assert
-            Assert.NotNull(result);
-            Assert.NotNull(deserialized);
-            Assert.Equal(testClass.someList.Count, deserialized.someList.Count);
-        }
-
-        [Fact]
-        public void Component_ObjectContainsComplexLists_ResultIsTheSameAsInput()
-        {
-            //Arrange
-            ClassWithConstructorPopulatingProperty
-                testClass = _fixture.Create<ClassWithConstructorPopulatingProperty>();
-
-            //Act
-
-            var result = AvroConvert.Serialize(testClass);
-
-            var deserialized = AvroConvert.Deserialize<ClassWithConstructorPopulatingProperty>(result);
-
-            //Assert
-            Assert.NotNull(result);
-            Assert.NotNull(deserialized);
-            Assert.Equal(testClass.nestedList.Count, deserialized.nestedList.Count);
-            Assert.Equal(testClass.stringProperty, deserialized.stringProperty);
-            Assert.Equal(testClass, deserialized);
-
-        }
-
-        [Fact]
-        public void Component_ObjectContainsArray_ResultIsTheSameAsInput()
-        {
-            //Arrange
-            ClassWithArray
-                testClass = _fixture.Create<ClassWithArray>();
-
-            //Act
-
-            var result = AvroConvert.Serialize(testClass);
-
-            var deserialized = AvroConvert.Deserialize<ClassWithArray>(result);
-
-            //Assert
-            Assert.NotNull(result);
-            Assert.NotNull(deserialized);
-            Assert.Equal(testClass.theArray.Length, deserialized.theArray.Length);
-        }
-
-        [Fact]
         public void Component_ObjectIsList_ResultIsTheSameAsInput()
         {
             //Arrange
-            List<int> dictionary = _fixture.Create<List<int>>();
+            List<int> list = _fixture.Create<List<int>>();
+
 
             //Act
+            var serialized = AvroConvert.Serialize(list);
 
-            var result = AvroConvert.Serialize(dictionary);
+            var result = new List<int>();
 
-            var deserialized = AvroConvert.Deserialize<List<int>>(result);
+            using (var reader = AvroConvert.OpenDeserializer<int>(new MemoryStream(serialized)))
+            {
+                while (reader.HasNext())
+                {
+                    var item = reader.ReadNext();
+
+                    result.Add(item);
+                }
+            }
+
 
             //Assert
             Assert.NotNull(result);
-            Assert.NotNull(deserialized);
-            Assert.Equal(dictionary, deserialized);
+            Assert.NotNull(serialized);
+            Assert.Equal(list, result);
         }
 
         [Fact]
@@ -191,16 +136,27 @@ namespace AvroConvertTests.DeserializeByLine
             //Arrange
             int[] array = _fixture.Create<int[]>();
 
+
             //Act
+            var serialized = AvroConvert.Serialize(array);
 
-            var result = AvroConvert.Serialize(array);
+            var result = new List<int>();
 
-            var deserialized = AvroConvert.Deserialize<int[]>(result);
+            using (var reader = AvroConvert.OpenDeserializer<int>(new MemoryStream(serialized)))
+            {
+                while (reader.HasNext())
+                {
+                    var item = reader.ReadNext();
+
+                    result.Add(item);
+                }
+            }
+
 
             //Assert
             Assert.NotNull(result);
-            Assert.NotNull(deserialized);
-            Assert.Equal(array, deserialized);
+            Assert.NotNull(serialized);
+            Assert.Equal(array, result);
         }
 
         [Fact]
@@ -209,74 +165,56 @@ namespace AvroConvertTests.DeserializeByLine
             //Arrange
             HashSet<int> hashset = _fixture.Create<HashSet<int>>();
 
+
             //Act
+            var serialized = AvroConvert.Serialize(hashset);
 
-            var result = AvroConvert.Serialize(hashset);
+            var result = new List<int>();
 
-            var deserialized = AvroConvert.Deserialize<HashSet<int>>(result);
+            using (var reader = AvroConvert.OpenDeserializer<int>(new MemoryStream(serialized)))
+            {
+                while (reader.HasNext())
+                {
+                    var item = reader.ReadNext();
+
+                    result.Add(item);
+                }
+            }
 
             //Assert
             Assert.NotNull(result);
-            Assert.NotNull(deserialized);
-            Assert.Equal(hashset, deserialized);
+            Assert.NotNull(serialized);
+            Assert.Equal(hashset, result);
         }
 
         [Fact]
-        public void Component_ObjectIsIImmutableSet_ResultIsTheSameAsInput()
+        public void Component_HeadlessList_ResultIsTheSameAsInput()
         {
             //Arrange
-            IImmutableSet<SomeTestClass> set = _fixture.Create<IEnumerable<SomeTestClass>>().ToImmutableHashSet();
+            List<int> list = _fixture.Create<List<int>>();
+
+            var schema = AvroConvert.GenerateSchema(typeof(List<int>));
 
             //Act
+            var serialized = AvroConvert.SerializeHeadless(list, schema);
 
-            var result = AvroConvert.Serialize(set);
+            var result = new List<int>();
 
-            var deserialized = AvroConvert.Deserialize<ImmutableHashSet<SomeTestClass>>(result);
+            using (var reader = AvroConvert.OpenDeserializer<int>(new MemoryStream(serialized)))
+            {
+                while (reader.HasNext())
+                {
+                    var item = reader.ReadNext();
 
-            //Assert
-            Assert.NotNull(result);
-            Assert.NotNull(deserialized);
-            Assert.Equal(set, deserialized);
-        }
-
-        [Fact]
-        public void Component_ObjectContainsEmptyList_ResultIsTheSameAsInput()
-        {
-            //Arrange
-            ClassWithConstructorPopulatingProperty testClass = new ClassWithConstructorPopulatingProperty();
-
-
-            //Act
-            var result = AvroConvert.Serialize(testClass);
-
-            var deserialized = AvroConvert.Deserialize<ClassWithConstructorPopulatingProperty>(result);
+                    result.Add(item);
+                }
+            }
 
 
             //Assert
             Assert.NotNull(result);
-            Assert.NotNull(deserialized);
-            Assert.Equal(testClass.anotherList, deserialized.anotherList);
-            Assert.Equal(testClass.nestedList, deserialized.nestedList);
-            Assert.True(Comparison.AreEqual(testClass.stringProperty, deserialized.stringProperty));
-        }
-
-        [Fact(Skip = "MultidimensionalArray is not supported yet")]
-        public void Component_MultidimensionalArray_ResultIsTheSameAsInput()
-        {
-            //Arrange
-            MultidimensionalArrayClass array = _fixture.Create<MultidimensionalArrayClass>();
-
-
-            //Act
-            var result = AvroConvert.Serialize(array);
-
-            var deserialized = AvroConvert.Deserialize<MultidimensionalArrayClass>(result);
-
-
-            //Assert
-            Assert.NotNull(result);
-            Assert.NotNull(deserialized);
-            Assert.Equal(array, deserialized);
+            Assert.NotNull(serialized);
+            Assert.Equal(list, result);
         }
     }
 }

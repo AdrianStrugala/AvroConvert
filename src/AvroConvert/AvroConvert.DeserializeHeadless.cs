@@ -23,6 +23,9 @@ namespace SolTechnology.Avro
 {
     public static partial class AvroConvert
     {
+        /// <summary>
+        /// Deserializes AVRO object, which does not contain header, to .NET type
+        /// </summary>
         public static T DeserializeHeadless<T>(byte[] avroBytes, string schema)
         {
             Schema.Schema avroSchema = Schema.Schema.Parse(schema);

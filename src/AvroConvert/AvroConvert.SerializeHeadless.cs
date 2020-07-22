@@ -22,6 +22,9 @@ namespace SolTechnology.Avro
 {
     public static partial class AvroConvert
     {
+        /// <summary>
+        /// Serializes given object to AVRO format - <c>excluding</c> header
+        /// </summary>
         public static byte[] SerializeHeadless(object obj, string schema)
         {
             MemoryStream resultStream = new MemoryStream();

@@ -48,6 +48,17 @@ public class DefaultValueClass
 > 2137
 ```
 
+Deserialization of large collection of AVRO objects one by one
+```csharp
+using (var reader = AvroConvert.OpenDeserializer<CustomClass>(new MemoryStream(avroObject)))
+{
+    while (reader.HasNext())
+    {
+        var item = reader.ReadNext();
+        // process item
+    }
+}
+```
 
 
 ### Generating Avro schema for C# classes

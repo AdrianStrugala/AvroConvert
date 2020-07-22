@@ -12,8 +12,8 @@
 </p>
 
 <p align="center">
-  <a href="https://www.nuget.org/packages/AvroConvert"><img src="https://img.shields.io/badge/Nuget-v2.5.1-blue?logo=nuget"></a>
-  <a href="https://github.com/AdrianStrugala/AvroConvert"><img src="https://img.shields.io/badge/Downloads-8k-blue?logo=github"></a>
+  <a href="https://www.nuget.org/packages/AvroConvert"><img src="https://img.shields.io/badge/Nuget-v2.6.0-blue?logo=nuget"></a>
+  <a href="https://github.com/AdrianStrugala/AvroConvert"><img src="https://img.shields.io/badge/Downloads-10k-blue?logo=github"></a>
   <a href=""><img src="https://img.shields.io/appveyor/build/AdrianStrugala/AvroConvert"></a>
 </p>
 
@@ -110,7 +110,9 @@ string schemaInJsonFormat = AvroConvert.GetSchema(byte[] avroObject)
 
 ## License  
 
-AvroConvert is licensed under [Attribution-NonCommercial-ShareAlike 3.0 Unported (CC BY-NC-SA 3.0)](https://creativecommons.org/licenses/by-nc-sa/3.0/) - see [License](LICENSE.md) for details. For commercial purposes purchase AvroConvert on website - [Xabe](https://xabe.net/product/avroconvert/)
+AvroConvert is licensed under [Attribution-NonCommercial-ShareAlike 3.0 Unported (CC BY-NC-SA 3.0)](https://creativecommons.org/licenses/by-nc-sa/3.0/) - see [License](LICENSE.md) for details
+\
+For commercial purposes purchase AvroConvert on website - [Xabe.net](https://xabe.net/product/avroconvert/)
 
 
 ## Contribution

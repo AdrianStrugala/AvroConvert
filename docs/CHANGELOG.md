@@ -184,3 +184,7 @@ START OF THE PROJECT
 \
 **v. 2.5.1 (11.06.20)**
 - Properties are mapped to model fields in case insensitive convention 
+
+\
+**v. 2.6.0 (22.07.20)**
+- Added deserializer which allows to read large collection of AVRO objects one by one

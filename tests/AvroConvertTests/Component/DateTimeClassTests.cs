@@ -81,5 +81,49 @@ namespace AvroConvertTests.Component
             Assert.Equal(toSerialize.yeah.Month, deserialized.yeah.Month);
             Assert.Equal(toSerialize.yeah.Year, deserialized.yeah.Year);
         }
+
+        [Fact]
+        public void Component_NullableDateTime_ResultIsTheSameAsInput()
+        {
+            //Arrange
+            DateTime? toSerialize = _fixture.Create<DateTime?>();
+            //Act
+
+            var result = AvroConvert.Serialize(toSerialize);
+
+            var deserialized = AvroConvert.Deserialize<DateTime?>(result);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(toSerialize.Value.Second, deserialized.Value.Second);
+            Assert.Equal(toSerialize.Value.Minute, deserialized.Value.Minute);
+            Assert.Equal(toSerialize.Value.Hour, deserialized.Value.Hour);
+            Assert.Equal(toSerialize.Value.Day, deserialized.Value.Day);
+            Assert.Equal(toSerialize.Value.Month, deserialized.Value.Month);
+            Assert.Equal(toSerialize.Value.Year, deserialized.Value.Year);
+        }
+
+        [Fact]
+        public void Component_NullableDateTimeOffset_ResultIsTheSameAsInput()
+        {
+            //Arrange
+            DateTimeOffset? toSerialize = _fixture.Create<DateTimeOffset?>();
+            //Act
+
+            var result = AvroConvert.Serialize(toSerialize);
+
+            var deserialized = AvroConvert.Deserialize<DateTimeOffset?>(result);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(toSerialize.Value.Second, deserialized.Value.Second);
+            Assert.Equal(toSerialize.Value.Minute, deserialized.Value.Minute);
+            Assert.Equal(toSerialize.Value.Hour, deserialized.Value.Hour);
+            Assert.Equal(toSerialize.Value.Day, deserialized.Value.Day);
+            Assert.Equal(toSerialize.Value.Month, deserialized.Value.Month);
+            Assert.Equal(toSerialize.Value.Year, deserialized.Value.Year);
+        }
     }
 }

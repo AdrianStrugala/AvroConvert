@@ -16,32 +16,34 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace SolTechnology.Avro.Read
 {
     internal partial class Resolver
     {
+        private Dictionary<Type, Func<object>> @switch(string value) => new Dictionary<Type, Func<object>>
+        {
+            {typeof(string), () => value},
+            {typeof(decimal), () => decimal.Parse(value)},
+            {typeof(DateTimeOffset), () => DateTimeOffset.Parse(value)},
+            {typeof(DateTimeOffset?), () => DateTimeOffset.Parse(value)},
+            {typeof(Uri), () => new Uri(value)},
+        };
+
         internal object ResolveString(Type type, IReader reader)
         {
             var value = reader.ReadString();
 
-            switch (type.Name.ToLowerInvariant())
+            @switch(value).TryGetValue(type, out Func<object> resultFunc);
+
+            if (resultFunc == null)
             {
-                case "string":
-                    return value;
-
-                case "decimal":
-                    return decimal.Parse(value);
-
-                case "datetimeoffset":
-                    return DateTimeOffset.Parse(value);
-
-                case "uri":
-                    return new Uri(value);
-
-                default:
-                    return value;
+                return value;
             }
+            var result = resultFunc.Invoke();
+            return result;
         }
     }
 }

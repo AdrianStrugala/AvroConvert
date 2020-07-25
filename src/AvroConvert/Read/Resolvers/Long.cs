@@ -29,6 +29,10 @@ namespace SolTechnology.Avro.Read
             {
                 return ResolveDateTime(value);
             }
+            if (type == typeof(DateTime?))
+            {
+                return ResolveDateTime(value);
+            }
             return value;
         }
 

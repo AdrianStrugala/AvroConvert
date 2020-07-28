@@ -188,3 +188,8 @@ START OF THE PROJECT
 \
 **v. 2.6.0 (22.07.20)**
 - Added deserializer which allows to read large collection of AVRO objects one by one
+
+\
+**v. 2.6.1 (25.07.20)**
+- Added support for nullable DateTime
+- Added support for nullable DateTimeOffset

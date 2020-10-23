@@ -46,7 +46,7 @@ namespace SolTechnology.Avro.Codec
         internal static AbstractCodec CreateCodecFromString(string codecName)
         {
             Type codecType = typeof(AbstractCodec).Assembly.GetTypes().Where(t => t.IsSubclassOf(typeof(AbstractCodec)) && !t.IsAbstract)
-                                              .First(t => t.Name.ToLower().Contains(codecName));
+                                              .FirstOrDefault(t => t.Name.ToLower().Contains(codecName));
 
             if (codecType == null)
             {

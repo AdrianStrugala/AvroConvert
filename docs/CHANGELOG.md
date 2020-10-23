@@ -193,3 +193,7 @@ START OF THE PROJECT
 **v. 2.6.1 (25.07.20)**
 - Added support for nullable DateTime
 - Added support for nullable DateTimeOffset
+
+\
+**v. 2.6.2 (23.10.20)**
+- Fixed avro.codec extracting when it's not provided

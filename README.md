@@ -12,8 +12,8 @@
 </p>
 
 <p align="center">
-  <a href="https://www.nuget.org/packages/AvroConvert"><img src="https://img.shields.io/badge/Nuget-v2.6.1-blue?logo=nuget"></a>
-  <a href="https://github.com/AdrianStrugala/AvroConvert"><img src="https://img.shields.io/badge/Downloads-10k-blue?logo=github"></a>
+  <a href="https://www.nuget.org/packages/AvroConvert"><img src="https://img.shields.io/badge/Nuget-v2.6.2-blue?logo=nuget"></a>
+  <a href="https://github.com/AdrianStrugala/AvroConvert"><img src="https://img.shields.io/badge/Downloads-12k-blue?logo=github"></a>
   <a href=""><img src="https://img.shields.io/appveyor/build/AdrianStrugala/AvroConvert"></a>
 </p>
 

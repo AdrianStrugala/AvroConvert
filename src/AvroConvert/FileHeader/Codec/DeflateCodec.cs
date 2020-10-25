@@ -21,7 +21,7 @@
 using System.IO;
 using System.IO.Compression;
 
-namespace SolTechnology.Avro.Codec
+namespace SolTechnology.Avro.FileHeader.Codec
 {
     internal class DeflateCodec : AbstractCodec
     {

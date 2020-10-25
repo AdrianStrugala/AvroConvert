@@ -2,7 +2,7 @@
 
 namespace AvroConvertTests.CodecTests
 {
-    [Equals]
+    [Equals(DoNotAddEqualityOperators = true)]
     public class TwitterModel
     {
         [DataMember(Name = "username")]

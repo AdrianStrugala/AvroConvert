@@ -15,7 +15,7 @@
 */
 #endregion
 
-namespace SolTechnology.Avro.Codec
+namespace SolTechnology.Avro.FileHeader.Codec
 {
     public enum CodecType
     {

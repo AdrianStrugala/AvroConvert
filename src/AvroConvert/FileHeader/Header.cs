@@ -24,7 +24,7 @@
 
 using System.Collections.Generic;
 
-namespace SolTechnology.Avro.Helpers
+namespace SolTechnology.Avro.FileHeader
 {
     internal class Header
     {

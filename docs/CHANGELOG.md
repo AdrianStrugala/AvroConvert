@@ -196,4 +196,8 @@ START OF THE PROJECT
 
 \
 **v. 2.6.2 (23.10.20)**
-- Fixed avro.codec extracting when it's not provided
+- Fixed codec parsing - returns NullCodec by default
+
+\
+**v. 2.6.3 (25.10.20)**
+- Fixed header metadata extraction - allows getting non-existing keys (to allow reading files without codec metadata)

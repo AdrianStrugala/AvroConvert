@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using SolTechnology.Avro.Codec;
-using SolTechnology.Avro.Constants;
 using SolTechnology.Avro.Exceptions;
-using SolTechnology.Avro.Helpers;
+using SolTechnology.Avro.FileHeader;
+using SolTechnology.Avro.FileHeader.Codec;
 using SolTechnology.Avro.Read;
 
 namespace SolTechnology.Avro.AvroToJson

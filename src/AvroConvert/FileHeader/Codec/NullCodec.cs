@@ -18,7 +18,7 @@
 
 /** Modifications copyright(C) 2020 Adrian Strugała **/
 
-namespace SolTechnology.Avro.Codec
+namespace SolTechnology.Avro.FileHeader.Codec
 {
     internal class NullCodec : AbstractCodec
     {

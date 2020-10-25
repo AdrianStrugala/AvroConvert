@@ -1,21 +1,21 @@
 ﻿
 using System.Collections.Generic;
 
-[Equals]
+[Equals(DoNotAddEqualityOperators = true)]
 public class Data
 {
     public int length { get; set; }
     public string text { get; set; }
 }
 
-[Equals]
+[Equals(DoNotAddEqualityOperators = true)]
 public class ObjArray
 {
     public string @class { get; set; }
     public int age { get; set; }
 }
 
-[Equals]
+[Equals(DoNotAddEqualityOperators = true)]
 public class Dataset
 {
     public int min_position { get; set; }

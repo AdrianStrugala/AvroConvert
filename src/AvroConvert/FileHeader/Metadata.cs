@@ -20,21 +20,32 @@
 /** Modifications copyright(C) 2020 Adrian Strugała **/
 #endregion
 
-namespace SolTechnology.Avro.Constants
+using System.Collections.Generic;
+
+namespace SolTechnology.Avro.FileHeader
 {
-    internal class DataFileConstants
+    internal class Metadata
     {
-        internal const string SyncMetadataKey = "avro.sync";
-        internal const string CodecMetadataKey = "avro.codec";
-        internal const string SchemaMetadataKey = "avro.schema";
-        internal const string MetaDataReserved = "avro";
+        private readonly Dictionary<string, byte[]> _value;
 
-        internal static byte[] AvroHeader = { (byte)'O',
-                                            (byte)'b',
-                                            (byte)'j',
-                                            (byte) 1 };
+        internal Metadata()
+        {
+            _value = new Dictionary<string, byte[]>();
+        }
 
-        internal const int SyncSize = 16;
-        internal const int DefaultSyncInterval = 4000 * SyncSize;
+        internal void Add(string key, string value)
+        {
+            _value.Add(key, System.Text.Encoding.UTF8.GetBytes(value));
+        }
+
+        internal int GetSize()
+        {
+            return _value.Count;
+        }
+
+        internal Dictionary<string, byte[]> GetValue()
+        {
+            return _value;
+        }
     }
 }

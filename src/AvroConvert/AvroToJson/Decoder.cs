@@ -51,31 +51,20 @@ namespace SolTechnology.Avro.AvroToJson
                         {
                             string key = reader.ReadString();
                             byte[] val = reader.ReadBytes();
-                            header.MetaData.Add(key, val);
+                            header.AddMetadata(key, val);
                         }
                     } while ((len = reader.ReadMapNext()) != 0);
                 }
 
-                schema = schema ?? Schema.Schema.Parse(GetMetaString(header.MetaData[DataFileConstants.SchemaMetadataKey]));
+                schema = schema ?? Schema.Schema.Parse(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
                 var resolver = new Resolver(schema);
 
                 // read in sync data 
                 reader.ReadFixed(header.SyncData);
-                var codec = AbstractCodec.CreateCodecFromString(GetMetaString(header.MetaData[DataFileConstants.CodecMetadataKey]));
-
+                var codec = AbstractCodec.CreateCodecFromString(header.GetMetadata(DataFileConstants.CodecMetadataKey));
 
                 return Read(reader, header, codec, resolver);
             }
-        }
-
-
-        internal string GetMetaString(byte[] value)
-        {
-            if (value == null)
-            {
-                return null;
-            }
-            return System.Text.Encoding.UTF8.GetString(value);
         }
 
 

@@ -1,9 +1,8 @@
 ﻿using System.IO;
 using System.Linq;
-using SolTechnology.Avro.Codec;
-using SolTechnology.Avro.Constants;
 using SolTechnology.Avro.Exceptions;
-using SolTechnology.Avro.Helpers;
+using SolTechnology.Avro.FileHeader;
+using SolTechnology.Avro.FileHeader.Codec;
 using SolTechnology.Avro.Read;
 using SolTechnology.Avro.Schema;
 
@@ -51,19 +50,19 @@ namespace SolTechnology.Avro.DeserializeByLine
                         {
                             string key = reader.ReadString();
                             byte[] val = reader.ReadBytes();
-                            header.MetaData.Add(key, val);
+                            header.AddMetadata(key, val);
                         }
                     } while ((len = reader.ReadMapNext()) != 0);
                 }
 
-                readSchema = readSchema ?? Schema.Schema.Parse(GetMetaString(header.MetaData[DataFileConstants.SchemaMetadataKey]));
-                Schema.Schema writeSchema = Schema.Schema.Parse(GetMetaString(header.MetaData[DataFileConstants.SchemaMetadataKey]));
+                readSchema = readSchema ?? Schema.Schema.Parse(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
+                Schema.Schema writeSchema = Schema.Schema.Parse(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
 
                 var resolver = new Resolver(writeSchema, readSchema);
 
                 // read in sync data 
                 reader.ReadFixed(header.SyncData);
-                var codec = AbstractCodec.CreateCodecFromString(GetMetaString(header.MetaData[DataFileConstants.CodecMetadataKey]));
+                var codec = AbstractCodec.CreateCodecFromString(header.GetMetadata(DataFileConstants.CodecMetadataKey));
 
 
                 var remainingBlocks = reader.ReadLong();
@@ -94,16 +93,6 @@ namespace SolTechnology.Avro.DeserializeByLine
 
                 return new ListLineReader<T>(reader, new Resolver(writeSchema, readSchema));
             }
-        }
-
-
-        internal static string GetMetaString(byte[] value)
-        {
-            if (value == null)
-            {
-                return null;
-            }
-            return System.Text.Encoding.UTF8.GetString(value);
         }
     }
 }

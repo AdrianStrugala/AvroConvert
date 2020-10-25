@@ -16,7 +16,7 @@
 #endregion
 
 using System.IO;
-using SolTechnology.Avro.Codec;
+using SolTechnology.Avro.FileHeader.Codec;
 using SolTechnology.Avro.Write;
 
 namespace SolTechnology.Avro

@@ -18,7 +18,7 @@
 using System;
 using System.Linq;
 
-namespace SolTechnology.Avro.Codec
+namespace SolTechnology.Avro.FileHeader.Codec
 {
     internal class SnappyCodec : AbstractCodec
     {

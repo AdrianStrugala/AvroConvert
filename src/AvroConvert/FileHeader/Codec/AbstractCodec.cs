@@ -16,9 +16,8 @@
 #endregion
 
 using System;
-using System.Linq;
 
-namespace SolTechnology.Avro.Codec
+namespace SolTechnology.Avro.FileHeader.Codec
 {
     internal abstract class AbstractCodec
     {
@@ -45,15 +44,8 @@ namespace SolTechnology.Avro.Codec
 
         internal static AbstractCodec CreateCodecFromString(string codecName)
         {
-            Type codecType = typeof(AbstractCodec).Assembly.GetTypes().Where(t => t.IsSubclassOf(typeof(AbstractCodec)) && !t.IsAbstract)
-                                              .FirstOrDefault(t => t.Name.ToLower().Contains(codecName));
-
-            if (codecType == null)
-            {
-                return new NullCodec();
-            }
-
-            return (AbstractCodec)Activator.CreateInstance(codecType);
+            var parsedSuccessfully = Enum.TryParse<CodecType>(codecName, true, out var codecType);
+            return parsedSuccessfully ? CreateCodec(codecType) : new NullCodec();
         }
     }
 }

@@ -7,9 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Apache.Avro" Version="1.9.2" />
-    <PackageReference Include="AutoFixture" Version="4.11.0" />
-    <PackageReference Include="AvroConvert" Version="2.4.0" />
+    <PackageReference Include="Apache.Avro" Version="1.10.0" />
+    <PackageReference Include="AutoFixture" Version="4.14.0" />
+    <PackageReference Include="AvroConvert" Version="2.6.2" />
     <PackageReference Include="Equals.Fody" Version="4.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>

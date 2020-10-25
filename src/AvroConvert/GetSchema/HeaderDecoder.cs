@@ -1,9 +1,8 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Text;
-using SolTechnology.Avro.Constants;
 using SolTechnology.Avro.Exceptions;
-using SolTechnology.Avro.Helpers;
+using SolTechnology.Avro.FileHeader;
 using SolTechnology.Avro.Read;
 
 namespace SolTechnology.Avro.GetSchema
@@ -44,23 +43,13 @@ namespace SolTechnology.Avro.GetSchema
                         {
                             string key = reader.ReadString();
                             byte[] val = reader.ReadBytes();
-                            header.MetaData.Add(key, val);
+                            header.AddMetadata(key, val);
                         }
                     } while ((len = reader.ReadMapNext()) != 0);
                 }
 
-                return GetMetaString(header.MetaData[DataFileConstants.SchemaMetadataKey]);
+                return header.GetMetadata(DataFileConstants.SchemaMetadataKey);
             }
-        }
-
-        internal string GetMetaString(byte[] value)
-        {
-            if (value == null)
-            {
-                return null;
-            }
-
-            return Encoding.UTF8.GetString(value);
         }
     }
 }

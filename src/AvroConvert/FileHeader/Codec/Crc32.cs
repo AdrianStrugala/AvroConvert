@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SolTechnology.Avro.Codec
+namespace SolTechnology.Avro.FileHeader.Codec
 {
     /// <summary>
     /// Performs 32-bit reversed cyclic redundancy checks.

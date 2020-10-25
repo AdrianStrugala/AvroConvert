@@ -1,6 +1,6 @@
 ﻿using AutoFixture;
 using SolTechnology.Avro;
-using SolTechnology.Avro.Codec;
+using SolTechnology.Avro.FileHeader.Codec;
 using Xunit;
 
 namespace AvroConvertTests.CodecTests.Deflate

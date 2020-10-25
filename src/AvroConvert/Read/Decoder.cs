@@ -1,9 +1,8 @@
 ﻿using System.IO;
 using System.Linq;
-using SolTechnology.Avro.Codec;
-using SolTechnology.Avro.Constants;
 using SolTechnology.Avro.Exceptions;
-using SolTechnology.Avro.Helpers;
+using SolTechnology.Avro.FileHeader;
+using SolTechnology.Avro.FileHeader.Codec;
 
 namespace SolTechnology.Avro.Read
 {
@@ -43,32 +42,22 @@ namespace SolTechnology.Avro.Read
                         {
                             string key = reader.ReadString();
                             byte[] val = reader.ReadBytes();
-                            header.MetaData.Add(key, val);
+                            header.AddMetadata(key, val);
                         }
                     } while ((len = reader.ReadMapNext()) != 0);
                 }
 
-                readSchema = readSchema ?? Schema.Schema.Parse(GetMetaString(header.MetaData[DataFileConstants.SchemaMetadataKey]));
-                Schema.Schema writeSchema = Schema.Schema.Parse(GetMetaString(header.MetaData[DataFileConstants.SchemaMetadataKey]));
+                readSchema = readSchema ?? Schema.Schema.Parse(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
+                Schema.Schema writeSchema = Schema.Schema.Parse(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
                 var resolver = new Resolver(writeSchema, readSchema);
 
                 // read in sync data 
                 reader.ReadFixed(header.SyncData);
-                var codec = AbstractCodec.CreateCodecFromString(GetMetaString(header.MetaData[DataFileConstants.CodecMetadataKey]));
+                var codec = AbstractCodec.CreateCodecFromString(header.GetMetadata(DataFileConstants.CodecMetadataKey));
 
 
                 return Read<T>(reader, header, codec, resolver);
             }
-        }
-
-
-        internal string GetMetaString(byte[] value)
-        {
-            if (value == null)
-            {
-                return null;
-            }
-            return System.Text.Encoding.UTF8.GetString(value);
         }
 
 

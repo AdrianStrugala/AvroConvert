@@ -19,7 +19,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AvroConvert" Version="2.5.0" />
+    <PackageReference Include="Apache.Avro" Version="1.10.0" />
+    <PackageReference Include="AvroConvert" Version="2.6.2" />
     <PackageReference Include="Confluent.Apache.Avro" Version="1.7.7.7" />
     <PackageReference Include="Confluent.Kafka" Version="1.2.0" />
     <PackageReference Include="Confluent.SchemaRegistry" Version="1.2.0" />

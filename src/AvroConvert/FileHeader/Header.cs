@@ -1,4 +1,5 @@
 ﻿#region license
+
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,34 +19,37 @@
  */
 
 /** Modifications copyright(C) 2020 Adrian Strugała **/
+
 #endregion
 
 using System.Collections.Generic;
 
-namespace SolTechnology.Avro.Helpers
+namespace SolTechnology.Avro.FileHeader
 {
-    internal class Metadata
+    internal class Header
     {
-        private readonly Dictionary<string, byte[]> _value;
+        private Dictionary<string, string> MetaData { get; }
 
-        internal Metadata()
+        internal byte[] SyncData { get; }
+
+        internal Schema.Schema Schema { get; set; }
+
+        internal Header()
         {
-            _value = new Dictionary<string, byte[]>();
+            MetaData = new Dictionary<string, string>();
+            SyncData = new byte[16];
         }
 
-        internal void Add(string key, string value)
+        internal void AddMetadata(string key, byte[] value)
         {
-            _value.Add(key, System.Text.Encoding.UTF8.GetBytes(value));
+            var valueAsString = value == null ? null : System.Text.Encoding.UTF8.GetString(value);
+            MetaData.Add(key, valueAsString);
         }
 
-        internal int GetSize()
+        internal string GetMetadata(string key)
         {
-            return _value.Count;
-        }
-
-        internal Dictionary<string, byte[]> GetValue()
-        {
-            return _value;
+            MetaData.TryGetValue(key, out var value);
+            return value;
         }
     }
 }

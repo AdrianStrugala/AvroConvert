@@ -10,7 +10,7 @@ using Avro.Generic;
 using Avro.IO;
 using Newtonsoft.Json;
 using SolTechnology.Avro;
-using SolTechnology.Avro.Codec;
+using SolTechnology.Avro.FileHeader.Codec;
 
 namespace SolTechnology.PerformanceBenchmark
 {

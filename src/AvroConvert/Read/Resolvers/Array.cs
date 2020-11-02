@@ -18,6 +18,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using SolTechnology.Avro.Extensions;
 using SolTechnology.Avro.Schema;
 
@@ -38,10 +39,13 @@ namespace SolTechnology.Avro.Read
                 return ResolveDictionary((RecordSchema)writerSchema, (RecordSchema)readerSchema, d, type);
             }
 
+
             var containingType = type.GetEnumeratedType();
             var containingTypeArray = containingType.MakeArrayType();
             var resultType = typeof(List<>).MakeGenericType(containingType);
-            var result = (IList)Activator.CreateInstance(resultType);
+
+            IList result = Expression.Lambda<Func<IList>>(Expression.New(resultType)).Compile()();
+
 
             int i = 0;
             if (itemsCount == 0)
@@ -65,7 +69,7 @@ namespace SolTechnology.Avro.Read
 
             if (type.IsArray)
             {
-                dynamic resultArray = Activator.CreateInstance(containingTypeArray, new object[] { result.Count });
+                Array resultArray = Array.CreateInstance(containingTypeArray, result.Count);
                 result.CopyTo(resultArray, 0);
                 return resultArray;
             }

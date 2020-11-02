@@ -17,6 +17,7 @@
 
 using System;
 using System.Reflection;
+using System.Runtime.Serialization;
 using SolTechnology.Avro.Exceptions;
 using SolTechnology.Avro.Schema;
 using SolTechnology.Avro.Skip;
@@ -107,7 +108,7 @@ namespace SolTechnology.Avro.Read
 
         protected virtual object ResolveRecord(RecordSchema writerSchema, RecordSchema readerSchema, IReader dec, Type type)
         {
-            object result = Activator.CreateInstance(type);
+            object result = FormatterServices.GetUninitializedObject(type);
 
             foreach (Field wf in writerSchema)
             {
@@ -116,14 +117,14 @@ namespace SolTechnology.Avro.Read
                     Field rf = readerSchema.GetField(wf.Name);
                     string name = rf.aliases?[0] ?? wf.Name;
 
-                    PropertyInfo propertyInfo = result.GetType().GetProperty(name, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+                    PropertyInfo propertyInfo = type.GetProperty(name);
                     if (propertyInfo != null)
                     {
                         object value = Resolve(wf.Schema, rf.Schema, dec, propertyInfo.PropertyType) ?? wf.DefaultValue?.ToObject(typeof(object));
                         propertyInfo.SetValue(result, value, null);
                     }
 
-                    FieldInfo fieldInfo = result.GetType().GetField(name, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+                    FieldInfo fieldInfo = type.GetField(name);
                     if (fieldInfo != null)
                     {
                         object value = Resolve(wf.Schema, rf.Schema, dec, fieldInfo.FieldType) ?? wf.DefaultValue?.ToObject(typeof(object));

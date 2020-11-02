@@ -19,6 +19,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Extensions;
 using SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Schema;
 
@@ -42,7 +43,8 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Read
             var containingType = type.GetEnumeratedType();
             var containingTypeArray = containingType.MakeArrayType();
             var resultType = typeof(List<>).MakeGenericType(containingType);
-            var result = (IList)Activator.CreateInstance(resultType);
+
+            IList result = Expression.Lambda<Func<IList>>(Expression.New(resultType)).Compile()();
 
             int i = 0;
             if (itemsCount == 0)
@@ -66,7 +68,7 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Read
 
             if (type.IsArray)
             {
-                dynamic resultArray = Activator.CreateInstance(containingTypeArray, new object[] { result.Count });
+                dynamic resultArray = Array.CreateInstance(containingTypeArray, result.Count);
                 result.CopyTo(resultArray, 0);
                 return resultArray;
             }

@@ -68,7 +68,7 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Read
 
             if (type.IsArray)
             {
-                dynamic resultArray = Array.CreateInstance(containingTypeArray, result.Count);
+                dynamic resultArray = Activator.CreateInstance(containingTypeArray, new object[] { result.Count });
                 result.CopyTo(resultArray, 0);
                 return resultArray;
             }

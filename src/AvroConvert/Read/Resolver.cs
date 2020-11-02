@@ -16,8 +16,6 @@
 #endregion
 
 using System;
-using System.Reflection;
-using System.Runtime.Serialization;
 using SolTechnology.Avro.Exceptions;
 using SolTechnology.Avro.Schema;
 using SolTechnology.Avro.Skip;
@@ -104,38 +102,6 @@ namespace SolTechnology.Avro.Read
             {
                 throw new AvroTypeMismatchException($"Unable to deserialize [{writerSchema.Name}] of schema [{writerSchema.Tag}] to the target type [{type}]", e);
             }
-        }
-
-        protected virtual object ResolveRecord(RecordSchema writerSchema, RecordSchema readerSchema, IReader dec, Type type)
-        {
-            object result = FormatterServices.GetUninitializedObject(type);
-
-            foreach (Field wf in writerSchema)
-            {
-                if (readerSchema.Contains(wf.Name))
-                {
-                    Field rf = readerSchema.GetField(wf.Name);
-                    string name = rf.aliases?[0] ?? wf.Name;
-
-                    PropertyInfo propertyInfo = type.GetProperty(name);
-                    if (propertyInfo != null)
-                    {
-                        object value = Resolve(wf.Schema, rf.Schema, dec, propertyInfo.PropertyType) ?? wf.DefaultValue?.ToObject(typeof(object));
-                        propertyInfo.SetValue(result, value, null);
-                    }
-
-                    FieldInfo fieldInfo = type.GetField(name);
-                    if (fieldInfo != null)
-                    {
-                        object value = Resolve(wf.Schema, rf.Schema, dec, fieldInfo.FieldType) ?? wf.DefaultValue?.ToObject(typeof(object));
-                        fieldInfo.SetValue(result, value);
-                    }
-                }
-                else
-                    _skipper.Skip(wf.Schema, dec);
-            }
-
-            return result;
         }
 
         protected virtual object ResolveEnum(EnumSchema writerSchema, Schema.Schema readerSchema, IReader d, Type type)

@@ -24,22 +24,22 @@ namespace AvroConvertTests.Benchmark
             //Act
             var json = new BenchmarkResult();
             json.Name = "Json";
-
+            
             Stopwatch stopwatch = Stopwatch.StartNew();
             var data = JsonConvert.SerializeObject(datasets);
             json.SerializeTime = stopwatch.ElapsedMilliseconds;
             stopwatch.Restart();
             JsonConvert.DeserializeObject<List<Dataset>>(data);
             json.DeserializeTime = stopwatch.ElapsedMilliseconds;
-
+            
             json.Size = Encoding.UTF8.GetBytes(data).Length;
             File.WriteAllText("10mega.json", rawDataset);
-
+            
             stopwatch.Restart();
-
+            
             var jsonGzip = new BenchmarkResult();
             jsonGzip.Name = "JsonGzip";
-
+            
             var jsonGzipData = JsonConvert.SerializeObject(datasets);
             var compressedJson = GzipJson(jsonGzipData);
             jsonGzip.SerializeTime = stopwatch.ElapsedMilliseconds;
@@ -48,7 +48,7 @@ namespace AvroConvertTests.Benchmark
             JsonConvert.DeserializeObject<List<Dataset>>(uncompressedJson);
             jsonGzip.DeserializeTime = stopwatch.ElapsedMilliseconds;
             stopwatch.Stop();
-
+            
             jsonGzip.Size = compressedJson.Length;
             File.WriteAllBytes("10mega.json.gz", compressedJson);
 

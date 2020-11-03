@@ -27,6 +27,9 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Read
 {
     internal partial class Resolver
     {
+        private readonly Dictionary<Type, Func<IList>> cachedArrayInitializers = new Dictionary<Type, Func<IList>>();
+
+
         internal object ResolveArray(Schema.Schema writerSchema, Schema.Schema readerSchema, IReader d, Type type, long itemsCount = 0)
         {
             if (writerSchema.Tag == Schema.Schema.Type.Array)
@@ -43,8 +46,17 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Read
             var containingType = type.GetEnumeratedType();
             var containingTypeArray = containingType.MakeArrayType();
             var resultType = typeof(List<>).MakeGenericType(containingType);
-
-            IList result = Expression.Lambda<Func<IList>>(Expression.New(resultType)).Compile()();
+            Func<IList> resultFunc;
+            if (cachedArrayInitializers.ContainsKey(resultType))
+            {
+                resultFunc = cachedArrayInitializers[resultType];
+            }
+            else
+            {
+                resultFunc = Expression.Lambda<Func<IList>>(Expression.New(resultType)).Compile();
+                cachedArrayInitializers.Add(resultType, resultFunc);
+            }
+            IList result = resultFunc.Invoke();
 
             int i = 0;
             if (itemsCount == 0)

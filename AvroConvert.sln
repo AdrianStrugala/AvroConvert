@@ -28,9 +28,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Snappy.StandardTests", "tes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PerformanceBenchmark", "tests\PerformanceBenchmark\PerformanceBenchmark.csproj", "{3216A422-1A2B-40DE-AC10-4C60E5C067A2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SolTechnology.Avro.Kafka", "src\Soltechnology.Avro.Kafka\SolTechnology.Avro.Kafka.csproj", "{2E1F60EB-2C3C-4AC3-94A2-58C321AFC47D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SolTechnology.Avro.Kafka", "src\Soltechnology.Avro.Kafka\SolTechnology.Avro.Kafka.csproj", "{2E1F60EB-2C3C-4AC3-94A2-58C321AFC47D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KafkaApp", "tests\KafkaApp\KafkaApp.csproj", "{04946AFA-7D08-4F58-B57F-5F1EB6C5E357}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KafkaApp", "tests\KafkaApp\KafkaApp.csproj", "{04946AFA-7D08-4F58-B57F-5F1EB6C5E357}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

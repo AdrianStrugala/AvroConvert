@@ -16,9 +16,7 @@
 #endregion
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.Serialization;
 using SolTechnology.Avro.Schema;
@@ -28,35 +26,16 @@ namespace SolTechnology.Avro.Read
     internal partial class Resolver
     {
         private readonly Dictionary<Type, Dictionary<string, PropertyInfo>> cachedRecordProperties = new Dictionary<Type, Dictionary<string, PropertyInfo>>();
-
-
-
+        private readonly Dictionary<Type, Dictionary<string, FieldInfo>> cachedRecordFields = new Dictionary<Type, Dictionary<string, FieldInfo>>();
 
         protected virtual object ResolveRecord(RecordSchema writerSchema, RecordSchema readerSchema, IReader dec, Type type)
         {
             object result = FormatterServices.GetUninitializedObject(type);
-            // object result = Expression.Lambda<Func<object>>(Expression.New(type)).Compile()();
-
-
-
-            // // var type = typeof(string);
-            // var body = Expression.New(type);
-            // // var body = Expression.Constant(true);
-            // var parameter = Expression.Parameter(type);
-            // var delegateType = typeof(Func<>).MakeGenericType(type);
-            // dynamic lambda = Expression.Lambda(delegateType, body, parameter, parameter, parameter).Compile();
-            // var result = lambda();
-
-            // var body = Expression.New(type);
-            // var delegateType = typeof(Func<>).MakeGenericType(type);
-            // var lambda = Expression.Lambda(delegateType, body).Compile();
-            // var result = lambda.DynamicInvoke();
-
-
 
             if (cachedRecordProperties.ContainsKey(type))
             {
                 var cachedProperties = cachedRecordProperties[type];
+                var cachedFields = cachedRecordFields[type];
 
                 foreach (Field wf in writerSchema)
                 {
@@ -75,12 +54,11 @@ namespace SolTechnology.Avro.Read
                         }
                         else
                         {
-                            FieldInfo fieldInfo = type.GetField(name,
-                                BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
-                            if (fieldInfo != null)
+                            if (cachedProperties.ContainsKey(name))
                             {
+                                var fieldInfo = cachedFields[name];
                                 object value = Resolve(wf.Schema, rf.Schema, dec, fieldInfo.FieldType) ??
-                                               wf.DefaultValue?.ToObject(typeof(object));
+                                                   wf.DefaultValue?.ToObject(typeof(object));
                                 fieldInfo.SetValue(result, value);
                             }
                         }
@@ -93,6 +71,7 @@ namespace SolTechnology.Avro.Read
             else
             {
                 var cachedProperties = new Dictionary<string, PropertyInfo>();
+                var cachedFields = new Dictionary<string, FieldInfo>();
 
                 foreach (Field wf in writerSchema)
                 {
@@ -118,12 +97,14 @@ namespace SolTechnology.Avro.Read
                             object value = Resolve(wf.Schema, rf.Schema, dec, fieldInfo.FieldType) ??
                                            wf.DefaultValue?.ToObject(typeof(object));
                             fieldInfo.SetValue(result, value);
+                            cachedFields.Add(name, fieldInfo);
                         }
                     }
                     else
                         _skipper.Skip(wf.Schema, dec);
                 }
                 cachedRecordProperties.Add(type, cachedProperties);
+                cachedRecordFields.Add(type, cachedFields);
             }
 
             return result;

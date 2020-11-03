@@ -17,7 +17,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 
 namespace SolTechnology.Avro.Read
 {
@@ -36,14 +35,12 @@ namespace SolTechnology.Avro.Read
         {
             var value = reader.ReadString();
 
-            @switch(value).TryGetValue(type, out Func<object> resultFunc);
-
-            if (resultFunc == null)
+            if (@switch(value).TryGetValue(type, out Func<object> resultFunc))
             {
-                return value;
+                return resultFunc.Invoke();
             }
-            var result = resultFunc.Invoke();
-            return result;
+
+            return value;
         }
     }
 }

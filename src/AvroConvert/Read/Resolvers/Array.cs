@@ -41,20 +41,18 @@ namespace SolTechnology.Avro.Read
                 return ResolveDictionary((RecordSchema)writerSchema, (RecordSchema)readerSchema, d, type);
             }
 
-
             var containingType = type.GetEnumeratedType();
-            var containingTypeArray = containingType.MakeArrayType();
-            var resultType = typeof(List<>).MakeGenericType(containingType);
 
             Func<IList> resultFunc;
-            if (cachedArrayInitializers.ContainsKey(resultType))
+            if (cachedArrayInitializers.ContainsKey(containingType))
             {
-                resultFunc = cachedArrayInitializers[resultType];
+                resultFunc = cachedArrayInitializers[containingType];
             }
             else
             {
+                var resultType = typeof(List<>).MakeGenericType(containingType);
                 resultFunc = Expression.Lambda<Func<IList>>(Expression.New(resultType)).Compile();
-                cachedArrayInitializers.Add(resultType, resultFunc);
+                cachedArrayInitializers.Add(containingType, resultFunc);
             }
             IList result = resultFunc.Invoke();
 
@@ -81,6 +79,8 @@ namespace SolTechnology.Avro.Read
 
             if (type.IsArray)
             {
+                var containingTypeArray = containingType.MakeArrayType();
+
                 dynamic resultArray = Activator.CreateInstance(containingTypeArray, new object[] { result.Count });
                 result.CopyTo(resultArray, 0);
                 return resultArray;

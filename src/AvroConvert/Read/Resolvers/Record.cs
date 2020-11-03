@@ -34,7 +34,7 @@ namespace SolTechnology.Avro.Read
 
         protected virtual object ResolveRecord(RecordSchema writerSchema, RecordSchema readerSchema, IReader dec, Type type)
         {
-            // object result = FormatterServices.GetUninitializedObject(type);
+            object result = FormatterServices.GetUninitializedObject(type);
             // object result = Expression.Lambda<Func<object>>(Expression.New(type)).Compile()();
 
 
@@ -47,10 +47,10 @@ namespace SolTechnology.Avro.Read
             // dynamic lambda = Expression.Lambda(delegateType, body, parameter, parameter, parameter).Compile();
             // var result = lambda();
 
-            var body = Expression.New(type);
-            var delegateType = typeof(Func<>).MakeGenericType(type);
-            var lambda = Expression.Lambda(delegateType, body).Compile();
-            var result = lambda.DynamicInvoke();
+            // var body = Expression.New(type);
+            // var delegateType = typeof(Func<>).MakeGenericType(type);
+            // var lambda = Expression.Lambda(delegateType, body).Compile();
+            // var result = lambda.DynamicInvoke();
 
 
 

@@ -103,54 +103,5 @@ namespace SolTechnology.Avro.Read
                 throw new AvroTypeMismatchException($"Unable to deserialize [{writerSchema.Name}] of schema [{writerSchema.Tag}] to the target type [{type}]", e);
             }
         }
-
-        protected virtual object ResolveEnum(EnumSchema writerSchema, Schema.Schema readerSchema, IReader d, Type type)
-        {
-            int position = d.ReadEnum();
-            string value = writerSchema.Symbols[position];
-            return Enum.Parse(type, value);
-        }
-
-        protected virtual object ResolveMap(MapSchema writerSchema, Schema.Schema readerSchema, IReader d, Type type)
-        {
-            var containingTypes = type.GetGenericArguments();
-            dynamic result = Activator.CreateInstance(type);
-
-            Schema.Schema stringSchema = PrimitiveSchema.NewInstance("string");
-
-            MapSchema rs = (MapSchema)readerSchema;
-            for (int n = (int)d.ReadMapStart(); n != 0; n = (int)d.ReadMapNext())
-            {
-                for (int j = 0; j < n; j++)
-                {
-                    dynamic key = Resolve(stringSchema, stringSchema, d, containingTypes[0]);
-                    dynamic value = Resolve(writerSchema.ValueSchema, rs.ValueSchema, d, containingTypes[1]);
-                    result.Add(key, value);
-                }
-            }
-
-            return result;
-        }
-
-        protected virtual object ResolveUnion(UnionSchema writerSchema, Schema.Schema readerSchema, IReader d, Type type)
-        {
-            int index = d.ReadUnionIndex();
-            Schema.Schema ws = writerSchema[index];
-
-            if (readerSchema is UnionSchema unionSchema)
-                readerSchema = FindBranch(unionSchema, ws);
-            else
-            if (!readerSchema.CanRead(ws))
-                throw new AvroException("Schema mismatch. Reader: " + _readerSchema + ", writer: " + _writerSchema);
-
-            return Resolve(ws, readerSchema, d, type);
-        }
-
-        protected static Schema.Schema FindBranch(UnionSchema us, Schema.Schema s)
-        {
-            int index = us.MatchingBranch(s);
-            if (index >= 0) return us[index];
-            throw new AvroException("No matching schema for " + s + " in " + us);
-        }
     }
 }

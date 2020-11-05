@@ -24,7 +24,6 @@ namespace SolTechnology.Avro.Read
     {
         private Dictionary<Type, Func<object>> @switch(string value) => new Dictionary<Type, Func<object>>
         {
-            {typeof(string), () => value},
             {typeof(decimal), () => decimal.Parse(value)},
             {typeof(DateTimeOffset), () => DateTimeOffset.Parse(value)},
             {typeof(DateTimeOffset?), () => DateTimeOffset.Parse(value)},
@@ -34,6 +33,11 @@ namespace SolTechnology.Avro.Read
         internal object ResolveString(Type type, IReader reader)
         {
             var value = reader.ReadString();
+
+            if (type == typeof(string))
+            {
+                return value;
+            }
 
             if (@switch(value).TryGetValue(type, out Func<object> resultFunc))
             {

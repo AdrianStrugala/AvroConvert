@@ -25,88 +25,60 @@ namespace SolTechnology.Avro.Read
 {
     internal partial class Resolver
     {
-        private readonly Dictionary<Type, Dictionary<string, PropertyInfo>> cachedRecordProperties = new Dictionary<Type, Dictionary<string, PropertyInfo>>();
-        private readonly Dictionary<Type, Dictionary<string, FieldInfo>> cachedRecordFields = new Dictionary<Type, Dictionary<string, FieldInfo>>();
+        private readonly Dictionary<int, Dictionary<string, MemberInfo>> cachedRecordMembers = new Dictionary<int, Dictionary<string, MemberInfo>>();
 
         protected virtual object ResolveRecord(RecordSchema writerSchema, RecordSchema readerSchema, IReader dec, Type type)
         {
             object result = FormatterServices.GetUninitializedObject(type);
+            var typeHash = type.GetHashCode();
 
-            if (cachedRecordProperties.ContainsKey(type))
+            var typeMembers = new Dictionary<string, MemberInfo>();
+
+            if (!cachedRecordMembers.ContainsKey(typeHash))
             {
-                var cachedProperties = cachedRecordProperties[type];
-                var cachedFields = cachedRecordFields[type];
-
-                foreach (Field wf in writerSchema)
+                foreach (var propertyInfo in type.GetProperties())
                 {
-                    if (readerSchema.Contains(wf.Name))
-                    {
-                        Field rf = readerSchema.GetField(wf.Name);
-                        string name = rf.aliases?[0] ?? wf.Name;
-
-                        if (cachedProperties.ContainsKey(name))
-                        {
-                            var propertyInfo = cachedProperties[name];
-
-                            object value = Resolve(wf.Schema, rf.Schema, dec, propertyInfo.PropertyType) ??
-                                           wf.DefaultValue?.ToObject(typeof(object));
-                            propertyInfo.SetValue(result, value, null);
-                        }
-                        else
-                        {
-                            if (cachedProperties.ContainsKey(name))
-                            {
-                                var fieldInfo = cachedFields[name];
-                                object value = Resolve(wf.Schema, rf.Schema, dec, fieldInfo.FieldType) ??
-                                                   wf.DefaultValue?.ToObject(typeof(object));
-                                fieldInfo.SetValue(result, value);
-                            }
-                        }
-                    }
-                    else
-                        _skipper.Skip(wf.Schema, dec);
+                    typeMembers.Add(propertyInfo.Name, propertyInfo);
                 }
+                foreach (var fieldInfo in type.GetFields())
+                {
+                    typeMembers.Add(fieldInfo.Name, fieldInfo);
+                }
+                cachedRecordMembers.Add(typeHash, typeMembers);
             }
-
             else
             {
-                var cachedProperties = new Dictionary<string, PropertyInfo>();
-                var cachedFields = new Dictionary<string, FieldInfo>();
-
-                foreach (Field wf in writerSchema)
-                {
-                    if (readerSchema.Contains(wf.Name))
-                    {
-                        Field rf = readerSchema.GetField(wf.Name);
-                        string name = rf.aliases?[0] ?? wf.Name;
-
-                        PropertyInfo propertyInfo = type.GetProperty(name,
-                            BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
-                        if (propertyInfo != null)
-                        {
-                            object value = Resolve(wf.Schema, rf.Schema, dec, propertyInfo.PropertyType) ??
-                                           wf.DefaultValue?.ToObject(typeof(object));
-                            propertyInfo.SetValue(result, value, null);
-                            cachedProperties.Add(name, propertyInfo);
-                        }
-
-                        FieldInfo fieldInfo = type.GetField(name,
-                            BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
-                        if (fieldInfo != null)
-                        {
-                            object value = Resolve(wf.Schema, rf.Schema, dec, fieldInfo.FieldType) ??
-                                           wf.DefaultValue?.ToObject(typeof(object));
-                            fieldInfo.SetValue(result, value);
-                            cachedFields.Add(name, fieldInfo);
-                        }
-                    }
-                    else
-                        _skipper.Skip(wf.Schema, dec);
-                }
-                cachedRecordProperties.Add(type, cachedProperties);
-                cachedRecordFields.Add(type, cachedFields);
+                typeMembers = cachedRecordMembers[typeHash];
             }
 
+            foreach (Field wf in writerSchema)
+            {
+                if (readerSchema.Contains(wf.Name))
+                {
+                    Field rf = readerSchema.GetField(wf.Name);
+                    string name = rf.aliases?[0] ?? wf.Name;
+
+                    var memberInfo = typeMembers[name];
+                    object value;
+
+                    switch (memberInfo)
+                    {
+                        case FieldInfo fieldInfo:
+                            value = Resolve(wf.Schema, rf.Schema, dec, fieldInfo.FieldType) ??
+                                           wf.DefaultValue?.ToObject(typeof(object));
+                            fieldInfo.SetValue(result, value);
+                            break;
+
+                        case PropertyInfo propertyInfo:
+                            value = Resolve(wf.Schema, rf.Schema, dec, propertyInfo.PropertyType) ??
+                                           wf.DefaultValue?.ToObject(typeof(object));
+                            propertyInfo.SetValue(result, value, null);
+                            break;
+                    }
+                }
+                else
+                    _skipper.Skip(wf.Schema, dec);
+            }
             return result;
         }
     }

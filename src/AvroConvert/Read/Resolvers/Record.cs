@@ -32,7 +32,7 @@ namespace SolTechnology.Avro.Read
             object result = FormatterServices.GetUninitializedObject(type);
             var typeHash = type.GetHashCode();
 
-            var typeMembers = new Dictionary<string, MemberInfo>();
+            var typeMembers = new Dictionary<string, MemberInfo>(StringComparer.InvariantCultureIgnoreCase);
 
             if (!cachedRecordMembers.ContainsKey(typeHash))
             {

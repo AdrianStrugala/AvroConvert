@@ -31,11 +31,11 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Extensions
 {
     internal static class TypeExtensions
     {
-        internal static bool HasParameterlessConstructor(this Type type)
+        internal static bool HasDefaultConstructor(this Type t)
         {
-            //return type.GetTypeInfo().GetConstructor(BindingFlags.Instance | BindingFlags.internal | BindingFlags.Noninternal, null, Type.EmptyTypes, null) != null;
-            return type.GetConstructor(Type.EmptyTypes) != null;
+            return t.IsValueType || t.GetConstructor(Type.EmptyTypes) != null;
         }
+
 
         internal static bool IsUnsupported(this Type type)
         {
@@ -46,7 +46,7 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Extensions
                 || (!type.IsArray
                 && !type.IsValueType()
                 && !type.IsAnonymous()
-                && !type.HasParameterlessConstructor()
+                && !type.HasDefaultConstructor()
                 && type != typeof(string)
                 && type != typeof(Uri)
                 && !type.IsAbstract()

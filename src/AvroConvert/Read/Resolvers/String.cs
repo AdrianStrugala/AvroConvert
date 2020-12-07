@@ -17,7 +17,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 
 namespace SolTechnology.Avro.Read
 {
@@ -25,7 +24,6 @@ namespace SolTechnology.Avro.Read
     {
         private Dictionary<Type, Func<object>> @switch(string value) => new Dictionary<Type, Func<object>>
         {
-            {typeof(string), () => value},
             {typeof(decimal), () => decimal.Parse(value)},
             {typeof(DateTimeOffset), () => DateTimeOffset.Parse(value)},
             {typeof(DateTimeOffset?), () => DateTimeOffset.Parse(value)},
@@ -36,14 +34,17 @@ namespace SolTechnology.Avro.Read
         {
             var value = reader.ReadString();
 
-            @switch(value).TryGetValue(type, out Func<object> resultFunc);
-
-            if (resultFunc == null)
+            if (type == typeof(string))
             {
                 return value;
             }
-            var result = resultFunc.Invoke();
-            return result;
+
+            if (@switch(value).TryGetValue(type, out Func<object> resultFunc))
+            {
+                return resultFunc.Invoke();
+            }
+
+            return value;
         }
     }
 }

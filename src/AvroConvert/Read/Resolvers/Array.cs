@@ -18,6 +18,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using SolTechnology.Avro.Extensions;
 using SolTechnology.Avro.Schema;
 
@@ -25,6 +26,8 @@ namespace SolTechnology.Avro.Read
 {
     internal partial class Resolver
     {
+        private readonly Dictionary<Type, Func<IList>> cachedArrayInitializers = new Dictionary<Type, Func<IList>>();
+
         internal object ResolveArray(Schema.Schema writerSchema, Schema.Schema readerSchema, IReader d, Type type, long itemsCount = 0)
         {
             if (writerSchema.Tag == Schema.Schema.Type.Array)
@@ -39,9 +42,20 @@ namespace SolTechnology.Avro.Read
             }
 
             var containingType = type.GetEnumeratedType();
-            var containingTypeArray = containingType.MakeArrayType();
-            var resultType = typeof(List<>).MakeGenericType(containingType);
-            var result = (IList)Activator.CreateInstance(resultType);
+
+            Func<IList> resultFunc;
+            if (cachedArrayInitializers.ContainsKey(containingType))
+            {
+                resultFunc = cachedArrayInitializers[containingType];
+            }
+            else
+            {
+                var resultType = typeof(List<>).MakeGenericType(containingType);
+                resultFunc = Expression.Lambda<Func<IList>>(Expression.New(resultType)).Compile();
+                cachedArrayInitializers.Add(containingType, resultFunc);
+            }
+            IList result = resultFunc.Invoke();
+
 
             int i = 0;
             if (itemsCount == 0)
@@ -65,6 +79,8 @@ namespace SolTechnology.Avro.Read
 
             if (type.IsArray)
             {
+                var containingTypeArray = containingType.MakeArrayType();
+
                 dynamic resultArray = Activator.CreateInstance(containingTypeArray, new object[] { result.Count });
                 result.CopyTo(resultArray, 0);
                 return resultArray;

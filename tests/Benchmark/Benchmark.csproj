@@ -7,8 +7,12 @@
 
   <ItemGroup>
     <PackageReference Include="AutoFixture" Version="4.14.0" />
-    <PackageReference Include="AvroConvert" Version="2.6.3"  />
+    <PackageReference Include="AvroConvert" Version="2.6.3" />
     <PackageReference Include="BenchmarkDotNet" Version="0.12.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AvroConvertToUpdate\AvroConvertVNext.csproj" />
   </ItemGroup>
 
 </Project>

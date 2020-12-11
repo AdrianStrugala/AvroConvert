@@ -8,11 +8,11 @@ using BenchmarkDotNet.Running;
 
 namespace Benchmark
 {
-    public class SizeAfterSerializationColumn : IColumn
+    public class FileSizeColumn : IColumn
     {
-        public string Id => nameof(SizeAfterSerializationColumn);
+        public string Id => nameof(FileSizeColumn);
 
-        public string ColumnName => "SizeAfterSerialization";
+        public string ColumnName => "FileSize";
 
         public string Legend => "Allocated memory on disk after all records are serialized (1KB = 1024B)";
 

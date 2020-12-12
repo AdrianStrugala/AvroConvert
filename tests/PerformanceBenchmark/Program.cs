@@ -146,12 +146,12 @@ namespace SolTechnology.PerformanceBenchmark
             stopwatch.Stop();
 
             //Serialize AvroConvert vNext Gzip
-            var newAvroGzip = AvroConvertToUpdate.AvroConvert.SerializeHeadless(datasets, schema, AvroConvertToUpdate.Codec.CodecType.GZip);
+            var newAvroGzip = AvroConvertToUpdate.AvroConvert.Serialize(datasets, AvroConvertToUpdate.Codec.CodecType.GZip);
             result.AvroConvertVNextGzipSerializeTime = stopwatch.ElapsedMilliseconds;
             stopwatch.Restart();
 
             //Deserialize AvroConvert vNext Gzip
-            AvroConvertToUpdate.AvroConvert.DeserializeHeadless<Dataset[]>(newAvroGzip, schema);
+            AvroConvertToUpdate.AvroConvert.Deserialize<Dataset[]>(newAvroGzip);
             result.AvroConvertVNextGzipDeserializeTime = stopwatch.ElapsedMilliseconds;
             stopwatch.Stop();
 

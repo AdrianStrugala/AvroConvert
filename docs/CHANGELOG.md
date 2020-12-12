@@ -201,3 +201,9 @@ START OF THE PROJECT
 \
 **v. 2.6.3 (25.10.20)**
 - Fixed header metadata extraction - allows getting non-existing keys (to allow reading files without codec metadata)
+
+\
+**v. 2.6.4 (xx.xx.20)**
+- Improved Deserialization performance
+- Reduced Memory Allocation during Deserialization
+- Changed Benchmark approach - switched to BenchmarkDotNet

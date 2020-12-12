@@ -15,4 +15,10 @@
     <ProjectReference Include="..\AvroConvertToUpdate\AvroConvertVNext.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="big_dataset.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

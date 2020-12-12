@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\AvroConvert\AvroConvert.csproj" />
-    <ProjectReference Include="..\..\src\Snappy.Standard\Snappy.Standard.csproj" />
+    <ProjectReference Include="..\AvroConvertToUpdate\AvroConvertVNext.csproj" />
   </ItemGroup>
 
   <ItemGroup>

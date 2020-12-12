@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using AutoFixture;
 using Avro;
 using Avro.Generic;
 using Avro.IO;
-using Newtonsoft.Json;
 using SolTechnology.Avro;
 using SolTechnology.Avro.FileHeader.Codec;
 
@@ -27,9 +25,9 @@ namespace SolTechnology.PerformanceBenchmark
 
             Console.WriteLine("AvroConvert Benchmark - fire!");
             Console.WriteLine("");
-            Console.WriteLine("The Benchmark compares Newtonsoft.Json, Apache.Avro, AvroConvert (nuget version) \nand AvroConvert local version");
+            Console.WriteLine("The Benchmark compares Apache.Avro, AvroConvert (nuget version) and AvroConvert local version");
 
-            int noOfRuns = 50;
+            int noOfRuns = 30;
             Console.WriteLine($"Number of runs: {noOfRuns}");
 
             string schema = AvroConvert.GenerateSchema(typeof(Dataset[]));
@@ -49,9 +47,9 @@ namespace SolTechnology.PerformanceBenchmark
 
 
             BenchmarkResult mean = new BenchmarkResult();
-            mean.JsonSerializeTime = benchmarkResults.Sum(r => r.JsonSerializeTime) / noOfRuns;
-            mean.JsonDeserializeTime = benchmarkResults.Sum(r => r.JsonDeserializeTime) / noOfRuns;
-            mean.JsonSize = benchmarkResults.Sum(r => r.JsonSize) / noOfRuns;
+            mean.AvroConvertVNextGzipSerializeTime = benchmarkResults.Sum(r => r.AvroConvertVNextGzipSerializeTime) / noOfRuns;
+            mean.AvroConvertVNextGzipDeserializeTime = benchmarkResults.Sum(r => r.AvroConvertVNextGzipDeserializeTime) / noOfRuns;
+            mean.AvroConvertVNextGzipSize = benchmarkResults.Sum(r => r.AvroConvertVNextGzipSize) / noOfRuns;
 
             mean.ApacheAvroSerializeTime = benchmarkResults.Sum(r => r.ApacheAvroSerializeTime) / noOfRuns;
             mean.ApacheAvroDeserializeTime = benchmarkResults.Sum(r => r.ApacheAvroDeserializeTime) / noOfRuns;
@@ -61,12 +59,12 @@ namespace SolTechnology.PerformanceBenchmark
             mean.AvroConvertHeadlessDeserializeTime = benchmarkResults.Sum(r => r.AvroConvertHeadlessDeserializeTime) / noOfRuns;
             mean.AvroConvertHeadlessSize = benchmarkResults.Sum(r => r.AvroConvertHeadlessSize) / noOfRuns;
 
-            mean.AvroConvertDeflateSerializeTime = benchmarkResults.Sum(r => r.AvroConvertDeflateSerializeTime) / noOfRuns;
-            mean.AvroConvertDeflateDeserializeTime = benchmarkResults.Sum(r => r.AvroConvertDeflateDeserializeTime) / noOfRuns;
-            mean.AvroConvertDeflateSize = benchmarkResults.Sum(r => r.AvroConvertDeflateSize) / noOfRuns;
+            mean.AvroConvertGzipSerializeTime = benchmarkResults.Sum(r => r.AvroConvertGzipSerializeTime) / noOfRuns;
+            mean.AvroConvertGzipDeserializeTime = benchmarkResults.Sum(r => r.AvroConvertGzipDeserializeTime) / noOfRuns;
+            mean.AvroConvertGzipSize = benchmarkResults.Sum(r => r.AvroConvertGzipSize) / noOfRuns;
 
-            mean.AvroConvertVNextSerializeTime = benchmarkResults.Sum(r => r.AvroConvertVNextSerializeTime) / noOfRuns;
-            mean.AvroConvertVNextDeserializeTime = benchmarkResults.Sum(r => r.AvroConvertVNextDeserializeTime) / noOfRuns;
+            mean.AvroConvertVNextHeadlessSerializeTime = benchmarkResults.Sum(r => r.AvroConvertVNextHeadlessSerializeTime) / noOfRuns;
+            mean.AvroConvertVNextHeadlessDeserializeTime = benchmarkResults.Sum(r => r.AvroConvertVNextHeadlessDeserializeTime) / noOfRuns;
             mean.AvroConvertVNextSize = benchmarkResults.Sum(r => r.AvroConvertVNextSize) / noOfRuns;
 
             ConstructLog(mean);
@@ -79,16 +77,6 @@ namespace SolTechnology.PerformanceBenchmark
             var result = new BenchmarkResult();
 
             Stopwatch stopwatch = Stopwatch.StartNew();
-
-            //Serialize Json
-            var json = JsonConvert.SerializeObject(datasets);
-            result.JsonSerializeTime = stopwatch.ElapsedMilliseconds;
-            stopwatch.Restart();
-
-            //Deserialize Json
-            JsonConvert.DeserializeObject<Dataset[]>(json);
-            result.JsonDeserializeTime = stopwatch.ElapsedMilliseconds;
-            stopwatch.Restart();
 
 
             //Serialize Apache.Avro
@@ -136,34 +124,44 @@ namespace SolTechnology.PerformanceBenchmark
             stopwatch.Restart();
 
 
-            //Serialize AvroConvert Deflate
-            var avroDeflate = AvroConvert.Serialize(datasets, CodecType.Deflate);
-            result.AvroConvertDeflateSerializeTime = stopwatch.ElapsedMilliseconds;
+            //Serialize AvroConvert Gzip
+            var avroGzip = AvroConvert.Serialize(datasets, CodecType.GZip);
+            result.AvroConvertGzipSerializeTime = stopwatch.ElapsedMilliseconds;
             stopwatch.Restart();
 
-            //Deserialize AvroConvert Deflate
-            AvroConvert.Deserialize<Dataset[]>(avroDeflate);
-            result.AvroConvertDeflateDeserializeTime = stopwatch.ElapsedMilliseconds;
+            //Deserialize AvroConvert Gzip
+            AvroConvert.Deserialize<Dataset[]>(avroGzip);
+            result.AvroConvertGzipDeserializeTime = stopwatch.ElapsedMilliseconds;
             stopwatch.Restart();
 
 
             //Serialize AvroConvert vNext
             var newAvro = AvroConvertToUpdate.AvroConvert.SerializeHeadless(datasets, schema);
-            result.AvroConvertVNextSerializeTime = stopwatch.ElapsedMilliseconds;
+            result.AvroConvertVNextHeadlessSerializeTime = stopwatch.ElapsedMilliseconds;
             stopwatch.Restart();
 
             //Deserialize AvroConvert vNext
             AvroConvertToUpdate.AvroConvert.DeserializeHeadless<Dataset[]>(newAvro, schema);
-            result.AvroConvertVNextDeserializeTime = stopwatch.ElapsedMilliseconds;
+            result.AvroConvertVNextHeadlessDeserializeTime = stopwatch.ElapsedMilliseconds;
+            stopwatch.Stop();
+
+            //Serialize AvroConvert vNext Gzip
+            var newAvroGzip = AvroConvertToUpdate.AvroConvert.SerializeHeadless(datasets, schema, AvroConvertToUpdate.Codec.CodecType.GZip);
+            result.AvroConvertVNextGzipSerializeTime = stopwatch.ElapsedMilliseconds;
+            stopwatch.Restart();
+
+            //Deserialize AvroConvert vNext Gzip
+            AvroConvertToUpdate.AvroConvert.DeserializeHeadless<Dataset[]>(newAvroGzip, schema);
+            result.AvroConvertVNextGzipDeserializeTime = stopwatch.ElapsedMilliseconds;
             stopwatch.Stop();
 
 
             //Size
-            result.JsonSize = Encoding.UTF8.GetBytes(json).Length;
             result.ApacheAvroSize = apacheAvro.Length;
             result.AvroConvertHeadlessSize = avroHeadless.Length;
-            result.AvroConvertDeflateSize = avroDeflate.Length;
+            result.AvroConvertGzipSize = avroGzip.Length;
             result.AvroConvertVNextSize = newAvro.Length;
+            result.AvroConvertVNextGzipSize = newAvroGzip.Length;
 
             return result;
         }
@@ -171,11 +169,11 @@ namespace SolTechnology.PerformanceBenchmark
         private static void ConstructLog(BenchmarkResult result)
         {
             Console.WriteLine("");
-            Console.WriteLine($"Json:          Serialize: {result.JsonSerializeTime} ms {result.JsonSize / 1024} kB; Deserialize: {result.JsonDeserializeTime} ms");
-            Console.WriteLine($"Apache.Avro:   Serialize: {result.ApacheAvroSerializeTime} ms {result.ApacheAvroSize / 1024} kB; Deserialize: {result.ApacheAvroDeserializeTime} ms");
-            Console.WriteLine($"Avro Headless: Serialize: {result.AvroConvertHeadlessSerializeTime} ms {result.AvroConvertHeadlessSize / 1024} kB; Deserialize: {result.AvroConvertHeadlessDeserializeTime} ms");
-            Console.WriteLine($"Avro Deflate:  Serialize: {result.AvroConvertDeflateSerializeTime} ms {result.AvroConvertDeflateSize / 1024} kB; Deserialize: {result.AvroConvertDeflateDeserializeTime} ms");
-            Console.WriteLine($"Avro vNext:    Serialize: {result.AvroConvertVNextSerializeTime} ms {result.AvroConvertVNextSize / 1024} kB; Deserialize: {result.AvroConvertVNextDeserializeTime} ms");
+            Console.WriteLine($"Apache.Avro:     Serialize: {result.ApacheAvroSerializeTime} ms {result.ApacheAvroSize / 1024} kB; Deserialize: {result.ApacheAvroDeserializeTime} ms");
+            Console.WriteLine($"Avro Headless:   Serialize: {result.AvroConvertHeadlessSerializeTime} ms {result.AvroConvertHeadlessSize / 1024} kB; Deserialize: {result.AvroConvertHeadlessDeserializeTime} ms");
+            Console.WriteLine($"Avro Gzip:       Serialize: {result.AvroConvertGzipSerializeTime} ms {result.AvroConvertGzipSize / 1024} kB; Deserialize: {result.AvroConvertGzipDeserializeTime} ms");
+            Console.WriteLine($"Avro vNext:      Serialize: {result.AvroConvertVNextHeadlessSerializeTime} ms {result.AvroConvertVNextSize / 1024} kB; Deserialize: {result.AvroConvertVNextHeadlessDeserializeTime} ms");
+            Console.WriteLine($"Avro vNext Gzip: Serialize: {result.AvroConvertVNextGzipSerializeTime} ms {result.AvroConvertVNextGzipSize / 1024} kB; Deserialize: {result.AvroConvertVNextGzipDeserializeTime} ms");
             Console.WriteLine("");
             Console.WriteLine("");
             Console.WriteLine("Summarize:");
@@ -183,13 +181,13 @@ namespace SolTechnology.PerformanceBenchmark
             Console.WriteLine("");
 
             //How the time is calculated: size to megabits => divide by network speed => multiply x 1000 to have ms 
-            double jsonTime = (double)result.JsonSize * 8 * 1000 / (1024 * 1024 * 100); // ms
+            double jsonTime = (double)result.AvroConvertVNextGzipSize * 8 * 1000 / (1024 * 1024 * 100); // ms
 
-            Console.WriteLine($"Json:          {result.JsonSerializeTime + jsonTime + result.JsonDeserializeTime} ms");
-            Console.WriteLine($"Apache.Avro:   {result.ApacheAvroSerializeTime + ((double)result.ApacheAvroSize * 8 * 1000 / (1024 * 1024 * 100)) + result.ApacheAvroDeserializeTime} ms");
-            Console.WriteLine($"Avro Headless: {result.AvroConvertHeadlessSerializeTime + ((double)result.AvroConvertHeadlessSize * 8 * 1000 / (1024 * 1024 * 100)) + result.AvroConvertHeadlessDeserializeTime} ms");
-            Console.WriteLine($"Avro Deflate:  {result.AvroConvertDeflateSerializeTime + ((double)result.AvroConvertDeflateSize * 8 * 1000 / (1024 * 1024 * 100)) + result.AvroConvertDeflateDeserializeTime} ms");
-            Console.WriteLine($"Avro vNext:    {result.AvroConvertVNextSerializeTime + ((double)result.AvroConvertVNextSize * 8 * 1000 / (1024 * 1024 * 100)) + result.AvroConvertVNextDeserializeTime} ms");
+            Console.WriteLine($"Apache.Avro:      {result.ApacheAvroSerializeTime + ((double)result.ApacheAvroSize * 8 * 1000 / (1024 * 1024 * 100)) + result.ApacheAvroDeserializeTime} ms");
+            Console.WriteLine($"Avro Headless:    {result.AvroConvertHeadlessSerializeTime + ((double)result.AvroConvertHeadlessSize * 8 * 1000 / (1024 * 1024 * 100)) + result.AvroConvertHeadlessDeserializeTime} ms");
+            Console.WriteLine($"Avro Gzip:        {result.AvroConvertGzipSerializeTime + ((double)result.AvroConvertGzipSize * 8 * 1000 / (1024 * 1024 * 100)) + result.AvroConvertGzipDeserializeTime} ms");
+            Console.WriteLine($"Avro vNext:       {result.AvroConvertVNextHeadlessSerializeTime + ((double)result.AvroConvertVNextSize * 8 * 1000 / (1024 * 1024 * 100)) + result.AvroConvertVNextHeadlessDeserializeTime} ms");
+            Console.WriteLine($"Avro vNext Gzip:  {result.AvroConvertVNextGzipSerializeTime + jsonTime + result.AvroConvertVNextGzipDeserializeTime} ms");
         }
     }
 }

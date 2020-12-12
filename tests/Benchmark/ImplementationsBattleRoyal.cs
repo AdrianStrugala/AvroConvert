@@ -26,7 +26,7 @@ namespace Benchmark
             }
         }
 
-        private const int N = 15000;
+        private const int N = 15700;
         private readonly Dataset[] data;
 
         public ImplementationsBattleRoyal()
@@ -82,9 +82,9 @@ namespace Benchmark
         {
             var serialized = JsonConvert.SerializeObject(data);
             var serializedBytes = Encoding.UTF8.GetBytes(serialized);
-            var serializedGzip = Compress(serializedBytes);
+            var serializedGzip = GzipJson(serializedBytes);
 
-            var deserializedBytes = Decompress(serializedGzip);
+            var deserializedBytes = UnGzipJson(serializedGzip);
             JsonConvert.DeserializeObject<List<Dataset>>(Encoding.UTF8.GetString(deserializedBytes));
 
 
@@ -103,7 +103,21 @@ namespace Benchmark
             File.WriteAllText(path, ConstructSizeLog(serialized.Length));
         }
 
-        //todo add brotli
+
+        [Benchmark]
+        public void Json_Brotli()
+        {
+            var serialized = JsonConvert.SerializeObject(data);
+            var serializedBytes = Encoding.UTF8.GetBytes(serialized);
+            var serializedGzip = BrotliJson(serializedBytes);
+
+            var deserializedBytes = UnBrotliJson(serializedGzip);
+            JsonConvert.DeserializeObject<List<Dataset>>(Encoding.UTF8.GetString(deserializedBytes));
+
+
+            var path = $"C:\\test\\disk-size.{nameof(Json_Brotli).ToLower()}.txt";
+            File.WriteAllText(path, ConstructSizeLog(serializedGzip.Length));
+        }
 
 
 
@@ -113,7 +127,7 @@ namespace Benchmark
             return $"{size / 1024} kB";
         }
 
-        internal byte[] Decompress(byte[] compressedData)
+        internal byte[] UnGzipJson(byte[] compressedData)
         {
             using (var compressedStream = new MemoryStream(compressedData))
             using (var zipStream = new GZipStream(compressedStream, CompressionMode.Decompress))
@@ -124,10 +138,32 @@ namespace Benchmark
             }
         }
 
-        internal byte[] Compress(byte[] uncompressedData)
+        internal byte[] GzipJson(byte[] uncompressedData)
         {
             using (var compressedStream = new MemoryStream())
             using (var zipStream = new GZipStream(compressedStream, CompressionMode.Compress))
+            {
+                zipStream.Write(uncompressedData, 0, uncompressedData.Length);
+                zipStream.Close();
+                return compressedStream.ToArray();
+            }
+        }
+
+        internal byte[] UnBrotliJson(byte[] compressedData)
+        {
+            using (var compressedStream = new MemoryStream(compressedData))
+            using (var zipStream = new BrotliStream(compressedStream, CompressionMode.Decompress))
+            using (var resultStream = new MemoryStream())
+            {
+                zipStream.CopyTo(resultStream);
+                return resultStream.ToArray();
+            }
+        }
+
+        internal byte[] BrotliJson(byte[] uncompressedData)
+        {
+            using (var compressedStream = new MemoryStream())
+            using (var zipStream = new BrotliStream(compressedStream, CompressionMode.Compress))
             {
                 zipStream.Write(uncompressedData, 0, uncompressedData.Length);
                 zipStream.Close();

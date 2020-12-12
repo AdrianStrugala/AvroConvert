@@ -2,28 +2,27 @@
 {
     class BenchmarkResult
     {
-        public long JsonSerializeTime { get; set; }
-        public long JsonDeserializeTime { get; set; }
-        public int JsonSize { get; set; }
-
+        public long ApacheAvroSerializeTime { get; set; }
+        public long ApacheAvroDeserializeTime { get; set; }
+        public int ApacheAvroSize { get; set; }
 
         public long AvroConvertHeadlessSerializeTime { get; set; }
         public long AvroConvertHeadlessDeserializeTime { get; set; }
         public int AvroConvertHeadlessSize { get; set; }
 
 
-        public long AvroConvertDeflateSerializeTime { get; set; }
-        public long AvroConvertDeflateDeserializeTime { get; set; }
-        public int AvroConvertDeflateSize { get; set; }
+        public long AvroConvertGzipSerializeTime { get; set; }
+        public long AvroConvertGzipDeserializeTime { get; set; }
+        public int AvroConvertGzipSize { get; set; }
 
 
-        public long ApacheAvroSerializeTime { get; set; }
-        public long ApacheAvroDeserializeTime { get; set; }
-        public int ApacheAvroSize { get; set; }
-
-
-        public long AvroConvertVNextSerializeTime { get; set; }
-        public long AvroConvertVNextDeserializeTime { get; set; }
+        public long AvroConvertVNextHeadlessSerializeTime { get; set; }
+        public long AvroConvertVNextHeadlessDeserializeTime { get; set; }
         public int AvroConvertVNextSize { get; set; }
+
+
+        public long AvroConvertVNextGzipSerializeTime { get; set; }
+        public long AvroConvertVNextGzipDeserializeTime { get; set; }
+        public int AvroConvertVNextGzipSize { get; set; }
     }
 }

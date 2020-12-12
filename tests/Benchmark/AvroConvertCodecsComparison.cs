@@ -1,16 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
-using System.Text;
 using AutoFixture;
+using Benchmark;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
-using Newtonsoft.Json;
 using SolTechnology.Avro;
 using SolTechnology.Avro.FileHeader.Codec;
 
-namespace Benchmark
+namespace GrandeBenchmark
 {
     [MemoryDiagnoser]
     [Config(typeof(Config))]

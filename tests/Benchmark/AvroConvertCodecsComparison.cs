@@ -20,19 +20,19 @@ namespace GrandeBenchmark
         }
 
         private const int N = 100;
-        private readonly Dataset[] data;
+        private readonly User[] data;
 
         public AvroConvertCodecsComparison()
         {
             Fixture fixture = new Fixture();
-            data = fixture.CreateMany<Dataset>(N).ToArray();
+            data = fixture.CreateMany<User>(N).ToArray();
         }
 
         [Benchmark]
         public void Avro_Default()
         {
             var serialized = AvroConvert.Serialize(data);
-            AvroConvert.Deserialize<List<Dataset>>(serialized);
+            AvroConvert.Deserialize<List<User>>(serialized);
 
             var path = $"C:\\test\\disk-size.{nameof(Avro_Default).ToLower()}.txt";
             File.WriteAllText(path, ConstructSizeLog(serialized.Length));
@@ -42,7 +42,7 @@ namespace GrandeBenchmark
         public void Avro_Gzip()
         {
             var serialized = AvroConvert.Serialize(data, CodecType.GZip);
-            AvroConvert.Deserialize<List<Dataset>>(serialized);
+            AvroConvert.Deserialize<List<User>>(serialized);
 
             var path = $"C:\\test\\disk-size.{nameof(Avro_Gzip).ToLower()}.txt";
             File.WriteAllText(path, ConstructSizeLog(serialized.Length));
@@ -52,7 +52,7 @@ namespace GrandeBenchmark
         public void Avro_Snappy()
         {
             var serialized = AvroConvert.Serialize(data, CodecType.Snappy);
-            AvroConvert.Deserialize<List<Dataset>>(serialized);
+            AvroConvert.Deserialize<List<User>>(serialized);
 
             var path = $"C:\\test\\disk-size.{nameof(Avro_Snappy).ToLower()}.txt";
             File.WriteAllText(path, ConstructSizeLog(serialized.Length));
@@ -62,7 +62,7 @@ namespace GrandeBenchmark
         public void Avro_Deflate()
         {
             var serialized = AvroConvert.Serialize(data, CodecType.Deflate);
-            AvroConvert.Deserialize<List<Dataset>>(serialized);
+            AvroConvert.Deserialize<List<User>>(serialized);
 
             var path = $"C:\\test\\disk-size.{nameof(Avro_Deflate).ToLower()}.txt";
             File.WriteAllText(path, ConstructSizeLog(serialized.Length));

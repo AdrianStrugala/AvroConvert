@@ -1,27 +1,33 @@
-﻿
+﻿using System;
 using System.Collections.Generic;
 
-public class Data
+namespace GrandeBenchmark
 {
-    public int length { get; set; }
-    public string text { get; set; }
-}
+    public class Contact
+    {
+        public int Id { get; set; }
+        public string Address { get; set; }
+        public long HouseNumber { get; set; }
+        public string City { get; set; }
+        public string PostCode { get; set; }
+    }
 
-public class ObjArray
-{
-    public string @class { get; set; }
-    public int age { get; set; }
-}
+    public class Offering
+    {
+        public int Id { get; set; }
+        public Guid ProductNumber { get; set; }
+        public int Price { get; set; }
+        public string Currency { get; set; }
+        public bool Discount { get; set; }
+    }
 
-public class Dataset
-{
-    public int min_position { get; set; }
-    public bool has_more_items { get; set; }
-    public string items_html { get; set; }
-    public int new_latent_count { get; set; }
-    public Data data { get; set; }
-    public List<int> numericalArray { get; set; }
-    public List<string> StringArray { get; set; }
-    public bool boolArray { get; set; }
-    public List<ObjArray> objArray { get; set; }
+    public class User
+    {
+        public int Id { get; set; }
+        public bool IsActive { get; set; }
+        public string Name { get; set; }
+        public int Age { get; set; }
+        public Contact Contact { get; set; }
+        public List<Offering> Offerings { get; set; }
+    }
 }

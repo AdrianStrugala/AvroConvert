@@ -35,18 +35,7 @@ namespace Benchmark
         public string GetValue(Summary summary, BenchmarkCase benchmarkCase, SummaryStyle style)
         {
             var benchmarkName = benchmarkCase.Descriptor.WorkloadMethod.Name.ToLower();
-            var x = Directory.GetFiles("C:\\test");
-            foreach (var s in x)
-            {
-                var z = s;
-                Console.WriteLine(z);
-            }
-            // var parameter = benchmarkCase.Parameters.Items.FirstOrDefault(x => x.Name == "N");
-            // if (parameter == null)
-            // {
-            //     return "no parameter";
-            // }
-            // var N = Convert.ToInt32(parameter.Value);
+
             var filename = $"disk-size.{benchmarkName}.txt";
             var path = $"C:\\test\\{filename}";
             return File.Exists(path) ? File.ReadAllText(path) : $"file not found";

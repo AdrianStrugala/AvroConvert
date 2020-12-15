@@ -12,9 +12,10 @@
 </p>
 
 <p align="center">
-  <a href="https://www.nuget.org/packages/AvroConvert"><img src="https://img.shields.io/badge/Nuget-v2.6.3-blue?logo=nuget"></a>
-  <a href="https://github.com/AdrianStrugala/AvroConvert"><img src="https://img.shields.io/badge/Downloads-12k-blue?logo=github"></a>
-  <a href=""><img src="https://img.shields.io/appveyor/build/AdrianStrugala/AvroConvert"></a>
+  <a href="https://www.nuget.org/packages/AvroConvert"><img src="https://img.shields.io/badge/Nuget-v2.6.4-blue?logo=nuget"></a>
+  <a href="https://ci.appveyor.com/project/AdrianStrugala/avroconvert"><img src="https://img.shields.io/appveyor/build/AdrianStrugala/AvroConvert?logo=appveyor"></a>
+  <a href="https://github.com/AdrianStrugala/AvroConvert"><img src="https://img.shields.io/badge/Downloads-15k-blue?logo=github"></a>
+
 </p>
 
 
@@ -32,19 +33,24 @@
 
 ## Benefits
 
-The main purpose of the project was to enhance communication between microservices. Replacing JSON with Avro brought three main benefits:
+The main purpose of the project was to enhance HTTP communication between microservices. Replacing JSON with Avro brought three main benefits:
 * Decreased the communication time between microservices
 * Reduced the network traffic by about 30%
 * Increased communication security - the data was not visible in plain JSON text
 
-| Converter               | Request time [ms]     | Compressed size [kB] |
-|-------------------------|-----------------------|----------------------|
-| Json                    | 1076                  | 9945                 |
-| Avro (default)          | 509                   | 2435                 |
-| Avro (Headless)         | 465                   | 2434                 |
-| Avro (Deflate encoding) | 453                   | 206                  |
+Results of BenchmarkDotNet:
 
-In the purpose of introducing Avro API, I've written an article, which you can read here: https://xabe.net/why-avro-api-is-the-best-choice/
+|Converter     | Request Time [ms] | Allocated Memory [MB] | Compressed Size [kB] |
+|------------- |------------------:|----------------------:|---------------------:|
+| Json         |       672.3       |          52.23        |         6044         |
+| Avro         |       384.7       |          76.58        |         2623         |
+| Json_Gzip    |       264.1       |          88.32        |          514         |
+| Avro_Gzip    |       181.2       |          75.05        |          104         |
+| Json_Brotli  |       222.5       |          86.15        |           31         |
+| Avro_Brotli  |       193.5       |          74.75        |           31         |
+
+
+In the purpose of introducing Avro API, I've created an article, which you can read here: https://xabe.net/why-avro-api-is-the-best-choice/
 \
 It contains also description of the format, detailed results of the benchmarks and implementation details.
 
@@ -55,7 +61,7 @@ Using Avro for communication between your services significantly reduces communi
 
 * Serialization and deserialization data in Avro format
 * Extended support for C# data structures: Dictionary, List, DateTime and many others
-* Support for codecs: deflate, snappy, gzip
+* Support for codecs: deflate, snappy, gzip, brotli
 * Support for Attributes: DataContract, DataMember, DefaultValue, NullableSchema
 * "Headless" - serialization and deserialization based on provided schema
 

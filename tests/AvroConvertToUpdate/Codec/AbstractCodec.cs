@@ -38,6 +38,8 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Codec
                     return new SnappyCodec();
                 case CodecType.GZip:
                     return new GZipCodec();
+                case CodecType.Brotli:
+                    return new BrotliCodec();
                 default:
                     return new NullCodec();
             }

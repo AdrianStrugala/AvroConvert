@@ -12,7 +12,7 @@ Supported encoding types:
 - Deflate
 - Snappy
 - GZip
-
+- Brotli
 
 
 ### Deserialization

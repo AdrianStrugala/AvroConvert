@@ -1,4 +1,4 @@
-
+﻿
 <p align="center">
     <img alt="SolTechnology-logo" src="./docs/logo.png" width="200">
 </p>
@@ -12,10 +12,9 @@
 </p>
 
 <p align="center">
-  <a href="https://www.nuget.org/packages/AvroConvert"><img src="https://img.shields.io/badge/Nuget-v2.6.4-blue?logo=nuget"></a>
-  <a href="https://ci.appveyor.com/project/AdrianStrugala/avroconvert"><img src="https://img.shields.io/appveyor/build/AdrianStrugala/AvroConvert?logo=appveyor"></a>
+  <a href="https://www.nuget.org/packages/AvroConvert"><img src="https://img.shields.io/badge/Nuget-v2.7.0-blue?logo=nuget"></a>
   <a href="https://github.com/AdrianStrugala/AvroConvert"><img src="https://img.shields.io/badge/Downloads-15k-blue?logo=github"></a>
-
+  <a href="https://ci.appveyor.com/project/AdrianStrugala/avroconvert"><img src="https://img.shields.io/appveyor/build/AdrianStrugala/AvroConvert?logo=azuredevops"></a>
 </p>
 
 
@@ -38,6 +37,25 @@ The main purpose of the project was to enhance HTTP communication between micros
 * Reduced the network traffic by about 30%
 * Increased communication security - the data was not visible in plain JSON text
 
+
+## Features
+|                                                               | AvroConvert                                | Apache.Avro | Newtonsoft.Json |
+|---------------------------------------------------------------|:------------------------------------------:|:-----------:|:---------------:|
+| Rapid serialization                                            |                      ✔️                     |      ✔️      |        ✔️        |
+| Easy to use                                                   |                      ✔️                     |      ❌      |        ✔️        |
+| Built-in compression                                          |                      ✔️                     |      ✔️      |        ❌        |
+| Low memory allocation                                         |                      ✔️                     |      ✔️      |        ✔️        |
+| Support for C# data structures: Dictionary, List, DateTime... |                      ✔️                     |      ❌      |        ✔️        |
+| Support for compression codecs                                | Deflate<br/>  Snappy<br/> GZip<br/> Brotli |   Deflate   |        ❌        |
+| Readable schema of data structure                                      |                      ✔️                     |      ✔️      |        ✔️        |
+| Data is encrypted                                       |                      ✔️                     |      ✔️      |        ❌        |
+
+[Full Changelog](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/CHANGELOG.md)
+
+
+
+## Benchmark
+
 Results of BenchmarkDotNet:
 
 |Converter     | Request Time [ms] | Allocated Memory [MB] | Compressed Size [kB] |
@@ -50,22 +68,49 @@ Results of BenchmarkDotNet:
 | Avro_Brotli  |       193.5       |          74.75        |           31         |
 
 
-In the purpose of introducing Avro API, I've created an article, which you can read here: https://xabe.net/why-avro-api-is-the-best-choice/
-\
-It contains also description of the format, detailed results of the benchmarks and implementation details.
+Article describing Avro format specification and benchmark methodology: https://xabe.net/why-avro-api-is-the-best-choice/
 
 **Conclusion:** <br>
 Using Avro for communication between your services significantly reduces communication time and network traffic. Additionally choosing encoding (compression algorithm) can improve the results even further.
 
-## Features
 
-* Serialization and deserialization data in Avro format
-* Extended support for C# data structures: Dictionary, List, DateTime and many others
-* Support for codecs: deflate, snappy, gzip, brotli
-* Support for Attributes: DataContract, DataMember, DefaultValue, NullableSchema
-* "Headless" - serialization and deserialization based on provided schema
+## Code samples
 
-[Full Changelog](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/CHANGELOG.md)
+* Serialization
+```csharp
+ byte[] avroObject = AvroConvert.Serialize(object yourObject);
+```
+<br/>
+
+* Deserialization
+```csharp
+CustomClass deserializedObject = AvroConvert.Deserialize<CustomClass>(byte[] avroObject);
+```
+<br/>
+
+* Read schema from Avro object
+
+```csharp
+string schemaInJsonFormat = AvroConvert.GetSchema(byte[] avroObject)
+```
+<br/>
+
+* Deserialization of large collection of Avro objects one by one
+
+```csharp
+using (var reader = AvroConvert.OpenDeserializer<CustomClass>(new MemoryStream(avroObject)))
+{
+    while (reader.HasNext())
+    {
+        var item = reader.ReadNext();
+        // process item
+    }
+}
+```
+
+
+[Full Documentation](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md)
+
 
 ## Related packages  
 
@@ -74,49 +119,10 @@ Using Avro for communication between your services significantly reduces communi
 [![Nuget](https://img.shields.io/badge/Soltechnology.Avro.Kafka-v0.1.0-blue?logo=nuget)](https://www.nuget.org/packages/SolTechnology.Avro.Kafka/) - Library containing extensions for Confluent Kafka platform - used together with Kafka Consumer and Producer
 
 
-## Code samples
-
-```csharp
-//Serialization
- byte[] avroObject = AvroConvert.Serialize(object yourObject);
-```
-
-```csharp
-//Deserialization
-CustomClass deserializedObject = AvroConvert.Deserialize<CustomClass>(byte[] avroObject);
-```
-
-```csharp
-//Generate Avro schema
-
-//Model
-public class SimpleTestClass
-{
-	public string justSomeProperty { get; set; }
-
-	public long andLongProperty { get; set; }
-}
-
-
-//Action
-string schemaInJsonFormat = AvroConvert.GenerateSchema(typeof(SimpleTestClass));
-
-
-//Produces following schema:
-"{"type":"record","name":"AvroConvert.SimpleTestClass","fields":[{"name":"justSomeProperty","type":"string"},{"name":"andLongProperty","type":"long"}]}"
-```
-
-```csharp
-//Read schema from Avro file
-string schemaInJsonFormat = AvroConvert.GetSchema(byte[] avroObject)
-```
-
-[Full Documentation](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md)
-
 
 ## License  
 
-AvroConvert is licensed under [Attribution-NonCommercial-ShareAlike 3.0 Unported (CC BY-NC-SA 3.0)](https://creativecommons.org/licenses/by-nc-sa/3.0/) - see [License](LICENSE.md) for details
+The project is [CC BY-NC-SA 3.0](https://creativecommons.org/licenses/by-nc-sa/3.0/) licensed.
 \
 For commercial purposes purchase AvroConvert on website - [Xabe.net](https://xabe.net/product/avroconvert/)
 

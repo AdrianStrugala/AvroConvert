@@ -203,7 +203,8 @@ START OF THE PROJECT
 - Fixed header metadata extraction - allows getting non-existing keys (to allow reading files without codec metadata)
 
 \
-**v. 2.6.4 (xx.xx.20)**
+**v. 2.7.0 (xx.xx.20)**
+- Added support for Brotli encoding
 - Improved Deserialization performance
 - Reduced Memory Allocation during Deserialization
 - Changed Benchmark approach - switched to BenchmarkDotNet

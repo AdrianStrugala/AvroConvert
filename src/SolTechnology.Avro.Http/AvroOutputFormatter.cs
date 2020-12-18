@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Net.Http.Headers;
-using SolTechnology.Avro.Codec;
+using SolTechnology.Avro.FileHeader.Codec;
 
 namespace SolTechnology.Avro.Http
 {
@@ -9,7 +9,7 @@ namespace SolTechnology.Avro.Http
     {
         private readonly CodecType _codec;
 
-        public AvroOutputFormatter(Codec.CodecType codec = Codec.CodecType.Null)
+        public AvroOutputFormatter(CodecType codec = CodecType.Null)
         {
             _codec = codec;
             this.SupportedMediaTypes.Clear();

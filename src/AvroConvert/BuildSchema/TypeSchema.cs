@@ -54,6 +54,6 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         /// Gets the type of the schema as string.
         /// </summary>
-        internal abstract global::SolTechnology.Avro.Schema.Schema.Type Type { get; }
+        internal abstract Avro.Schema.Schema.Type Type { get; }
     }
 }

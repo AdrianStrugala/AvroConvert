@@ -19,9 +19,10 @@ namespace SolTechnology.Avro.FileHeader.Codec
 {
     public enum CodecType
     {
-        Deflate,
-        Snappy,
-        Null,
-        GZip
+        Null = 0,
+        Deflate = 1,
+        Snappy = 2,
+        GZip = 3,
+        Brotli =4
     }
 }

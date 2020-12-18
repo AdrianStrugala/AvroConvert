@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>GrandeBenchmark.ImplementationsBattleRoyal-20201215-202735</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; text-align: right; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet=v0.12.1, OS=Windows 10.0.18363.1139 (1909/November2018Update/19H2)
+Intel Core i7-7820HQ CPU 2.90GHz (Kaby Lake), 1 CPU, 8 logical and 4 physical cores
+.NET Core SDK=3.1.402
+  [Host]     : .NET Core 3.1.8 (CoreCLR 4.700.20.41105, CoreFX 4.700.20.41903), X64 RyuJIT  [AttachedDebugger]
+  DefaultJob : .NET Core 3.1.8 (CoreCLR 4.700.20.41105, CoreFX 4.700.20.41903), X64 RyuJIT
+</code></pre>
+<pre><code></code></pre>
+
+<table>
+<thead><tr><th>Method</th><th>Mean</th><th>Error</th><th>StdDev</th><th>Gen 0</th><th>Gen 1</th><th>Gen 2</th><th>Allocated</th><th>FileSize</th>
+</tr>
+</thead><tbody><tr><td>Json_Default</td><td>188.8 ms</td><td>4.78 ms</td><td>13.96 ms</td><td>7000.0000</td><td>3000.0000</td><td>1000.0000</td><td>52.23 MB</td><td>6044 kB</td>
+</tr><tr><td>Json_Gzip</td><td>223.0 ms</td><td>4.36 ms</td><td>4.48 ms</td><td>7000.0000</td><td>4000.0000</td><td>1000.0000</td><td>88.32 MB</td><td>514 kB</td>
+</tr><tr><td>Json_Brotli</td><td>220.0 ms</td><td>4.24 ms</td><td>4.71 ms</td><td>9000.0000</td><td>4000.0000</td><td>1000.0000</td><td>86.15 MB</td><td>31 kB</td>
+</tr><tr><td>Avro_Default</td><td>174.9 ms</td><td>3.48 ms</td><td>8.72 ms</td><td>13000.0000</td><td>4000.0000</td><td>3000.0000</td><td>76.58 MB</td><td>2623 kB</td>
+</tr><tr><td>Avro_Gzip</td><td>172.9 ms</td><td>3.29 ms</td><td>3.65 ms</td><td>14000.0000</td><td>4000.0000</td><td>3000.0000</td><td>75.05 MB</td><td>104 kB</td>
+</tr><tr><td>Avro_Brotli</td><td>191.0 ms</td><td>3.81 ms</td><td>5.22 ms</td><td>13000.0000</td><td>4000.0000</td><td>3000.0000</td><td>74.75 MB</td><td>31 kB</td>
+</tr></tbody></table>
+</body>
+</html>

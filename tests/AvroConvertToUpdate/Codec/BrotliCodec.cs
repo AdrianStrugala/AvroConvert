@@ -15,14 +15,21 @@
 */
 #endregion
 
+using BrotliSharpLib;
+
 namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Codec
 {
-    public enum CodecType
+    internal class BrotliCodec : AbstractCodec
     {
-        Deflate,
-        Snappy,
-        Null,
-        GZip,
-        Brotli
+        internal override string Name { get; } = CodecType.Brotli.ToString().ToLower();
+        internal override byte[] Decompress(byte[] compressedData)
+        {
+            return Brotli.DecompressBuffer(compressedData, 0, compressedData.Length);
+        }
+
+        internal override byte[] Compress(byte[] uncompressedData)
+        {
+            return Brotli.CompressBuffer(uncompressedData, 0, uncompressedData.Length, 4);
+        }
     }
 }

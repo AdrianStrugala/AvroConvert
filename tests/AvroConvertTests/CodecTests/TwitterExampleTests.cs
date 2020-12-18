@@ -43,7 +43,7 @@ namespace AvroConvertTests.CodecTests
         }
 
         [Fact]
-        public void Deserialize_SnappyCodedFile_NotSupportedExceptionIsThrown()
+        public void Deserialize_SnappyCodedFile_DataIsDeserialized()
         {
             //Arrange
             List<TwitterModel> expected = new List<TwitterModel>();

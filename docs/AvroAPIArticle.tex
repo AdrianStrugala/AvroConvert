@@ -98,14 +98,14 @@
 }
 
 %opening
-\title{Why Avro API is the best choice?}
+\title{Avro Api as evolution of JSON}
 \author{Adrian Strugala}
 
 \begin{document}
 
 \maketitle
 
-The article shows a way of evolution of standard JSON APIs based on the author's experience. Solution based on Avro format significantly reduces time and network traffic in communication between microservices. The article includes results of benchmark comparing JSON API with variations of Avro APIs and implementation details in C# .NET Core.
+The article shows a way of evolution of standard JSON APIs based on the author's experience. Solution based on Avro format significantly reduces time and network traffic in communication between microservices. The article includes results of benchmark comparing JSON API with variations of Avro APIs and implementation details in C\# .NET Core.
 
 \section{Introduction}
 
@@ -118,7 +118,7 @@ Believe me or not, services love to talk to each other. They do this all the tim
 
 \section{The problem}
 
-Some time ago developers in my company were kindly asked to limit calls performed against on-premise microservices, as surprisingly the problem was the local internet bandwidth throughput. Funny or not, the solution from the management was really to reduce the traffic between microservices.
+Some time ago developers in my company were asked to limit calls performed against on-premise microservices, as surprisingly the problem was the local internet bandwidth throughput. Local servers were connected by 100 Mb/s network and were unable to handle heavy traffic.
 
 A few days later I heard a conversation between my colleague and his Product Owner. The PO asked If there is any quick-win on how to improve the response time of his service. The colleague started to explain what is the root cause of the problem: his service was fetching data from API A, then B, C, D, and E. The final response time was strongly dependent on the connected services. 
 
@@ -126,83 +126,183 @@ Then colleague, who is a great professional started to enumerate possible soluti
 
 There is also an additional reason, why my company wants to reduce communication time and reduce storage costs. We are slowly moving to the Internet of Things and Big Data technologies. And, in fact, Big Data workshops was the place where I learned about Avro format.
 
-I thought about those problems and I found out one, really simple solution that can bring 3 main benefits:
+I thought about those problems and I found one, simple solution fulfilling 3 main assumptions:
 \begin{itemize}
-	\item Decrease the communication time between microservices 
 	\item Reduce the network traffic 
-	\item Increase communication security
+	\item Decrease the communication time between microservices 
+	\item Low implementation cost
 \end{itemize}
 
 
-But, first things first. I will start with a few words about why we are all currently using Json APIs.
+But, first things first. I will start with a few words about why we are all currently using JSON APIs.
 
 
-\section{Why Json is amazing}
-That's simple - just try to imagine communication without Json. What would you miss the most? The clear and easily readable format? Consistent data model? Maybe the number of tools you can use to parse, read or edit Jsons and even generate it automatically from C\# models?
+\section{JSON - as the standard}
+JSON format implements a number of key features, that I could not imagine using REST API without. The most important are: the clear and easily readable format and consistent data model. Also, it is worth mentioning the number of tools you can use to parse, read or edit JSONs and even generate it automatically from C\# models.
 
-If fact Json has only one main disadvantage that comes to my mind - every response and request is sent as plain text. Sometimes it iss not a big deal, but in other cases response time of not compressesd nor encoded Json API could be a real problem.  
+In fact, JSON has only one main disadvantage that comes to my mind - every response and request is sent as plain text. Usually, it is not a big deal, but in the case under consideration lack of default compression mechanism was the factor that brought the topic to the table.
 
 
-\section{Why Avro is better}
+\section{Avro - as the evolution}
 
-Avro file is build of few pieces:
+Let me now briefly introduce the Avro format. For the detailed description please follow links to the Apache Wiki at the end of the article.
+
+Avro file is build of 2 main parts:
 \begin{enumerate}
-	\item Magic number
-	\item Chosen codec (null in example)
-	\item Schema of the data written in Json format
-	\item The data itself compressed to binary representation
+	\item Header
+	\item Data
 \end{enumerate}
 
-An example of exactly the same data:
+Header contains information about used codec (compression algorythm) and readable schema of the data.
+
+The data itself is compressed to the binary representation. Take a look at the illustrative example:
+
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{json_avro_comparison}
+	\caption{Comparison of JSON and Avro formats}
+\end{figure}
 
 Json:
 
 \begin{lstlisting}[language=json,firstnumber=1]
 [
-	{
-		"minPosition": 188,
-		"hasMoreItems": true,
-		"itemsHtml": "items_html6e64c2b9-dc87-4be3-b8ba-eca0da96ce78",
-		"newLatentCount": 85,
-		"itemIds": [
-		174,
-		43,
-		249
-		],
-		"isAvailable": false
-	},
-	{
-		"minPosition": 160,
-		"hasMoreItems": true,
-		"itemsHtml": "items_htmlaa233d3b-d6ea-41ff-b50f-f099c0c79991",
-		"newLatentCount": 163,
-		"itemIds": [
-		60,
-		153,
-		131
-		],
-		"isAvailable": false
-	}
+    {
+        "Id": 208049411,
+        "IsActive": true,
+        "Name": "Name053b70e6-3935-46bf-9bbd-4e5e0a714084",
+        "Age": 1431481648,
+        "Address": "Addressc0d5ba1a-24f3-4538-a49f-42f70cf5d0b0"
+    },
+    {
+        "Id": 107017917,
+        "IsActive": false,
+        "Name": "Name5412ad55-b36a-41a2-94b9-7f8bdccaa649",
+        "Age": 727845855,
+        "Address": "Addressf039ea17-892b-44ee-8e56-29cd681ef40f"
+    },
+    {
+        "Id": 335432365,
+        "IsActive": true,
+        "Name": "Namec4c8f8f7-b7ba-48ee-8993-893440135d8f",
+        "Age": 1426027908,
+        "Address": "Address9875dfcb-c2a2-4a27-9ee5-2577cf86b4ee"
+    },
+    {
+        "Id": 1784552263,
+        "IsActive": false,
+        "Name": "Name7aedbd1c-1e97-4b31-9434-feb0f556851b",
+        "Age": 1809071694,
+        "Address": "Address6562d18e-22f1-449f-9a1d-e5aea74d09ea"
+    },
+    {
+        "Id": 1536567078,
+        "IsActive": true,
+        "Name": "Name483be4a4-493e-4dfc-978e-26d9ff63ade6",
+        "Age": 1560932751,
+        "Address": "Address243787aa-42da-4076-a18c-9da7ef901719"
+    },
+    {
+        "Id": 874460291,
+        "IsActive": false,
+        "Name": "Name81ddccfe-17e7-4bfd-ab6c-2a168332f018",
+        "Age": 555229108,
+        "Address": "Address3b5ca63b-9dc8-41ac-889d-157fbfe3ac46"
+    },
+    {
+        "Id": 1958451664,
+        "IsActive": true,
+        "Name": "Name2b92ee5e-ce28-425b-b269-997f5b772532",
+        "Age": 1383547002,
+        "Address": "Address18bea6f6-5bdc-4e68-bc40-230c42d4431f"
+    }
 ]
 \end{lstlisting}
 
 Avro:
 \begin{lstlisting}[language=json,firstnumber=1]
-Objavro.codecnullavro.schema¨{"type":"array","items":{"type":"record","name":"Dataset","fields":[{"name":"minPosition","type":"int"},{"name":"hasMoreItems","type":"boolean"},{"name":"itemsHtml","type":["null","string"]},{"name":"newLatentCount","type":"int"},{"name":"itemIds","type":{"type":"array","items":"int"}},{"name":"isAvailable","type":"boolean"}]}} /Âźľ)|ř OČëHE řř\items_html6e64c2b9-dc87-4be3-b8ba-eca0da96ce78ŞÜV�?  Ŕ\items_htmlaa233d3b-d6ea-41ff-b50f-f099c0c79991Ćx˛†   /Âźľ)|ř OČëHE
+Obj1;avro.codec:null;avro.schema:
+{
+    "type": "array",
+    "items": {
+        "type": "record",
+        "name": "User",
+        "namespace": "SolTechnology.Demo",
+        "fields": [
+            {
+                "name": "Id",
+                "type": "int"
+            },
+            {
+                "name": "IsActive",
+                "type": "boolean"
+            },
+            {
+                "name": "Name",
+                "type": "string"
+            },
+            {
+                "name": "Age",
+                "type": "int"
+            },
+            {
+                "name": "Address",
+                "type": "string"
+            }
+        ]
+    }
+}
+54f05db088f44c9bb6a2d64bc6c7d43e14e0d2f8260c42b2af5e58d3d3bd1712
+cc3c4bbece6543ed99f81e5a1ceaad11728cc8d80c4b45d7869a0a6055e68e83
+8612ed73466a4bfdab8c5832cbc2153f94283a270a9a45229af5c021d9abbf78
+960454641f104e59beadff09d36580ede75441d74d064d18a9803fa304b1e652
+923695eb37654b66ad93af65eb38339f2be446600cb344f5b5bc1ec1f182adb1
+9f618c344e71443dba8c43578143db870167055a569346d3b0c3ac6b5f98cce3
+1fb631ff460044d8b48008f1dcecd62e5f62e94008bf467e8bc173d38b213749
 \end{lstlisting}
 
-It doesn't look really different here. But imagine a very, very long Json. The size of the file would increase linearly with the number of records. While for Avro header and schema stays the same - what increases is the amount of encoded and well-compressed data.
+It doesn't look really impressive here. But imagine a very, very long Json. The size of the file would increase linearly with the number of records. While for Avro header and schema stays the same - what increases is the amount of encoded and well-compressed data.
 
-Avro format inherits the readability of Json. Note the schema representation - it could be easily read and extracted from the content. In real-life cases, this is very helpful e.g. during integration tests I can call an API, and read just the schema of the data model - to prepare my classes for deserialization.
+Avro format inherits the readability of Json. Note the schema representation - it could be easily read and extracted from the content. In real-life cases, this is very helpful e.g. during integration tests. I can call an API, and read just the schema of the data model - to prepare my classes for deserialization.
 
 Take a look at the data - you are not able to read it at first glance. And that is also a benefit. API responses could be easily hijacked by network tools. You can even peek the responses in internet browsers. And from time to time it happens, that someone spots the data that shouldn't be read by an unauthorized person. Keeping the data encoded increases the security of the solution. Reading Avro is not a big problem for a motivated person, but reduces the probability of accidental data leaks.
 
-In a real-world case API responses are usually a little bit more complex than in this example. How beneficial is serialization using Avro in comparison to Json? Two times for this example. Three times for simple API responses. I was able to reach fifty(!) times using the right codec for nested model structures containing a huge amount of data - look at the screen below.
 
 
-\section{My benchmark results}
+\section{The benchmark results}
 
-Enough talking, lets now focus on numbers. The screen below shows data compressed with different formats and encodings. Take a careful look at the sizes. Json file, which size is about 10 000 KB was compressed to Avro file occupying about 2 500 KB (that is 4 times smaller). 
+
+\emph{
+BenchmarkDotNet=v0.12.1, OS=Windows 10.0.18363.1139 (1909/November2018Update/19H2)
+Intel Core i7-7820HQ CPU 2.90GHz (Kaby Lake), 1 CPU, 8 logical and 4 physical cores
+.NET Core SDK=3.1.402
+  [Host]     : .NET Core 3.1.8 (CoreCLR 4.700.20.41105, CoreFX 4.700.20.41903), X64 RyuJIT  [AttachedDebugger]
+  DefaultJob : .NET Core 3.1.8 (CoreCLR 4.700.20.41105, CoreFX 4.700.20.41903), X64 RyuJIT
+}
+
+\begin{center}
+ \begin{tabular}{||l r r r ||} 
+ \hline
+ Converter & Request Time [ms] & Allocated Memory [MB] & Compressed Size [kB] \\ [0.5ex] 
+ \hline\hline
+ Json &	672.3 &	52.23 &	6044 \\ 
+ \hline
+ Avro &	384.7 &	76.58 &	2623 \\
+ \hline
+ JsonGzip &	264.1 &	88.32 &	514 \\
+ \hline
+ AvroGzip  &	181.2  &	75.05  &	104 \\
+ \hline
+ JsonBrotli   &	222.5   &	86.15   &	31 \\ 
+ \hline
+  AvroBrotli   &	193.5	& 74.75 & 	31 \\ 
+ \hline
+\end{tabular}
+\end{center}
+
+
+Lets now focus on numbers. The screen below shows data compressed with different formats and encodings. Take a careful look at the sizes. Json file, which size is about 10 000 KB was compressed to Avro file occupying about 2 500 KB (that is 4 times smaller). 
 
 One of the greatest features of Avro format is the possibility to choose codec type (compression algorithm in fact) used for serialization of the data. In these examples, GZip and Deflate encodings are clear winners. Enabling one of them decreases file size to only 200 KB - this means: 50 time less than Json.
 

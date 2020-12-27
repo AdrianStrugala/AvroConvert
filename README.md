@@ -114,7 +114,7 @@ using (var reader = AvroConvert.OpenDeserializer<CustomClass>(new MemoryStream(a
 
 ## Related packages  
 
-[![Nuget](https://img.shields.io/badge/Soltechnology.Avro.Http-v0.2.0-blue?logo=nuget)](https://www.nuget.org/packages/SolTechnology.Avro.Http/) - Library containing functionalities, which enable communication between microservices via Http using Avro data format
+[![Nuget](https://img.shields.io/badge/Soltechnology.Avro.Http-v2.7.0-blue?logo=nuget)](https://www.nuget.org/packages/SolTechnology.Avro.Http/) - Library containing functionalities, which enable communication between microservices via Http using Avro data format
 
 [![Nuget](https://img.shields.io/badge/Soltechnology.Avro.Kafka-v0.1.0-blue?logo=nuget)](https://www.nuget.org/packages/SolTechnology.Avro.Kafka/) - Library containing extensions for Confluent Kafka platform - used together with Kafka Consumer and Producer
 

@@ -153,7 +153,7 @@ Avro file is build of 2 main parts:
 	\item Data
 \end{enumerate}
 
-Header contains information about used codec (compression algorythm) and readable schema of the data.
+The header contains information about the used codec (compression algorithm) and the readable schema of the data.
 
 The data itself is compressed to the binary representation. Take a look at the illustrative example:
 
@@ -262,17 +262,17 @@ cc3c4bbece6543ed99f81e5a1ceaad11728cc8d80c4b45d7869a0a6055e68e83
 1fb631ff460044d8b48008f1dcecd62e5f62e94008bf467e8bc173d38b213749
 \end{lstlisting}
 
-It doesn't look really impressive here. But imagine a very, very long Json. The size of the file would increase linearly with the number of records. While for Avro header and schema stays the same - what increases is the amount of encoded and well-compressed data.
+It doesn't look really impressive here. But imagine a very, very long JSON. The size of the file would increase linearly with the number of records. While for Avro header and schema stays the same - what increases is the amount of encoded and well-compressed data.
 
-Avro format inherits the readability of Json. Note the schema representation - it could be easily read and extracted from the content. In real-life cases, this is very helpful e.g. during integration tests. I can call an API, and read just the schema of the data model - to prepare my classes for deserialization.
+Avro format inherits the readability of JSON. Note the schema representation - it could be easily read and extracted from the content. In real-life cases, this is very helpful e.g. during integration tests. I can call an API, and read just the schema of the data model - to prepare my models for deserialization.
 
-Take a look at the data - you are not able to read it at first glance. And that is also a benefit. API responses could be easily hijacked by network tools. You can even peek the responses in internet browsers. And from time to time it happens, that someone spots the data that shouldn't be read by an unauthorized person. Keeping the data encoded increases the security of the solution. Reading Avro is not a big problem for a motivated person, but reduces the probability of accidental data leaks.
+Take a look at the data - you are not able to read it at first glance. And that is also a benefit. API responses could be easily hijacked by network tools. You can even peek at the responses in internet browsers. And from time to time it happens, that someone spots the data that should not be read by an unauthorized person. Keeping the data encoded increases the security of the solution. Reading Avro is not a big problem for a motivated person, but reduces the probability of accidental data leaks.
 
 
 
 \section{The benchmark results}
 
-Moving to raw data, numbers. The table below shows results of BenchmarkDotNet performing request agains Json and Avro APIs sending \textbf{the same response} but configured with different response serializers.
+Moving to raw numbers. The table below shows results of BenchmarkDotNet performing request against JSON and Avro APIs sending \textbf{the same response} but configured with different response serializers.
 \medskip
 
 {\tiny
@@ -298,7 +298,7 @@ Intel Core i7-7820HQ CPU 2.90GHz (Kaby Lake), 1 CPU, 8 logical and 4 physical co
  \hline
  JsonBrotli	   &	222.5 ms & 210.5 ms &	86.15 MB &	31 kB \\ 
  \hline
-  AvroBrotli   &	193.5 ms & 184.7 ms &   74.75 MB & 31 kB \\
+  AvroBrotli   &	193.5 ms & 184.7 ms &   74.75 MB &  31 kB \\
  \hline
   AvroGzip      &	181.2 ms & 168.5 ms &	75.05 MB &	104 kB \\
  \hline
@@ -308,52 +308,31 @@ Intel Core i7-7820HQ CPU 2.90GHz (Kaby Lake), 1 CPU, 8 logical and 4 physical co
 *Time needed only for serialization and deserialization
 
 
-Serializers used in this experiment are Newtonsoft.Json and AvroConvert, a library that I have created in the purpose of handling serialization and deserialization C\# objects to Avro format: AvroConvert: 
+Serializers used in this experiment are Newtonsoft.Json and AvroConvert, a library that I have created for the purpose of handling serialization and deserialization C\# objects to Avro format: AvroConvert: 
 \href{https://github.com/AdrianStrugala/AvroConvert}{Github page}.
 I have strongly focused on the dev workflow and usability of the package. Its interface should be clear and familiar for every user.   
 
+In the benchmark, standard JSON API provides the slowest response, and the returned object is of the biggest size. Just switching the serialization library to AvroConvert reduced response size by 56.6\% and time by 42.8\%(!!!). After setting up the proper codec for this case the final result was: \textbf{3 times the request time reduction and result object 60 times smaller than initial.} 
 
-//TODO: write here about bechmark results
-//Avro is the best in request time, but also when the network doesn't matter and serializer time is only taken into consideration
+If we are working in modern infrastructure, and the network is not a very big deal, we can take a look only at serializer library time. Avro library performs about 15 ms faster than JSON. Maybe not much, but scale matters. When an API response 100 times per day it is 1.5 s gain, if 1000 times, 15 s. If this API responses every day: the gain is 1.5 hours per year.
 
+For the comparison purpose, I have included also JSON API with data compressed with GZip and Brotli compressions. The results are quite nice, but deprive all of the advantages of JSON format - the whole response is compressed and not readable anymore and the implementation is a little bit more complex than it was before. The real problem starts when my microservice calls a few others and they are returning responses in different compression formats. I would have to check manually the formats and write classes handling each of them. Not very convenient nor automated.
 
-One of the greatest features of Avro format is the possibility to choose codec type (compression algorithm in fact) used for serialization of the data. In these examples, GZip and Deflate encodings are clear winners. Enabling one of them decreases file size to only 200 KB - this means: 50 time less than Json.
+Using Avro, this problem disappears. Avro deserializer discovers used codec by itself and automatically deserializes the data. No difference if other API responses with gzipped, deflated, or raw Avro result.  
 
-For the purpose of comparison, I have included also gzipped Json file. This solution greatly decrease the file size but deprive all of the advantages of Json format (readability etc.)
+What is more, one of the greatest features of Avro format is the possibility to choose codec type (compression algorithm in fact) used for serialization of the data. When the size is the key factor, for example when the case is to store the amount of data, the codec can be changed just by selecting a different enum value during serialization. In the example above, Brotli would be a clear winner. Enabling it decreases object size to only 31 kB - this means: 200 times less than JSON.
 
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=\textwidth]{size_comparison}
-	\caption{Comparison of the same file compressed with different options}
-\end{figure}
-
-At this point let me introduce a library that I have created in the purpose of handling serialization and deserialization C\# objects to Avro format: AvroConvert: 
-\href{https://github.com/AdrianStrugala/AvroConvert}{Github page}.
-I have strongly focused on the dev workflow and usability of the package. Its interface should be clear and familiar for every user.   
-
-Benchmark below mimics sending API response. Calculates the time of serialization of the message, time for used for transport (based on size) and time of deserialization:  
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=\textwidth]{benchmark}
-	\caption{Comparison of result from AvroConvert benchmark}
-\end{figure}
-
-All of the implementations of Avro provides quite similar results. The reason, why I didn't choose the official implementation of Avro format in the C\# world (Apache.Avro) is that it doesn't support many key types like decimal, dictionary, list or Guid. 
-
-AvroConvert supports few serialization scenarios:
-\begin{enumerate}
-	\item Standard serialization - result contains header and data. Like in the given example.
-	\item Serialization with additional encoding -  result contains a header (with information about codec type) and encoded data. It decreases the size of the result but increases serialization and deserialization time. Look at the AvroConvert Deflate on the benchmark screen.
-	\item Headless serialization  - result contains only data. Assumes, that schema is known upfront. Decreases size of the result, serialization and deserialization time.
-\end{enumerate}
-
-To sum up - in the given scenario it doesn't really matter which Avro serialization you will choose. Each of them speed's up the response for about 25-30\%.
+To sum up - in the given scenario Avro API fulfills every of the given assumptions:
+\begin{itemize}
+	\item Network traffic reduced by 98\%
+	\item Communication time between microservices decreased by 73\%
+	\item Implementation is simple - look at the section below
+\end{itemize}
 
 
 \section{How to build Avro API}
 
-And finally - let's code this! The implementation in .NET Core 3.0 is very easy, in fact, we need just 3 classes: 
+And finally - let's code this! The implementation in .NET Core 3.1 is very easy, in fact, we need just 3 classes: 
 
 \begin{itemize}
 	\item AvroInputFormatter
@@ -361,31 +340,29 @@ And finally - let's code this! The implementation in .NET Core 3.0 is very easy,
 	\item HttpClient extensions that support Avro format
 \end{itemize}
 
-In my implementation serializaiton is done by AvroConvert. Every implementation of Avro serializaiton should be compatible with each other, though.
+In my implementation serialization is done by AvroConvert. Every implementation of Avro serialization should be compatible with each other, though.
 
 \subsection{AvroInputFormatter}
 
 \begin{lstlisting}[language={[Sharp]C}, label={Script}]
 public class AvroInputFormatter : InputFormatter
 {
-	public AvroInputFormatter()
-	{
-		this.SupportedMediaTypes.Clear();
-		
-		this.SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/avro"));
-	}
-	
-	public override Task<InputFormatterResult> ReadRequestBodyAsync(InputFormatterContext context)
-	{
-		using (MemoryStream ms = new MemoryStream())
-		{
-			context.HttpContext.Request.Body.CopyTo(ms);
-			var type = context.ModelType;
-			
-			object result = AvroConvert.Deserialize(ms.ToArray(), type);
-			return InputFormatterResult.SuccessAsync(result);
-		}
-	}
+    public AvroInputFormatter()
+    {
+        this.SupportedMediaTypes.Clear();
+
+        this.SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/avro"));
+    }
+
+    public override async Task<InputFormatterResult> ReadRequestBodyAsync(InputFormatterContext context)
+    {
+        await using MemoryStream ms = new MemoryStream();
+        await context.HttpContext.Request.Body.CopyToAsync(ms);
+        var type = context.ModelType;
+
+        object result = AvroConvert.Deserialize(ms.ToArray(), type);
+        return await InputFormatterResult.SuccessAsync(result);
+    }
 }
 \end{lstlisting}
 
@@ -393,23 +370,26 @@ public class AvroInputFormatter : InputFormatter
 
 \begin{lstlisting}[language={[Sharp]C}, label={Script}]
 public class AvroOutputFormatter : OutputFormatter
-	{
-	public AvroOutputFormatter()
-	{
-		this.SupportedMediaTypes.Clear();
-		
-		this.SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/avro"));
-	}
-	
-	public override async Task WriteResponseBodyAsync(OutputFormatterWriteContext context)
-	{
-		var avroBody = AvroConvert.Serialize(context.Object);
-		
-		var response = context.HttpContext.Response;
-		response.ContentLength = avroBody.Length;
-		
-		await response.Body.WriteAsync(avroBody);
-	}
+{
+    private readonly CodecType _codec;
+
+    public AvroOutputFormatter(CodecType codec = CodecType.Null)
+    {
+        _codec = codec;
+        this.SupportedMediaTypes.Clear();
+
+        this.SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/avro"));
+    }
+
+    public override async Task WriteResponseBodyAsync(OutputFormatterWriteContext context)
+    {
+        var avroBody = AvroConvert.Serialize(context.Object, _codec);
+
+        var response = context.HttpContext.Response;
+        response.ContentLength = avroBody.Length;
+
+        await response.Body.WriteAsync(avroBody);
+    }
 }
 \end{lstlisting}
 
@@ -446,7 +426,7 @@ services.AddMvc(options =>
 
 And - that's it. You've just speeded up responses of your APIs by at least 30\%. Play with the serialization options, you can achieve even better results. I've gathered the methods used for communication in the separate library: \href{https://www.nuget.org/packages/SolTechnology.Avro.Http}{SolTechnology.Avro.Http}.
 
-Thank you for reading the article. I hope you can make good use of the knowledge I just shared. In case of any questions, contact me at strugala.adrian@gmail.com. See you!
+Thank you for reading the article. I hope you can make good use of the knowledge I just shared. In case of any questions, contact me at strugala.adrian@gmail.com. Have a nice day!
 
 \section{Useful links}
 \begin{itemize}

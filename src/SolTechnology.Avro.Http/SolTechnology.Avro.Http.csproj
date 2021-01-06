@@ -24,16 +24,6 @@
     <PackageIconUrl>https://raw.githubusercontent.com/AdrianStrugala/AvroConvert/master/docs/mini-logo.png</PackageIconUrl>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
-  </PropertyGroup>
-
-  <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">
-    <ItemGroup>
-      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths-&gt;WithMetadataValue('ReferenceSourceTarget', 'ProjectReference')-&gt;WithMetadataValue('PrivateAssets', 'all'))" />
-    </ItemGroup>
-  </Target>
-
   <ItemGroup>
     <None Include="..\..\docs\mini-logo.png" Pack="true" Visible="false" PackagePath="docs\mini-logo.png" />
   </ItemGroup>

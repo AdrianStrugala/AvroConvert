@@ -29,23 +29,13 @@
     <PackageIconUrl>https://raw.githubusercontent.com/AdrianStrugala/AvroConvert/master/docs/mini-logo.png</PackageIconUrl>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
-  </PropertyGroup>
-
-  <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">
-    <ItemGroup>
-      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths-&gt;WithMetadataValue('ReferenceSourceTarget', 'ProjectReference')-&gt;WithMetadataValue('PrivateAssets', 'all'))" />
-    </ItemGroup>
-  </Target>
-
   <ItemGroup>
     <None Include="..\..\docs\mini-logo.png" Pack="true" Visible="false" PackagePath="docs\mini-logo.png" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="BrotliSharpLib" Version="0.3.*" />
-    <PackageReference Include="IronSnappy" Version="1.3.0" />
+    <PackageReference Include="IronSnappy" Version="1.3.*" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.*" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.*" />
   </ItemGroup>

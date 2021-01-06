@@ -44,39 +44,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BrotliSharpLib" Version="0.3.3" />
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Snappy.Standard\Snappy.Standard.csproj">
-      <PrivateAssets>all</PrivateAssets>
-    </ProjectReference>
-  </ItemGroup>
-
-  <!-- <ItemGroup> -->
-  <!--   <Content Include="..\Snappy.Standard\snappy32.dll"> -->
-  <!--     <CopyToOutputDirectory>Always</CopyToOutputDirectory> -->
-  <!--   </Content> -->
-  <!--   <Content Include="..\Snappy.Standard\snappy64.dll"> -->
-  <!--     <CopyToOutputDirectory>Always</CopyToOutputDirectory> -->
-  <!--   </Content> -->
-  <!-- </ItemGroup> -->
-
-
-  <ItemGroup>
-    <Content Include="$(OutputPath)\snappy32.dll">
-      <Pack>true</Pack>
-      <PackagePath>lib\$(TargetFramework)</PackagePath>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="$(OutputPath)\snappy64.dll">
-      <Pack>true</Pack>
-      <PackagePath>lib\$(TargetFramework)</PackagePath>
-    </Content>
+    <PackageReference Include="BrotliSharpLib" Version="0.3.*" />
+    <PackageReference Include="IronSnappy" Version="1.3.0" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.*" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.*" />
   </ItemGroup>
 
 </Project>

@@ -68,6 +68,16 @@ namespace GrandeBenchmark
             File.WriteAllText(path, ConstructSizeLog(serialized.Length));
         }
 
+        [Benchmark]
+        public void Avro_Brotli()
+        {
+            var serialized = AvroConvert.Serialize(data, CodecType.Brotli);
+            AvroConvert.Deserialize<List<User>>(serialized);
+
+            var path = $"C:\\test\\disk-size.{nameof(Avro_Brotli).ToLower()}.txt";
+            File.WriteAllText(path, ConstructSizeLog(serialized.Length));
+        }
+
 
         private string ConstructSizeLog(int size)
         {

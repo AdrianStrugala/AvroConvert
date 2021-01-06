@@ -17,6 +17,7 @@
 
 using System;
 using System.Linq;
+using IronSnappy;
 
 namespace SolTechnology.Avro.FileHeader.Codec
 {
@@ -26,7 +27,7 @@ namespace SolTechnology.Avro.FileHeader.Codec
 
         internal override byte[] Compress(byte[] uncompressedData)
         {
-            var compressedData = Snappy.SnappyCodec.Compress(uncompressedData);
+            var compressedData = Snappy.Encode(uncompressedData);
             uint checksumUint = Crc32.Get(compressedData);
             byte[] checksumBytes = BitConverter.GetBytes(checksumUint);
 
@@ -39,7 +40,7 @@ namespace SolTechnology.Avro.FileHeader.Codec
             byte[] dataToDecompress = new byte[compressedData.Length - 4]; // last 4 bytes are CRC
             Array.Copy(compressedData, dataToDecompress, dataToDecompress.Length);
 
-            return Snappy.SnappyCodec.Uncompress(dataToDecompress);
+            return Snappy.Decode(dataToDecompress);
         }
     }
 }

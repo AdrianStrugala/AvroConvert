@@ -72,3 +72,4 @@ docs/AvroAPIArticle.aux
 docs/AvroAPIArticle.log
 docs/AvroAPIArticle.out
 docs/AvroAPIArticle.synctex.gz
+*.testlog

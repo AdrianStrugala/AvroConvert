@@ -203,8 +203,12 @@ START OF THE PROJECT
 - Fixed header metadata extraction - allows getting non-existing keys (to allow reading files without codec metadata)
 
 \
-**v. 2.7.0 (xx.xx.20)**
+**v. 2.7.0 (27.12.20)**
 - Added support for Brotli encoding
 - Improved Deserialization performance
 - Reduced Memory Allocation during Deserialization
 - Changed Benchmark approach - switched to BenchmarkDotNet
+
+\
+**v. 2.7.1 (xx.xx.21)**
+- Replaced own Snappy implementation with IronSnappy (to support all platforms)

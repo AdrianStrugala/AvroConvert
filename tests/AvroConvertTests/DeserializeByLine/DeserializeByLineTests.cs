@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using AutoFixture;
 using SolTechnology.Avro;
 using Xunit;
@@ -215,6 +218,48 @@ namespace AvroConvertTests.DeserializeByLine
             Assert.NotNull(result);
             Assert.NotNull(serialized);
             Assert.Equal(list, result);
+        }
+
+
+
+        [Fact]
+        public void DeserializeByLine_ReadFromFileStream_ResultIsAsExpected()
+        {
+            //Arrange
+            var expectedResult = new List<User>();
+            expectedResult.Add(new User
+            {
+                name = "Alyssa",
+                favorite_number = 256,
+                favorite_color = null
+            });
+
+            expectedResult.Add(new User
+            {
+                name = "Ben",
+                favorite_number = 7,
+                favorite_color = "red"
+            });
+
+            var result = new List<User>();
+
+
+            //Act
+            using (var stream = File.OpenRead("example2.avro"))
+            {
+                using (var reader = AvroConvert.OpenDeserializer<User>(stream))
+                {
+                    while (reader.HasNext())
+                    {
+                        var item = reader.ReadNext();
+
+                        result.Add(item);
+                    }
+                }
+            }
+
+            //Assert
+            Assert.Equal(expectedResult, result);
         }
     }
 }

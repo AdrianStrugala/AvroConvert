@@ -160,23 +160,37 @@ namespace SolTechnology.Avro.BuildSchema
                 }).ToArray();
             }
 
+            var allMembers = type.GetFieldsAndProperties(
+                BindingFlags.Public |
+                BindingFlags.NonPublic |
+                BindingFlags.Instance |
+                BindingFlags.DeclaredOnly);
 
-            var fields = type.GetAllFields();
-            var dataMemberProperties = type.GetAllProperties();
+            var membersToSerialize = type.GetFieldsAndProperties(BindingFlags.Public | BindingFlags.Instance);
 
-            var serializedProperties = TypeExtensions.RemoveDuplicates(dataMemberProperties);
-            TypeExtensions.CheckPropertyGetters(serializedProperties);
-
-            var members = fields
-                .Concat<MemberInfo>(serializedProperties)
-                .Select(m => new
+            // add members that are explicitly marked with DataMember attribute
+            foreach (var memberInfo in allMembers)
+            {
+                if (membersToSerialize.Contains(memberInfo))
                 {
-                    Member = m,
-                    Attribute = m.GetCustomAttributes(false).OfType<DataMemberAttribute>().SingleOrDefault(),
-                    Nullable = m.GetCustomAttributes(false).OfType<NullableSchemaAttribute>().Any(), //|| m.GetType().CanContainNull()
-                    DefaultValue = m.GetCustomAttributes(false).OfType<DefaultValueAttribute>().FirstOrDefault()?.Value,
-                    HasDefaultValue = m.GetCustomAttributes(false).OfType<DefaultValueAttribute>().Any()
-                });
+                    continue;
+                }
+
+                if (memberInfo.GetCustomAttributes(false).OfType<DataMemberAttribute>().Any())
+                {
+                    membersToSerialize.Add(memberInfo);
+                }
+            }
+
+            var members = membersToSerialize
+             .Select(m => new
+             {
+                 Member = m,
+                 Attribute = m.GetCustomAttributes(false).OfType<DataMemberAttribute>().SingleOrDefault(),
+                 Nullable = m.GetCustomAttributes(false).OfType<NullableSchemaAttribute>().Any(), //|| m.GetType().CanContainNull()
+                 DefaultValue = m.GetCustomAttributes(false).OfType<DefaultValueAttribute>().FirstOrDefault()?.Value,
+                 HasDefaultValue = m.GetCustomAttributes(false).OfType<DefaultValueAttribute>().Any()
+             });
 
             if (_includeOnlyDataContractMembers)
             {

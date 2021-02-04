@@ -180,6 +180,81 @@ namespace SolTechnology.Avro.Extensions
                 .Concat(GetAllProperties(t.BaseType()));
         }
 
+        public static List<MemberInfo> GetFieldsAndProperties(this Type type, BindingFlags bindingAttr)
+        {
+            if (type == null)
+            {
+                return new List<MemberInfo>();
+            }
+
+            List<MemberInfo> targetMembers = new List<MemberInfo>();
+
+            targetMembers.AddRange(type.GetFields(bindingAttr));
+            targetMembers.AddRange(type.GetProperties(bindingAttr));
+
+            List<MemberInfo> distinctMembers = new List<MemberInfo>(targetMembers.Count);
+
+            foreach (IGrouping<string, MemberInfo> groupedMember in targetMembers.GroupBy(m => m.Name))
+            {
+                distinctMembers.Add(groupedMember.First());
+            }
+
+            var result = distinctMembers
+                .Where(FilterMembers)
+                .Concat(GetFieldsAndProperties(type.BaseType(), bindingAttr))
+                .ToList();
+
+            return result;
+        }
+
+
+        private static bool FilterMembers(MemberInfo member)
+        {
+            if (member.IsDefined(typeof(CompilerGeneratedAttribute), false))
+            {
+                return false;
+            }
+            if (member is PropertyInfo property)
+            {
+                if (IsIndexedProperty(property))
+                {
+                    return false;
+                }
+
+                return !IsByRefLikeType(property.PropertyType);
+            }
+            else if (member is FieldInfo field)
+            {
+                return !IsByRefLikeType(field.FieldType);
+            }
+
+            return true;
+        }
+        public static bool IsIndexedProperty(PropertyInfo property)
+        {
+            return (property.GetIndexParameters().Length > 0);
+        }
+
+        public static bool IsByRefLikeType(Type type)
+        {
+            if (!type.IsValueType())
+            {
+                return false;
+            }
+
+            // IsByRefLike flag on type is not available in netstandard2.0
+            var attributes = type.GetCustomAttributes(false);
+            for (int i = 0; i < attributes.Length; i++)
+            {
+                if (string.Equals(attributes[i].GetType().FullName, "System.Runtime.CompilerServices.IsByRefLikeAttribute", StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         internal static IEnumerable<Type> GetAllInterfaces(this Type t)
         {
             foreach (var i in t.GetInterfaces())

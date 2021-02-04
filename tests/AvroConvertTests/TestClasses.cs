@@ -276,4 +276,9 @@ namespace AvroConvertTests
     {
         public TestEnum EnumProp { get; set; }
     }
+
+    public record TestRecord
+    {
+        public string Name { get; set; }
+    }
 }

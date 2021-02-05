@@ -22,7 +22,7 @@
 
 **Avro format combines readability of JSON and compression of binary data serialization.**
 
-[Introduction article](https://xabe.net/why-avro-api-is-the-best-choice/)
+[Introduction article](https://www.c-sharpcorner.com/blogs/avro-rest-api-as-the-evolution-of-json-based-communication-between-mic)
 
 [Apache Wiki](https://cwiki.apache.org/confluence/display/AVRO/Index)
 
@@ -68,7 +68,7 @@ Results of BenchmarkDotNet:
 | Avro_Brotli  |       193.5       |          74.75        |           31         |
 
 
-Article describing Avro format specification and benchmark methodology: https://xabe.net/why-avro-api-is-the-best-choice/
+Article describing Avro format specification and benchmark methodology: https://www.c-sharpcorner.com/blogs/avro-rest-api-as-the-evolution-of-json-based-communication-between-mic
 
 **Conclusion:** <br>
 Using Avro for communication between your services significantly reduces communication time and network traffic. Additionally choosing encoding (compression algorithm) can improve the results even further.

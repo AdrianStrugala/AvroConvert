@@ -210,5 +210,6 @@ START OF THE PROJECT
 - Changed Benchmark approach - switched to BenchmarkDotNet
 
 \
-**v. 2.7.1 (xx.xx.21)**
+**v. 2.7.1 (05.02.21)**
 - Replaced own Snappy implementation with IronSnappy (to support all platforms)
+- Added support for C# 9 record type

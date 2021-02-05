@@ -29,12 +29,12 @@ namespace AvroConvertTests.Component
             //Act
             var serialized = AvroConvert.Serialize(testRecord);
 
-            var deserialized = AvroConvert.Deserialize<User>(serialized);
+            var deserialized = AvroConvert.Deserialize<TestRecord>(serialized);
 
             //Assert
             Assert.NotNull(serialized);
             Assert.NotNull(deserialized);
-            Assert.Equal(testRecord.Name, testRecord.Name);
+            Assert.Equal(testRecord.Name, deserialized.Name);
         }
     }
 }

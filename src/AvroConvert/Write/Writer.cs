@@ -97,7 +97,7 @@ namespace SolTechnology.Avro.Write
         public void WriteDouble(double value)
         {
             long bits = BitConverter.DoubleToInt64Bits(value);
-            
+
             WriteByte((byte)((bits) & 0xFF));
             WriteByte((byte)((bits >> 8) & 0xFF));
             WriteByte((byte)((bits >> 16) & 0xFF));
@@ -106,7 +106,6 @@ namespace SolTechnology.Avro.Write
             WriteByte((byte)((bits >> 40) & 0xFF));
             WriteByte((byte)((bits >> 48) & 0xFF));
             WriteByte((byte)((bits >> 56) & 0xFF));
-            
         }
 
         /// <summary>

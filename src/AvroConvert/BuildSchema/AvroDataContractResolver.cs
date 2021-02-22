@@ -183,14 +183,29 @@ namespace SolTechnology.Avro.BuildSchema
             }
 
             var members = membersToSerialize
-             .Select(m => new
-             {
-                 Member = m,
-                 Attribute = m.GetCustomAttributes(false).OfType<DataMemberAttribute>().SingleOrDefault(),
-                 Nullable = m.GetCustomAttributes(false).OfType<NullableSchemaAttribute>().Any(), //|| m.GetType().CanContainNull()
-                 DefaultValue = m.GetCustomAttributes(false).OfType<DefaultValueAttribute>().FirstOrDefault()?.Value,
-                 HasDefaultValue = m.GetCustomAttributes(false).OfType<DefaultValueAttribute>().Any()
-             });
+            .Select(m =>
+            {
+                Type memberType = null;
+                if(m is FieldInfo)
+                {
+                    memberType = ((FieldInfo)m).FieldType;
+                }
+                else if(m is PropertyInfo)
+                {
+                    memberType = ((PropertyInfo)m).PropertyType;
+                }
+                var nullableType = Nullable.GetUnderlyingType(memberType) != null;
+
+                return new
+                {
+                    Member = m,
+                    Attribute = m.GetCustomAttributes(false).OfType<DataMemberAttribute>().SingleOrDefault(),
+                    Nullable = nullableType || m.GetCustomAttributes(false).OfType<NullableSchemaAttribute>().Any(), //|| m.GetType().CanContainNull()
+                    DefaultValue = m.GetCustomAttributes(false).OfType<DefaultValueAttribute>().FirstOrDefault()?.Value,
+                    HasDefaultValue = m.GetCustomAttributes(false).OfType<DefaultValueAttribute>().Any()
+                };
+            });
+
 
             if (_includeOnlyDataContractMembers)
             {

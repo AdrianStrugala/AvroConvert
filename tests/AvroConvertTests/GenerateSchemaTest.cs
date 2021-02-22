@@ -106,5 +106,33 @@ namespace AvroConvertTests
             //Assert
             Assert.Contains("{\"type\":\"enum\",\"name\":\"AvroConvertTests.TestEnum\",\"symbols\":[\"a\",\"be\",\"ca\",\"dlo\"]}", schema);
         }
+
+        [Fact]
+        public void GenerateSchema_PropertiesAreDecoratedWithNullableSchemaAttribute_SchemaIndicatesFieldIsNullable()
+        {
+            //Arrange
+
+            //Act
+            string schema = AvroConvert.GenerateSchema(typeof(AttributeClass));
+
+            // Assert - The DefaultValue is an int, (100)  but the property is a long, matching 
+            // isn't necessary, all that's required is that the 'not null' type is first in the schema list
+            Assert.Contains("{\"name\":\"favorite_number\",\"aliases\":[\"NullableIntProperty\"],\"type\":[\"null\",\"int\"]}",
+                schema);
+        }
+
+        [Fact]
+        public void GenerateSchema_PropertiesAreSystemNullable_SchemaIndicatesFieldIsNullable()
+        {
+            //Arrange
+
+            //Act
+            string schema = AvroConvert.GenerateSchema(typeof(ClassWithNullableTypes));
+
+            // Assert - The DefaultValue is an int, (100)  but the property is a long, matching 
+            // isn't necessary, all that's required is that the 'not null' type is first in the schema list
+            Assert.Contains("{\"name\":\"SomeNullableInt\",\"type\":[\"null\",\"int\"]}", schema);
+            Assert.Contains("{\"name\":\"NullableDateTime\",\"type\":[\"null\",\"long\"]}", schema);
+        }
     }
 }

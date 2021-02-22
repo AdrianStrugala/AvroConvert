@@ -163,6 +163,13 @@ namespace AvroConvertTests
     }
 
     [Equals(DoNotAddEqualityOperators = true)]
+    public class ClassWithNullableTypes
+    {
+        public int? SomeNullableInt { get; set; }
+        public DateTime? NullableDateTime { get; set; }
+    }
+
+    [Equals(DoNotAddEqualityOperators = true)]
     public class ClassWithDateTimeOffset
     {
         public DateTimeOffset yeah { get; set; }

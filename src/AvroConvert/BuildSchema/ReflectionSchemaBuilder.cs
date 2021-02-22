@@ -136,8 +136,7 @@ namespace SolTechnology.Avro.BuildSchema
             var typeSchemas = new List<TypeSchema> { new NullSchema(type) };
             var notNullableSchema = this.CreateNotNullableSchema(type, schemas, currentDepth);
 
-            var unionSchema = notNullableSchema as UnionSchema;
-            if (unionSchema != null)
+            if (notNullableSchema is UnionSchema unionSchema)
             {
                 typeSchemas.AddRange(unionSchema.Schemas);
             }
@@ -146,11 +145,10 @@ namespace SolTechnology.Avro.BuildSchema
                 typeSchemas.Add(notNullableSchema);
             }
 
-            typeSchemas = typeSchemas.OrderBy(x =>
-            {
-                return (prioritizedType == null && x.Type.ToString() != "Null") || (prioritizedType != null && x.Type.ToString() == "Null");
-
-            }).ToList();
+            typeSchemas = typeSchemas.OrderBy(x => 
+                prioritizedType == null && x.Type.ToString() != "Null" 
+                || prioritizedType != null && x.Type.ToString() == "Null")
+                .ToList();
 
             return new UnionSchema(typeSchemas, type);
         }

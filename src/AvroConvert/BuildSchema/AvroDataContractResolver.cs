@@ -97,7 +97,7 @@ namespace SolTechnology.Avro.BuildSchema
                     string.Format(CultureInfo.InvariantCulture, "Type '{0}' is not supported by the resolver.", type));
             }
 
-            bool canContainNull = this._allowNullable || type.CanContainNull();
+            bool isNullable = this._allowNullable || type.CanContainNull();
 
             if (type.IsInterface() ||
                 type.IsNativelySupported() ||
@@ -107,7 +107,7 @@ namespace SolTechnology.Avro.BuildSchema
                 {
                     Name = StripAvroNonCompatibleCharacters(type.Name),
                     Namespace = StripAvroNonCompatibleCharacters(type.Namespace),
-                    Nullable = canContainNull
+                    Nullable = isNullable
                 };
             }
 
@@ -128,7 +128,7 @@ namespace SolTechnology.Avro.BuildSchema
             {
                 Name = name,
                 Namespace = nspace,
-                Nullable = canContainNull
+                Nullable = isNullable
             };
         }
 
@@ -183,27 +183,13 @@ namespace SolTechnology.Avro.BuildSchema
             }
 
             var members = membersToSerialize
-            .Select(m =>
+            .Select(m => new
             {
-                Type memberType = null;
-                if(m is FieldInfo)
-                {
-                    memberType = ((FieldInfo)m).FieldType;
-                }
-                else if(m is PropertyInfo)
-                {
-                    memberType = ((PropertyInfo)m).PropertyType;
-                }
-                var nullableType = Nullable.GetUnderlyingType(memberType) != null;
-
-                return new
-                {
-                    Member = m,
-                    Attribute = m.GetCustomAttributes(false).OfType<DataMemberAttribute>().SingleOrDefault(),
-                    Nullable = nullableType || m.GetCustomAttributes(false).OfType<NullableSchemaAttribute>().Any(), //|| m.GetType().CanContainNull()
-                    DefaultValue = m.GetCustomAttributes(false).OfType<DefaultValueAttribute>().FirstOrDefault()?.Value,
-                    HasDefaultValue = m.GetCustomAttributes(false).OfType<DefaultValueAttribute>().Any()
-                };
+                Member = m,
+                Attribute = m.GetCustomAttributes(false).OfType<DataMemberAttribute>().SingleOrDefault(),
+                Nullable = m.GetCustomAttributes(false).OfType<NullableSchemaAttribute>().Any(), // m.GetType().CanContainNull() ||
+                DefaultValue = m.GetCustomAttributes(false).OfType<DefaultValueAttribute>().FirstOrDefault()?.Value,
+                HasDefaultValue = m.GetCustomAttributes(false).OfType<DefaultValueAttribute>().Any()
             });
 
 

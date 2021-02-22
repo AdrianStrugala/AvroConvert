@@ -93,11 +93,11 @@ public class AttributeClass
 	public string StringProperty { get; set; }
 
 	[DataMember(Name = "favorite_number")]
-	[NullableSchema]
+	// [NullableSchema] not necessary for 'System.Nullable' types
 	public int? NullableIntProperty { get; set; }
 
-        [DataMember(Name = "favorite_color")]
-        [NullableSchema]
+	[DataMember(Name = "favorite_color")]
+	[NullableSchema]
 	public string AndAnotherString { get; set; }
 }
 

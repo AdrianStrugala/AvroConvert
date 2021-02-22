@@ -32,7 +32,7 @@ namespace SolTechnology.Avro.Write
 
         void SetItemCount(long value);
         void StartItem();
-        
+
         void WriteArrayStart();
         void WriteArrayEnd();
 

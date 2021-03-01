@@ -1,10 +1,9 @@
 ﻿using SolTechnology.Avro;
+using Xunit;
 
-namespace AvroConvertTests
+namespace AvroConvertTests.GenerateSchemaTests
 {
-    using Xunit;
-
-    public class GenerateSchemaTest
+    public class AttributesClassesTests
     {
 
         [Fact]

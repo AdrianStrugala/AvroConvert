@@ -16,30 +16,39 @@
  * limitations under the License.
  */
 
-/** Modifications copyright(C) 2021 Adrian Strugala **/
+using System;
 
-using System.Globalization;
-
-namespace SolTechnology.Avro.Schema
+namespace SolTechnology.Avro.Util
 {
     /// <summary>
-    /// Base class for all unnamed schemas
+    /// Base for all logical type implementations that are based on the Unix Epoch date/time.
     /// </summary>
-    internal abstract class UnnamedSchema : Schema
+    internal abstract class LogicalUnixEpochType<T> : LogicalType
+        where T : struct
     {
         /// <summary>
-        /// Base constructor for an <see cref="UnnamedSchema"/>.
+        /// The date and time of the Unix Epoch.
         /// </summary>
-        /// <param name="type">Type of schema.</param>
-        /// <param name="props">Dictionary that provides access to custom properties</param>
-        protected UnnamedSchema(Type type, PropertyMap props) : base(type, props)
+        protected static readonly DateTime UnixEpochDateTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        /// <summary>
+        /// Initializes the base logical type.
+        /// </summary>
+        /// <param name="name">The logical type name.</param>
+        protected LogicalUnixEpochType(string name)
+            : base(name)
+        { }
+
+        /// <inheritdoc/>
+        internal override Type GetCSharpType(bool nullible)
         {
+            return nullible ? typeof(T?) : typeof(T);
         }
 
         /// <inheritdoc/>
-        internal override string Name
+        internal override bool IsInstanceOfLogicalType(object logicalValue)
         {
-            get { return Tag.ToString().ToLower(CultureInfo.InvariantCulture); }
+            return logicalValue is T;
         }
     }
 }

@@ -26,7 +26,7 @@ namespace SolTechnology.Avro.Write.Resolvers
             WriteStep[] writeSteps = new WriteStep[recordSchema.Fields.Count];
 
             int index = 0;
-            foreach (Field field in recordSchema)
+            foreach (Field field in recordSchema.Fields)
             {
                 var record = new WriteStep
                 {

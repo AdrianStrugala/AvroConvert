@@ -16,6 +16,7 @@
 /** Modifications copyright(C) 2020 Adrian Strugała **/
 
 using System.Collections.Generic;
+using SolTechnology.Avro.BuildSchema.SchemaModels;
 
 namespace SolTechnology.Avro.BuildSchema
 {

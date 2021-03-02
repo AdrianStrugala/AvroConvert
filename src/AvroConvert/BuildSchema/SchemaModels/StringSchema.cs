@@ -15,26 +15,32 @@
 
 /** Modifications copyright(C) 2020 Adrian Strugała **/
 
+using System;
 using System.Collections.Generic;
 
-namespace SolTechnology.Avro.BuildSchema
+namespace SolTechnology.Avro.BuildSchema.SchemaModels
 {
     /// <summary>
-    ///     Class represents a boolean schema.
+    ///     Class represents a string schema.
     ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html#schema_primitive">the specification</a>.
     /// </summary>
-    internal sealed class BooleanSchema : PrimitiveTypeSchema
+    internal class StringSchema : PrimitiveTypeSchema
     {
-        internal BooleanSchema()
-            : this(new Dictionary<string, string>())
+        internal StringSchema()
+            : this(typeof(string))
         {
         }
 
-        internal BooleanSchema(Dictionary<string, string> attributes)
-            : base(typeof(bool), attributes)
+        internal StringSchema(Type type)
+            : this(type, new Dictionary<string, string>())
         {
         }
 
-        internal override global::SolTechnology.Avro.Schema.Schema.Type Type => global::SolTechnology.Avro.Schema.Schema.Type.Boolean;
+        internal StringSchema(Type type, Dictionary<string, string> attributes)
+            : base(type, attributes)
+        {
+        }
+
+        internal override global::SolTechnology.Avro.Schema.Schema.Type Type => global::SolTechnology.Avro.Schema.Schema.Type.String;
     }
 }

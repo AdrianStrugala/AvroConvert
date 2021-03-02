@@ -22,6 +22,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using Newtonsoft.Json.Linq;
 using SolTechnology.Avro.Attributes;
+using SolTechnology.Avro.BuildSchema.SchemaModels;
 
 namespace SolTechnology.Avro.BuildSchema
 {

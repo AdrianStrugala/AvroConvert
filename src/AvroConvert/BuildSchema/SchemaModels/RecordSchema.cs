@@ -13,7 +13,7 @@
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
 
-/** Modifications copyright(C) 2020 Adrian Struga³a **/
+/** Modifications copyright(C) 2020 Adrian Strugala **/
 
 using System;
 using System.Collections.Generic;
@@ -21,7 +21,7 @@ using System.Collections.ObjectModel;
 using Newtonsoft.Json;
 using SolTechnology.Avro.Attributes;
 
-namespace SolTechnology.Avro.BuildSchema
+namespace SolTechnology.Avro.BuildSchema.SchemaModels
 {
     /// <summary>
     ///     Class represents a record schema.
@@ -32,12 +32,6 @@ namespace SolTechnology.Avro.BuildSchema
         private readonly List<RecordField> fields;
         private readonly Dictionary<string, RecordField> fiedsByName;
 
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="RecordSchema" /> class.
-        /// </summary>
-        /// <param name="namedAttributes">The named attributes.</param>
-        /// <param name="runtimeType">Type of the runtime.</param>
-        /// <param name="attributes">The attributes.</param>
         internal RecordSchema(
             NamedEntityAttributes namedAttributes,
             Type runtimeType,
@@ -48,20 +42,11 @@ namespace SolTechnology.Avro.BuildSchema
             this.fiedsByName = new Dictionary<string, RecordField>();
         }
 
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="RecordSchema" /> class.
-        /// </summary>
-        /// <param name="namedAttributes">The named attributes.</param>
-        /// <param name="runtimeType">Type of the runtime.</param>
         internal RecordSchema(NamedEntityAttributes namedAttributes, Type runtimeType)
             : this(namedAttributes, runtimeType, new Dictionary<string, string>())
         {
         }
 
-        /// <summary>
-        ///     Adds the field.
-        /// </summary>
-        /// <param name="field">The field.</param>
         internal void AddField(RecordField field)
         {
             if (field == null)
@@ -69,44 +54,22 @@ namespace SolTechnology.Avro.BuildSchema
                 throw new ArgumentNullException("field");
             }
 
-            this.fields.Add(field);
-            this.fiedsByName.Add(field.Name, field);
+            fields.Add(field);
+            fiedsByName.Add(field.Name, field);
         }
 
-        /// <summary>
-        /// Tries to get a field given its name.
-        /// </summary>
-        /// <param name="fieldName">Name of the field.</param>
-        /// <param name="result">The result.</param>
-        /// <returns>A record field.</returns>
         internal bool TryGetField(string fieldName, out RecordField result)
         {
-            return this.fiedsByName.TryGetValue(fieldName, out result);
+            return fiedsByName.TryGetValue(fieldName, out result);
         }
-
-        /// <summary>
-        /// Gets the field.
-        /// </summary>
-        /// <param name="fieldName">Name of the field.</param>
-        /// <returns>A corresponding field name.</returns>
+        
         internal RecordField GetField(string fieldName)
         {
-            return this.fiedsByName[fieldName];
+            return fiedsByName[fieldName];
         }
 
-        /// <summary>
-        ///     Gets the fields.
-        /// </summary>
-        internal ReadOnlyCollection<RecordField> Fields
-        {
-            get { return this.fields.AsReadOnly(); }
-        }
+        internal ReadOnlyCollection<RecordField> Fields => fields.AsReadOnly();
 
-        /// <summary>
-        ///     Converts current not to json according to the avro specification.
-        /// </summary>
-        /// <param name="writer">The writer.</param>
-        /// <param name="seenSchemas">The seen schemas.</param>
         internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
         {
             if (seenSchemas.Contains(this))
@@ -118,9 +81,9 @@ namespace SolTechnology.Avro.BuildSchema
             seenSchemas.Add(this);
             writer.WriteStartObject();
             writer.WriteProperty("type", "record");
-            writer.WriteProperty("name", this.FullName);
-            writer.WriteOptionalProperty("doc", this.Doc);
-            writer.WriteOptionalProperty("aliases", this.Aliases);
+            writer.WriteProperty("name", FullName);
+            writer.WriteOptionalProperty("doc", Doc);
+            writer.WriteOptionalProperty("aliases", Aliases);
             writer.WritePropertyName("fields");
             writer.WriteStartArray();
             this.fields.ForEach(_ => _.ToJson(writer, seenSchemas));
@@ -128,6 +91,6 @@ namespace SolTechnology.Avro.BuildSchema
             writer.WriteEndObject();
         }
 
-        internal override global::SolTechnology.Avro.Schema.Schema.Type Type => global::SolTechnology.Avro.Schema.Schema.Type.Record;
+        internal override Avro.Schema.Schema.Type Type => Avro.Schema.Schema.Type.Record;
     }
 }

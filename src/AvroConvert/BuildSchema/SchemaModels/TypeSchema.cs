@@ -18,29 +18,26 @@
 using System;
 using System.Collections.Generic;
 
-namespace SolTechnology.Avro.BuildSchema
+namespace SolTechnology.Avro.BuildSchema.SchemaModels
 {
     /// <summary>
-    ///     Class represents a float schema.
-    ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html#schema_primitive">the specification</a>.
+    ///     Base class for all type schemas.
+    ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html">the specification</a>.
     /// </summary>
-    internal sealed class FloatSchema : PrimitiveTypeSchema
+    internal abstract class TypeSchema : Schema
     {
-        internal FloatSchema()
-            : this(new Dictionary<string, string>())
+        protected TypeSchema(Type runtimeType, IDictionary<string, string> attributes) : base(attributes)
         {
+            if (runtimeType == null)
+            {
+                throw new ArgumentNullException("runtimeType");
+            }
+
+            RuntimeType = runtimeType;
         }
 
-        internal FloatSchema(Dictionary<string, string> attributes)
-            : base(typeof(float), attributes)
-        {
-        }
+        internal Type RuntimeType { get; }
 
-        internal FloatSchema(Type runtimeType)
-            : base(runtimeType, new Dictionary<string, string>())
-        {
-        }
-
-        internal override global::SolTechnology.Avro.Schema.Schema.Type Type => global::SolTechnology.Avro.Schema.Schema.Type.Float;
+        internal abstract Avro.Schema.Schema.Type Type { get; }
     }
 }

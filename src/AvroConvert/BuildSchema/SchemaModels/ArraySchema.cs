@@ -17,68 +17,76 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using Newtonsoft.Json;
+using SolTechnology.Avro.BuildSchema.SchemaModels;
 
 namespace SolTechnology.Avro.BuildSchema
 {
     /// <summary>
-    ///     Class representing a union schema.
-    ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html#Unions">the specification</a>.
+    ///     Schema representing an array.
+    ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html#Arrays">the specification</a>.
     /// </summary>
-    internal sealed class UnionSchema : TypeSchema
+    internal sealed class ArraySchema : TypeSchema
     {
-        private readonly List<TypeSchema> schemas;
+        private readonly TypeSchema itemSchema;
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="UnionSchema" /> class.
+        ///     Initializes a new instance of the <see cref="ArraySchema" /> class.
         /// </summary>
-        /// <param name="schemas">The schemas.</param>
+        /// <param name="item">The item.</param>
         /// <param name="runtimeType">Type of the runtime.</param>
         /// <param name="attributes">The attributes.</param>
-        internal UnionSchema(
-            List<TypeSchema> schemas,
+        internal ArraySchema(
+            TypeSchema item,
             Type runtimeType,
             Dictionary<string, string> attributes)
             : base(runtimeType, attributes)
         {
-            if (schemas == null)
+            if (item == null)
             {
-                throw new ArgumentNullException("schemas");
+                throw new ArgumentNullException("item");
             }
-            this.schemas = schemas;
+
+            this.itemSchema = item;
         }
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="UnionSchema" /> class.
+        /// Initializes a new instance of the <see cref="ArraySchema"/> class.
         /// </summary>
-        /// <param name="schemas">The schemas.</param>
+        /// <param name="item">The item.</param>
         /// <param name="runtimeType">Type of the runtime.</param>
-        internal UnionSchema(
-            List<TypeSchema> schemas,
+        internal ArraySchema(
+            TypeSchema item,
             Type runtimeType)
-            : this(schemas, runtimeType, new Dictionary<string, string>())
+            : this(item, runtimeType, new Dictionary<string, string>())
         {
         }
 
         /// <summary>
-        ///     Gets the schemas.
+        ///     Gets the item schema.
         /// </summary>
-        internal ReadOnlyCollection<TypeSchema> Schemas
+        internal TypeSchema ItemSchema
         {
-            get { return this.schemas.AsReadOnly(); }
+            get { return this.itemSchema; }
         }
 
+        /// <summary>
+        ///     Converts current not to JSON according to the avro specification.
+        /// </summary>
+        /// <param name="writer">The writer.</param>
+        /// <param name="seenSchemas">The seen schemas.</param>
         internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
         {
-            writer.WriteStartArray();
-            this.schemas.ForEach(_ => _.ToJson(writer, seenSchemas));
-            writer.WriteEndArray();
+            writer.WriteStartObject();
+            writer.WriteProperty("type", "array");
+            writer.WritePropertyName("items");
+            this.itemSchema.ToJson(writer, seenSchemas);
+            writer.WriteEndObject();
         }
 
         /// <summary>
         /// Gets the type of the schema as string.
         /// </summary>
-        internal override global::SolTechnology.Avro.Schema.Schema.Type Type => global::SolTechnology.Avro.Schema.Schema.Type.Union;
+        internal override global::SolTechnology.Avro.Schema.Schema.Type Type => global::SolTechnology.Avro.Schema.Schema.Type.Array;
     }
 }

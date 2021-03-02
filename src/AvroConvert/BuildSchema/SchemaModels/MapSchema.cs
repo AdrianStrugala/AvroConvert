@@ -18,55 +18,65 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using SolTechnology.Avro.BuildSchema.SchemaModels;
 
 namespace SolTechnology.Avro.BuildSchema
 {
     /// <summary>
-    ///     Schema representing an array.
-    ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html#Arrays">the specification</a>.
+    ///     Represents a map.
+    ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html#Maps">the specification</a>.
     /// </summary>
-    internal sealed class ArraySchema : TypeSchema
+    internal sealed class MapSchema : TypeSchema
     {
-        private readonly TypeSchema itemSchema;
+        private readonly TypeSchema valueSchema;
+        private readonly TypeSchema keySchema;
+
+        internal MapSchema(TypeSchema keySchema, TypeSchema valueSchema, Type runtimeType)
+            : this(keySchema, valueSchema, runtimeType, new Dictionary<string, string>())
+        {
+        }
 
         /// <summary>
-        ///     Initializes a new instance of the <see cref="ArraySchema" /> class.
+        /// Initializes a new instance of the <see cref="MapSchema" /> class.
         /// </summary>
-        /// <param name="item">The item.</param>
+        /// <param name="keySchema">The key schema.</param>
+        /// <param name="valueSchema">The value schema.</param>
         /// <param name="runtimeType">Type of the runtime.</param>
         /// <param name="attributes">The attributes.</param>
-        internal ArraySchema(
-            TypeSchema item,
+        internal MapSchema(
+            TypeSchema keySchema,
+            TypeSchema valueSchema,
             Type runtimeType,
             Dictionary<string, string> attributes)
             : base(runtimeType, attributes)
         {
-            if (item == null)
+            if (keySchema == null)
             {
-                throw new ArgumentNullException("item");
+                throw new ArgumentNullException("keySchema");
+            }
+            if (valueSchema == null)
+            {
+                throw new ArgumentNullException("valueSchema");
             }
 
-            this.itemSchema = item;
+            this.valueSchema = valueSchema;
+            this.keySchema = keySchema;
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ArraySchema"/> class.
+        ///     Gets the value schema.
         /// </summary>
-        /// <param name="item">The item.</param>
-        /// <param name="runtimeType">Type of the runtime.</param>
-        internal ArraySchema(
-            TypeSchema item,
-            Type runtimeType)
-            : this(item, runtimeType, new Dictionary<string, string>())
+        internal TypeSchema ValueSchema
         {
+            get { return this.valueSchema; }
         }
 
         /// <summary>
-        ///     Gets the item schema.
+        /// Gets the key schema.
         /// </summary>
-        internal TypeSchema ItemSchema
+        internal TypeSchema KeySchema
         {
-            get { return this.itemSchema; }
+            get { return this.keySchema; }
         }
 
         /// <summary>
@@ -77,15 +87,15 @@ namespace SolTechnology.Avro.BuildSchema
         internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
         {
             writer.WriteStartObject();
-            writer.WriteProperty("type", "array");
-            writer.WritePropertyName("items");
-            this.itemSchema.ToJson(writer, seenSchemas);
+            writer.WriteProperty("type", "map");
+            writer.WritePropertyName("values");
+            this.ValueSchema.ToJson(writer, seenSchemas);
             writer.WriteEndObject();
         }
 
         /// <summary>
         /// Gets the type of the schema as string.
         /// </summary>
-        internal override global::SolTechnology.Avro.Schema.Schema.Type Type => global::SolTechnology.Avro.Schema.Schema.Type.Array;
+        internal override global::SolTechnology.Avro.Schema.Schema.Type Type => global::SolTechnology.Avro.Schema.Schema.Type.Map;
     }
 }

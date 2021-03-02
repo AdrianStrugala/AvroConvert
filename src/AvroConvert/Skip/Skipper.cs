@@ -52,7 +52,10 @@ namespace SolTechnology.Avro.Skip
                     d.SkipBytes();
                     break;
                 case Schema.Schema.Type.Record:
-                    foreach (Field f in (RecordSchema)schema) Skip(f.Schema, d);
+                    foreach (var field in ((RecordSchema)schema).Fields)
+                    {
+                        Skip(field.Schema, d);
+                    }
                     break;
                 case Schema.Schema.Type.Enumeration:
                     d.SkipEnum();

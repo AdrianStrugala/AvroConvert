@@ -17,34 +17,18 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using Newtonsoft.Json;
 
-namespace SolTechnology.Avro.BuildSchema
+namespace SolTechnology.Avro.BuildSchema.SchemaModels
 {
-    /// <summary>
-    ///     Schema for primitive types.
-    /// </summary>
     internal abstract class PrimitiveTypeSchema : TypeSchema
     {
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="PrimitiveTypeSchema" /> class.
-        /// </summary>
-        /// <param name="runtimeType">Type of the runtime.</param>
-        /// <param name="attributes">The attributes.</param>
         protected PrimitiveTypeSchema(Type runtimeType, Dictionary<string, string> attributes)
             : base(runtimeType, attributes)
         {
         }
-
-        /// <summary>
-        ///     Converts current not to json according to the avro specification.
-        /// </summary>
-        /// <param name="writer">The writer.</param>
-        /// <param name="seenSchemas">The seen schemas.</param>
-        [SuppressMessage("Microsoft.Globalization", "CA1308:NormalizeStringsToUppercase",
-            Justification = "All Avro tokens are ASCII.")]
+        
         internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
         {
             writer.WriteValue(CultureInfo.InvariantCulture.TextInfo.ToLower(this.Type.ToString()));

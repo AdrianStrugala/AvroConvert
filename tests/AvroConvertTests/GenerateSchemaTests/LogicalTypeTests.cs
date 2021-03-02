@@ -30,6 +30,10 @@ namespace AvroConvertTests.GenerateSchemaTests
 
             //Assert
             Assert.Equal(schema, result);
+
+            //TODO: generate schema
+            //serialization
+            //deserialization
         }
     }
 }

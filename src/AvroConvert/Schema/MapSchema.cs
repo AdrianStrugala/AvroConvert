@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,8 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/** Modifications copyright(C) 2020 Adrian Struga³a **/
 
 using System;
 using Newtonsoft.Json.Linq;
@@ -34,6 +32,11 @@ namespace SolTechnology.Avro.Schema
         /// </summary>
         internal Schema ValueSchema { get; set; }
 
+        /// <summary>
+        /// Creates a new <see cref="MapSchema"/> from the given schema.
+        /// </summary>
+        /// <param name="type">Schema to create the map schema from.</param>
+        /// <returns>A new <see cref="MapSchema"/>.</returns>
         internal static MapSchema CreateMap(Schema type)
         {
             return new MapSchema(type,null);
@@ -43,24 +46,32 @@ namespace SolTechnology.Avro.Schema
         /// Static function to return new instance of map schema
         /// </summary>
         /// <param name="jtok">JSON object for the map schema</param>
+        /// <param name="props">dictionary that provides access to custom properties</param>
         /// <param name="names">list of named schemas already read</param>
         /// <param name="encspace">enclosing namespace of the map schema</param>
         /// <returns></returns>
         internal static MapSchema NewInstance(JToken jtok, PropertyMap props, SchemaNames names, string encspace)
         {
             JToken jvalue = jtok["values"];
-            if (null == jvalue) throw new AvroTypeException("Map does not have 'values'");
-
-            return new MapSchema(Schema.ParseJson(jvalue, names, encspace), props);
+            if (null == jvalue) throw new AvroTypeException($"Map does not have 'values' at '{jtok.Path}'");
+            try
+            {
+                return new MapSchema(ParseJson(jvalue, names, encspace), props);
+            }
+            catch (Exception e)
+            {
+                throw new SchemaParseException($"Error creating MapSchema at '{jtok.Path}'", e);
+            }
         }
 
         /// <summary>
         /// Constructor for map schema class
         /// </summary>
         /// <param name="valueSchema">schema for map values type</param>
+        /// <param name="props">dictionary that provides access to custom properties</param>
         private MapSchema(Schema valueSchema, PropertyMap props) : base(Type.Map, props)
         {
-            if (null == valueSchema) throw new ArgumentNullException("valueSchema", "valueSchema cannot be null.");
+            if (null == valueSchema) throw new ArgumentNullException(nameof(valueSchema), "valueSchema cannot be null.");
             this.ValueSchema = valueSchema;
         }
 

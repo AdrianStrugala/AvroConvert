@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,12 +16,9 @@
  * limitations under the License.
  */
 
-/** Modifications copyright(C) 2020 Adrian Struga³a **/
-
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
-using SolTechnology.Avro.Exceptions;
 
 namespace SolTechnology.Avro.Schema
 {
@@ -35,19 +32,14 @@ namespace SolTechnology.Avro.Schema
         /// <summary>
         /// List of fields in the record
         /// </summary>
-        internal List<Field> Fields { get; private set; }
+        public List<Field> Fields { get; private set; }
+        private readonly Dictionary<string, Field> fiedsByName;
 
         /// <summary>
         /// Number of fields in the record
         /// </summary>
         internal int Count { get { return Fields.Count; } }
 
-        /// <summary>
-        /// Map of field name and Field object for faster field lookups
-        /// </summary>
-        private readonly Dictionary<string, Field> fieldLookup;
-
-        private readonly Dictionary<string, Field> fieldAliasLookup;
         private bool request;
 
         /// <summary>
@@ -55,6 +47,7 @@ namespace SolTechnology.Avro.Schema
         /// </summary>
         /// <param name="type">type of record schema, either record or error</param>
         /// <param name="jtok">JSON object for the record schema</param>
+        /// <param name="props">dictionary that provides access to custom properties</param>
         /// <param name="names">list of named schema already read</param>
         /// <param name="encspace">enclosing namespace of the records schema</param>
         /// <returns>new RecordSchema object</returns>
@@ -68,16 +61,24 @@ namespace SolTechnology.Avro.Schema
                 if (null != jfields) request = true;
             }
             if (null == jfields)
-                throw new SchemaParseException("'fields' cannot be null for record");
+                throw new SchemaParseException($"'fields' cannot be null for record at '{jtok.Path}'");
             if (jfields.Type != JTokenType.Array)
-                throw new SchemaParseException("'fields' not an array for record");
+                throw new SchemaParseException($"'fields' not an array for record at '{jtok.Path}'");
 
             var name = GetName(jtok, encspace);
             var aliases = NamedSchema.GetAliases(jtok, name.Space, name.EncSpace);
             var fields = new List<Field>();
             var fieldMap = new Dictionary<string, Field>(StringComparer.InvariantCultureIgnoreCase);
-            var fieldAliasMap = new Dictionary<string, Field>(StringComparer.InvariantCultureIgnoreCase);
-            var result = new RecordSchema(type, name, aliases, props, fields, request, fieldMap, fieldAliasMap, names);
+            RecordSchema result;
+            try
+            {
+                result = new RecordSchema(type, name, aliases, props, fields, request, fieldMap, names,
+                    JsonHelper.GetOptionalString(jtok, "doc"));
+            }
+            catch (SchemaParseException e)
+            {
+                throw new SchemaParseException($"{e.Message} at '{jtok.Path}'", e);
+            }
 
             int fieldPos = 0;
             foreach (JObject jfield in jfields)
@@ -85,12 +86,14 @@ namespace SolTechnology.Avro.Schema
                 string fieldName = JsonHelper.GetRequiredString(jfield, "name");
                 Field field = createField(jfield, fieldPos++, names, name.Namespace);  // add record namespace for field look up
                 fields.Add(field);
-                addToFieldMap(fieldMap, fieldName, field);
-                addToFieldMap(fieldAliasMap, fieldName, field);
-
-                if (null != field.aliases)    // add aliases to field lookup map so reader function will find it when writer field name appears only as an alias on the reader field
-                    foreach (string alias in field.aliases)
-                        addToFieldMap(fieldAliasMap, alias, field);
+                try
+                {
+                    addToFieldMap(fieldMap, fieldName, field);
+                }
+                catch (SchemaParseException e)
+                {
+                    throw new SchemaParseException($"{e.Message} at '{jfield.Path}'", e);
+                }
             }
             return result;
         }
@@ -101,20 +104,22 @@ namespace SolTechnology.Avro.Schema
         /// <param name="type">type of record schema, either record or error</param>
         /// <param name="name">name of the record schema</param>
         /// <param name="aliases">list of aliases for the record name</param>
+        /// <param name="props">custom properties on this schema</param>
         /// <param name="fields">list of fields for the record</param>
         /// <param name="request">true if this is an anonymous record with 'request' instead of 'fields'</param>
         /// <param name="fieldMap">map of field names and field objects</param>
+        /// <param name="fieldAliasMap">map of field aliases and field objects</param>
         /// <param name="names">list of named schema already read</param>
-        private RecordSchema(Type type, SchemaName name, IList<SchemaName> aliases, PropertyMap props,
-                                List<Field> fields, bool request, Dictionary<string, Field> fieldMap,
-                                Dictionary<string, Field> fieldAliasMap, SchemaNames names)
-                                : base(type, name, aliases, props, names)
+        /// <param name="doc">documentation for this named schema</param>
+        private RecordSchema(Type type, SchemaName name, IList<SchemaName> aliases,  PropertyMap props,
+                                List<Field> fields, bool request, Dictionary<string, Field> fieldMap, 
+                                SchemaNames names, string doc)
+                                : base(type, name, aliases, props, names, doc)
         {
             if (!request && null == name.Name) throw new SchemaParseException("name cannot be null for record schema.");
             this.Fields = fields;
             this.request = request;
-            this.fieldLookup = fieldMap;
-            this.fieldAliasLookup = fieldAliasMap;
+            this.fiedsByName = fieldMap;
         }
 
         /// <summary>
@@ -133,7 +138,7 @@ namespace SolTechnology.Avro.Schema
             var jorder = JsonHelper.GetOptionalString(jfield, "order");
             Field.SortOrder sortorder = Field.SortOrder.ignore;
             if (null != jorder)
-                sortorder = (Field.SortOrder)Enum.Parse(typeof(Field.SortOrder), jorder);
+                sortorder = (Field.SortOrder) Enum.Parse(typeof(Field.SortOrder), jorder);
 
             var aliases = Field.GetAliases(jfield);
             var props = Schema.GetProperties(jfield);
@@ -141,9 +146,8 @@ namespace SolTechnology.Avro.Schema
 
             JToken jtype = jfield["type"];
             if (null == jtype)
-                throw new SchemaParseException("'type' was not found for field: " + name);
+                throw new SchemaParseException($"'type' was not found for field: name at '{jfield.Path}'");
             var schema = Schema.ParseJson(jtype, names, encspace);
-
             return new Field(schema, name, aliases, pos, doc, defaultValue, sortorder, props);
         }
 
@@ -164,27 +168,48 @@ namespace SolTechnology.Avro.Schema
         {
             get
             {
-                if (string.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
+                if (string.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
                 Field field;
-                return (fieldLookup.TryGetValue(name, out field)) ? field : null;
+                return fiedsByName.TryGetValue(name, out field) ? field : null;
             }
         }
 
+        /// <summary>
+        /// Returns true if and only if the record contains a field by the given name.
+        /// </summary>
+        /// <param name="fieldName">The name of the field</param>
+        /// <returns>true if the field exists, false otherwise</returns>
         internal bool Contains(string fieldName)
         {
-            return fieldAliasLookup.ContainsKey(fieldName);
+            return fiedsByName.ContainsKey(fieldName);
         }
 
+        /// <summary>
+        /// Tries to get a field given its name.
+        /// </summary>
+        /// <param name="fieldName">Name of the field.</param>
+        /// <param name="result">The result.</param>
+        /// <returns>A record field.</returns>
+        internal bool TryGetField(string fieldName, out Field result)
+        {
+            return this.fiedsByName.TryGetValue(fieldName, out result);
+        }
+
+        /// <summary>
+        /// Gets the field.
+        /// </summary>
+        /// <param name="fieldName">Name of the field.</param>
+        /// <returns>A corresponding field name.</returns>
         internal Field GetField(string fieldName)
         {
-            return fieldAliasLookup[fieldName];
+            return this.fiedsByName[fieldName];
         }
 
         /// <summary>
         /// Returns an enumerator which enumerates over the fields of this record schema
         /// </summary>
         /// <returns>Enumerator over the field in the order of their definition</returns>
-        public IEnumerator<Field> GetEnumerator()
+        internal IEnumerator<Field> GetEnumerator()
         {
             return Fields.GetEnumerator();
         }
@@ -208,7 +233,7 @@ namespace SolTechnology.Avro.Schema
 
             if (null != this.Fields && this.Fields.Count > 0)
             {
-                foreach (Field field in this)
+                foreach (Field field in this.Fields)
                     field.writeJson(writer, names, this.Namespace); // use the namespace of the record for the fields
             }
             writer.WriteEndArray();
@@ -269,19 +294,19 @@ namespace SolTechnology.Avro.Schema
                     if (!InAliases(that.SchemaName))
                         return false;
 
-                foreach (Field f in this)
+                foreach (Field f in this.Fields)
                 {
                     Field f2 = that[f.Name];
                     if (null == f2) // reader field not in writer field, check aliases of reader field if any match with a writer field
-                        if (null != f.aliases)
-                            foreach (string alias in f.aliases)
+                        if (null != f.Aliases)
+                            foreach (string alias in f.Aliases)
                             {
                                 f2 = that[alias];
                                 if (null != f2) break;
                             }
 
                     if (f2 == null && f.DefaultValue != null)
-                        continue;         // Encoder field missing, reader has default.
+                        continue;         // Writer field missing, reader has default.
 
                     if (f2 != null && f.Schema.CanRead(f2.Schema)) continue;    // Both fields exist and are compatible.
                     return false;
@@ -310,7 +335,7 @@ namespace SolTechnology.Avro.Schema
          * to see if we have been into this if so, we execute the bypass function otherwise we execute the main function.
          * Before executing the main function, we ensure that we create a marker so that if we come back here recursively
          * we can detect it.
-         * 
+         *
          * The infinite loop happens in ToString(), Equals() and GetHashCode() methods.
          * Though it does not happen for CanRead() because of the current implemenation of UnionSchema's can read,
          * it could potenitally happen.

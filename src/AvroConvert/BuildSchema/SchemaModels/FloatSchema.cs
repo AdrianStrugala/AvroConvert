@@ -17,30 +17,31 @@
 
 using System;
 using System.Collections.Generic;
+using SolTechnology.Avro.BuildSchema.SchemaModels;
 
 namespace SolTechnology.Avro.BuildSchema
 {
     /// <summary>
-    ///     Class represents a null schema.
+    ///     Class represents a float schema.
     ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html#schema_primitive">the specification</a>.
     /// </summary>
-    internal class NullSchema : PrimitiveTypeSchema
+    internal sealed class FloatSchema : PrimitiveTypeSchema
     {
-        internal NullSchema(Type runtimeType)
-            : this(runtimeType, new Dictionary<string, string>())
+        internal FloatSchema()
+            : this(new Dictionary<string, string>())
         {
         }
 
-        internal NullSchema()
-            : this(typeof(object))
+        internal FloatSchema(Dictionary<string, string> attributes)
+            : base(typeof(float), attributes)
         {
         }
 
-        internal NullSchema(Type runtimeType, Dictionary<string, string> attributes)
-            : base(runtimeType, attributes)
+        internal FloatSchema(Type runtimeType)
+            : base(runtimeType, new Dictionary<string, string>())
         {
         }
 
-        internal override global::SolTechnology.Avro.Schema.Schema.Type Type => global::SolTechnology.Avro.Schema.Schema.Type.Null;
+        internal override global::SolTechnology.Avro.Schema.Schema.Type Type => global::SolTechnology.Avro.Schema.Schema.Type.Float;
     }
 }

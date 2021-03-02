@@ -95,7 +95,7 @@ namespace SolTechnology.Avro.AvroToJson
         {
             var result = new Dictionary<string, object>();
 
-            foreach (Field rf in readerSchema)
+            foreach (Field rf in readerSchema.Fields)
             {
                 string name = rf.Name;
                 object value = Resolve(rf.Schema, dec);

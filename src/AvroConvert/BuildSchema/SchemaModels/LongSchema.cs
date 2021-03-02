@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using SolTechnology.Avro.BuildSchema.SchemaModels;
 
 namespace SolTechnology.Avro.BuildSchema
 {
@@ -41,6 +42,6 @@ namespace SolTechnology.Avro.BuildSchema
         {
         }
 
-        internal override global::SolTechnology.Avro.Schema.Schema.Type Type => global::SolTechnology.Avro.Schema.Schema.Type.Long;
+        internal override Avro.Schema.Schema.Type Type => Avro.Schema.Schema.Type.Long;
     }
 }

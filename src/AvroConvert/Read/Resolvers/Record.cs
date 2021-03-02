@@ -51,7 +51,7 @@ namespace SolTechnology.Avro.Read
                 typeMembers = cachedRecordMembers[typeHash];
             }
 
-            foreach (Field wf in writerSchema)
+            foreach (Field wf in writerSchema.Fields)
             {
                 if (readerSchema.Contains(wf.Name))
                 {

@@ -22,6 +22,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using SolTechnology.Avro.Attributes;
+using SolTechnology.Avro.BuildSchema.SchemaModels;
 using SolTechnology.Avro.Extensions;
 
 namespace SolTechnology.Avro.BuildSchema
@@ -88,7 +89,7 @@ namespace SolTechnology.Avro.BuildSchema
             }
 
             AvroContractResolver resolver = this.settings.Resolver;
-            this.knownTypes.UnionWith(resolver.GetKnownTypes(type) ?? new List<Type>());
+            knownTypes.UnionWith(resolver.GetKnownTypes(type) ?? new List<Type>());
             return this.CreateSchema(false, type, new Dictionary<string, NamedSchema>(), 0);
         }
 

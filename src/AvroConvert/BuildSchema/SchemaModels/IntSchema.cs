@@ -15,31 +15,33 @@
 
 /** Modifications copyright(C) 2020 Adrian Strugała **/
 
+using System;
 using System.Collections.Generic;
+using SolTechnology.Avro.BuildSchema.SchemaModels;
 
 namespace SolTechnology.Avro.BuildSchema
 {
     /// <summary>
-    ///     Class represents a byte array schema.
+    ///     Class represents an int schema.
     ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html#schema_primitive">the specification</a>.
     /// </summary>
-    internal sealed class BytesSchema : PrimitiveTypeSchema
+    internal class IntSchema : PrimitiveTypeSchema
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="BytesSchema"/> class.
-        /// </summary>
-        internal BytesSchema() : this(new Dictionary<string, string>())
+        internal IntSchema()
+            : this(typeof(int))
         {
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="BytesSchema"/> class.
-        /// </summary>
-        /// <param name="attributes">The attributes.</param>
-        internal BytesSchema(Dictionary<string, string> attributes) : base(typeof(byte[]), attributes)
+        internal IntSchema(Type runtimeType)
+            : this(runtimeType, new Dictionary<string, string>())
         {
         }
 
-        internal override global::SolTechnology.Avro.Schema.Schema.Type Type => global::SolTechnology.Avro.Schema.Schema.Type.Bytes;
+        internal IntSchema(Type runtimeType, Dictionary<string, string> attributes)
+            : base(runtimeType, attributes)
+        {
+        }
+
+        internal override global::SolTechnology.Avro.Schema.Schema.Type Type => global::SolTechnology.Avro.Schema.Schema.Type.Int;
     }
 }

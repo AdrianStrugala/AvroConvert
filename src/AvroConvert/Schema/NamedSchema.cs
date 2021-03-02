@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,8 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/** Modifications copyright(C) 2020 Adrian Struga³a **/
 
 using System;
 using System.Collections.Generic;
@@ -54,10 +52,15 @@ namespace SolTechnology.Avro.Schema
         /// <summary>
         /// Namespace.Name of the schema
         /// </summary>
-        internal string Fullname
+        internal override string Fullname
         {
             get { return SchemaName.Fullname; }
         }
+
+        /// <summary>
+        /// Documentation for the schema, if any. Null if there is no documentation.
+        /// </summary>
+        internal string Documentation { get; private set; }
 
         /// <summary>
         /// List of aliases for this named schema
@@ -68,6 +71,7 @@ namespace SolTechnology.Avro.Schema
         /// Static function to return a new instance of the named schema
         /// </summary>
         /// <param name="jo">JSON object of the named schema</param>
+        /// <param name="props">dictionary that provides access to custom properties</param>
         /// <param name="names">list of named schemas already read</param>
         /// <param name="encspace">enclosing namespace of the named schema</param>
         /// <returns></returns>
@@ -97,13 +101,18 @@ namespace SolTechnology.Avro.Schema
         /// </summary>
         /// <param name="type">schema type</param>
         /// <param name="name">name</param>
+        /// <param name="aliases">aliases for this named schema</param>
+        /// <param name="props">custom properties on this schema</param>
         /// <param name="names">list of named schemas already read</param>
-        protected NamedSchema(Type type, SchemaName name, IList<SchemaName> aliases, PropertyMap props, SchemaNames names)
+        /// <param name="doc">documentation for this named schema</param>
+        protected NamedSchema(Type type, SchemaName name, IList<SchemaName> aliases, PropertyMap props, SchemaNames names,
+            string doc)
                                 : base(type, props)
         {
             this.SchemaName = name;
+            this.Documentation = doc;
             this.aliases = aliases;
-            if (null != name.Name)  // Added this check for anonymous records inside Message 
+            if (null != name.Name)  // Added this check for anonymous records inside Message
                 if (!names.Add(name, this))
                     throw new AvroException("Duplicate schema name " + name.Fullname);
         }
@@ -117,7 +126,7 @@ namespace SolTechnology.Avro.Schema
         /// <returns>new SchemaName object</returns>
         protected static SchemaName GetName(JToken jtok, string encspace)
         {
-            String n = JsonHelper.GetOptionalString(jtok, "name");      // Changed this to optional string for anonymous records in messages 
+            String n = JsonHelper.GetOptionalString(jtok, "name");      // Changed this to optional string for anonymous records in messages
             String ns = JsonHelper.GetOptionalString(jtok, "namespace");
             return new SchemaName(n, ns, encspace);
         }
@@ -136,19 +145,27 @@ namespace SolTechnology.Avro.Schema
                 return null;
 
             if (jaliases.Type != JTokenType.Array)
-                throw new SchemaParseException("Aliases must be of format JSON array of strings");
+                throw new SchemaParseException($"Aliases must be of format JSON array of strings at '{jtok.Path}'");
 
             var aliases = new List<SchemaName>();
             foreach (JToken jalias in jaliases)
             {
                 if (jalias.Type != JTokenType.String)
-                    throw new SchemaParseException("Aliases must be of format JSON array of strings");
+                    throw new SchemaParseException($"Aliases must be of format JSON array of strings at '{jtok.Path}'");
 
                 aliases.Add(new SchemaName((string)jalias, space, encspace));
             }
             return aliases;
         }
 
+        /// <summary>
+        /// Determines whether the given schema name is one of this <see cref="NamedSchema"/>'s
+        /// aliases.
+        /// </summary>
+        /// <param name="name">Schema name to test.</param>
+        /// <returns>
+        /// True if <paramref name="name"/> is one of this schema's aliases; false otherwise.
+        /// </returns>
         protected bool InAliases(SchemaName name)
         {
             if (null != aliases)

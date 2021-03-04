@@ -89,13 +89,13 @@ namespace SolTechnology.Avro.BuildSchema
             writer.WriteStartObject();
             writer.WriteProperty("type", "map");
             writer.WritePropertyName("values");
-            this.ValueSchema.ToJson(writer, seenSchemas);
+            ValueSchema.ToJson(writer, seenSchemas);
             writer.WriteEndObject();
         }
 
         /// <summary>
         /// Gets the type of the schema as string.
         /// </summary>
-        internal override global::SolTechnology.Avro.Schema.Schema.Type Type => global::SolTechnology.Avro.Schema.Schema.Type.Map;
+        internal override Avro.Schema.Schema.Type Type => Avro.Schema.Schema.Type.Map;
     }
 }

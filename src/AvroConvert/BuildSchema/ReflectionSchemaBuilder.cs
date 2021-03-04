@@ -32,7 +32,14 @@ namespace SolTechnology.Avro.BuildSchema
     /// </summary>
     internal sealed class ReflectionSchemaBuilder
     {
-        private static readonly Dictionary<Type, Func<Type, PrimitiveTypeSchema>> RuntimeTypeToAvroSchema =
+        private static readonly Dictionary<Type, Func<Type, LogicalTypeSchema>> TypeToAvroLogicalSchemaMap =
+            new Dictionary<Type, Func<Type, LogicalTypeSchema>>
+            {
+                { typeof(decimal), type => new DecimalSchema(type) },
+            };
+
+
+        private static readonly Dictionary<Type, Func<Type, PrimitiveTypeSchema>> TypeToAvroPrimitiveSchemaMap =
             new Dictionary<Type, Func<Type, PrimitiveTypeSchema>>
             {
                 { typeof(AvroNull), type => new NullSchema(type) },
@@ -48,11 +55,9 @@ namespace SolTechnology.Avro.BuildSchema
                 { typeof(ulong), type => new LongSchema(type) },
                 { typeof(float), type => new FloatSchema() },
                 { typeof(double), type => new DoubleSchema() },
-                { typeof(decimal), type => new StringSchema(type) },
                 { typeof(string), type => new StringSchema(type) },
                 { typeof(Uri), type => new StringSchema(type) },
                 { typeof(byte[]), type => new BytesSchema() },
-                { typeof(DateTime), type => new LongSchema(type) }
             };
 
         private readonly AvroSerializerSettings settings;
@@ -166,35 +171,45 @@ namespace SolTechnology.Avro.BuildSchema
         /// <exception cref="System.Runtime.Serialization.SerializationException">Thrown when maximum depth of object graph is reached.</exception>
         private TypeSchema CreateNotNullableSchema(Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth)
         {
-            TypeSchema schema = TryBuildPrimitiveTypeSchema(type);
+            //Logical
+            TypeSchema schema = TryBuildLogicalTypeSchema(type);
             if (schema != null)
             {
                 return schema;
             }
 
-            if ((type.IsInterface() || type.IsAbstract())
-                || this.HasApplicableKnownType(type))
+            //Primitive
+            schema = TryBuildPrimitiveTypeSchema(type);
+            if (schema != null)
             {
-                return this.BuildKnownTypeSchema(type, schemas, currentDepth);
+                return schema;
             }
 
-            return this.BuildComplexTypeSchema(type, schemas, currentDepth);
+            //Others
+            if (type.IsInterface() || type.IsAbstract() || this.HasApplicableKnownType(type))
+            {
+                return BuildKnownTypeSchema(type, schemas, currentDepth);
+            }
+
+            return BuildComplexTypeSchema(type, schemas, currentDepth);
         }
 
-        /// <summary>
-        ///     Generates the primitive schema if the type is primitive.
-        /// </summary>
-        /// <param name="type">The type.</param>
-        /// <returns>
-        ///     New instance of schema.
-        /// </returns>
         private static TypeSchema TryBuildPrimitiveTypeSchema(Type type)
         {
-            if (!RuntimeTypeToAvroSchema.ContainsKey(type))
+            if (!TypeToAvroPrimitiveSchemaMap.ContainsKey(type))
             {
                 return null;
             }
-            return RuntimeTypeToAvroSchema[type](type);
+            return TypeToAvroPrimitiveSchemaMap[type](type);
+        }
+
+        private static TypeSchema TryBuildLogicalTypeSchema(Type type)
+        {
+            if (!TypeToAvroLogicalSchemaMap.ContainsKey(type))
+            {
+                return null;
+            }
+            return TypeToAvroLogicalSchemaMap[type](type);
         }
 
         /// <summary>

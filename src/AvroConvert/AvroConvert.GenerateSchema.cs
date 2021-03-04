@@ -28,9 +28,10 @@ namespace SolTechnology.Avro
         /// </summary>
         public static string GenerateSchema(Type type, bool includeOnlyDataContractMembers = false)
         {
-            var reader = new ReflectionSchemaBuilder(new AvroSerializerSettings(includeOnlyDataContractMembers)).BuildSchema(type);
+            var builder = new ReflectionSchemaBuilder(new AvroSerializerSettings(includeOnlyDataContractMembers));
+            var schema = builder.BuildSchema(type);
 
-            return reader.ToString();
+            return schema.ToString();
         }
     }
 }

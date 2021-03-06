@@ -26,6 +26,8 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels
         internal abstract TypeSchema BaseTypeSchema { get; set; }
         internal abstract string LogicalTypeName { get; }
 
+        internal abstract Dictionary<string, object> Properties { get; }
+
         protected LogicalTypeSchema(Type runtimeType): base(runtimeType, new Dictionary<string, string>())
         {
         }
@@ -36,8 +38,10 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels
             writer.WritePropertyName("type");
             BaseTypeSchema.ToJsonSafe(writer, seenSchemas);
             writer.WriteProperty("logicalType", LogicalTypeName);
-            writer.WriteProperty("precision", 4);
-            writer.WriteProperty("scale", 2);
+            foreach (var property in Properties)
+            {
+                writer.WriteProperty(property.Key, property.Value);
+            }
             writer.WriteEndObject();
         }
     }

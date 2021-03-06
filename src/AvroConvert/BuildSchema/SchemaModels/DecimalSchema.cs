@@ -17,24 +17,50 @@
 
 using System;
 using System.Collections.Generic;
+using SolTechnology.Avro.Exceptions;
 
 namespace SolTechnology.Avro.BuildSchema.SchemaModels
 {
-    /// <summary>
-    /// The 'decimal' logical type.
-    /// </summary>
+
     internal sealed class DecimalSchema : LogicalTypeSchema
     {
         internal override Avro.Schema.Schema.Type Type => Avro.Schema.Schema.Type.Logical;
 
         internal override TypeSchema BaseTypeSchema { get; set; }
+        internal int Precision { get; set; }
+        internal int Scale { get; set; }
 
         internal override string LogicalTypeName => "decimal";
+        internal override Dictionary<string, object> Properties { get; }
 
-        public DecimalSchema(Type runtimeType) : base(runtimeType)
+
+        //Default C# values
+        public DecimalSchema(Type runtimeType) : this(runtimeType, 29, 14)
+        {
+        }
+
+        public DecimalSchema(Type runtimeType, int precision, int scale) : base(runtimeType)
         {
             BaseTypeSchema = new BytesSchema();
+
+            if (precision <= 0)
+                throw new AvroTypeException("Property [Precision] of [Decimal] schema has to be greater than 0");
+
+            if (scale < 0)
+                throw new AvroTypeException("Property [Scale] of [Decimal] schema has to be greater equal 0");
+
+            if (scale > precision)
+                throw new AvroTypeException("Property [Scale] of [Decimal] schema has to be lesser equal [Precision]");
+
+            Scale = scale;
+            Precision = precision;
+
+            Properties = new Dictionary<string, object>();
+            Properties.Add("precision", Precision);
+            Properties.Add("scale", Scale);
         }
+
+  
 
 
 

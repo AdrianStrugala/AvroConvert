@@ -36,6 +36,7 @@ namespace SolTechnology.Avro.BuildSchema
             new Dictionary<Type, Func<Type, LogicalTypeSchema>>
             {
                 { typeof(decimal), type => new DecimalSchema(type) },
+                { typeof(Guid), type => new UuidSchema(type) },
             };
 
 
@@ -58,6 +59,8 @@ namespace SolTechnology.Avro.BuildSchema
                 { typeof(string), type => new StringSchema(type) },
                 { typeof(Uri), type => new StringSchema(type) },
                 { typeof(byte[]), type => new BytesSchema() },
+                { typeof(decimal), type => new StringSchema(type) },
+                { typeof(DateTime), type => new LongSchema(type) }
             };
 
         private readonly AvroSerializerSettings settings;
@@ -67,11 +70,11 @@ namespace SolTechnology.Avro.BuildSchema
         ///     Initializes a new instance of the <see cref="ReflectionSchemaBuilder" /> class.
         /// </summary>
         /// <param name="settings">The settings.</param>
-        internal ReflectionSchemaBuilder(AvroSerializerSettings settings)
+        internal ReflectionSchemaBuilder(AvroSerializerSettings settings = null)
         {
             if (settings == null)
             {
-                throw new ArgumentNullException("settings");
+                settings = new AvroSerializerSettings();
             }
 
             this.settings = settings;
@@ -140,8 +143,14 @@ namespace SolTechnology.Avro.BuildSchema
         private TypeSchema CreateNullableSchema(Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth, Type prioritizedType)
         {
             var typeSchemas = new List<TypeSchema> { new NullSchema(type) };
-            var notNullableSchema = this.CreateNotNullableSchema(type, schemas, currentDepth);
+            var notNullableType = type;
+            var underlyingType = Nullable.GetUnderlyingType(type);
+            if (underlyingType != null)
+            {
+                notNullableType = underlyingType;
+            }
 
+            var notNullableSchema = this.CreateNotNullableSchema(notNullableType, schemas, currentDepth);
             if (notNullableSchema is UnionSchema unionSchema)
             {
                 typeSchemas.AddRange(unionSchema.Schemas);

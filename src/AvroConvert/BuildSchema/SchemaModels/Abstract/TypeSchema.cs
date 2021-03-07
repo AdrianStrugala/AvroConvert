@@ -18,7 +18,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace SolTechnology.Avro.BuildSchema.SchemaModels
+namespace SolTechnology.Avro.BuildSchema.SchemaModels.Abstract
 {
     /// <summary>
     ///     Base class for all type schemas.

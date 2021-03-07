@@ -22,9 +22,10 @@ using System.Globalization;
 using System.Linq;
 using Newtonsoft.Json;
 using SolTechnology.Avro.Attributes;
+using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 using SolTechnology.Avro.Extensions;
 
-namespace SolTechnology.Avro.BuildSchema
+namespace SolTechnology.Avro.BuildSchema.SchemaModels
 {
     /// <summary>
     ///     Schema representing an enumeration.

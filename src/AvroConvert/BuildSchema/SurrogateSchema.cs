@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using SolTechnology.Avro.BuildSchema.SchemaModels;
+using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 
 namespace SolTechnology.Avro.BuildSchema
 {

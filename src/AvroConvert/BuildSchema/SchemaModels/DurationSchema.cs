@@ -1,5 +1,5 @@
 #region license
-/**Copyright (c) 2020 Adrian Struga³a
+/**Copyright (c) 2021 Adrian Struga³a
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -18,30 +18,34 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using SolTechnology.Avro.Attributes;
+using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 
 namespace SolTechnology.Avro.BuildSchema.SchemaModels
 {
-    internal abstract class LogicalTypeSchema : TypeSchema
+
+    internal sealed class DurationSchema : LogicalTypeSchema
     {
-        internal abstract TypeSchema BaseTypeSchema { get; set; }
-        internal abstract string LogicalTypeName { get; }
-
-        internal abstract Dictionary<string, object> Properties { get; }
-
-        protected LogicalTypeSchema(Type runtimeType): base(runtimeType, new Dictionary<string, string>())
+        public DurationSchema(Type runtimeType) : base(runtimeType)
         {
+            BaseTypeSchema = new FixedSchema(
+                new NamedEntityAttributes(new SchemaName("duration"), new List<string>(), ""),
+                12,
+                typeof(TimeSpan));
         }
+
+        internal override Avro.Schema.Schema.Type Type => Avro.Schema.Schema.Type.Logical;
+        internal override TypeSchema BaseTypeSchema { get; set; }
+        internal override string LogicalTypeName => "duration";
 
         internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
         {
+            var baseSchema = (FixedSchema) BaseTypeSchema;
             writer.WriteStartObject();
-            writer.WritePropertyName("type");
-            BaseTypeSchema.ToJsonSafe(writer, seenSchemas);
+            writer.WriteProperty("type", baseSchema.Type.ToString().ToLowerInvariant());
+            writer.WriteProperty("size", baseSchema.Size);
+            writer.WriteProperty("name", baseSchema.Name);
             writer.WriteProperty("logicalType", LogicalTypeName);
-            foreach (var property in Properties)
-            {
-                writer.WriteProperty(property.Key, property.Value);
-            }
             writer.WriteEndObject();
         }
     }

@@ -21,8 +21,10 @@ using System.Globalization;
 using System.Numerics;
 using Avro;
 using Avro.Generic;
+using SolTechnology.Avro.BuildSchema.SchemaModels;
 using SolTechnology.Avro.Exceptions;
 using SolTechnology.Avro.Schema;
+using FixedSchema = SolTechnology.Avro.Schema.FixedSchema;
 
 namespace SolTechnology.Avro.Util
 {

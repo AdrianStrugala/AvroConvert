@@ -1,7 +1,7 @@
 ﻿using SolTechnology.Avro.FileHeader;
 using Xunit;
 
-namespace AvroConvertTests.Unit.FileHeader
+namespace AvroConvertUnitTests.FileHeader
 {
     public class HeaderTests
     {

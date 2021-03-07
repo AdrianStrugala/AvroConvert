@@ -1,7 +1,7 @@
 ﻿using SolTechnology.Avro.FileHeader.Codec;
 using Xunit;
 
-namespace AvroConvertTests.Unit.FileHeader
+namespace AvroConvertUnitTests.FileHeader
 {
     public class CodecTests
     {

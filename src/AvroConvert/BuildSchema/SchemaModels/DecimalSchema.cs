@@ -17,6 +17,8 @@
 
 using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
+using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 using SolTechnology.Avro.Exceptions;
 
 namespace SolTechnology.Avro.BuildSchema.SchemaModels
@@ -31,8 +33,6 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels
         internal int Scale { get; set; }
 
         internal override string LogicalTypeName => "decimal";
-        internal override Dictionary<string, object> Properties { get; }
-
 
         //Default C# values
         public DecimalSchema(Type runtimeType) : this(runtimeType, 29, 14)
@@ -54,13 +54,18 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels
 
             Scale = scale;
             Precision = precision;
-
-            Properties = new Dictionary<string, object>();
-            Properties.Add("precision", Precision);
-            Properties.Add("scale", Scale);
         }
 
-  
+        internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
+        {
+            writer.WriteStartObject();
+            writer.WriteProperty("type", BaseTypeSchema.Type.ToString().ToLowerInvariant());
+            writer.WriteProperty("logicalType", LogicalTypeName);
+            writer.WriteProperty("precision", Precision);
+            writer.WriteProperty("scale", Scale);
+            writer.WriteEndObject();
+        }
+
 
 
 

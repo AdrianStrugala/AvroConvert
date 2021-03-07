@@ -23,6 +23,7 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using SolTechnology.Avro.Attributes;
 using SolTechnology.Avro.BuildSchema.SchemaModels;
+using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 using SolTechnology.Avro.Extensions;
 
 namespace SolTechnology.Avro.BuildSchema
@@ -30,6 +31,7 @@ namespace SolTechnology.Avro.BuildSchema
     /// <summary>
     ///     This class creates an avro schema given a c# type.
     /// </summary>
+
     internal sealed class ReflectionSchemaBuilder
     {
         private static readonly Dictionary<Type, Func<Type, LogicalTypeSchema>> TypeToAvroLogicalSchemaMap =
@@ -37,6 +39,9 @@ namespace SolTechnology.Avro.BuildSchema
             {
                 { typeof(decimal), type => new DecimalSchema(type) },
                 { typeof(Guid), type => new UuidSchema(type) },
+                { typeof(DateTime), type => new TimestampMillisecondsSchema(type) },
+                { typeof(DateTimeOffset), type => new TimestampMillisecondsSchema(type) },
+                { typeof(TimeSpan), type => new DurationSchema(type) },
             };
 
 
@@ -160,8 +165,8 @@ namespace SolTechnology.Avro.BuildSchema
                 typeSchemas.Add(notNullableSchema);
             }
 
-            typeSchemas = typeSchemas.OrderBy(x => 
-                prioritizedType == null && x.Type.ToString() != "Null" 
+            typeSchemas = typeSchemas.OrderBy(x =>
+                prioritizedType == null && x.Type.ToString() != "Null"
                 || prioritizedType != null && x.Type.ToString() == "Null")
                 .ToList();
 

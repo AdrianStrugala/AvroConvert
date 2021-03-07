@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using SolTechnology.Avro;
 using SolTechnology.Avro.Exceptions;
 using Xunit;
 
-namespace AvroConvertTests.Component
+namespace AvroConvertUnitTests
 {
     public class Exceptions
     {

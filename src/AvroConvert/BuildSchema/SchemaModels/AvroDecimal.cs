@@ -21,7 +21,7 @@ using System;
 using System.Globalization;
 using System.Numerics;
 
-namespace Avro
+namespace SolTechnology.Avro.BuildSchema.SchemaModels
 {
     /// <summary>
     /// Represents a big decimal.

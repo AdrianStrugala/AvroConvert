@@ -20,7 +20,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Newtonsoft.Json;
 
-namespace SolTechnology.Avro.BuildSchema.SchemaModels
+namespace SolTechnology.Avro.BuildSchema.SchemaModels.Abstract
 {
     internal abstract class PrimitiveTypeSchema : TypeSchema
     {

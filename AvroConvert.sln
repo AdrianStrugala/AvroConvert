@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28729.10
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvroConvertTests", "tests\AvroConvertTests\AvroConvertTests.csproj", "{B566FDF6-7D7F-4391-95D7-8166E0227B66}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvroConvertComponentTests", "tests\AvroConvertTests\AvroConvertComponentTests.csproj", "{B566FDF6-7D7F-4391-95D7-8166E0227B66}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{CCBD5998-CCF4-48BA-B80E-716F68613375}"
 EndProject
@@ -39,6 +39,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Http.Server", "tests\Http.Server\Http.Server.csproj", "{4262E7E7-2461-4A54-A631-081658E0C922}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Http.Client", "tests\Http.Client\Http.Client.csproj", "{7952E832-F277-4387-A1B1-40EF9EC9DFDF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvroConvertUnitTests", "tests\AvroConvertUnitTests\AvroConvertUnitTests.csproj", "{E4D7C0E6-D268-4B3D-A654-D86235828940}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -170,6 +172,18 @@ Global
 		{7952E832-F277-4387-A1B1-40EF9EC9DFDF}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{7952E832-F277-4387-A1B1-40EF9EC9DFDF}.Release|x86.ActiveCfg = Release|Any CPU
 		{7952E832-F277-4387-A1B1-40EF9EC9DFDF}.Release|x86.Build.0 = Release|Any CPU
+		{E4D7C0E6-D268-4B3D-A654-D86235828940}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E4D7C0E6-D268-4B3D-A654-D86235828940}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E4D7C0E6-D268-4B3D-A654-D86235828940}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{E4D7C0E6-D268-4B3D-A654-D86235828940}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{E4D7C0E6-D268-4B3D-A654-D86235828940}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E4D7C0E6-D268-4B3D-A654-D86235828940}.Debug|x86.Build.0 = Debug|Any CPU
+		{E4D7C0E6-D268-4B3D-A654-D86235828940}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E4D7C0E6-D268-4B3D-A654-D86235828940}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E4D7C0E6-D268-4B3D-A654-D86235828940}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{E4D7C0E6-D268-4B3D-A654-D86235828940}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{E4D7C0E6-D268-4B3D-A654-D86235828940}.Release|x86.ActiveCfg = Release|Any CPU
+		{E4D7C0E6-D268-4B3D-A654-D86235828940}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -182,6 +196,7 @@ Global
 		{3EBF3E0F-AAEE-45E2-A072-CB4CA7316EA6} = {78EEDAB3-E0F3-4BDC-AB47-C5FBF60417B8}
 		{4262E7E7-2461-4A54-A631-081658E0C922} = {CCBD5998-CCF4-48BA-B80E-716F68613375}
 		{7952E832-F277-4387-A1B1-40EF9EC9DFDF} = {CCBD5998-CCF4-48BA-B80E-716F68613375}
+		{E4D7C0E6-D268-4B3D-A654-D86235828940} = {CCBD5998-CCF4-48BA-B80E-716F68613375}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F9BF1700-C9CB-438A-B3CD-601762B9DCB2}

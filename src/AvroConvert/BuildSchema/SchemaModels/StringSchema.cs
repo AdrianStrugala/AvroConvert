@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 
 namespace SolTechnology.Avro.BuildSchema.SchemaModels
 {

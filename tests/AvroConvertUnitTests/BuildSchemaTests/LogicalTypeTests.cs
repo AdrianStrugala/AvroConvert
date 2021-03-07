@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Linq;
 using SolTechnology.Avro.BuildSchema;
 using SolTechnology.Avro.BuildSchema.SchemaModels;
+using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 using Xunit;
 
-namespace AvroConvertTests.BuildSchemaTests
+namespace AvroConvertUnitTests.BuildSchemaTests
 {
     public class LogicalTypeTests
     {
@@ -84,6 +84,82 @@ namespace AvroConvertTests.BuildSchemaTests
             var uuidSchema = (UuidSchema)unionSchema.Schemas[1];
 
             Assert.NotNull(uuidSchema);
+        }
+
+        [Theory]
+        [InlineData(typeof(DateTime))]
+        [InlineData(typeof(DateTimeOffset))]
+        public void BuildDateTimeSchema(Type type)
+        {
+            //Act
+            var builder = new ReflectionSchemaBuilder();
+            TypeSchema schema = builder.BuildSchema(type);
+
+
+            //Assert
+            Assert.IsType<TimestampMillisecondsSchema>(schema);
+            var resolvedSchema = (TimestampMillisecondsSchema)schema;
+
+            Assert.NotNull(resolvedSchema);
+        }
+
+        [Theory]
+        [InlineData(typeof(DateTime?))]
+        [InlineData(typeof(DateTimeOffset?))]
+        public void BuildNullableDateTimeSchema(Type type)
+        {
+            //Act
+            var builder = new ReflectionSchemaBuilder();
+            TypeSchema schema = builder.BuildSchema(type);
+
+
+            //Assert
+            Assert.IsType<UnionSchema>(schema);
+            var unionSchema = (UnionSchema)schema;
+
+            Assert.IsType<NullSchema>(unionSchema.Schemas[0]);
+            Assert.IsType<TimestampMillisecondsSchema>(unionSchema.Schemas[1]);
+
+            var resolvedSchema = (TimestampMillisecondsSchema)unionSchema.Schemas[1];
+
+            Assert.NotNull(resolvedSchema);
+        }
+
+        [Theory]
+        [InlineData(typeof(TimeSpan))]
+        public void BuildTimespanSchema(Type type)
+        {
+            //Act
+            var builder = new ReflectionSchemaBuilder();
+            TypeSchema schema = builder.BuildSchema(type);
+
+
+            //Assert
+            Assert.IsType<DurationSchema>(schema);
+            var resolvedSchema = (DurationSchema)schema;
+
+            Assert.NotNull(resolvedSchema);
+        }
+
+        [Theory]
+        [InlineData(typeof(TimeSpan?))]
+        public void BuildTimeSpanSchema(Type type)
+        {
+            //Act
+            var builder = new ReflectionSchemaBuilder();
+            TypeSchema schema = builder.BuildSchema(type);
+
+
+            //Assert
+            Assert.IsType<UnionSchema>(schema);
+            var unionSchema = (UnionSchema)schema;
+
+            Assert.IsType<NullSchema>(unionSchema.Schemas[0]);
+            Assert.IsType<DurationSchema>(unionSchema.Schemas[1]);
+
+            var resolvedSchema = (DurationSchema)unionSchema.Schemas[1];
+
+            Assert.NotNull(resolvedSchema);
         }
     }
 }

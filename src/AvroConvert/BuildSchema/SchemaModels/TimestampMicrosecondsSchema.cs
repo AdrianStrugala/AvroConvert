@@ -22,15 +22,15 @@ using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 namespace SolTechnology.Avro.BuildSchema.SchemaModels
 {
 
-    internal sealed class UuidSchema : LogicalTypeSchema
+    internal sealed class TimestampMicrosecondsSchema : LogicalTypeSchema
     {
-        public UuidSchema(Type runtimeType) : base(runtimeType)
+        public TimestampMicrosecondsSchema(Type runtimeType) : base(runtimeType)
         {
-            BaseTypeSchema = new StringSchema();
+            BaseTypeSchema = new LongSchema();
         }
 
         internal override Avro.Schema.Schema.Type Type => Avro.Schema.Schema.Type.Logical;
         internal override TypeSchema BaseTypeSchema { get; set; }
-        internal override string LogicalTypeName => "uuid";
+        internal override string LogicalTypeName => "timestamp-micros";
     }
 }

@@ -23,6 +23,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 using SolTechnology.Avro.Exceptions;
 using SolTechnology.Avro.FileHeader;
 using SolTechnology.Avro.FileHeader.Codec;
@@ -33,7 +34,7 @@ namespace SolTechnology.Avro.Write
     {
         internal delegate void WriteItem(object value, IWriter encoder);
 
-        private readonly Schema.Schema _schema;
+        private readonly TypeSchema _schema;
         private readonly AbstractCodec _codec;
         private readonly Stream _stream;
         private MemoryStream _blockStream;
@@ -48,7 +49,7 @@ namespace SolTechnology.Avro.Write
         private readonly Metadata _metadata;
 
 
-        internal Encoder(Schema.Schema schema, Stream outStream, CodecType codecType)
+        internal Encoder(TypeSchema schema, Stream outStream, CodecType codecType)
         {
             _codec = AbstractCodec.CreateCodec(codecType);
             _stream = outStream;

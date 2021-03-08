@@ -348,11 +348,6 @@ namespace SolTechnology.Avro.BuildSchema
         #endregion //Schema creation methods.
 
 
-        /// <summary>
-        /// Creates schema from JSON string.
-        /// </summary>
-        /// <param name="schemaInJson">The schema.</param>
-        /// <returns>Created schema.</returns>
         internal static TypeSchema Create(string schemaInJson)
         {
             if (string.IsNullOrEmpty(schemaInJson))
@@ -361,6 +356,14 @@ namespace SolTechnology.Avro.BuildSchema
             }
 
             return new JsonSchemaBuilder().BuildSchema(schemaInJson);
+        }
+
+        internal static TypeSchema Create(object obj)
+        {
+            var builder = new ReflectionSchemaBuilder();
+            var schema = builder.BuildSchema(obj?.GetType());
+
+            return schema;
         }
     }
 }

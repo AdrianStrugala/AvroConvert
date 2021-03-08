@@ -15,10 +15,10 @@
 */
 #endregion
 
-using System.Collections.Generic;
 using System.Linq;
+using SolTechnology.Avro.BuildSchema.SchemaModels;
+using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 using SolTechnology.Avro.Exceptions;
-using SolTechnology.Avro.Schema;
 
 namespace SolTechnology.Avro.Write.Resolvers
 {
@@ -44,10 +44,10 @@ namespace SolTechnology.Avro.Write.Resolvers
          * the data is byte[] and there are fixed and bytes schemas as branches, it choose the first one that matches.
          * Also it does not recognize the arrays of primitive types.
          */
-        private bool UnionBranchMatches(Schema.Schema sc, object obj)
+        private bool UnionBranchMatches(TypeSchema sc, object obj)
         {
-            if (obj == null && sc.Tag != Schema.Schema.Type.Null) return false;
-            switch (sc.Tag)
+            if (obj == null && sc.Type != Schema.Schema.Type.Null) return false;
+            switch (sc.Type)
             {
                 case Schema.Schema.Type.Null:
                     return obj == null;
@@ -78,21 +78,21 @@ namespace SolTechnology.Avro.Write.Resolvers
                     return false; // Union directly within another union not allowed!
                 case Schema.Schema.Type.Fixed:
                     //return obj is GenericFixed && (obj as GenericFixed)._schema.Equals(s);
-                    return obj is Models.Fixed &&
-                           (obj as Models.Fixed).Schema.SchemaName.Equals((sc as FixedSchema).SchemaName);
+                    return obj is FixedModel &&
+                           (obj as FixedModel).Schema.FullName.Equals((sc as FixedSchema).FullName);
                 default:
-                    throw new AvroException("Unknown schema type: " + sc.Tag);
+                    throw new AvroException("Unknown schema type: " + sc.Type);
             }
         }
 
-        private void WriteUnion(UnionSchema unionSchema, Schema.Schema[] branchSchemas, Encoder.WriteItem[] branchWriters, object value, IWriter encoder)
+        private void WriteUnion(UnionSchema unionSchema, TypeSchema[] branchSchemas, Encoder.WriteItem[] branchWriters, object value, IWriter encoder)
         {
             int index = ResolveUnion(unionSchema, branchSchemas, value);
             encoder.WriteUnionIndex(index);
             branchWriters[index](value, encoder);
         }
 
-        private int ResolveUnion(UnionSchema us, Schema.Schema[] branchSchemas, object obj)
+        private int ResolveUnion(UnionSchema us, TypeSchema[] branchSchemas, object obj)
         {
             for (int i = 0; i < branchSchemas.Length; i++)
             {

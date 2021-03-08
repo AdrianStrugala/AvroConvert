@@ -16,8 +16,8 @@
 #endregion
 
 using System.Collections;
+using SolTechnology.Avro.BuildSchema.SchemaModels;
 using SolTechnology.Avro.Exceptions;
-using SolTechnology.Avro.Schema;
 
 namespace SolTechnology.Avro.Write.Resolvers
 {

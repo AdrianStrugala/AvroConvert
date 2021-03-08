@@ -16,8 +16,8 @@
 #endregion
 
 using System;
+using SolTechnology.Avro.BuildSchema.SchemaModels;
 using SolTechnology.Avro.Exceptions;
-using SolTechnology.Avro.Schema;
 
 namespace SolTechnology.Avro.Write.Resolvers
 {
@@ -29,15 +29,15 @@ namespace SolTechnology.Avro.Write.Resolvers
             {
                 if (value is Guid guid)
                 {
-                    value = new Models.Fixed(es, guid.ToByteArray());
+                    value = new FixedModel(es, guid.ToByteArray());
                 }
 
-                else if (!(value is Models.Fixed) || !((Models.Fixed)value).Schema.Equals(es))
+                else if (!(value is Fixed) || !((FixedModel)value).Schema.Equals(es))
                 {
                     throw new AvroTypeMismatchException("[GenericFixed] required to write against [Fixed] schema but found " + value.GetType());
                 }
 
-                Models.Fixed ba = (Models.Fixed)value;
+                BuildSchema.SchemaModels.FixedModel ba = (FixedModel)value;
                 encoder.WriteFixed(ba.Value);
             };
         }

@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace SolTechnology.Avro.BuildSchema.SchemaModels.Abstract
 {
@@ -39,5 +40,9 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels.Abstract
         internal Type RuntimeType { get; }
 
         internal abstract Avro.Schema.Schema.Type Type { get; }
+
+        internal virtual bool CanRead(TypeSchema writerSchema) { return Type == writerSchema.Type; }
+
+        internal virtual string Name => Type.ToString().ToLower(CultureInfo.InvariantCulture);
     }
 }

@@ -1,5 +1,5 @@
 #region license
-/**Copyright (c) 2020 Adrian Struga³a
+/**Copyright (c) 2021 Adrian Strugala
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -16,15 +16,14 @@
 #endregion
 
 using System;
-using SolTechnology.Avro.Exceptions;
-using SolTechnology.Avro.Schema;
-using SolTechnology.Avro.Skip;
+using SolTechnology.Avro.BuildSchema.SchemaModels;
+using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 
 namespace SolTechnology.Avro.Read
 {
     internal partial class Resolver
     {
-        protected virtual object ResolveEnum(EnumSchema writerSchema, Schema.Schema readerSchema, IReader d, Type type)
+        protected virtual object ResolveEnum(EnumSchema writerSchema, TypeSchema readerSchema, IReader d, Type type)
         {
             int position = d.ReadEnum();
             string value = writerSchema.Symbols[position];

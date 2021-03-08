@@ -298,7 +298,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// </summary>
         /// <param name="type">The type.</param>
         /// <param name="schemas">The schemas.</param>
-        /// <returns>Enumeration schema.</returns>
+        /// <returns>Enum schema.</returns>
         private TypeSchema BuildEnumTypeSchema(Type type, Dictionary<string, NamedSchema> schemas)
         {
             if (type.IsFlagEnum())

@@ -169,6 +169,6 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels
             }
         }
 
-        internal override global::SolTechnology.Avro.Schema.Schema.Type Type { get; } = global::SolTechnology.Avro.Schema.Schema.Type.Enumeration;
+        internal override global::SolTechnology.Avro.Schema.Schema.Type Type { get; } = global::SolTechnology.Avro.Schema.Schema.Type.Enum;
     }
 }

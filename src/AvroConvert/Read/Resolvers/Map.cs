@@ -1,5 +1,5 @@
 #region license
-/**Copyright (c) 2020 Adrian Struga³a
+/**Copyright (c) 2021 Adrian Struga³a
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -16,18 +16,20 @@
 #endregion
 
 using System;
-using SolTechnology.Avro.Schema;
+using SolTechnology.Avro.BuildSchema.SchemaModels;
+using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
+using MapSchema = SolTechnology.Avro.BuildSchema.SchemaModels.MapSchema;
 
 namespace SolTechnology.Avro.Read
 {
     internal partial class Resolver
     {
-        protected virtual object ResolveMap(MapSchema writerSchema, Schema.Schema readerSchema, IReader d, Type type)
+        protected virtual object ResolveMap(MapSchema writerSchema, TypeSchema readerSchema, IReader d, Type type)
         {
             var containingTypes = type.GetGenericArguments();
             dynamic result = Activator.CreateInstance(type);
 
-            Schema.Schema stringSchema = PrimitiveSchema.NewInstance("string");
+            TypeSchema stringSchema = new StringSchema();
 
             MapSchema rs = (MapSchema)readerSchema;
             for (int n = (int)d.ReadMapStart(); n != 0; n = (int)d.ReadMapNext())

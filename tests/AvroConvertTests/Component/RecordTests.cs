@@ -14,7 +14,7 @@ namespace AvroConvertTests.Component
         }
 
         [Fact]
-        public void Serialize_ObjectWithNulls_ResultIsTheSameAsInput()
+        public void Serialize_Record_ResultIsTheSameAsInput()
         {
             //Arrange
             TestRecord testRecord = new TestRecord();

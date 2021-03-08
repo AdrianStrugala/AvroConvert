@@ -1,3 +1,4 @@
+#region license
 // Copyright (c) Microsoft Corporation
 // All rights reserved.
 // 
@@ -13,7 +14,9 @@
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
 
-/** Modifications copyright(C) 2020 Adrian Strugala **/
+/** Modifications copyright(C) 2021 Adrian Strugala **/
+
+#endregion
 
 using System;
 using System.Collections.Generic;
@@ -31,7 +34,7 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels
     internal sealed class RecordSchema : NamedSchema
     {
         private readonly List<RecordField> fields;
-        private readonly Dictionary<string, RecordField> fiedsByName;
+        private readonly Dictionary<string, RecordField> fieldsByName;
 
         internal RecordSchema(
             NamedEntityAttributes namedAttributes,
@@ -40,7 +43,7 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels
             : base(namedAttributes, runtimeType, attributes)
         {
             this.fields = new List<RecordField>();
-            this.fiedsByName = new Dictionary<string, RecordField>();
+            this.fieldsByName = new Dictionary<string, RecordField>(StringComparer.InvariantCultureIgnoreCase);
         }
 
         internal RecordSchema(NamedEntityAttributes namedAttributes, Type runtimeType)
@@ -56,17 +59,17 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels
             }
 
             fields.Add(field);
-            fiedsByName.Add(field.Name, field);
+            fieldsByName.Add(field.Name, field);
         }
 
         internal bool TryGetField(string fieldName, out RecordField result)
         {
-            return fiedsByName.TryGetValue(fieldName, out result);
+            return fieldsByName.TryGetValue(fieldName, out result);
         }
-        
+
         internal RecordField GetField(string fieldName)
         {
-            return fiedsByName[fieldName];
+            return fieldsByName[fieldName];
         }
 
         internal ReadOnlyCollection<RecordField> Fields => fields.AsReadOnly();

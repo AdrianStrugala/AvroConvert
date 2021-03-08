@@ -68,7 +68,7 @@ namespace SolTechnology.Avro.Write.Resolvers
                 case Schema.Schema.Type.Error:
                 case Schema.Schema.Type.Record:
                     return true;
-                case Schema.Schema.Type.Enumeration:
+                case Schema.Schema.Type.Enum:
                     return obj is System.Enum;
                 case Schema.Schema.Type.Array:
                     return !(obj is byte[]);

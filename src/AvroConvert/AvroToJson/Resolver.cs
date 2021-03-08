@@ -62,7 +62,7 @@ namespace SolTechnology.Avro.AvroToJson
                 case Schema.Schema.Type.Error:
                 case Schema.Schema.Type.Record:
                     return ResolveRecord((RecordSchema)readerSchema, d);
-                case Schema.Schema.Type.Enumeration:
+                case Schema.Schema.Type.Enum:
                     return ResolveEnum((EnumSchema)readerSchema, d);
                 case Schema.Schema.Type.Fixed:
                     return ResolveFixed((FixedSchema)readerSchema, d);

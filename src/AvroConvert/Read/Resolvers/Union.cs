@@ -16,17 +16,19 @@
 #endregion
 
 using System;
+using System.Linq;
+using SolTechnology.Avro.BuildSchema.SchemaModels;
+using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 using SolTechnology.Avro.Exceptions;
-using SolTechnology.Avro.Schema;
 
 namespace SolTechnology.Avro.Read
 {
     internal partial class Resolver
     {
-        protected virtual object ResolveUnion(UnionSchema writerSchema, Schema.Schema readerSchema, IReader d, Type type)
+        protected virtual object ResolveUnion(UnionSchema writerSchema, TypeSchema readerSchema, IReader d, Type type)
         {
             int index = d.ReadUnionIndex();
-            Schema.Schema ws = writerSchema[index];
+            TypeSchema ws = writerSchema.Schemas[index];
 
             if (readerSchema is UnionSchema unionSchema)
                 readerSchema = FindBranch(unionSchema, ws);
@@ -37,11 +39,16 @@ namespace SolTechnology.Avro.Read
             return Resolve(ws, readerSchema, d, type);
         }
 
-        protected static Schema.Schema FindBranch(UnionSchema us, Schema.Schema s)
+        protected static TypeSchema FindBranch(UnionSchema us, TypeSchema schema)
         {
-            int index = us.MatchingBranch(s);
-            if (index >= 0) return us[index];
-            throw new AvroException("No matching schema for " + s + " in " + us);
+            var resultSchema = us.Schemas.FirstOrDefault(s => s.Type == schema.Type);
+
+            if (resultSchema == null)
+            {
+                throw new AvroException("No matching schema for " + schema + " in " + us);
+            }
+
+            return resultSchema;
         }
     }
 }

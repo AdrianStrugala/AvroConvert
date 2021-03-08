@@ -72,7 +72,7 @@ namespace SolTechnology.Avro.Write
                 case Schema.Schema.Type.Error:
                 case Schema.Schema.Type.Record:
                     return Record.Resolve((RecordSchema)schema);
-                case Schema.Schema.Type.Enumeration:
+                case Schema.Schema.Type.Enum:
                     return Enum.Resolve((EnumSchema)schema);
                 case Schema.Schema.Type.Fixed:
                     return Fixed.Resolve((FixedSchema)schema);

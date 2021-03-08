@@ -33,5 +33,24 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels.Abstract
         {
             writer.WriteValue(CultureInfo.InvariantCulture.TextInfo.ToLower(this.Type.ToString()));
         }
+
+        internal override bool CanRead(TypeSchema writerSchema)
+        {
+            if (writerSchema is UnionSchema || Type == writerSchema.Type) return true;
+            Avro.Schema.Schema.Type t = writerSchema.Type;
+            switch (Type)
+            {
+                case Avro.Schema.Schema.Type.Double:
+                    return t == Avro.Schema.Schema.Type.Int || t == Avro.Schema.Schema.Type.Long || t == Avro.Schema.Schema.Type.Float;
+                case Avro.Schema.Schema.Type.Float:
+                    return t == Avro.Schema.Schema.Type.Int || t == Avro.Schema.Schema.Type.Long;
+                case Avro.Schema.Schema.Type.Long:
+                    return t == Avro.Schema.Schema.Type.Int;
+                case Avro.Schema.Schema.Type.String:
+                    return t == Avro.Schema.Schema.Type.String || t == Avro.Schema.Schema.Type.Null;
+                default:
+                    return false;
+            }
+        }
     }
 }

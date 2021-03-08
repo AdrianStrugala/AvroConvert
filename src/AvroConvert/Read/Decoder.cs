@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Linq;
+using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 using SolTechnology.Avro.Exceptions;
 using SolTechnology.Avro.FileHeader;
 using SolTechnology.Avro.FileHeader.Codec;
@@ -8,7 +9,7 @@ namespace SolTechnology.Avro.Read
 {
     internal class Decoder
     {
-        internal T Decode<T>(Stream stream, Schema.Schema readSchema)
+        internal T Decode<T>(Stream stream, TypeSchema readSchema)
         {
             var reader = new Reader(stream);
             var header = new Header();
@@ -47,8 +48,8 @@ namespace SolTechnology.Avro.Read
                     } while ((len = reader.ReadMapNext()) != 0);
                 }
 
-                readSchema = readSchema ?? Schema.Schema.Parse(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
-                Schema.Schema writeSchema = Schema.Schema.Parse(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
+                readSchema = readSchema ?? BuildSchema.Schema.Create(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
+                TypeSchema writeSchema = BuildSchema.Schema.Create(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
                 var resolver = new Resolver(writeSchema, readSchema);
 
                 // read in sync data 

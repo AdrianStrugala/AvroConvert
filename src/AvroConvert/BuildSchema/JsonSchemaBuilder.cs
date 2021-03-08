@@ -13,7 +13,7 @@
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
 
-/** Modifications copyright(C) 2020 Adrian Strugała **/
+/** Modifications copyright(C) 2021 Adrian Strugała **/
 
 using System;
 using System.Collections.Generic;
@@ -33,7 +33,7 @@ namespace SolTechnology.Avro.BuildSchema
     internal sealed class JsonSchemaBuilder
     {
         private static readonly Dictionary<string, Func<PrimitiveTypeSchema>> PrimitiveRuntimeType
-            = new Dictionary<string, Func<PrimitiveTypeSchema>>
+            = new Dictionary<string, Func<PrimitiveTypeSchema>>(comparer: StringComparer.InvariantCultureIgnoreCase)
         {
             { "null", () => new NullSchema() },
             { "boolean", () => new BooleanSchema() },
@@ -42,7 +42,7 @@ namespace SolTechnology.Avro.BuildSchema
             { "float", () => new FloatSchema() },
             { "double", () => new DoubleSchema() },
             { "bytes", () => new BytesSchema() },
-            { "string", () => new StringSchema() }
+            { "string", () => new StringSchema() },
         };
 
         private static readonly Dictionary<string, SortOrder> SortValue = new Dictionary<string, SortOrder>
@@ -134,22 +134,23 @@ namespace SolTechnology.Avro.BuildSchema
             JToken tokenType = token[Token.Type];
             if (tokenType.Type == JTokenType.String)
             {
-                var type = token.RequiredProperty<global::SolTechnology.Avro.Schema.Schema.Type>(Token.Type);
+                var typeString = token.RequiredProperty<string>(Token.Type);
+                Enum.TryParse(typeString, true, out Avro.Schema.Schema.Type type);
                 if (PrimitiveRuntimeType.ContainsKey(type.ToString()))
                 {
                     return this.ParsePrimitiveTypeFromObject(token);
                 }
                 switch (type)
                 {
-                    case global::SolTechnology.Avro.Schema.Schema.Type.Record:
+                    case Avro.Schema.Schema.Type.Record:
                         return this.ParseRecordType(token, parent, namedSchemas);
-                    case global::SolTechnology.Avro.Schema.Schema.Type.Enumeration:
+                    case Avro.Schema.Schema.Type.Enum:
                         return this.ParseEnumType(token, parent, namedSchemas);
-                    case global::SolTechnology.Avro.Schema.Schema.Type.Array:
+                    case Avro.Schema.Schema.Type.Array:
                         return this.ParseArrayType(token, parent, namedSchemas);
-                    case global::SolTechnology.Avro.Schema.Schema.Type.Map:
+                    case Avro.Schema.Schema.Type.Map:
                         return this.ParseMapType(token, parent, namedSchemas);
-                    case global::SolTechnology.Avro.Schema.Schema.Type.Fixed:
+                    case Avro.Schema.Schema.Type.Fixed:
                         return this.ParseFixedType(token, parent);
                     default:
                         throw new SerializationException(

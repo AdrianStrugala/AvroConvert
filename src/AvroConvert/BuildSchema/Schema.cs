@@ -28,11 +28,6 @@ using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 
 namespace SolTechnology.Avro.BuildSchema
 {
-    /// <summary>
-    ///     Base class for schema objects.
-    /// </summary>
-    [SuppressMessage("Microsoft.Naming", "CA1724:TypeNamesShouldNotMatchNamespaces",
-        Justification = "It is a different namespace.")]
     internal abstract class Schema
     {
         private readonly Dictionary<string, string> attributes;
@@ -362,6 +357,14 @@ namespace SolTechnology.Avro.BuildSchema
         {
             var builder = new ReflectionSchemaBuilder();
             var schema = builder.BuildSchema(obj?.GetType());
+
+            return schema;
+        }
+
+        internal static TypeSchema Create(Type type)
+        {
+            var builder = new ReflectionSchemaBuilder();
+            var schema = builder.BuildSchema(type);
 
             return schema;
         }

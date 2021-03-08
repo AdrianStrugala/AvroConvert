@@ -19,8 +19,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using SolTechnology.Avro.BuildSchema.SchemaModels;
+using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 using SolTechnology.Avro.Extensions;
-using SolTechnology.Avro.Schema;
 
 namespace SolTechnology.Avro.Read
 {
@@ -28,9 +29,9 @@ namespace SolTechnology.Avro.Read
     {
         private readonly Dictionary<Type, Func<IList>> cachedArrayInitializers = new Dictionary<Type, Func<IList>>();
 
-        internal object ResolveArray(Schema.Schema writerSchema, Schema.Schema readerSchema, IReader d, Type type, long itemsCount = 0)
+        internal object ResolveArray(TypeSchema writerSchema, TypeSchema readerSchema, IReader d, Type type, long itemsCount = 0)
         {
-            if (writerSchema.Tag == Schema.Schema.Type.Array)
+            if (writerSchema.Type == Schema.Schema.Type.Array)
             {
                 writerSchema = ((ArraySchema)writerSchema).ItemSchema;
             }
@@ -124,8 +125,8 @@ namespace SolTechnology.Avro.Read
             {
                 for (int j = 0; j < n; j++)
                 {
-                    dynamic key = Resolve(writerSchema.GetField("Key").Schema, readerSchema.GetField("Key").Schema, d, containingTypes[0]);
-                    dynamic value = Resolve(writerSchema.GetField("Value").Schema, readerSchema.GetField("Value").Schema, d, containingTypes[1]);
+                    dynamic key = Resolve(writerSchema.GetField("Key").TypeSchema, readerSchema.GetField("Key").TypeSchema, d, containingTypes[0]);
+                    dynamic value = Resolve(writerSchema.GetField("Value").TypeSchema, readerSchema.GetField("Value").TypeSchema, d, containingTypes[1]);
                     resultDictionary.Add(key, value);
                 }
             }

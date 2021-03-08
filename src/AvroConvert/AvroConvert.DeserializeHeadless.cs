@@ -28,7 +28,7 @@ namespace SolTechnology.Avro
         /// </summary>
         public static T DeserializeHeadless<T>(byte[] avroBytes, string schema)
         {
-            Schema.Schema avroSchema = Schema.Schema.Parse(schema);
+            var avroSchema = BuildSchema.Schema.Create(schema);
             var reader = new Reader(new MemoryStream(avroBytes));
             var resolver = new Resolver(avroSchema, avroSchema);
             var result = resolver.Resolve<T>(reader, 1);

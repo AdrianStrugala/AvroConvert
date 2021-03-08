@@ -15,17 +15,18 @@
 */
 #endregion
 
+using SolTechnology.Avro.BuildSchema.SchemaModels;
+using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 using SolTechnology.Avro.Exceptions;
 using SolTechnology.Avro.Read;
-using SolTechnology.Avro.Schema;
 
 namespace SolTechnology.Avro.Skip
 {
     internal class Skipper
     {
-        internal void Skip(Schema.Schema schema, IReader d)
+        internal void Skip(TypeSchema schema, IReader d)
         {
-            switch (schema.Tag)
+            switch (schema.Type)
             {
                 case Schema.Schema.Type.Null:
                     d.SkipNull();
@@ -54,10 +55,10 @@ namespace SolTechnology.Avro.Skip
                 case Schema.Schema.Type.Record:
                     foreach (var field in ((RecordSchema)schema).Fields)
                     {
-                        Skip(field.Schema, d);
+                        Skip(field.TypeSchema, d);
                     }
                     break;
-                case Schema.Schema.Type.Enumeration:
+                case Schema.Schema.Type.Enum:
                     d.SkipEnum();
                     break;
                 case Schema.Schema.Type.Fixed:
@@ -65,7 +66,7 @@ namespace SolTechnology.Avro.Skip
                     break;
                 case Schema.Schema.Type.Array:
                     {
-                        Schema.Schema s = ((ArraySchema)schema).ItemSchema;
+                        TypeSchema s = ((ArraySchema)schema).ItemSchema;
                         for (long n = d.ReadArrayStart(); n != 0; n = d.ReadArrayNext())
                         {
                             for (long i = 0; i < n; i++) Skip(s, d);
@@ -74,7 +75,7 @@ namespace SolTechnology.Avro.Skip
                     break;
                 case Schema.Schema.Type.Map:
                     {
-                        Schema.Schema s = ((MapSchema)schema).ValueSchema;
+                        TypeSchema s = ((MapSchema)schema).ValueSchema;
                         for (long n = d.ReadMapStart(); n != 0; n = d.ReadMapNext())
                         {
                             for (long i = 0; i < n; i++) { d.SkipString(); Skip(s, d); }
@@ -82,7 +83,7 @@ namespace SolTechnology.Avro.Skip
                     }
                     break;
                 case Schema.Schema.Type.Union:
-                    Skip(((UnionSchema)schema)[d.ReadUnionIndex()], d);
+                    Skip(((UnionSchema)schema).Schemas[d.ReadUnionIndex()], d);
                     break;
                 case Schema.Schema.Type.Error:
                     break;

@@ -182,7 +182,7 @@ namespace SolTechnology.Avro.Schema
                     }
                     return o.Append("}");
 
-                case Schema.Type.Enumeration:
+                case Schema.Type.Enum:
                 case Schema.Type.Fixed:
                 case Schema.Type.Record:
                     NamedSchema namedSchema = s as NamedSchema;
@@ -195,7 +195,7 @@ namespace SolTechnology.Avro.Schema
                     env.Add(name, qname);
                     o.Append("{\"name\":").Append(qname);
                     o.Append(",\"type\":\"").Append(Schema.GetTypeString(s.Tag)).Append("\"");
-                    if (st == Schema.Type.Enumeration)
+                    if (st == Schema.Type.Enum)
                     {
                         EnumSchema enumSchema = s as EnumSchema;
                         o.Append(",\"symbols\":[");

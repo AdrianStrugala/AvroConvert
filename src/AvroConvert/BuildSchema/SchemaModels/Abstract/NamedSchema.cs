@@ -13,7 +13,7 @@
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
 
-/** Modifications copyright(C) 2020 Adrian Struga³a **/
+/** Modifications copyright(C) 2021 Adrian Strugala **/
 
 using System;
 using System.Collections.Generic;
@@ -30,12 +30,6 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels.Abstract
     {
         private readonly NamedEntityAttributes attributes;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="NamedSchema" /> class.
-        /// </summary>
-        /// <param name="nameAttributes">The name attributes.</param>
-        /// <param name="runtimeType">Type of the runtime.</param>
-        /// <param name="attributes">The attributes.</param>
         internal NamedSchema(
             NamedEntityAttributes nameAttributes,
             Type runtimeType,
@@ -50,44 +44,14 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels.Abstract
             this.attributes = nameAttributes;
         }
 
-        /// <summary>
-        ///     Gets the full name.
-        /// </summary>
-        internal string FullName
-        {
-            get { return this.attributes.Name.FullName; }
-        }
+        internal string FullName => this.attributes.Name.FullName;
 
-        /// <summary>
-        ///     Gets the name.
-        /// </summary>
-        internal string Name
-        {
-            get { return this.attributes.Name.Name; }
-        }
+        internal override string Name => this.attributes.Name.Name;
 
-        /// <summary>
-        ///     Gets the namespace.
-        /// </summary>
-        internal string Namespace
-        {
-            get { return this.attributes.Name.Namespace; }
-        }
+        internal string Namespace => this.attributes.Name.Namespace;
 
-        /// <summary>
-        ///     Gets the aliases.
-        /// </summary>
-        internal ReadOnlyCollection<string> Aliases
-        {
-            get { return this.attributes.Aliases.AsReadOnly(); }
-        }
+        internal ReadOnlyCollection<string> Aliases => this.attributes.Aliases.AsReadOnly();
 
-        /// <summary>
-        ///     Gets the doc.
-        /// </summary>
-        internal string Doc
-        {
-            get { return this.attributes.Doc; }
-        }
+        internal string Doc => this.attributes.Doc;
     }
 }

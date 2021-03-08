@@ -43,7 +43,7 @@ namespace SolTechnology.Avro.Schema
             Bytes,
             String,
             Record,
-            Enumeration,
+            Enum,
             Array,
             Map,
             Union,
@@ -241,7 +241,7 @@ namespace SolTechnology.Avro.Schema
         /// <returns>symbol name</returns>
         internal static string GetTypeString(Type type)
         {
-            return type != Type.Enumeration ? type.ToString().ToLowerInvariant() : "enum";
+            return type != Type.Enum ? type.ToString().ToLowerInvariant() : "enum";
         }
 
         /// <summary>

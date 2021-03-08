@@ -16,8 +16,9 @@
 #endregion
 
 using System;
+using SolTechnology.Avro.BuildSchema.SchemaModels;
+using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 using SolTechnology.Avro.Exceptions;
-using SolTechnology.Avro.Schema;
 using SolTechnology.Avro.Skip;
 
 namespace SolTechnology.Avro.Read
@@ -25,10 +26,10 @@ namespace SolTechnology.Avro.Read
     internal partial class Resolver
     {
         private readonly Skipper _skipper;
-        private readonly Schema.Schema _readerSchema;
-        private readonly Schema.Schema _writerSchema;
+        private readonly TypeSchema _readerSchema;
+        private readonly TypeSchema _writerSchema;
 
-        internal Resolver(Schema.Schema writerSchema, Schema.Schema readerSchema)
+        internal Resolver(TypeSchema writerSchema, TypeSchema readerSchema)
         {
             _readerSchema = readerSchema;
             _writerSchema = writerSchema;
@@ -51,19 +52,19 @@ namespace SolTechnology.Avro.Read
         }
 
         internal object Resolve(
-            Schema.Schema writerSchema,
-            Schema.Schema readerSchema,
+            TypeSchema writerSchema,
+            TypeSchema readerSchema,
             IReader d,
             Type type)
         {
             try
             {
-                if (readerSchema.Tag == Schema.Schema.Type.Union && writerSchema.Tag != Schema.Schema.Type.Union)
+                if (readerSchema.Type == Schema.Schema.Type.Union && writerSchema.Type != Schema.Schema.Type.Union)
                 {
                     readerSchema = FindBranch(readerSchema as UnionSchema, writerSchema);
                 }
 
-                switch (writerSchema.Tag)
+                switch (writerSchema.Type)
                 {
                     case Schema.Schema.Type.Null:
                         return null;
@@ -84,7 +85,7 @@ namespace SolTechnology.Avro.Read
                     case Schema.Schema.Type.Error:
                     case Schema.Schema.Type.Record:
                         return ResolveRecord((RecordSchema)writerSchema, (RecordSchema)readerSchema, d, type);
-                    case Schema.Schema.Type.Enumeration:
+                    case Schema.Schema.Type.Enum:
                         return ResolveEnum((EnumSchema)writerSchema, readerSchema, d, type);
                     case Schema.Schema.Type.Fixed:
                         return ResolveFixed((FixedSchema)writerSchema, readerSchema, d, type);
@@ -100,7 +101,7 @@ namespace SolTechnology.Avro.Read
             }
             catch (Exception e)
             {
-                throw new AvroTypeMismatchException($"Unable to deserialize [{writerSchema.Name}] of schema [{writerSchema.Tag}] to the target type [{type}]", e);
+                throw new AvroTypeMismatchException($"Unable to deserialize [{writerSchema.Name}] of schema [{writerSchema.Type}] to the target type [{type}]", e);
             }
         }
     }

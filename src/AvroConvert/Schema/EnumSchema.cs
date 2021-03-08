@@ -102,7 +102,7 @@ namespace SolTechnology.Avro.Schema
         private EnumSchema(SchemaName name, IList<SchemaName> aliases, List<string> symbols,
                             IDictionary<String, int> symbolMap, PropertyMap props, SchemaNames names,
                             string doc, string defaultSymbol)
-                            : base(Type.Enumeration, name, aliases, props, names, doc)
+                            : base(Type.Enum, name, aliases, props, names, doc)
         {
             if (null == name.Name) throw new SchemaParseException("name cannot be null for enum schema.");
             this.Symbols = symbols;
@@ -162,7 +162,7 @@ namespace SolTechnology.Avro.Schema
             get
             {
                 if (index < Symbols.Count) return Symbols[index];
-                throw new AvroException("Enumeration out of range. Must be less than " + Symbols.Count + ", but is " + index);
+                throw new AvroException("Enum out of range. Must be less than " + Symbols.Count + ", but is " + index);
             }
         }
 
@@ -179,7 +179,7 @@ namespace SolTechnology.Avro.Schema
         /// <summary>
         /// Returns an enumerator that enumerates the symbols in this enum schema in the order of their definition.
         /// </summary>
-        /// <returns>Enumeration over the symbols of this enum schema</returns>
+        /// <returns>Enum over the symbols of this enum schema</returns>
         internal IEnumerator<string> GetEnumerator()
         {
             return Symbols.GetEnumerator();

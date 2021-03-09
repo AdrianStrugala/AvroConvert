@@ -223,7 +223,28 @@ namespace SolTechnology.Avro.BuildSchema
             {
                 return null;
             }
-            return TypeToAvroLogicalSchemaMap[type](type);
+
+            //
+            //              BACKWARD COMPATIBILITY HACK BELOW
+            //
+            //return TypeToAvroLogicalSchemaMap[type](type);
+
+            var logicalSchema = TypeToAvroLogicalSchemaMap[type](type);
+
+            TypeSchema hackSchema;
+            if (type == typeof(Guid))
+            {
+                var recordName = new SchemaName(type.GetStrippedFullName());
+                var attributes = new NamedEntityAttributes(recordName, new List<string>(), string.Empty);
+                hackSchema = new FixedSchema(attributes, 16, type);
+            }
+            else
+            {
+                hackSchema = TypeToAvroPrimitiveSchemaMap[type](type);
+            }
+           
+            var result = new UnionSchema(new List<TypeSchema> {logicalSchema, hackSchema}, type);
+            return result;
         }
 
         /// <summary>
@@ -370,15 +391,6 @@ namespace SolTechnology.Avro.BuildSchema
                 return schema;
             }
 
-            if (type == typeof(Guid))
-            {
-                var recordName = new SchemaName(type.GetStrippedFullName());
-                var attributes = new NamedEntityAttributes(recordName, new List<string>(), string.Empty);
-                var result = new FixedSchema(attributes, 16, type);
-                schemas.Add(type.ToString(), result);
-                return result;
-            }
-
             var attr = this.GetNamedEntityAttributesFrom(type);
             AvroContractResolver resolver = this.settings.Resolver;
             var record = new RecordSchema(
@@ -435,7 +447,7 @@ namespace SolTechnology.Avro.BuildSchema
             }
 
 
-            return new UnionSchema(result.Select(type => this.CreateNotNullableSchema(type, schemas, currentDepth + 1)).ToList(), memberType);
+            return new UnionSchema(result.Select(type => CreateNotNullableSchema(type, schemas, currentDepth + 1)).ToList(), memberType);
         }
 
         private FixedSchema TryBuildFixedSchema(Type memberType, MemberInfo memberInfo, NamedSchema parentSchema)

@@ -35,6 +35,7 @@ namespace SolTechnology.Avro.Write
         private static readonly Fixed Fixed;
         private static readonly Union Union;
         private static readonly Long Long;
+        private static readonly Uuid Uuid;
 
         static Resolver()
         {
@@ -47,6 +48,7 @@ namespace SolTechnology.Avro.Write
             Fixed = new Fixed();
             Union = new Union();
             Long = new Long();
+            Uuid = new Uuid();
         }
 
         internal static Encoder.WriteItem ResolveWriter(TypeSchema schema)
@@ -70,6 +72,16 @@ namespace SolTechnology.Avro.Write
                 case Schema.Schema.Type.Bytes:
                     return (v, e) => Write<byte[]>(v, schema.Type, e.WriteBytes);
                 case Schema.Schema.Type.Error:
+                case Schema.Schema.Type.Logical:
+                {
+                    var logicalTypeSchema = (LogicalTypeSchema)schema;
+                    switch (logicalTypeSchema.LogicalTypeName)
+                    {
+                            case LogicalTypeSchema.LogicalTypeEnum.Uuid:
+                                return Uuid.Resolve((UuidSchema) logicalTypeSchema);
+                    }
+                }
+                    return String.Resolve;
                 case Schema.Schema.Type.Record:
                     return Record.Resolve((RecordSchema)schema);
                 case Schema.Schema.Type.Enum:

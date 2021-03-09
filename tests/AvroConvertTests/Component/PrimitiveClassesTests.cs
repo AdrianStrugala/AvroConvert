@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using SolTechnology.Avro;
 using AutoFixture;
 using Castle.Core.Internal;
@@ -46,6 +47,8 @@ namespace AvroConvertTests.Component
             //Act
 
             var result = AvroConvert.Serialize(testClass);
+
+            File.WriteAllBytes("x", result);
 
             var deserialized = AvroConvert.Deserialize<ClassWithGuid>(result);
 

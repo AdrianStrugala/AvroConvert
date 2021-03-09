@@ -74,6 +74,17 @@ namespace AvroConvertTests
         public TestEnum EnumProp { get; set; }
     }
 
+
+    [Equals(DoNotAddEqualityOperators = true)]
+    public class LogicalTypesClass
+    {
+        public decimal One { get; set; }
+        public Guid? Two { get; set; }
+        public TimeSpan Three { get; set; }
+        public DateTime? Four { get; set; }
+        public DateTimeOffset Five { get; set; }
+    }
+
     [Equals(DoNotAddEqualityOperators = true)]
     public class ClassWithConstructorPopulatingProperty
     {

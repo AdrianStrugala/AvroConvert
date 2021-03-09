@@ -16,7 +16,6 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 
 namespace SolTechnology.Avro.BuildSchema.SchemaModels
@@ -31,6 +30,6 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels
 
         internal override Avro.Schema.Schema.Type Type => Avro.Schema.Schema.Type.Logical;
         internal override TypeSchema BaseTypeSchema { get; set; }
-        internal override string LogicalTypeName => "uuid";
+        internal override string LogicalTypeName => LogicalTypeEnum.Uuid;
     }
 }

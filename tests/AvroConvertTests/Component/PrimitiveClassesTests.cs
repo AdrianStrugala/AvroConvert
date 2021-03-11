@@ -207,6 +207,7 @@ namespace AvroConvertTests.Component
             //Arrange
             decimal testObject = 21.37m;
 
+
             //Act
             var result = AvroConvert.Serialize(testObject);
 

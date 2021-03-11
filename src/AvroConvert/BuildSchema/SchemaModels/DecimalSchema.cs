@@ -17,9 +17,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Numerics;
+using Avro.Generic;
 using Newtonsoft.Json;
 using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 using SolTechnology.Avro.Exceptions;
+using NamedSchema = SolTechnology.Avro.BuildSchema.SchemaModels.Abstract.NamedSchema;
 
 namespace SolTechnology.Avro.BuildSchema.SchemaModels
 {
@@ -66,97 +70,60 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels
             writer.WriteEndObject();
         }
 
+        internal object ConvertToBaseValue(object logicalValue, DecimalSchema schema)
+        {
+            var decimalValue = new AvroDecimal((decimal) logicalValue);
+            var logicalScale = Scale;
+            var scale = decimalValue.Scale;
 
+            if (scale != logicalScale)
+            {
+                //Resize
+                int sizeDiff = logicalScale - scale;
+                string trailingZeros = new string('0', sizeDiff);
+                var resizedDecimal = decimal.Parse($"{logicalValue}{trailingZeros}");
 
-
-        /// <inheritdoc/>
-        // internal override void ValidateSchema(LogicalSchema schema)
-        // {
-        //     if (Schema.Schema.Type.Bytes != schema.BaseSchema.Tag && Schema.Schema.Type.Fixed != schema.BaseSchema.Tag)
-        //         throw new AvroTypeException("'decimal' can only be used with an underlying bytes or fixed type");
-        //
-        //     var precisionVal = schema.GetProperty("precision");
-        //
-        //     if (string.IsNullOrEmpty(precisionVal))
-        //         throw new AvroTypeException("'decimal' requires a 'precision' property");
-        //
-        //     var precision = int.Parse(precisionVal, CultureInfo.CurrentCulture);
-        //
-        //     if (precision <= 0)
-        //         throw new AvroTypeException("'decimal' requires a 'precision' property that is greater than zero");
-        //
-        //     var scale = GetScalePropertyValueFromSchema(schema);
-        //
-        //     if (scale < 0 || scale > precision)
-        //         throw new AvroTypeException("'decimal' requires a 'scale' property that is zero or less than or equal to 'precision'");
-        // }
-        //
-        // /// <inheritdoc/>      
-        // internal override object ConvertToBaseValue(object logicalValue, LogicalSchema schema)
-        // {
-        //     var decimalValue = (AvroDecimal)logicalValue;
-        //     var logicalScale = GetScalePropertyValueFromSchema(schema);
-        //     var scale = decimalValue.Scale;
-        //
-        //     if (scale != logicalScale)
-        //         throw new ArgumentOutOfRangeException(nameof(logicalValue), $"The decimal value has a scale of {scale} which cannot be encoded against a logical 'decimal' with a scale of {logicalScale}");
-        //
-        //     var buffer = decimalValue.UnscaledValue.ToByteArray();
-        //
-        //     Array.Reverse(buffer);
-        //
-        //     return Schema.Schema.Type.Bytes == schema.BaseSchema.Tag
-        //         ? (object)buffer
-        //         : (object)new GenericFixed(
-        //             (FixedSchema)schema.BaseSchema,
-        //             GetDecimalFixedByteArray(buffer, ((FixedSchema)schema.BaseSchema).Size,
-        //             decimalValue.Sign < 0 ? (byte)0xFF : (byte)0x00));
-        // }
-        //
-        // /// <inheritdoc/>
-        // internal override object ConvertToLogicalValue(object baseValue, LogicalSchema schema)
-        // {
-        //     var buffer = Schema.Schema.Type.Bytes == schema.BaseSchema.Tag
-        //         ? (byte[])baseValue
-        //         : ((GenericFixed)baseValue).Value;
-        //
-        //     Array.Reverse(buffer);
-        //
-        //     return new AvroDecimal(new BigInteger(buffer), GetScalePropertyValueFromSchema(schema));
-        // }
-        //
-        // /// <inheritdoc/>
-        // internal override Type GetCSharpType(bool nullible)
-        // {
-        //     return nullible ? typeof(AvroDecimal?) : typeof(AvroDecimal);
-        // }
-        //
-        // /// <inheritdoc/>
-        // internal override bool IsInstanceOfLogicalType(object logicalValue)
-        // {
-        //     return logicalValue is AvroDecimal;
-        // }
-        //
-        // private static int GetScalePropertyValueFromSchema(Schema.Schema schema, int defaultVal = 0)
-        // {
-        //     var scaleVal = schema.GetProperty("scale");
-        //
-        //     return string.IsNullOrEmpty(scaleVal) ? defaultVal : int.Parse(scaleVal, CultureInfo.CurrentCulture);
-        // }
-        //
-        // private static byte[] GetDecimalFixedByteArray(byte[] sourceBuffer, int size, byte fillValue)
-        // {
-        //     var paddedBuffer = new byte[size];
-        //
-        //     var offset = size - sourceBuffer.Length;
-        //
-        //     for (var idx = 0; idx < size; idx++)
-        //     {
-        //         paddedBuffer[idx] = idx < offset ? fillValue : sourceBuffer[idx - offset];
-        //     }
-        //
-        //     return paddedBuffer;
-        // }
+                decimalValue = new AvroDecimal(resizedDecimal);
+            }
+                
+        
+            var buffer = decimalValue.UnscaledValue.ToByteArray();
+        
+            Array.Reverse(buffer);
+        
+            return Avro.Schema.Schema.Type.Bytes == schema.BaseTypeSchema.Type
+                ? (object)buffer
+                : (object)new FixedModel(
+                    (FixedSchema)schema.BaseTypeSchema,
+                    GetDecimalFixedByteArray(buffer, ((FixedSchema)schema.BaseTypeSchema).Size,
+                    decimalValue.Sign < 0 ? (byte)0xFF : (byte)0x00));
+        }
+        
+        internal object ConvertToLogicalValue(object baseValue, DecimalSchema schema)
+        {
+            var buffer = Avro.Schema.Schema.Type.Bytes == schema.BaseTypeSchema.Type
+                ? (byte[])baseValue
+                : ((GenericFixed)baseValue).Value;
+        
+            Array.Reverse(buffer);
+        
+            return new AvroDecimal(new BigInteger(buffer), Scale);
+        }
+        
+        
+        private static byte[] GetDecimalFixedByteArray(byte[] sourceBuffer, int size, byte fillValue)
+        {
+            var paddedBuffer = new byte[size];
+        
+            var offset = size - sourceBuffer.Length;
+        
+            for (var idx = 0; idx < size; idx++)
+            {
+                paddedBuffer[idx] = idx < offset ? fillValue : sourceBuffer[idx - offset];
+            }
+        
+            return paddedBuffer;
+        }
 
 
     }

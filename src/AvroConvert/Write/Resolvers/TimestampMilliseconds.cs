@@ -21,9 +21,9 @@ using SolTechnology.Avro.Exceptions;
 
 namespace SolTechnology.Avro.Write.Resolvers
 {
-    internal class Uuid
+    internal class TimestampMilliseconds
     {
-        internal Encoder.WriteItem Resolve(UuidSchema schema)
+        internal Encoder.WriteItem Resolve(TimestampMillisecondsSchema schema)
         {
             return (value, encoder) =>
             {

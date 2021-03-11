@@ -19,6 +19,9 @@ using System.Linq;
 using SolTechnology.Avro.BuildSchema.SchemaModels;
 using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 using SolTechnology.Avro.Exceptions;
+using SolTechnology.Avro.Schema;
+using FixedSchema = SolTechnology.Avro.BuildSchema.SchemaModels.FixedSchema;
+using UnionSchema = SolTechnology.Avro.BuildSchema.SchemaModels.UnionSchema;
 
 namespace SolTechnology.Avro.Write.Resolvers
 {
@@ -80,6 +83,9 @@ namespace SolTechnology.Avro.Write.Resolvers
                     //return obj is GenericFixed && (obj as GenericFixed)._schema.Equals(s);
                     return obj is FixedModel &&
                            (obj as FixedModel).Schema.FullName.Equals((sc as FixedSchema).FullName);
+                case Schema.Schema.Type.Logical:
+                    // return (sc as LogicalTypeSchema).IsInstanceOfLogicalType(obj);
+                    return true;
                 default:
                     throw new AvroException("Unknown schema type: " + sc.Type);
             }
@@ -98,6 +104,7 @@ namespace SolTechnology.Avro.Write.Resolvers
             {
                 if (UnionBranchMatches(branchSchemas[i], obj)) return i;
             }
+
             throw new AvroException("Cannot find a match for " + obj.GetType() + " in " + us);
         }
     }

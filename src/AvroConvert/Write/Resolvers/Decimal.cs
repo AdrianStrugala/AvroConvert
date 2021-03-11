@@ -15,24 +15,24 @@
 */
 #endregion
 
-using System;
 using SolTechnology.Avro.BuildSchema.SchemaModels;
 using SolTechnology.Avro.Exceptions;
 
 namespace SolTechnology.Avro.Write.Resolvers
 {
-    internal class Uuid
+    internal class Decimal
     {
-        internal Encoder.WriteItem Resolve(UuidSchema schema)
+        internal Encoder.WriteItem Resolve(DecimalSchema schema)
         {
             return (value, encoder) =>
             {
-                if (!(value is Guid))
+                if (!(schema.BaseTypeSchema is BytesSchema))
                 {
-                    throw new AvroTypeMismatchException($"[Uuid] required to write against [Guid] of [string] schema but found [{value.GetType()}]" );
+                    throw new AvroTypeMismatchException($"[Decimal] required to write against [decimal] of [Bytes] schema but found [{schema.BaseTypeSchema}]");
                 }
 
-                encoder.WriteString(((Guid)value).ToString());
+                var bytesValue = (byte[])schema.ConvertToBaseValue(value, schema);
+                encoder.WriteBytes(bytesValue);
             };
         }
     }

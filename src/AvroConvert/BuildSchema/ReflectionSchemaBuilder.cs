@@ -227,24 +227,24 @@ namespace SolTechnology.Avro.BuildSchema
             //
             //              BACKWARD COMPATIBILITY HACK BELOW
             //
-            //return TypeToAvroLogicalSchemaMap[type](type);
+            return TypeToAvroLogicalSchemaMap[type](type);
 
-            var logicalSchema = TypeToAvroLogicalSchemaMap[type](type);
-
-            TypeSchema hackSchema;
-            if (type == typeof(Guid))
-            {
-                var recordName = new SchemaName(type.GetStrippedFullName());
-                var attributes = new NamedEntityAttributes(recordName, new List<string>(), string.Empty);
-                hackSchema = new FixedSchema(attributes, 16, type);
-            }
-            else
-            {
-                hackSchema = TypeToAvroPrimitiveSchemaMap[type](type);
-            }
-           
-            var result = new UnionSchema(new List<TypeSchema> {logicalSchema, hackSchema}, type);
-            return result;
+            // var logicalSchema = TypeToAvroLogicalSchemaMap[type](type);
+            //
+            // TypeSchema hackSchema;
+            // if (type == typeof(Guid))
+            // {
+            //     var recordName = new SchemaName(type.GetStrippedFullName());
+            //     var attributes = new NamedEntityAttributes(recordName, new List<string>(), string.Empty);
+            //     hackSchema = new FixedSchema(attributes, 16, type);
+            // }
+            // else
+            // {
+            //     hackSchema = TypeToAvroPrimitiveSchemaMap[type](type);
+            // }
+            //
+            // var result = new UnionSchema(new List<TypeSchema> {logicalSchema, hackSchema}, type);
+            // return result;
         }
 
         /// <summary>

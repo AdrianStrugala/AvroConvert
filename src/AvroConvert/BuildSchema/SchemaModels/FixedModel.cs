@@ -67,7 +67,7 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels
 
         internal byte[] Value
         {
-            get { return this._value; }
+            get => _value;
             set
             {
                 if (value.Length == this._value.Length)

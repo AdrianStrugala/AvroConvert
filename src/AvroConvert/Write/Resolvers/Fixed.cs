@@ -37,7 +37,7 @@ namespace SolTechnology.Avro.Write.Resolvers
                     throw new AvroTypeMismatchException("[GenericFixed] required to write against [Fixed] schema but found " + value.GetType());
                 }
 
-                BuildSchema.SchemaModels.FixedModel ba = (FixedModel)value;
+                FixedModel ba = (FixedModel)value;
                 encoder.WriteFixed(ba.Value);
             };
         }

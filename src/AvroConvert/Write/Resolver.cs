@@ -36,6 +36,9 @@ namespace SolTechnology.Avro.Write
         private static readonly Union Union;
         private static readonly Long Long;
         private static readonly Uuid Uuid;
+        private static readonly Decimal Decimal;
+        private static readonly Duration Duration;
+        private static readonly TimestampMilliseconds TimestampMilliseconds;
 
         static Resolver()
         {
@@ -49,6 +52,9 @@ namespace SolTechnology.Avro.Write
             Union = new Union();
             Long = new Long();
             Uuid = new Uuid();
+            Decimal = new Decimal();
+            Duration = new Duration();
+            TimestampMilliseconds = new TimestampMilliseconds();
         }
 
         internal static Encoder.WriteItem ResolveWriter(TypeSchema schema)
@@ -79,6 +85,13 @@ namespace SolTechnology.Avro.Write
                     {
                             case LogicalTypeSchema.LogicalTypeEnum.Uuid:
                                 return Uuid.Resolve((UuidSchema) logicalTypeSchema);
+                            case LogicalTypeSchema.LogicalTypeEnum.Decimal:
+                                // return (v, e) => Write<byte[]>(v, ((DecimalSchema)schema).BaseTypeSchema.Type, e.WriteBytes);
+                                return Decimal.Resolve((DecimalSchema)logicalTypeSchema);
+                            case LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds:
+                                return TimestampMilliseconds.Resolve((TimestampMillisecondsSchema)logicalTypeSchema);
+                            case LogicalTypeSchema.LogicalTypeEnum.Duration:
+                                return Duration.Resolve((DurationSchema)logicalTypeSchema);
                     }
                 }
                     return String.Resolve;
@@ -117,7 +130,7 @@ namespace SolTechnology.Avro.Write
 
             if (!(value is S))
                 throw new AvroTypeMismatchException(
-                    $"[{typeof(S)}] required to write against [{tag.ToString()}] schema but found " + value.GetType());
+                    $"[{typeof(S)}] required to write against [{tag.ToString()}] schema but found " + value?.GetType());
 
             writer((S)value);
         }

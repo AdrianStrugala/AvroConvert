@@ -27,12 +27,14 @@ namespace SolTechnology.Avro.Write.Resolvers
         {
             return (value, encoder) =>
             {
-                if (!(value is Guid))
+                if (!(value is TimeSpan))
                 {
-                    throw new AvroTypeMismatchException($"[Uuid] required to write against [Guid] of [string] schema but found [{value.GetType()}]" );
+                    throw new AvroTypeMismatchException($"[Duration] required to write against [TimeSpan] of [fixed] schema but found [{value.GetType()}]");
                 }
 
-                encoder.WriteString(((Guid)value).ToString());
+                byte[] bytes = (byte[])schema.ConvertToBaseValue(value, schema);
+
+                encoder.WriteFixed(bytes);
             };
         }
     }

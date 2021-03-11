@@ -86,7 +86,6 @@ namespace SolTechnology.Avro.Write
                             case LogicalTypeSchema.LogicalTypeEnum.Uuid:
                                 return Uuid.Resolve((UuidSchema) logicalTypeSchema);
                             case LogicalTypeSchema.LogicalTypeEnum.Decimal:
-                                // return (v, e) => Write<byte[]>(v, ((DecimalSchema)schema).BaseTypeSchema.Type, e.WriteBytes);
                                 return Decimal.Resolve((DecimalSchema)logicalTypeSchema);
                             case LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds:
                                 return TimestampMilliseconds.Resolve((TimestampMillisecondsSchema)logicalTypeSchema);

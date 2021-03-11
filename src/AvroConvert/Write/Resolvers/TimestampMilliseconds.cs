@@ -27,12 +27,13 @@ namespace SolTechnology.Avro.Write.Resolvers
         {
             return (value, encoder) =>
             {
-                if (!(value is Guid))
+                if (!(schema.BaseTypeSchema is LongSchema))
                 {
-                    throw new AvroTypeMismatchException($"[Uuid] required to write against [Guid] of [string] schema but found [{value.GetType()}]" );
+                    throw new AvroTypeMismatchException($"[TimestampMilliseconds] required to write against [long] of [Long] schema but found [{schema.BaseTypeSchema}]");
                 }
 
-                encoder.WriteString(((Guid)value).ToString());
+                var bytesValue = (long)schema.ConvertToBaseValue(value, schema);
+                encoder.WriteLong(bytesValue);
             };
         }
     }

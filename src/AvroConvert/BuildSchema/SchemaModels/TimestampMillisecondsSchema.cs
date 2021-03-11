@@ -16,8 +16,8 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
+using SolTechnology.Avro.Extensions;
 
 namespace SolTechnology.Avro.BuildSchema.SchemaModels
 {
@@ -32,5 +32,26 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels
         internal override Avro.Schema.Schema.Type Type => Avro.Schema.Schema.Type.Logical;
         internal override TypeSchema BaseTypeSchema { get; set; }
         internal override string LogicalTypeName => "timestamp-millis";
+
+        public object ConvertToBaseValue(object logicalValue, TimestampMillisecondsSchema schema)
+        {
+            DateTime date;
+            if (logicalValue is DateTimeOffset dateTimeOffset)
+            {
+                date = dateTimeOffset.DateTime;
+            }
+            else
+            {
+                date = ((DateTime)logicalValue).ToUniversalTime();
+            }
+
+            return (long)(date - DateTimeExtensions.UnixEpochDateTime).TotalMilliseconds;
+        }
+
+        public object ConvertToLogicalValue(object baseValue, TimestampMillisecondsSchema schema)
+        {
+            var noMs = (long)baseValue;
+            return DateTimeExtensions.UnixEpochDateTime.AddMilliseconds(noMs);
+        }
     }
 }

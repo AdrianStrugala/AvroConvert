@@ -16,16 +16,18 @@
 #endregion
 
 using System;
+using SolTechnology.Avro.BuildSchema.SchemaModels;
 
 namespace SolTechnology.Avro.Read
 {
     internal partial class Resolver
     {
-        internal object ResolveUuid(IReader reader)
+        private object ResolveDecimal(DecimalSchema writerSchema, DecimalSchema readerSchema, IReader reader, Type type)
         {
-            var value = reader.ReadString();
+            var value = reader.ReadBytes();
 
-            return Guid.Parse(value);
+            var result = writerSchema.ConvertToLogicalValue(value, writerSchema);
+            return AvroDecimal.ToDecimal((AvroDecimal)result);
         }
     }
 }

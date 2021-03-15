@@ -23,6 +23,9 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels
 
     internal sealed class UuidSchema : LogicalTypeSchema
     {
+        public UuidSchema(): this(typeof(Guid))
+        {
+        }
         public UuidSchema(Type runtimeType) : base(runtimeType)
         {
             BaseTypeSchema = new StringSchema();

@@ -1,11 +1,10 @@
 ﻿using System;
-using System.IO;
-using SolTechnology.Avro;
+using System.Globalization;
 using AutoFixture;
-using Castle.Core.Internal;
+using SolTechnology.Avro;
 using Xunit;
 
-namespace AvroConvertTests.Component
+namespace AvroConvertComponentTests.DefaultSerializationDeserialization
 {
     public class PrimitiveClassesTests
     {
@@ -36,26 +35,6 @@ namespace AvroConvertTests.Component
             Assert.Equal(user.name, deserialized.name);
             Assert.True(Comparison.AreEqual(user.favorite_color, deserialized.favorite_color));
             Assert.Equal(user.favorite_number, deserialized.favorite_number);
-        }
-
-        [Fact]
-        public void Serialize_ObjectContainsGuid_ResultIsTheSameAsInput()
-        {
-            //Arrange
-            ClassWithGuid testClass = _fixture.Create<ClassWithGuid>();
-
-            //Act
-
-            var result = AvroConvert.Serialize(testClass);
-
-            File.WriteAllBytes("x", result);
-
-            var deserialized = AvroConvert.Deserialize<ClassWithGuid>(result);
-
-            //Assert
-            Assert.NotNull(result);
-            Assert.NotNull(deserialized);
-            Assert.Equal(testClass.theGuid, deserialized.theGuid);
         }
 
         [Fact]
@@ -201,21 +180,28 @@ namespace AvroConvertTests.Component
             Assert.Equal(testObject, deserialized);
         }
 
-        [Fact]
-        public void Serialize_Decimal_ResultIsTheSameAsInput()
+        [Theory]
+        [InlineData(21.37)]
+        [InlineData(1234.56)]
+        [InlineData(-1234.56)]
+        [InlineData(123456789123456789.56)]
+        [InlineData(-123456789123456789.56)]
+        [InlineData(000000000000000001.01)]
+        [InlineData(-000000000000000001.01)]
+        public void Serialize_Decimal_ResultIsTheSameAsInput(double testObject)
         {
             //Arrange
-            decimal testObject = 21.37m;
+            decimal testDecimal = Convert.ToDecimal(testObject);
 
 
             //Act
-            var result = AvroConvert.Serialize(testObject);
+            var result = AvroConvert.Serialize(testDecimal);
 
             var deserialized = AvroConvert.Deserialize<decimal>(result);
 
             //Assert
             Assert.NotNull(result);
-            Assert.Equal(testObject, deserialized);
+            Assert.Equal(testDecimal, deserialized);
         }
     }
 }

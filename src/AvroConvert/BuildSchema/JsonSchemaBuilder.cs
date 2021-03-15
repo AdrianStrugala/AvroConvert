@@ -13,7 +13,7 @@
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
 
-/** Modifications copyright(C) 2021 Adrian Strugała **/
+/** Modifications copyright(C) 2021 Adrian Strugala **/
 
 using System;
 using System.Collections.Generic;
@@ -136,10 +136,7 @@ namespace SolTechnology.Avro.BuildSchema
             {
                 var typeString = token.RequiredProperty<string>(Token.Type);
                 Enum.TryParse(typeString, true, out Avro.Schema.Schema.Type type);
-                if (PrimitiveRuntimeType.ContainsKey(type.ToString()))
-                {
-                    return this.ParsePrimitiveTypeFromObject(token);
-                }
+
                 switch (type)
                 {
                     case Avro.Schema.Schema.Type.Record:
@@ -153,8 +150,21 @@ namespace SolTechnology.Avro.BuildSchema
                     case Avro.Schema.Schema.Type.Fixed:
                         return this.ParseFixedType(token, parent);
                     default:
-                        throw new SerializationException(
+                        {
+                            var logicalType = token.OptionalProperty<string>(Token.LogicalType);
+                            if (logicalType != null)
+                            {
+                                return this.ParseLogicalType(token, parent, namedSchemas, logicalType);
+                            }
+
+                            if (PrimitiveRuntimeType.ContainsKey(type.ToString()))
+                            {
+                                return this.ParsePrimitiveTypeFromObject(token);
+                            }
+
+                            throw new SerializationException(
                             string.Format(CultureInfo.InvariantCulture, "Invalid type specified: '{0}'.", type));
+                        }
                 }
             }
 
@@ -286,6 +296,37 @@ namespace SolTechnology.Avro.BuildSchema
 
             var valueSchema = this.Parse(valueType, parent, namedSchemas);
             return new MapSchema(new StringSchema(), valueSchema, typeof(Dictionary<string, object>));
+        }
+
+        private TypeSchema ParseLogicalType(JObject token, NamedSchema parent, Dictionary<string, NamedSchema> namedSchemas, string logicalType)
+        {
+            TypeSchema result;
+            switch (logicalType)
+            {
+                case LogicalTypeSchema.LogicalTypeEnum.Uuid:
+                    result = new UuidSchema();
+                    break;
+                case LogicalTypeSchema.LogicalTypeEnum.Decimal:
+                    var scale = token.OptionalProperty<int>(nameof(DecimalSchema.Scale).ToLower());
+                    var precision = token.RequiredProperty<int>(nameof(DecimalSchema.Precision).ToLower());
+                    result = new DecimalSchema(typeof(decimal), precision, scale);
+                    break;
+                case LogicalTypeSchema.LogicalTypeEnum.Duration:
+                    result = new DurationSchema();
+                    break;
+                case LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds:
+                    result = new TimestampMillisecondsSchema();
+                    break;
+                case LogicalTypeSchema.LogicalTypeEnum.TimestampMicroseconds:
+                    result = new TimestampMicrosecondsSchema();
+                    break;
+                //TODO: time-millis, time-micros, date 
+                default:
+                    throw new SerializationException(
+                        string.Format(CultureInfo.InvariantCulture, "Unknown LogicalType schema :'{0}'.", logicalType));
+            }
+
+            return result;
         }
 
         /// <summary>

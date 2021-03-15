@@ -3,7 +3,7 @@ using SolTechnology.Avro;
 using SolTechnology.Avro.FileHeader.Codec;
 using Xunit;
 
-namespace AvroConvertTests.CodecTests.Brotli
+namespace AvroConvertComponentTests.CodecTests.Brotli
 {
     public class BrotliComponentTests
     {

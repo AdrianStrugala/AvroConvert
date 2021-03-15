@@ -3,7 +3,7 @@ using SolTechnology.Avro;
 using SolTechnology.Avro.FileHeader.Codec;
 using Xunit;
 
-namespace AvroConvertTests.CodecTests.Deflate
+namespace AvroConvertComponentTests.CodecTests.Deflate
 {
     public class DeflateComponentTests
     {

@@ -1,11 +1,11 @@
-﻿using System.ComponentModel;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.Serialization;
 using SolTechnology.Avro.Attributes;
 
-namespace AvroConvertTests
+namespace AvroConvertComponentTests
 {
     [Equals(DoNotAddEqualityOperators = true)]
     public class User

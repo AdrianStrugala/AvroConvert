@@ -1,11 +1,10 @@
-﻿using SolTechnology.Avro;
+﻿using System;
+using AutoFixture;
+using SolTechnology.Avro;
+using Xunit;
 
-namespace AvroConvertTests.Component
+namespace AvroConvertComponentTests.DefaultSerializationDeserialization
 {
-    using System;
-    using AutoFixture;
-    using Xunit;
-
     public class DateTimeClassTests
     {
         private readonly Fixture _fixture;

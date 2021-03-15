@@ -26,6 +26,9 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels
 
     internal sealed class DurationSchema : LogicalTypeSchema
     {
+        public DurationSchema() : this(typeof(TimeSpan))
+        {
+        }
         public DurationSchema(Type runtimeType) : base(runtimeType)
         {
             BaseTypeSchema = new FixedSchema(

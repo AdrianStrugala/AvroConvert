@@ -2,7 +2,7 @@
 using SolTechnology.Avro;
 using Xunit;
 
-namespace AvroConvertTests.Component
+namespace AvroConvertComponentTests.DefaultSerializationDeserialization
 {
     public class RecordTests
     {

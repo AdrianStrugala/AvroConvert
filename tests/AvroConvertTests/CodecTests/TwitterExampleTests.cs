@@ -2,7 +2,7 @@
 using SolTechnology.Avro;
 using Xunit;
 
-namespace AvroConvertTests.CodecTests
+namespace AvroConvertComponentTests.CodecTests
 {
     public class TwitterExampleTests
     {

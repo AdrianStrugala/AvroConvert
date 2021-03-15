@@ -1,7 +1,7 @@
 ﻿using SolTechnology.Avro;
 using Xunit;
 
-namespace AvroConvertTests.GenerateSchemaTests
+namespace AvroConvertComponentTests.GenerateSchemaTests
 {
     public class AttributesClassesTests
     {

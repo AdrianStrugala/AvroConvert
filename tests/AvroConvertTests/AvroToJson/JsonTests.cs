@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
-using SolTechnology.Avro;
 using Xunit;
 
-namespace AvroConvertTests.AvroToJson
+namespace AvroConvertComponentTests.AvroToJson
 {
     public class JsonTests
     {

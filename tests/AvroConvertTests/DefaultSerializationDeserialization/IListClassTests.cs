@@ -1,12 +1,11 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
+using AutoFixture;
 using SolTechnology.Avro;
+using Xunit;
 
-namespace AvroConvertTests.Component
+namespace AvroConvertComponentTests.DefaultSerializationDeserialization
 {
-    using System.Collections.Generic;
-    using AutoFixture;
-    using Xunit;
-
     public class ListClassTests
     {
         private readonly Fixture _fixture;

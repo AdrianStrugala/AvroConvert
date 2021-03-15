@@ -24,6 +24,9 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels
 
     internal sealed class TimestampMillisecondsSchema : LogicalTypeSchema
     {
+        public TimestampMillisecondsSchema() : this(typeof(DateTime))
+        {
+        }
         public TimestampMillisecondsSchema(Type runtimeType) : base(runtimeType)
         {
             BaseTypeSchema = new LongSchema();

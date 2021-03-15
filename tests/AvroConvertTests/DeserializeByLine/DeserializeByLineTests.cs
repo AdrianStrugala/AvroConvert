@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using AutoFixture;
 using SolTechnology.Avro;
 using Xunit;
 
-namespace AvroConvertTests.DeserializeByLine
+namespace AvroConvertComponentTests.DeserializeByLine
 {
     public class DeserializeByLineTests
     {

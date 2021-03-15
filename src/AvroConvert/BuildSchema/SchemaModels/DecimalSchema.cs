@@ -38,8 +38,10 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels
 
         internal override string LogicalTypeName => "decimal";
 
-        //Default C# values
-        public DecimalSchema(Type runtimeType) : this(runtimeType, 29, 14)
+        public DecimalSchema() : this(typeof(decimal))
+        {
+        }
+        public DecimalSchema(Type runtimeType) : this(runtimeType, 29, 14)  //Default C# values
         {
         }
 

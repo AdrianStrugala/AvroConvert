@@ -48,8 +48,8 @@ namespace SolTechnology.Avro.Read
                     } while ((len = reader.ReadMapNext()) != 0);
                 }
 
-                readSchema = readSchema ?? BuildSchema.Schema.Create(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
                 TypeSchema writeSchema = BuildSchema.Schema.Create(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
+                readSchema = readSchema ?? writeSchema;
                 var resolver = new Resolver(writeSchema, readSchema);
 
                 // read in sync data 

@@ -1,11 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿using AutoFixture;
 using SolTechnology.Avro;
+using Xunit;
 
-namespace AvroConvertTests.Component
+namespace AvroConvertComponentTests.DefaultSerializationDeserialization
 {
-    using AutoFixture;
-    using Xunit;
-
     public class PartiallyMatchingClassesTests
     {
         private readonly Fixture _fixture;

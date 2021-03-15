@@ -16,7 +16,6 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 
 namespace SolTechnology.Avro.BuildSchema.SchemaModels
@@ -24,6 +23,9 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels
 
     internal sealed class TimestampMicrosecondsSchema : LogicalTypeSchema
     {
+        public TimestampMicrosecondsSchema() : this(typeof(DateTime))
+        {
+        }
         public TimestampMicrosecondsSchema(Type runtimeType) : base(runtimeType)
         {
             BaseTypeSchema = new LongSchema();

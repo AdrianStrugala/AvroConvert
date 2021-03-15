@@ -36,6 +36,7 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels.Abstract
         internal abstract TypeSchema BaseTypeSchema { get; set; }
         internal abstract string LogicalTypeName { get; }
 
+     
         protected LogicalTypeSchema(Type runtimeType) : base(runtimeType, new Dictionary<string, string>())
         {
         }

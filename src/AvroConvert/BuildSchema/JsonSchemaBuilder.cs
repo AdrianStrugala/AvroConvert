@@ -137,6 +137,12 @@ namespace SolTechnology.Avro.BuildSchema
                 var typeString = token.RequiredProperty<string>(Token.Type);
                 Enum.TryParse(typeString, true, out Avro.Schema.Schema.Type type);
 
+                var logicalType = token.OptionalProperty<string>(Token.LogicalType);
+                if (logicalType != null)
+                {
+                    return this.ParseLogicalType(token, parent, namedSchemas, logicalType);
+                }
+
                 switch (type)
                 {
                     case Avro.Schema.Schema.Type.Record:
@@ -151,12 +157,6 @@ namespace SolTechnology.Avro.BuildSchema
                         return this.ParseFixedType(token, parent);
                     default:
                         {
-                            var logicalType = token.OptionalProperty<string>(Token.LogicalType);
-                            if (logicalType != null)
-                            {
-                                return this.ParseLogicalType(token, parent, namedSchemas, logicalType);
-                            }
-
                             if (PrimitiveRuntimeType.ContainsKey(type.ToString()))
                             {
                                 return this.ParsePrimitiveTypeFromObject(token);

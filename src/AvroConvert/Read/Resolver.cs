@@ -91,10 +91,10 @@ namespace SolTechnology.Avro.Read
                                     return ResolveUuid(d);
                                     case LogicalTypeSchema.LogicalTypeEnum.Decimal:
                                         return ResolveDecimal((DecimalSchema)writerSchema, (DecimalSchema)readerSchema, d, type);
-                                    // case LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds:
-                                    //     return TimestampMilliseconds.Resolve((TimestampMillisecondsSchema)logicalTypeSchema);
-                                    // case LogicalTypeSchema.LogicalTypeEnum.Duration:
-                                    //     return Duration.Resolve((DurationSchema)logicalTypeSchema);
+                                    case LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds:
+                                        return ResolveTimestampMillis((TimestampMillisecondsSchema)logicalTypeSchema, d, type);
+                                    case LogicalTypeSchema.LogicalTypeEnum.Duration:
+                                        return ResolveDuration((DurationSchema)logicalTypeSchema, d);
                             }
                             throw new AvroException($"Unknown LogicalType schema: {logicalTypeSchema.LogicalTypeName}");
                         }

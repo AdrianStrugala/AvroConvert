@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 using SolTechnology.Avro.Attributes;
 using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
@@ -43,7 +44,7 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels
 
         internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
         {
-            var baseSchema = (FixedSchema) BaseTypeSchema;
+            var baseSchema = (FixedSchema)BaseTypeSchema;
             writer.WriteStartObject();
             writer.WriteProperty("type", baseSchema.Type.ToString().ToLowerInvariant());
             writer.WriteProperty("size", baseSchema.Size);
@@ -64,21 +65,28 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels
             var millisecondsBytes = BitConverter.GetBytes(milliseconds);
 
 
-            System.Array.Copy(monthsBytes, 0, bytes, 0, 4);
-            System.Array.Copy(daysBytes, 0, bytes, 4, 4);
-            System.Array.Copy(millisecondsBytes, 0, bytes, 8, 4);
+            Array.Copy(monthsBytes, 0, bytes, 0, 4);
+            Array.Copy(daysBytes, 0, bytes, 4, 4);
+            Array.Copy(millisecondsBytes, 0, bytes, 8, 4);
 
 
-            if (!BitConverter.IsLittleEndian)
-                System.Array.Reverse(bytes); //reverse it so we get little endian.
+            // if (!BitConverter.IsLittleEndian)
+            Array.Reverse(bytes); //reverse it so we get little endian.
 
             return bytes;
         }
 
-        internal object ConvertToLogicalValue(object baseValue, DurationSchema schema)
+        internal object ConvertToLogicalValue(byte[] baseValue, DurationSchema schema)
         {
-           //TODO
-           return ";";
+            Array.Reverse(baseValue); //reverse it so we get big endian.
+
+            int months = BitConverter.ToInt32(baseValue.Skip(0).Take(4).ToArray(), 0);
+            int days = BitConverter.ToInt32(baseValue.Skip(4).Take(4).ToArray(), 0);
+            int milliseconds = BitConverter.ToInt32(baseValue.Skip(8).Take(4).ToArray(), 0);
+
+            var result = new TimeSpan(months * 30 + days, 0, 0, 0, milliseconds);
+
+            return result;
         }
     }
 }

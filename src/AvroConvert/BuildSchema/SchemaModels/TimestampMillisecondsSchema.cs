@@ -45,16 +45,25 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels
             }
             else
             {
-                date = ((DateTime)logicalValue).ToUniversalTime();
+                date = ((DateTime)logicalValue);
             }
 
             return (long)(date - DateTimeExtensions.UnixEpochDateTime).TotalMilliseconds;
         }
 
-        public object ConvertToLogicalValue(object baseValue, TimestampMillisecondsSchema schema)
+        public object ConvertToLogicalValue(object baseValue, TimestampMillisecondsSchema schema, Type type)
         {
             var noMs = (long)baseValue;
-            return DateTimeExtensions.UnixEpochDateTime.AddMilliseconds(noMs);
+            var result =  DateTimeExtensions.UnixEpochDateTime.AddMilliseconds(noMs);
+
+            if (type == typeof(DateTimeOffset))
+            {
+                return DateTimeOffset.FromUnixTimeMilliseconds(noMs);
+            }
+            else
+            {
+                return result;
+            }
         }
     }
 }

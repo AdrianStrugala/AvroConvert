@@ -17,9 +17,9 @@
 
 using System;
 using System.Linq;
-using SolTechnology.Avro.BuildSchema.SchemaModels;
-using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 using SolTechnology.Avro.Exceptions;
+using SolTechnology.Avro.Schema;
+using SolTechnology.Avro.Schema.Abstract;
 
 namespace SolTechnology.Avro.Read
 {

@@ -23,10 +23,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 using SolTechnology.Avro.Exceptions;
 using SolTechnology.Avro.FileHeader;
 using SolTechnology.Avro.FileHeader.Codec;
+using SolTechnology.Avro.Schema.Abstract;
 
 namespace SolTechnology.Avro.Write
 {

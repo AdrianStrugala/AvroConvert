@@ -18,7 +18,7 @@
 using System;
 using System.Dynamic;
 using System.Globalization;
-using SolTechnology.Avro.BuildSchema.SchemaModels;
+using SolTechnology.Avro.Schema;
 
 namespace SolTechnology.Avro.BuildSchema
 {

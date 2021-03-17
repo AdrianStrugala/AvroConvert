@@ -16,12 +16,11 @@
 #endregion
 
 using System.Linq;
-using SolTechnology.Avro.BuildSchema.SchemaModels;
-using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 using SolTechnology.Avro.Exceptions;
 using SolTechnology.Avro.Schema;
-using FixedSchema = SolTechnology.Avro.BuildSchema.SchemaModels.FixedSchema;
-using UnionSchema = SolTechnology.Avro.BuildSchema.SchemaModels.UnionSchema;
+using SolTechnology.Avro.Schema.Abstract;
+using FixedSchema = SolTechnology.Avro.Schema.FixedSchema;
+using UnionSchema = SolTechnology.Avro.Schema.UnionSchema;
 
 namespace SolTechnology.Avro.Write.Resolvers
 {
@@ -49,41 +48,41 @@ namespace SolTechnology.Avro.Write.Resolvers
          */
         private bool UnionBranchMatches(TypeSchema sc, object obj)
         {
-            if (obj == null && sc.Type != Schema.Schema.Type.Null) return false;
+            if (obj == null && sc.Type != AvroType.Null) return false;
             switch (sc.Type)
             {
-                case Schema.Schema.Type.Null:
+                case AvroType.Null:
                     return obj == null;
-                case Schema.Schema.Type.Boolean:
+                case AvroType.Boolean:
                     return obj is bool;
-                case Schema.Schema.Type.Int:
+                case AvroType.Int:
                     return obj is int;
-                case Schema.Schema.Type.Long:
+                case AvroType.Long:
                     return obj is long;
-                case Schema.Schema.Type.Float:
+                case AvroType.Float:
                     return obj is float;
-                case Schema.Schema.Type.Double:
+                case AvroType.Double:
                     return obj is double;
-                case Schema.Schema.Type.Bytes:
+                case AvroType.Bytes:
                     return obj is byte[];
-                case Schema.Schema.Type.String:
+                case AvroType.String:
                     return true;
-                case Schema.Schema.Type.Error:
-                case Schema.Schema.Type.Record:
+                case AvroType.Error:
+                case AvroType.Record:
                     return true;
-                case Schema.Schema.Type.Enum:
+                case AvroType.Enum:
                     return obj is System.Enum;
-                case Schema.Schema.Type.Array:
+                case AvroType.Array:
                     return !(obj is byte[]);
-                case Schema.Schema.Type.Map:
+                case AvroType.Map:
                     return true;
-                case Schema.Schema.Type.Union:
+                case AvroType.Union:
                     return false; // Union directly within another union not allowed!
-                case Schema.Schema.Type.Fixed:
+                case AvroType.Fixed:
                     //return obj is GenericFixed && (obj as GenericFixed)._schema.Equals(s);
                     return obj is FixedModel &&
                            (obj as FixedModel).Schema.FullName.Equals((sc as FixedSchema).FullName);
-                case Schema.Schema.Type.Logical:
+                case AvroType.Logical:
                     // return (sc as LogicalTypeSchema).IsInstanceOfLogicalType(obj);
                     return true;
                 default:

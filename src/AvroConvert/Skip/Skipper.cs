@@ -15,10 +15,10 @@
 */
 #endregion
 
-using SolTechnology.Avro.BuildSchema.SchemaModels;
-using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 using SolTechnology.Avro.Exceptions;
 using SolTechnology.Avro.Read;
+using SolTechnology.Avro.Schema;
+using SolTechnology.Avro.Schema.Abstract;
 
 namespace SolTechnology.Avro.Skip
 {
@@ -28,43 +28,43 @@ namespace SolTechnology.Avro.Skip
         {
             switch (schema.Type)
             {
-                case Schema.Schema.Type.Null:
+                case AvroType.Null:
                     d.SkipNull();
                     break;
-                case Schema.Schema.Type.Boolean:
+                case AvroType.Boolean:
                     d.SkipBoolean();
                     break;
-                case Schema.Schema.Type.Int:
+                case AvroType.Int:
                     d.SkipInt();
                     break;
-                case Schema.Schema.Type.Long:
+                case AvroType.Long:
                     d.SkipLong();
                     break;
-                case Schema.Schema.Type.Float:
+                case AvroType.Float:
                     d.SkipFloat();
                     break;
-                case Schema.Schema.Type.Double:
+                case AvroType.Double:
                     d.SkipDouble();
                     break;
-                case Schema.Schema.Type.String:
+                case AvroType.String:
                     d.SkipString();
                     break;
-                case Schema.Schema.Type.Bytes:
+                case AvroType.Bytes:
                     d.SkipBytes();
                     break;
-                case Schema.Schema.Type.Record:
+                case AvroType.Record:
                     foreach (var field in ((RecordSchema)schema).Fields)
                     {
                         Skip(field.TypeSchema, d);
                     }
                     break;
-                case Schema.Schema.Type.Enum:
+                case AvroType.Enum:
                     d.SkipEnum();
                     break;
-                case Schema.Schema.Type.Fixed:
+                case AvroType.Fixed:
                     d.SkipFixed(((FixedSchema)schema).Size);
                     break;
-                case Schema.Schema.Type.Array:
+                case AvroType.Array:
                     {
                         TypeSchema s = ((ArraySchema)schema).ItemSchema;
                         for (long n = d.ReadArrayStart(); n != 0; n = d.ReadArrayNext())
@@ -73,7 +73,7 @@ namespace SolTechnology.Avro.Skip
                         }
                     }
                     break;
-                case Schema.Schema.Type.Map:
+                case AvroType.Map:
                     {
                         TypeSchema s = ((MapSchema)schema).ValueSchema;
                         for (long n = d.ReadMapStart(); n != 0; n = d.ReadMapNext())
@@ -82,13 +82,13 @@ namespace SolTechnology.Avro.Skip
                         }
                     }
                     break;
-                case Schema.Schema.Type.Union:
+                case AvroType.Union:
                     Skip(((UnionSchema)schema).Schemas[d.ReadUnionIndex()], d);
                     break;
-                case Schema.Schema.Type.Logical:
+                case AvroType.Logical:
                     Skip(((LogicalTypeSchema) schema).BaseTypeSchema, d);
                     break;
-                case Schema.Schema.Type.Error:
+                case AvroType.Error:
                     break;
                 default:
                     throw new AvroException("Unknown schema type: " + schema);

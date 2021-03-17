@@ -1,9 +1,9 @@
 ﻿using System.IO;
 using System.Linq;
-using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 using SolTechnology.Avro.Exceptions;
 using SolTechnology.Avro.FileHeader;
 using SolTechnology.Avro.FileHeader.Codec;
+using SolTechnology.Avro.Schema.Abstract;
 
 namespace SolTechnology.Avro.Read
 {

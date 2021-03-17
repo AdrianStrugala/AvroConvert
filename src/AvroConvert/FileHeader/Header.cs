@@ -32,7 +32,7 @@ namespace SolTechnology.Avro.FileHeader
 
         internal byte[] SyncData { get; }
 
-        internal Schema.Schema Schema { get; set; }
+        internal BuildSchema.Schema Schema { get; set; }
 
         internal Header()
         {

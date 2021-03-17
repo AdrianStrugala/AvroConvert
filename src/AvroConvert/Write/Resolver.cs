@@ -15,9 +15,9 @@
 */
 #endregion
 
-using SolTechnology.Avro.BuildSchema.SchemaModels;
-using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 using SolTechnology.Avro.Exceptions;
+using SolTechnology.Avro.Schema;
+using SolTechnology.Avro.Schema.Abstract;
 using SolTechnology.Avro.Write.Resolvers;
 
 namespace SolTechnology.Avro.Write
@@ -61,24 +61,24 @@ namespace SolTechnology.Avro.Write
         {
             switch (schema.Type)
             {
-                case Schema.Schema.Type.Null:
+                case AvroType.Null:
                     return Null.Resolve;
-                case Schema.Schema.Type.Boolean:
+                case AvroType.Boolean:
                     return (v, e) => Write<bool>(v, schema.Type, e.WriteBoolean);
-                case Schema.Schema.Type.Int:
+                case AvroType.Int:
                     return (v, e) => Write<int>(v, schema.Type, e.WriteInt);
-                case Schema.Schema.Type.Long:
+                case AvroType.Long:
                     return Long.Resolve;
-                case Schema.Schema.Type.Float:
+                case AvroType.Float:
                     return (v, e) => Write<float>(v, schema.Type, e.WriteFloat);
-                case Schema.Schema.Type.Double:
+                case AvroType.Double:
                     return (v, e) => Write<double>(v, schema.Type, e.WriteDouble);
-                case Schema.Schema.Type.String:
+                case AvroType.String:
                     return String.Resolve;
-                case Schema.Schema.Type.Bytes:
+                case AvroType.Bytes:
                     return (v, e) => Write<byte[]>(v, schema.Type, e.WriteBytes);
-                case Schema.Schema.Type.Error:
-                case Schema.Schema.Type.Logical:
+                case AvroType.Error:
+                case AvroType.Logical:
                 {
                     var logicalTypeSchema = (LogicalTypeSchema)schema;
                     switch (logicalTypeSchema.LogicalTypeName)
@@ -94,17 +94,17 @@ namespace SolTechnology.Avro.Write
                     }
                 }
                     return String.Resolve;
-                case Schema.Schema.Type.Record:
+                case AvroType.Record:
                     return Record.Resolve((RecordSchema)schema);
-                case Schema.Schema.Type.Enum:
+                case AvroType.Enum:
                     return Enum.Resolve((EnumSchema)schema);
-                case Schema.Schema.Type.Fixed:
+                case AvroType.Fixed:
                     return Fixed.Resolve((FixedSchema)schema);
-                case Schema.Schema.Type.Array:
+                case AvroType.Array:
                     return Array.Resolve((ArraySchema)schema);
-                case Schema.Schema.Type.Map:
+                case AvroType.Map:
                     return Map.Resolve((MapSchema)schema);
-                case Schema.Schema.Type.Union:
+                case AvroType.Union:
                     return Union.Resolve((UnionSchema)schema);
                 default:
                     return (v, e) =>
@@ -120,7 +120,7 @@ namespace SolTechnology.Avro.Write
         /// <param name="value">The value to be serialized</param>
         /// <param name="tag">The schema type tag</param>
         /// <param name="writer">The writer which should be used to write the given type.</param>
-        private static void Write<S>(object value, Schema.Schema.Type tag, Writer<S> writer)
+        private static void Write<S>(object value, AvroType tag, Writer<S> writer)
         {
             if (value == null)
             {

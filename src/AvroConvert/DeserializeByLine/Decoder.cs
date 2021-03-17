@@ -1,11 +1,11 @@
 ﻿using System.IO;
 using System.Linq;
-using SolTechnology.Avro.BuildSchema.SchemaModels;
-using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 using SolTechnology.Avro.Exceptions;
 using SolTechnology.Avro.FileHeader;
 using SolTechnology.Avro.FileHeader.Codec;
 using SolTechnology.Avro.Read;
+using SolTechnology.Avro.Schema;
+using SolTechnology.Avro.Schema.Abstract;
 
 namespace SolTechnology.Avro.DeserializeByLine
 {
@@ -87,7 +87,7 @@ namespace SolTechnology.Avro.DeserializeByLine
                     return new BlockLineReader<T>(reader, resolver, remainingBlocks);
                 }
 
-                if (writeSchema.Type == Schema.Schema.Type.Array)
+                if (writeSchema.Type == AvroType.Array)
                 {
                     return new ListLineReader<T>(reader, new Resolver(((ArraySchema)writeSchema).ItemSchema, readSchema));
                 }

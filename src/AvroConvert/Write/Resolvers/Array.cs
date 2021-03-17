@@ -17,7 +17,7 @@
 
 using System.Collections;
 using System.Linq;
-using SolTechnology.Avro.BuildSchema.SchemaModels;
+using SolTechnology.Avro.Schema;
 
 namespace SolTechnology.Avro.Write.Resolvers
 {

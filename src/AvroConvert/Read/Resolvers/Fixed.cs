@@ -1,6 +1,6 @@
 using System;
-using SolTechnology.Avro.BuildSchema.SchemaModels;
-using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
+using SolTechnology.Avro.Schema;
+using SolTechnology.Avro.Schema.Abstract;
 
 namespace SolTechnology.Avro.Read
 {
@@ -13,11 +13,6 @@ namespace SolTechnology.Avro.Read
             FixedModel ru = new FixedModel(rs);
             byte[] bb = ((FixedModel)ru).Value;
             d.ReadFixed(bb);
-
-            if (type == typeof(Guid))
-            {
-                return new Guid(ru.Value);
-            }
 
             return ru.Value;
         }

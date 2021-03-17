@@ -1,114 +1,93 @@
-/**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright (c) Microsoft Corporation
+// All rights reserved.
+// 
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not
+// use this file except in compliance with the License.  You may obtain a copy
+// of the License at http://www.apache.org/licenses/LICENSE-2.0
+// 
+// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+// WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+// MERCHANTABLITY OR NON-INFRINGEMENT.
+// 
+// See the Apache Version 2.0 License for specific language governing
+// permissions and limitations under the License.
 
 /** Modifications copyright(C) 2020 Adrian Struga³a **/
 
 using System;
-using Newtonsoft.Json.Linq;
-using SolTechnology.Avro.Exceptions;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+using SolTechnology.Avro.BuildSchema;
+using SolTechnology.Avro.Schema.Abstract;
 
 namespace SolTechnology.Avro.Schema
 {
     /// <summary>
-    /// Class for array type schemas
+    ///     Schema representing an array.
+    ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html#Arrays">the specification</a>.
     /// </summary>
-    internal class ArraySchema : UnnamedSchema
+    internal sealed class ArraySchema : TypeSchema
     {
-        /// <summary>
-        /// Schema for the array 'type' attribute
-        /// </summary>
-        internal Schema ItemSchema { get; set;  }
+        private readonly TypeSchema itemSchema;
 
         /// <summary>
-        /// Static class to return a new instance of ArraySchema
+        ///     Initializes a new instance of the <see cref="ArraySchema" /> class.
         /// </summary>
-        /// <param name="jtok">JSON object for the array schema</param>
-        /// <param name="names">list of named schemas already parsed</param>
-        /// <param name="encspace">enclosing namespace for the array schema</param>
-        /// <returns></returns>
-        internal static ArraySchema NewInstance(JToken jtok, PropertyMap props, SchemaNames names, string encspace)
+        /// <param name="item">The item.</param>
+        /// <param name="runtimeType">Type of the runtime.</param>
+        /// <param name="attributes">The attributes.</param>
+        internal ArraySchema(
+            TypeSchema item,
+            Type runtimeType,
+            Dictionary<string, string> attributes)
+            : base(runtimeType, attributes)
         {
-            JToken jitem = jtok["items"];
-            if (null == jitem) throw new AvroTypeException("Array does not have 'items'");
-
-            return new ArraySchema(Schema.ParseJson(jitem, names, encspace), props);
-        }
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="items">schema for the array items type</param>
-        private ArraySchema(Schema items, PropertyMap props) : base(Type.Array, props)
-        {
-            if (null == items) throw new ArgumentNullException("items");
-            this.ItemSchema = items;
-        }
-
-        /// <summary>
-        /// Writes the array schema in JSON format
-        /// </summary>
-        /// <param name="writer">JSON writer</param>
-        /// <param name="names">list of named schemas already written</param>
-        /// <param name="encspace">enclosing namespace</param>
-        protected internal override void WriteJsonFields(Newtonsoft.Json.JsonTextWriter writer, SchemaNames names, string encspace)
-        {
-            writer.WritePropertyName("items");
-            ItemSchema.WriteJson(writer, names, encspace);
-        }
-
-        /// <summary>
-        /// Checks if this schema can read data written by the given schema. Used for decoding data.
-        /// </summary>
-        /// <param name="writerSchema">writer schema</param>
-        /// <returns>true if this and writer schema are compatible based on the AVRO specification, false otherwise</returns>
-        internal override bool CanRead(Schema writerSchema)
-        {
-            if (writerSchema.Tag != Tag) return false;
-
-            ArraySchema that = writerSchema as ArraySchema;
-            return ItemSchema.CanRead(that.ItemSchema);
-        }
-
-        /// <summary>
-        /// Function to compare equality of two array schemas
-        /// </summary>
-        /// <param name="obj">other array schema</param>
-        /// <returns>true two schemas are equal, false otherwise</returns>
-        public override bool Equals(object obj)
-        {
-            if (this == obj) return true;
-
-            if (obj != null && obj is ArraySchema)
+            if (item == null)
             {
-                ArraySchema that = obj as ArraySchema;
-                if (ItemSchema.Equals(that.ItemSchema))
-                    return areEqual(that.Props, this.Props);
+                throw new ArgumentNullException("item");
             }
-            return false;
+
+            this.itemSchema = item;
         }
 
         /// <summary>
-        /// Hashcode function
+        /// Initializes a new instance of the <see cref="ArraySchema"/> class.
         /// </summary>
-        /// <returns></returns>
-        public override int GetHashCode()
+        /// <param name="item">The item.</param>
+        /// <param name="runtimeType">Type of the runtime.</param>
+        internal ArraySchema(
+            TypeSchema item,
+            Type runtimeType)
+            : this(item, runtimeType, new Dictionary<string, string>())
         {
-            return 29 * ItemSchema.GetHashCode() + getHashCode(Props);
         }
+
+        /// <summary>
+        ///     Gets the item schema.
+        /// </summary>
+        internal TypeSchema ItemSchema
+        {
+            get { return this.itemSchema; }
+        }
+
+        /// <summary>
+        ///     Converts current not to JSON according to the avro specification.
+        /// </summary>
+        /// <param name="writer">The writer.</param>
+        /// <param name="seenSchemas">The seen schemas.</param>
+        internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
+        {
+            writer.WriteStartObject();
+            writer.WriteProperty("type", "array");
+            writer.WritePropertyName("items");
+            this.itemSchema.ToJson(writer, seenSchemas);
+            writer.WriteEndObject();
+        }
+
+        /// <summary>
+        /// Gets the type of the schema as string.
+        /// </summary>
+        internal override AvroType Type => Avro.Schema.AvroType.Array;
     }
 }

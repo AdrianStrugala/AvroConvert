@@ -1,130 +1,102 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright (c) Microsoft Corporation
+// All rights reserved.
+// 
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not
+// use this file except in compliance with the License.  You may obtain a copy
+// of the License at http://www.apache.org/licenses/LICENSE-2.0
+// 
+// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+// WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+// MERCHANTABLITY OR NON-INFRINGEMENT.
+// 
+// See the Apache Version 2.0 License for specific language governing
+// permissions and limitations under the License.
+
+/** Modifications copyright(C) 2020 Adrian Struga³a **/
 
 using System;
-using Newtonsoft.Json.Linq;
-using SolTechnology.Avro.Exceptions;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+using SolTechnology.Avro.BuildSchema;
+using SolTechnology.Avro.Schema.Abstract;
 
 namespace SolTechnology.Avro.Schema
 {
     /// <summary>
-    /// Class for map schemas
+    ///     Represents a map.
+    ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html#Maps">the specification</a>.
     /// </summary>
-    internal class MapSchema : UnnamedSchema
+    internal sealed class MapSchema : TypeSchema
     {
-        /// <summary>
-        /// Schema for map values type
-        /// </summary>
-        internal Schema ValueSchema { get; set; }
+        private readonly TypeSchema valueSchema;
+        private readonly TypeSchema keySchema;
 
-        /// <summary>
-        /// Creates a new <see cref="MapSchema"/> from the given schema.
-        /// </summary>
-        /// <param name="type">Schema to create the map schema from.</param>
-        /// <returns>A new <see cref="MapSchema"/>.</returns>
-        internal static MapSchema CreateMap(Schema type)
+        internal MapSchema(TypeSchema keySchema, TypeSchema valueSchema, Type runtimeType)
+            : this(keySchema, valueSchema, runtimeType, new Dictionary<string, string>())
         {
-            return new MapSchema(type,null);
         }
 
         /// <summary>
-        /// Static function to return new instance of map schema
+        /// Initializes a new instance of the <see cref="MapSchema" /> class.
         /// </summary>
-        /// <param name="jtok">JSON object for the map schema</param>
-        /// <param name="props">dictionary that provides access to custom properties</param>
-        /// <param name="names">list of named schemas already read</param>
-        /// <param name="encspace">enclosing namespace of the map schema</param>
-        /// <returns></returns>
-        internal static MapSchema NewInstance(JToken jtok, PropertyMap props, SchemaNames names, string encspace)
+        /// <param name="keySchema">The key schema.</param>
+        /// <param name="valueSchema">The value schema.</param>
+        /// <param name="runtimeType">Type of the runtime.</param>
+        /// <param name="attributes">The attributes.</param>
+        internal MapSchema(
+            TypeSchema keySchema,
+            TypeSchema valueSchema,
+            Type runtimeType,
+            Dictionary<string, string> attributes)
+            : base(runtimeType, attributes)
         {
-            JToken jvalue = jtok["values"];
-            if (null == jvalue) throw new AvroTypeException($"Map does not have 'values' at '{jtok.Path}'");
-            try
+            if (keySchema == null)
             {
-                return new MapSchema(ParseJson(jvalue, names, encspace), props);
+                throw new ArgumentNullException("keySchema");
             }
-            catch (Exception e)
+            if (valueSchema == null)
             {
-                throw new SchemaParseException($"Error creating MapSchema at '{jtok.Path}'", e);
+                throw new ArgumentNullException("valueSchema");
             }
+
+            this.valueSchema = valueSchema;
+            this.keySchema = keySchema;
         }
 
         /// <summary>
-        /// Constructor for map schema class
+        ///     Gets the value schema.
         /// </summary>
-        /// <param name="valueSchema">schema for map values type</param>
-        /// <param name="props">dictionary that provides access to custom properties</param>
-        private MapSchema(Schema valueSchema, PropertyMap props) : base(Type.Map, props)
+        internal TypeSchema ValueSchema
         {
-            if (null == valueSchema) throw new ArgumentNullException(nameof(valueSchema), "valueSchema cannot be null.");
-            this.ValueSchema = valueSchema;
+            get { return this.valueSchema; }
         }
 
         /// <summary>
-        /// Writes map schema in JSON format
+        /// Gets the key schema.
         /// </summary>
-        /// <param name="writer">JSON writer</param>
-        /// <param name="names">list of named schemas already written</param>
-        /// <param name="encspace">enclosing namespace of the map schema</param>
-        protected internal override void WriteJsonFields(Newtonsoft.Json.JsonTextWriter writer, SchemaNames names, string encspace)
+        internal TypeSchema KeySchema
         {
+            get { return this.keySchema; }
+        }
+
+        /// <summary>
+        ///     Converts current not to JSON according to the avro specification.
+        /// </summary>
+        /// <param name="writer">The writer.</param>
+        /// <param name="seenSchemas">The seen schemas.</param>
+        internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
+        {
+            writer.WriteStartObject();
+            writer.WriteProperty("type", "map");
             writer.WritePropertyName("values");
-            ValueSchema.WriteJson(writer, names, encspace);
+            ValueSchema.ToJson(writer, seenSchemas);
+            writer.WriteEndObject();
         }
 
         /// <summary>
-        /// Checks if this schema can read data written by the given schema. Used for decoding data.
+        /// Gets the type of the schema as string.
         /// </summary>
-        /// <param name="writerSchema">writer schema</param>
-        /// <returns>true if this and writer schema are compatible based on the AVRO specification, false otherwise</returns>
-        internal override bool CanRead(Schema writerSchema)
-        {
-            if (writerSchema.Tag != Tag) return false;
-
-            MapSchema that = writerSchema as MapSchema;
-            return ValueSchema.CanRead(that.ValueSchema);
-        }
-
-        /// <summary>
-        /// Compares equality of two map schemas
-        /// </summary>
-        /// <param name="obj">map schema to compare against this schema</param>
-        /// <returns>true if two schemas are equal, false otherwise</returns>
-        public override bool Equals(object obj)
-        {
-            if (this == obj) return true;
-
-            if (obj != null && obj is MapSchema)
-            {
-                MapSchema that = obj as MapSchema;
-                if (ValueSchema.Equals(that.ValueSchema))
-                    return areEqual(that.Props, this.Props);
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Hashcode function
-        /// </summary>
-        /// <returns></returns>
-        public override int GetHashCode()
-        {
-            return 29 * ValueSchema.GetHashCode() + getHashCode(Props);
-        }
+        internal override AvroType Type => Avro.Schema.AvroType.Map;
     }
 }

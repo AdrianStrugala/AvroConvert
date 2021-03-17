@@ -20,8 +20,7 @@ using System.Collections.ObjectModel;
 using System.Reflection;
 using Newtonsoft.Json;
 using SolTechnology.Avro.Attributes;
-using SolTechnology.Avro.BuildSchema.SchemaModels;
-using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
+using SolTechnology.Avro.Schema.Abstract;
 
 namespace SolTechnology.Avro.BuildSchema
 {

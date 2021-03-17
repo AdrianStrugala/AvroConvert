@@ -19,9 +19,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using SolTechnology.Avro.BuildSchema.SchemaModels;
-using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 using SolTechnology.Avro.Extensions;
+using SolTechnology.Avro.Schema;
+using SolTechnology.Avro.Schema.Abstract;
 
 namespace SolTechnology.Avro.Read
 {
@@ -31,7 +31,7 @@ namespace SolTechnology.Avro.Read
 
         internal object ResolveArray(TypeSchema writerSchema, TypeSchema readerSchema, IReader d, Type type, long itemsCount = 0)
         {
-            if (writerSchema.Type == Schema.Schema.Type.Array)
+            if (writerSchema.Type == Schema.AvroType.Array)
             {
                 writerSchema = ((ArraySchema)writerSchema).ItemSchema;
             }

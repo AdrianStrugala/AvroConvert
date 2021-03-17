@@ -18,7 +18,7 @@
 
 using System.Linq;
 using SolTechnology.Avro.BuildSchema;
-using RecordSchema = SolTechnology.Avro.BuildSchema.SchemaModels.RecordSchema;
+using RecordSchema = SolTechnology.Avro.Schema.RecordSchema;
 
 namespace SolTechnology.Avro.Write.Resolvers
 {

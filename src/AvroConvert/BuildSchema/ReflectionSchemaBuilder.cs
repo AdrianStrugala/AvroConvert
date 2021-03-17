@@ -22,9 +22,9 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using SolTechnology.Avro.Attributes;
-using SolTechnology.Avro.BuildSchema.SchemaModels;
-using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 using SolTechnology.Avro.Extensions;
+using SolTechnology.Avro.Schema;
+using SolTechnology.Avro.Schema.Abstract;
 
 namespace SolTechnology.Avro.BuildSchema
 {
@@ -224,27 +224,7 @@ namespace SolTechnology.Avro.BuildSchema
                 return null;
             }
 
-            //
-            //              BACKWARD COMPATIBILITY HACK BELOW
-            //
             return TypeToAvroLogicalSchemaMap[type](type);
-
-            // var logicalSchema = TypeToAvroLogicalSchemaMap[type](type);
-            //
-            // TypeSchema hackSchema;
-            // if (type == typeof(Guid))
-            // {
-            //     var recordName = new SchemaName(type.GetStrippedFullName());
-            //     var attributes = new NamedEntityAttributes(recordName, new List<string>(), string.Empty);
-            //     hackSchema = new FixedSchema(attributes, 16, type);
-            // }
-            // else
-            // {
-            //     hackSchema = TypeToAvroPrimitiveSchemaMap[type](type);
-            // }
-            //
-            // var result = new UnionSchema(new List<TypeSchema> {logicalSchema, hackSchema}, type);
-            // return result;
         }
 
         /// <summary>

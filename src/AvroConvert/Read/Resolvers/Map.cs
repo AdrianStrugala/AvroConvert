@@ -16,9 +16,8 @@
 #endregion
 
 using System;
-using SolTechnology.Avro.BuildSchema.SchemaModels;
-using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
-using MapSchema = SolTechnology.Avro.BuildSchema.SchemaModels.MapSchema;
+using SolTechnology.Avro.Schema;
+using SolTechnology.Avro.Schema.Abstract;
 
 namespace SolTechnology.Avro.Read
 {

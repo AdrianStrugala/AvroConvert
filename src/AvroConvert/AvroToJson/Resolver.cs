@@ -17,18 +17,19 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using SolTechnology.Avro.Exceptions;
-using SolTechnology.Avro.Models;
 using SolTechnology.Avro.Read;
 using SolTechnology.Avro.Schema;
+using SolTechnology.Avro.Schema.Abstract;
 
 namespace SolTechnology.Avro.AvroToJson
 {
     internal partial class Resolver
     {
-        private readonly Schema.Schema _readerSchema;
+        private readonly TypeSchema _readerSchema;
 
-        internal Resolver(Schema.Schema readerSchema)
+        internal Resolver(TypeSchema readerSchema)
         {
             _readerSchema = readerSchema;
         }
@@ -39,38 +40,38 @@ namespace SolTechnology.Avro.AvroToJson
             return result;
         }
 
-        internal object Resolve(Schema.Schema readerSchema, IReader d)
+        internal object Resolve(TypeSchema readerSchema, IReader d)
         {
-            switch (readerSchema.Tag)
+            switch (readerSchema.Type)
             {
-                case Schema.Schema.Type.Null:
+                case AvroType.Null:
                     return null;
-                case Schema.Schema.Type.Boolean:
+                case AvroType.Boolean:
                     return d.ReadBoolean();
-                case Schema.Schema.Type.Int:
+                case AvroType.Int:
                     return d.ReadInt();
-                case Schema.Schema.Type.Long:
+                case AvroType.Long:
                     return ResolveLong(d);
-                case Schema.Schema.Type.Float:
+                case AvroType.Float:
                     return d.ReadFloat();
-                case Schema.Schema.Type.Double:
+                case AvroType.Double:
                     return d.ReadDouble();
-                case Schema.Schema.Type.String:
+                case AvroType.String:
                     return ResolveString(d);
-                case Schema.Schema.Type.Bytes:
+                case AvroType.Bytes:
                     return d.ReadBytes();
-                case Schema.Schema.Type.Error:
-                case Schema.Schema.Type.Record:
+                case AvroType.Error:
+                case AvroType.Record:
                     return ResolveRecord((RecordSchema)readerSchema, d);
-                case Schema.Schema.Type.Enum:
+                case AvroType.Enum:
                     return ResolveEnum((EnumSchema)readerSchema, d);
-                case Schema.Schema.Type.Fixed:
+                case AvroType.Fixed:
                     return ResolveFixed((FixedSchema)readerSchema, d);
-                case Schema.Schema.Type.Array:
+                case AvroType.Array:
                     return ResolveArray(readerSchema, d);
-                case Schema.Schema.Type.Map:
+                case AvroType.Map:
                     return ResolveMap((MapSchema)readerSchema, d);
-                case Schema.Schema.Type.Union:
+                case AvroType.Union:
                     return ResolveUnion((UnionSchema)readerSchema, d);
                 default:
                     throw new AvroException("Unknown schema type: " + readerSchema);
@@ -95,10 +96,10 @@ namespace SolTechnology.Avro.AvroToJson
         {
             var result = new Dictionary<string, object>();
 
-            foreach (Field rf in readerSchema.Fields)
+            foreach (var rf in readerSchema.Fields)
             {
                 string name = rf.Name;
-                object value = Resolve(rf.Schema, dec);
+                object value = Resolve(rf.TypeSchema, dec);
 
                 result.Add(name, value);
             }
@@ -108,8 +109,8 @@ namespace SolTechnology.Avro.AvroToJson
 
         protected virtual object ResolveFixed(FixedSchema readerSchema, IReader d)
         {
-            Fixed ru = new Fixed(readerSchema);
-            byte[] bb = ((Fixed)ru).Value;
+            FixedModel ru = new FixedModel(readerSchema);
+            byte[] bb = ((FixedModel)ru).Value;
             d.ReadFixed(bb);
             return ru.Value;
         }
@@ -136,9 +137,9 @@ namespace SolTechnology.Avro.AvroToJson
             return result;
         }
 
-        internal object ResolveArray(Schema.Schema readerSchema, IReader d)
+        internal object ResolveArray(TypeSchema readerSchema, IReader d)
         {
-            if (readerSchema.Tag == Schema.Schema.Type.Array)
+            if (readerSchema.Type == AvroType.Array)
             {
                 readerSchema = ((ArraySchema)readerSchema).ItemSchema;
             }
@@ -165,15 +166,20 @@ namespace SolTechnology.Avro.AvroToJson
         protected virtual object ResolveUnion(UnionSchema readerSchema, IReader d)
         {
             int index = d.ReadUnionIndex();
-            Schema.Schema ws = readerSchema[index];
+            TypeSchema ws = readerSchema.Schemas[index];
             return Resolve(FindBranch(readerSchema, ws), d);
         }
 
-        protected static Schema.Schema FindBranch(UnionSchema us, Schema.Schema s)
+        protected static TypeSchema FindBranch(UnionSchema us, TypeSchema schema)
         {
-            int index = us.MatchingBranch(s);
-            if (index >= 0) return us[index];
-            throw new AvroException("No matching schema for " + s + " in " + us);
+            var resultSchema = us.Schemas.FirstOrDefault(s => s.Type == schema.Type);
+
+            if (resultSchema == null)
+            {
+                throw new AvroException("No matching schema for " + schema + " in " + us);
+            }
+
+            return resultSchema;
         }
     }
 }

@@ -36,7 +36,7 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels
         internal override TypeSchema BaseTypeSchema { get; set; }
         internal override string LogicalTypeName => "timestamp-millis";
 
-        public object ConvertToBaseValue(object logicalValue, TimestampMillisecondsSchema schema)
+        internal object ConvertToBaseValue(object logicalValue, TimestampMillisecondsSchema schema)
         {
             DateTime date;
             if (logicalValue is DateTimeOffset dateTimeOffset)
@@ -51,12 +51,12 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels
             return (long)(date - DateTimeExtensions.UnixEpochDateTime).TotalMilliseconds;
         }
 
-        public object ConvertToLogicalValue(object baseValue, TimestampMillisecondsSchema schema, Type type)
+        internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type type)
         {
             var noMs = (long)baseValue;
             var result =  DateTimeExtensions.UnixEpochDateTime.AddMilliseconds(noMs);
 
-            if (type == typeof(DateTimeOffset))
+            if (type == typeof(DateTimeOffset) || type == typeof(DateTimeOffset?))
             {
                 return DateTimeOffset.FromUnixTimeMilliseconds(noMs);
             }

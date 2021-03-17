@@ -1,5 +1,5 @@
 ﻿#region license
-/**Copyright (c) 2020 Adrian Strugała
+/**Copyright (c) 2021 Adrian Strugała
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -24,27 +24,7 @@ namespace SolTechnology.Avro.Read
         internal object ResolveLong(Type type, IReader reader)
         {
             long value = reader.ReadLong();
-
-            if (type == typeof(DateTime))
-            {
-                return ResolveDateTime(value);
-            }
-            if (type == typeof(DateTime?))
-            {
-                return ResolveDateTime(value);
-            }
             return value;
-        }
-
-        protected virtual object ResolveDateTime(long value)
-        {
-            DateTime unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-
-            var result = new DateTime();
-            result = result.AddTicks(unixEpoch.Ticks);
-            result = result.AddSeconds(value);
-
-            return result;
         }
     }
 }

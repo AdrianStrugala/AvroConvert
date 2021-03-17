@@ -24,9 +24,6 @@ namespace SolTechnology.Avro.Read
     {
         private Dictionary<Type, Func<object>> @switch(string value) => new Dictionary<Type, Func<object>>
         {
-            {typeof(decimal), () => decimal.Parse(value)},
-            {typeof(DateTimeOffset), () => DateTimeOffset.Parse(value)},
-            {typeof(DateTimeOffset?), () => DateTimeOffset.Parse(value)},
             {typeof(Uri), () => new Uri(value)},
         };
 

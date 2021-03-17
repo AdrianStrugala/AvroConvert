@@ -85,6 +85,9 @@ namespace SolTechnology.Avro.Skip
                 case Schema.Schema.Type.Union:
                     Skip(((UnionSchema)schema).Schemas[d.ReadUnionIndex()], d);
                     break;
+                case Schema.Schema.Type.Logical:
+                    Skip(((LogicalTypeSchema) schema).BaseTypeSchema, d);
+                    break;
                 case Schema.Schema.Type.Error:
                     break;
                 default:

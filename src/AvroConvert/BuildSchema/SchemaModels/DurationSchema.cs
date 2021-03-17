@@ -76,13 +76,14 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels
             return bytes;
         }
 
-        internal object ConvertToLogicalValue(byte[] baseValue, DurationSchema schema)
+        internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type type)
         {
-            Array.Reverse(baseValue); //reverse it so we get big endian.
+            byte[] baseBytes = (byte[])baseValue;
+            Array.Reverse(baseBytes); //reverse it so we get big endian.
 
-            int months = BitConverter.ToInt32(baseValue.Skip(0).Take(4).ToArray(), 0);
-            int days = BitConverter.ToInt32(baseValue.Skip(4).Take(4).ToArray(), 0);
-            int milliseconds = BitConverter.ToInt32(baseValue.Skip(8).Take(4).ToArray(), 0);
+            int months = BitConverter.ToInt32(baseBytes.Skip(0).Take(4).ToArray(), 0);
+            int days = BitConverter.ToInt32(baseBytes.Skip(4).Take(4).ToArray(), 0);
+            int milliseconds = BitConverter.ToInt32(baseBytes.Skip(8).Take(4).ToArray(), 0);
 
             var result = new TimeSpan(months * 30 + days, 0, 0, 0, milliseconds);
 

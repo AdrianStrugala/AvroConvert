@@ -100,19 +100,18 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels
                     GetDecimalFixedByteArray(buffer, ((FixedSchema)schema.BaseTypeSchema).Size,
                     decimalValue.Sign < 0 ? (byte)0xFF : (byte)0x00));
         }
-        
-        internal object ConvertToLogicalValue(object baseValue, DecimalSchema schema)
+
+        internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type type)
         {
             var buffer = Avro.Schema.Schema.Type.Bytes == schema.BaseTypeSchema.Type
                 ? (byte[])baseValue
                 : ((GenericFixed)baseValue).Value;
-        
+
             Array.Reverse(buffer);
-        
-            return new AvroDecimal(new BigInteger(buffer), Scale);
+            var avroDecimal = new AvroDecimal(new BigInteger(buffer), Scale);
+            return AvroDecimal.ToDecimal(avroDecimal);
         }
-        
-        
+
         private static byte[] GetDecimalFixedByteArray(byte[] sourceBuffer, int size, byte fillValue)
         {
             var paddedBuffer = new byte[size];

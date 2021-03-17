@@ -1,5 +1,5 @@
 ﻿#region license
-/**Copyright (c) 2020 Adrian Strugała
+/**Copyright (c) 2021 Adrian Strugała
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -16,15 +16,15 @@
 #endregion
 
 using System;
-using SolTechnology.Avro.BuildSchema.SchemaModels;
+using SolTechnology.Avro.BuildSchema.SchemaModels.Abstract;
 
 namespace SolTechnology.Avro.Read
 {
     internal partial class Resolver
     {
-        private object ResolveTimestampMillis(TimestampMillisecondsSchema writerSchema, IReader reader, Type type)
+        private object ResolveLogical(LogicalTypeSchema writerSchema, LogicalTypeSchema readerSchema, IReader reader, Type type)
         {
-            var value = reader.ReadLong();
+            var value = Resolve(writerSchema.BaseTypeSchema, readerSchema.BaseTypeSchema, reader, type);
 
             var result = writerSchema.ConvertToLogicalValue(value, writerSchema, type);
             return result;

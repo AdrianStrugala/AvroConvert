@@ -49,5 +49,7 @@ namespace SolTechnology.Avro.BuildSchema.SchemaModels.Abstract
             writer.WriteProperty("logicalType", LogicalTypeName);
             writer.WriteEndObject();
         }
+
+        internal abstract object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type type);
     }
 }

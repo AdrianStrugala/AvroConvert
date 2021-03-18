@@ -181,18 +181,23 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
         }
 
         [Theory]
-        [InlineData(21.37)]
-        [InlineData(1234.56)]
-        [InlineData(-1234.56)]
-        [InlineData(123456789123456789.56)]
-        [InlineData(-123456789123456789.56)]
-        [InlineData(000000000000000001.01)]
-        [InlineData(-000000000000000001.01)]
-        public void Serialize_Decimal_ResultIsTheSameAsInput(double testObject)
+        [InlineData("21.37")]
+        [InlineData("1234.56")]
+        [InlineData("-1234.56")]
+        [InlineData("-100")]
+        [InlineData("100")]
+        [InlineData("24.10")]
+        [InlineData("27.00")]
+        [InlineData("123456789123456789.56")]
+        [InlineData("-123456789123456789.56")]
+        [InlineData("000000000000000001.01")]
+        [InlineData("-000000000000000001.01")]
+        [InlineData("-79228162514264337593543950335")]
+        [InlineData("79228162514264337593543950335")]
+        public void Serialize_Decimal_ResultIsTheSameAsInput(string test)
         {
             //Arrange
-            decimal testDecimal = Convert.ToDecimal(testObject);
-
+            var testDecimal = decimal.Parse(test, CultureInfo.InvariantCulture);
 
             //Act
             var result = AvroConvert.Serialize(testDecimal);

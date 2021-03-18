@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using Newtonsoft.Json;
 using SolTechnology.Avro.BuildSchema;
@@ -73,25 +74,11 @@ namespace SolTechnology.Avro.Schema
 
         internal object ConvertToBaseValue(object logicalValue, DecimalSchema schema)
         {
-            var decimalValue = new AvroDecimal((decimal) logicalValue);
-            var logicalScale = Scale;
-            var scale = decimalValue.Scale;
-
-            if (scale != logicalScale)
-            {
-                //Resize
-                int sizeDiff = logicalScale - scale;
-                string trailingZeros = new string('0', sizeDiff);
-                var resizedDecimal = decimal.Parse($"{logicalValue}{trailingZeros}");
-
-                decimalValue = new AvroDecimal(resizedDecimal);
-            }
-                
-        
+            var decimalValue = new AvroDecimal((decimal)logicalValue);
             var buffer = decimalValue.UnscaledValue.ToByteArray();
-        
+
             Array.Reverse(buffer);
-        
+
             return Avro.Schema.AvroType.Bytes == schema.BaseTypeSchema.Type
                 ? (object)buffer
                 : (object)new FixedModel(
@@ -108,20 +95,21 @@ namespace SolTechnology.Avro.Schema
 
             Array.Reverse(buffer);
             var avroDecimal = new AvroDecimal(new BigInteger(buffer), Scale);
+
             return AvroDecimal.ToDecimal(avroDecimal);
         }
 
         private static byte[] GetDecimalFixedByteArray(byte[] sourceBuffer, int size, byte fillValue)
         {
             var paddedBuffer = new byte[size];
-        
+
             var offset = size - sourceBuffer.Length;
-        
+
             for (var idx = 0; idx < size; idx++)
             {
                 paddedBuffer[idx] = idx < offset ? fillValue : sourceBuffer[idx - offset];
             }
-        
+
             return paddedBuffer;
         }
 

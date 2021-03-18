@@ -8,7 +8,7 @@ namespace AvroConvertUnitTests.BuildSchemaTests
 {
     public class LogicalTypeTests
     {
-        [Theory]
+        [Theory(Skip = "Decimals are handled as strings")]
         [InlineData(typeof(decimal), 29, 14)]
         public void BuildDecimalSchema(Type type, int precision, int scale)
         {
@@ -26,7 +26,7 @@ namespace AvroConvertUnitTests.BuildSchemaTests
             Assert.Equal(scale, decimalSchema.Scale);
         }
 
-        [Theory]
+        [Theory (Skip = "Decimals are handled as strings")]
         [InlineData(typeof(decimal?), 29, 14)]
         public void BuildNullableDecimalSchema(Type type, int precision, int scale)
         {

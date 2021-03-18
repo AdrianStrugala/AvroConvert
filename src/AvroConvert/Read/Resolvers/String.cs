@@ -25,6 +25,7 @@ namespace SolTechnology.Avro.Read
         private Dictionary<Type, Func<object>> @switch(string value) => new Dictionary<Type, Func<object>>
         {
             {typeof(Uri), () => new Uri(value)},
+            {typeof(decimal), () => decimal.Parse(value)},
         };
 
         internal object ResolveString(Type type, IReader reader)

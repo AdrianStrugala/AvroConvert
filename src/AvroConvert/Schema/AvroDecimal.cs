@@ -28,14 +28,14 @@ namespace SolTechnology.Avro.Schema
     /// </summary>
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 #pragma warning disable CA2225 // Operator overloads have named alternates
-    public struct AvroDecimal : IConvertible, IFormattable, IComparable, IComparable<AvroDecimal>,
+    internal struct AvroDecimal : IConvertible, IFormattable, IComparable, IComparable<AvroDecimal>,
         IEquatable<AvroDecimal>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="AvroDecimal"/> class from a given double.
         /// </summary>
         /// <param name="value">The double value.</param>
-        public AvroDecimal(double value)
+        internal AvroDecimal(double value)
             : this((decimal)value)
         {
         }
@@ -44,7 +44,7 @@ namespace SolTechnology.Avro.Schema
         /// Initializes a new instance of the <see cref="AvroDecimal"/> class from a given float.
         /// </summary>
         /// <param name="value">The float value.</param>
-        public AvroDecimal(float value)
+        internal AvroDecimal(float value)
             : this((decimal)value)
         {
         }
@@ -53,7 +53,7 @@ namespace SolTechnology.Avro.Schema
         /// Initializes a new instance of the <see cref="AvroDecimal"/> class from a given decimal.
         /// </summary>
         /// <param name="value">The decimal value.</param>
-        public AvroDecimal(decimal value)
+        internal AvroDecimal(decimal value)
         {
             var bytes = GetBytesFromDecimal(value);
 
@@ -74,7 +74,7 @@ namespace SolTechnology.Avro.Schema
         /// Initializes a new instance of the <see cref="AvroDecimal"/> class from a given int.
         /// </summary>
         /// <param name="value">The int value.</param>
-        public AvroDecimal(int value)
+        internal AvroDecimal(int value)
             : this(new BigInteger(value), 0)
         {
         }
@@ -83,7 +83,7 @@ namespace SolTechnology.Avro.Schema
         /// Initializes a new instance of the <see cref="AvroDecimal"/> class from a given long.
         /// </summary>
         /// <param name="value">The long value.</param>
-        public AvroDecimal(long value)
+        internal AvroDecimal(long value)
             : this(new BigInteger(value), 0)
         {
         }
@@ -112,7 +112,7 @@ namespace SolTechnology.Avro.Schema
         /// </summary>
         /// <param name="unscaledValue">The double value.</param>
         /// <param name="scale">The scale.</param>
-        public AvroDecimal(BigInteger unscaledValue, int scale)
+        internal AvroDecimal(BigInteger unscaledValue, int scale)
         {
             UnscaledValue = unscaledValue;
             Scale = scale;
@@ -121,12 +121,12 @@ namespace SolTechnology.Avro.Schema
         /// <summary>
         /// Gets the unscaled integer value represented by the current <see cref="AvroDecimal"/>.
         /// </summary>
-        public BigInteger UnscaledValue { get; }
+        internal BigInteger UnscaledValue { get; }
 
         /// <summary>
         /// Gets the scale of the current <see cref="AvroDecimal"/>.
         /// </summary>
-        public int Scale { get; }
+        internal int Scale { get; }
 
         /// <summary>
         /// Gets the sign of the current <see cref="AvroDecimal"/>.

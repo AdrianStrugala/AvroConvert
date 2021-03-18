@@ -71,8 +71,8 @@ namespace SolTechnology.Avro.Schema
             Array.Copy(millisecondsBytes, 0, bytes, 8, 4);
 
 
-            // if (!BitConverter.IsLittleEndian)
-            Array.Reverse(bytes); //reverse it so we get little endian.
+            if (!BitConverter.IsLittleEndian)
+                Array.Reverse(bytes); //reverse it so we get little endian.
 
             return bytes;
         }
@@ -80,7 +80,8 @@ namespace SolTechnology.Avro.Schema
         internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type type)
         {
             byte[] baseBytes = (byte[])baseValue;
-            Array.Reverse(baseBytes); //reverse it so we get big endian.
+            if (!BitConverter.IsLittleEndian)
+                Array.Reverse(baseBytes); //reverse it so we get big endian.
 
             int months = BitConverter.ToInt32(baseBytes.Skip(0).Take(4).ToArray(), 0);
             int days = BitConverter.ToInt32(baseBytes.Skip(4).Take(4).ToArray(), 0);

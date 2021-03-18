@@ -37,7 +37,8 @@ namespace SolTechnology.Avro.BuildSchema
         private static readonly Dictionary<Type, Func<Type, LogicalTypeSchema>> TypeToAvroLogicalSchemaMap =
             new Dictionary<Type, Func<Type, LogicalTypeSchema>>
             {
-                { typeof(decimal), type => new DecimalSchema(type) },
+                //TODO ISSUE: Don't know how to handle static Precision and Scale in AvroDecimal -> decided to leave string implementation
+                // { typeof(decimal), type => new DecimalSchema(type) },  //
                 { typeof(Guid), type => new UuidSchema(type) },
                 { typeof(DateTime), type => new TimestampMillisecondsSchema(type) },
                 { typeof(DateTimeOffset), type => new TimestampMillisecondsSchema(type) },

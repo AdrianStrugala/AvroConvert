@@ -16,6 +16,7 @@
 #endregion
 
 using System;
+using SolTechnology.Avro.Schema;
 
 namespace SolTechnology.Avro.Read
 {
@@ -24,6 +25,13 @@ namespace SolTechnology.Avro.Read
         internal object ResolveLong(Type type, IReader reader)
         {
             long value = reader.ReadLong();
+
+            if (type == typeof(DateTime) || type == typeof(DateTime?))
+            {
+                var timestampMillisecondsSchema = new TimestampMillisecondsSchema();
+                return timestampMillisecondsSchema.ConvertToLogicalValue(value, timestampMillisecondsSchema, type);
+            }
+
             return value;
         }
     }

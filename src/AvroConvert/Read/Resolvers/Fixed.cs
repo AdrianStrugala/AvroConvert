@@ -14,6 +14,11 @@ namespace SolTechnology.Avro.Read
             byte[] bb = ((FixedModel)ru).Value;
             d.ReadFixed(bb);
 
+            if (type == typeof(Guid))
+            {
+                return new Guid(ru.Value);
+            }
+
             return ru.Value;
         }
     }

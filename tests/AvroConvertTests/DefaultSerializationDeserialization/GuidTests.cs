@@ -31,6 +31,22 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
         }
 
         [Fact]
+        public void Component_EmptyGuid_ResultIsTheSameAsInput()
+        {
+            //Arrange
+            Guid testClass = Guid.Empty;
+
+            //Act
+            var result = AvroConvert.Serialize(testClass);
+            var deserialized = AvroConvert.Deserialize<Guid>(result);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(testClass, deserialized);
+        }
+
+        [Fact]
         public void Component_ObjectContainsGuid_ResultIsTheSameAsInput()
         {
             //Arrange

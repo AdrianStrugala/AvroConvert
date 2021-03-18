@@ -37,11 +37,16 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             Assert.Equal(user.favorite_number, deserialized.favorite_number);
         }
 
-        [Fact]
-        public void Serialize_ZeroInt_ResultIsTheSameAsInput()
+        [Theory]
+        [InlineData(int.MaxValue)]
+        [InlineData(int.MinValue)]
+        [InlineData(0)]
+        [InlineData(21)]
+        [InlineData(-37)]
+        public void Component_Int_ResultIsTheSameAsInput(int testObject)
         {
             //Arrange
-            int testObject = 0;
+
 
             //Act
             var result = AvroConvert.Serialize(testObject);
@@ -53,43 +58,58 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             Assert.Equal(testObject, deserialized);
         }
 
-        [Fact]
-        public void Serialize_MaxInt_ResultIsTheSameAsInput()
+        [Theory]
+        [InlineData(float.NaN)]
+        [InlineData(float.NegativeInfinity)]
+        [InlineData(float.MinValue)]
+        [InlineData(0.0)]
+        [InlineData(float.MaxValue)]
+        [InlineData(float.PositiveInfinity)]
+        public void Component_Float_ResultIsTheSameAsInput(float testObject)
         {
             //Arrange
-            int testObject = int.MaxValue;
+
 
             //Act
             var result = AvroConvert.Serialize(testObject);
 
-            var deserialized = AvroConvert.Deserialize<int>(result);
+            var deserialized = AvroConvert.Deserialize<float>(result);
 
             //Assert
             Assert.NotNull(result);
             Assert.Equal(testObject, deserialized);
         }
 
-        [Fact]
-        public void Serialize_MinInt_ResultIsTheSameAsInput()
+        [Theory]
+        [InlineData(double.NaN)]
+        [InlineData(double.NegativeInfinity)]
+        [InlineData(double.MinValue)]
+        [InlineData(0.0)]
+        [InlineData(double.MaxValue)]
+        [InlineData(double.PositiveInfinity)]
+        [InlineData(0)]
+        [InlineData(5)]
+        public void Component_Double_ResultIsTheSameAsInput(double testObject)
         {
             //Arrange
-            int testObject = int.MinValue;
+
 
             //Act
             var result = AvroConvert.Serialize(testObject);
-
-            var deserialized = AvroConvert.Deserialize<int>(result);
+            var deserialized = AvroConvert.Deserialize<double>(result);
 
             //Assert
             Assert.NotNull(result);
             Assert.Equal(testObject, deserialized);
         }
 
-        [Fact]
-        public void Serialize_BoolTrue_ResultIsTheSameAsInput()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void Component_Bool_ResultIsTheSameAsInput(bool testObject)
         {
             //Arrange
-            bool testObject = true;
+
 
             //Act
             var result = AvroConvert.Serialize(testObject);
@@ -101,39 +121,12 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             Assert.Equal(testObject, deserialized);
         }
 
-        [Fact]
-        public void Serialize_BoolFalse_ResultIsTheSameAsInput()
-        {
-            //Arrange
-            bool testObject = false;
-
-            //Act
-            var result = AvroConvert.Serialize(testObject);
-
-            var deserialized = AvroConvert.Deserialize<bool>(result);
-
-            //Assert
-            Assert.NotNull(result);
-            Assert.Equal(testObject, deserialized);
-        }
 
         [Fact]
-        public void Serialize_ByteArray_ResultIsTheSameAsInput()
+        public void Component_ByteArray_ResultIsTheSameAsInput()
         {
             //Arrange
-            var testObject = new byte[]
-            {
-                0,
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9
-            };
+            byte[] testObject = _fixture.Create<byte[]>();
 
             //Act
             var result = AvroConvert.Serialize(testObject);
@@ -146,15 +139,18 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             Assert.Equal(testObject, deserialized);
         }
 
-        [Fact]
-        public void Serialize_EmptyString_ResultIsTheSameAsInput()
+        [Theory]
+        [InlineData("")]
+        [InlineData("5")]
+        [InlineData(" ")]
+        [InlineData("π")]
+        [InlineData("This is really awesome example of normal string")]
+        public void Component_String_ResultIsTheSameAsInput(string testObject)
         {
             //Arrange
-            var testObject = "";
 
             //Act
             var result = AvroConvert.Serialize(testObject);
-
             var deserialized = AvroConvert.Deserialize<string>(result);
 
             //Assert
@@ -164,7 +160,7 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
         }
 
         [Fact]
-        public void Serialize_Uri_ResultIsTheSameAsInput()
+        public void Component_Uri_ResultIsTheSameAsInput()
         {
             //Arrange
             var testObject = new Uri("https://dreamtravels.azurewebsites.net");
@@ -194,14 +190,13 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
         [InlineData("-000000000000000001.01")]
         [InlineData("-79228162514264337593543950335")]
         [InlineData("79228162514264337593543950335")]
-        public void Serialize_Decimal_ResultIsTheSameAsInput(string test)
+        public void Component_Decimal_ResultIsTheSameAsInput(string test)
         {
             //Arrange
             var testDecimal = decimal.Parse(test, CultureInfo.InvariantCulture);
 
             //Act
             var result = AvroConvert.Serialize(testDecimal);
-
             var deserialized = AvroConvert.Deserialize<decimal>(result);
 
             //Assert

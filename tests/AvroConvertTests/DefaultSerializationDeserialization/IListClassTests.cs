@@ -16,7 +16,7 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
         }
 
         [Fact]
-        public void SerializeClassWithList_ThenDeserialize_ListsAreEqual()
+        public void Component_ClassWithList_ListsAreEqual()
         {
             //Arrange
             SomeTestClass someTestClass = new SomeTestClass
@@ -29,7 +29,7 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
                 simpleProperty = 111111
             };
 
-            SomeTestClass dupa2 = new SomeTestClass
+            SomeTestClass someTestsClass2 = new SomeTestClass
             {
                 objectProperty = new NestedTestClass
                 {
@@ -41,7 +41,7 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
 
             SomeTestClass[] someTestClasses = new SomeTestClass[2];
             someTestClasses[0] = someTestClass;
-            someTestClasses[1] = dupa2;
+            someTestClasses[1] = someTestsClass2;
 
             //Act
             var serialized = AvroConvert.Serialize(someTestClasses);
@@ -56,11 +56,9 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
         public void Component_ObjectContainsLists_ResultIsTheSameAsInput()
         {
             //Arrange
-            ClassWithSimpleList
-                testClass = _fixture.Create<ClassWithSimpleList>();
+            ClassWithSimpleList testClass = _fixture.Create<ClassWithSimpleList>();
 
             //Act
-
             var result = AvroConvert.Serialize(testClass);
 
             var deserialized = AvroConvert.Deserialize<ClassWithSimpleList>(result);

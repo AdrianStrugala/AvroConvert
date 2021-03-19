@@ -24,7 +24,6 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
 
             //Act
             var result = AvroConvert.Serialize(toSerialize);
-
             var deserialized = AvroConvert.Deserialize<ClassWithEnum>(result);
 
 
@@ -44,7 +43,6 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
 
             //Act
             var result = AvroConvert.Serialize(toSerialize);
-
             TestEnum deserialized = AvroConvert.Deserialize<TestEnum>(result);
 
 
@@ -62,7 +60,6 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
 
             //Act
             var result = AvroConvert.Serialize(toSerialize);
-
             var deserialized = AvroConvert.Deserialize<List<TestEnum>>(result);
 
 
@@ -81,7 +78,6 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
 
             //Act
             var result = AvroConvert.Serialize(toSerialize);
-
             var deserialized = AvroConvert.Deserialize<Dictionary<TestEnum, TestEnum>>(result);
 
 

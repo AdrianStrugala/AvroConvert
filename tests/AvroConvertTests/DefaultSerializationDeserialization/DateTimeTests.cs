@@ -5,11 +5,11 @@ using Xunit;
 
 namespace AvroConvertComponentTests.DefaultSerializationDeserialization
 {
-    public class DateTimeClassTests
+    public class DateTimeTests
     {
         private readonly Fixture _fixture;
 
-        public DateTimeClassTests()
+        public DateTimeTests()
         {
             _fixture = new Fixture();
         }
@@ -137,8 +137,7 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
         public void Component_TimeSpan_ResultIsTheSameAsInput()
         {
             //Arrange
-            TimeSpan toSerialize = _fixture.Create<TimeSpan>();
-            
+            TimeSpan toSerialize = DateTime.UtcNow.TimeOfDay;
             
             //Act
             var result = AvroConvert.Serialize(toSerialize);
@@ -147,6 +146,7 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
 
             //Assert
             Assert.NotNull(result);
+            // Assert.Equal(toSerialize.Ticks, deserialized.Ticks);  //Avro Duration supports at lowest milliseconds precision
             Assert.Equal(toSerialize.Milliseconds, deserialized.Milliseconds);
             Assert.Equal(toSerialize.Seconds, deserialized.Seconds);
             Assert.Equal(toSerialize.Minutes, deserialized.Minutes);

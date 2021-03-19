@@ -6,17 +6,17 @@ using Xunit;
 
 namespace AvroConvertComponentTests.DefaultSerializationDeserialization
 {
-    public class PrimitiveClassesTests
+    public class PrimitiveTypesTests
     {
         private readonly Fixture _fixture;
 
-        public PrimitiveClassesTests()
+        public PrimitiveTypesTests()
         {
             _fixture = new Fixture();
         }
 
         [Fact]
-        public void Serialize_ObjectWithNulls_ResultIsTheSameAsInput()
+        public void Component_ObjectWithNulls_ResultIsTheSameAsInput()
         {
             //Arrange
             User user = new User();
@@ -26,7 +26,6 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
 
             //Act
             var serialized = AvroConvert.Serialize(user);
-
             var deserialized = AvroConvert.Deserialize<User>(serialized);
 
             //Assert
@@ -50,7 +49,6 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
 
             //Act
             var result = AvroConvert.Serialize(testObject);
-
             var deserialized = AvroConvert.Deserialize<int>(result);
 
             //Assert
@@ -113,7 +111,6 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
 
             //Act
             var result = AvroConvert.Serialize(testObject);
-
             var deserialized = AvroConvert.Deserialize<bool>(result);
 
             //Assert

@@ -6,11 +6,11 @@ using Xunit;
 
 namespace AvroConvertComponentTests.DefaultSerializationDeserialization
 {
-    public class DictionaryClassTests
+    public class DictionaryTests
     {
         private readonly Fixture _fixture;
 
-        public DictionaryClassTests()
+        public DictionaryTests()
         {
             _fixture = new Fixture();
         }

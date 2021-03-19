@@ -60,7 +60,6 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
 
             //Act
             var result = AvroConvert.Serialize(testClass);
-
             var deserialized = AvroConvert.Deserialize<ClassWithSimpleList>(result);
 
             //Assert
@@ -77,9 +76,7 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
                 testClass = _fixture.Create<ClassWithConstructorPopulatingProperty>();
 
             //Act
-
             var result = AvroConvert.Serialize(testClass);
-
             var deserialized = AvroConvert.Deserialize<ClassWithConstructorPopulatingProperty>(result);
 
             //Assert
@@ -99,9 +96,7 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
                 testClass = _fixture.Create<ClassWithArray>();
 
             //Act
-
             var result = AvroConvert.Serialize(testClass);
-
             var deserialized = AvroConvert.Deserialize<ClassWithArray>(result);
 
             //Assert
@@ -117,9 +112,7 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             List<int> dictionary = _fixture.Create<List<int>>();
 
             //Act
-
             var result = AvroConvert.Serialize(dictionary);
-
             var deserialized = AvroConvert.Deserialize<List<int>>(result);
 
             //Assert
@@ -135,9 +128,7 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             int[] array = _fixture.Create<int[]>();
 
             //Act
-
             var result = AvroConvert.Serialize(array);
-
             var deserialized = AvroConvert.Deserialize<int[]>(result);
 
             //Assert
@@ -153,9 +144,7 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             HashSet<int> hashset = _fixture.Create<HashSet<int>>();
 
             //Act
-
             var result = AvroConvert.Serialize(hashset);
-
             var deserialized = AvroConvert.Deserialize<HashSet<int>>(result);
 
             //Assert
@@ -171,9 +160,7 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             IImmutableSet<SomeTestClass> set = _fixture.Create<IEnumerable<SomeTestClass>>().ToImmutableHashSet();
 
             //Act
-
             var result = AvroConvert.Serialize(set);
-
             var deserialized = AvroConvert.Deserialize<ImmutableHashSet<SomeTestClass>>(result);
 
             //Assert
@@ -191,7 +178,6 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
 
             //Act
             var result = AvroConvert.Serialize(testClass);
-
             var deserialized = AvroConvert.Deserialize<ClassWithConstructorPopulatingProperty>(result);
 
 

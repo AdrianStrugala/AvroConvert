@@ -228,7 +228,7 @@ namespace AvroConvertComponentTests
 
         public ComplexStruct(List<int> vals)
         {
-            this.savedValues = vals;
+            savedValues = vals;
         }
     }
 

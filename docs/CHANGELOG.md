@@ -213,3 +213,8 @@ START OF THE PROJECT
 **v. 2.7.1 (05.02.21)**
 - Replaced own Snappy implementation with IronSnappy (to support all platforms)
 - Added support for C# 9 record type
+
+\
+**v. 3.0.0 (xx.03.21)**
+- Added support for Avro Logical Types (BREAKING CHANGE)
+- ...

@@ -58,7 +58,8 @@ namespace SolTechnology.Avro.Schema
         {
             var duration = (TimeSpan)logicalValue;
 
-            byte[] bytes = new byte[16];
+            var baseSchema = (FixedSchema) schema.BaseTypeSchema;
+            byte[] bytes = new byte[baseSchema.Size];
             var monthsBytes = BitConverter.GetBytes(0);
             var daysBytes = BitConverter.GetBytes(duration.Days);
 

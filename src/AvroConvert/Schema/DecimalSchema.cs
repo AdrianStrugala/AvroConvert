@@ -17,9 +17,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Numerics;
+using System.Text;
 using Newtonsoft.Json;
+using SolTechnology.Avro.Attributes;
 using SolTechnology.Avro.BuildSchema;
 using SolTechnology.Avro.Exceptions;
 using SolTechnology.Avro.Schema.Abstract;
@@ -74,8 +77,28 @@ namespace SolTechnology.Avro.Schema
 
         internal object ConvertToBaseValue(object logicalValue, DecimalSchema schema)
         {
-            var decimalValue = new AvroDecimal((decimal)logicalValue);
-            var buffer = decimalValue.UnscaledValue.ToByteArray();
+            var avroDecimal = new AvroDecimal((decimal)logicalValue);
+            var logicalScale = Scale;
+            var scale = avroDecimal.Scale;
+
+            //Resize value to match schema Scale property
+            int sizeDiff = logicalScale - scale;
+
+            string trailingZeros = new string('0', sizeDiff);
+            var logicalValueString = logicalValue.ToString();
+
+            string valueWithTrailingZeros;
+            if (logicalValueString.Contains(avroDecimal.SeparatorCharacter))
+            {
+                valueWithTrailingZeros = $"{logicalValue}{trailingZeros}";
+            }
+            else
+            {
+                valueWithTrailingZeros = $"{logicalValue}{avroDecimal.SeparatorCharacter}{trailingZeros}";
+            }
+            
+            avroDecimal = new AvroDecimal(valueWithTrailingZeros);
+            var buffer = avroDecimal.UnscaledValue.ToByteArray();
 
             Array.Reverse(buffer);
 
@@ -84,7 +107,7 @@ namespace SolTechnology.Avro.Schema
                 : (object)new FixedModel(
                     (FixedSchema)schema.BaseTypeSchema,
                     GetDecimalFixedByteArray(buffer, ((FixedSchema)schema.BaseTypeSchema).Size,
-                    decimalValue.Sign < 0 ? (byte)0xFF : (byte)0x00));
+                    avroDecimal.Sign < 0 ? (byte)0xFF : (byte)0x00));
         }
 
         internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type type)
@@ -95,6 +118,7 @@ namespace SolTechnology.Avro.Schema
 
             Array.Reverse(buffer);
             var avroDecimal = new AvroDecimal(new BigInteger(buffer), Scale);
+
 
             return AvroDecimal.ToDecimal(avroDecimal);
         }

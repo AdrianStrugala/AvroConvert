@@ -47,13 +47,30 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             Assert.NotNull(deserialized);
             Assert.Equal(testObject.One, deserialized.One);
             Assert.Equal(testObject.Two, deserialized.Two);
+
             Assert.Equal(testObject.Three.Milliseconds, deserialized.Three.Milliseconds);
             Assert.Equal(testObject.Three.Seconds, deserialized.Three.Seconds);
             Assert.Equal(testObject.Three.Minutes, deserialized.Three.Minutes);
             Assert.Equal(testObject.Three.Hours, deserialized.Three.Hours);
             Assert.Equal(testObject.Three.Days, deserialized.Three.Days);
-            Assert.Equal(testObject.Four, deserialized.Four);
-            Assert.Equal(testObject.Five, deserialized.Five);
+
+            Assert.NotNull(testObject.Four);
+            Assert.NotNull(deserialized.Four);
+            Assert.Equal(testObject.Four.Value.Millisecond, deserialized.Four.Value.Millisecond);
+            Assert.Equal(testObject.Four.Value.Second, deserialized.Four.Value.Second);
+            Assert.Equal(testObject.Four.Value.Minute, deserialized.Four.Value.Minute);
+            Assert.Equal(testObject.Four.Value.Hour, deserialized.Four.Value.Hour);
+            Assert.Equal(testObject.Four.Value.Day, deserialized.Four.Value.Day);
+            Assert.Equal(testObject.Four.Value.Month, deserialized.Four.Value.Month);
+            Assert.Equal(testObject.Four.Value.Year, deserialized.Four.Value.Year);
+
+            Assert.Equal(testObject.Five.Millisecond, deserialized.Five.Millisecond);
+            Assert.Equal(testObject.Five.Second, deserialized.Five.Second);
+            Assert.Equal(testObject.Five.Minute, deserialized.Five.Minute);
+            Assert.Equal(testObject.Five.Hour, deserialized.Five.Hour);
+            Assert.Equal(testObject.Five.Day, deserialized.Five.Day);
+            Assert.Equal(testObject.Five.Month, deserialized.Five.Month);
+            Assert.Equal(testObject.Five.Year, deserialized.Five.Year);
         }
     }
 }

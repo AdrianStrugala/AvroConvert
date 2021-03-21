@@ -13,7 +13,7 @@
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
 
-/** Modifications copyright(C) 2020 Adrian Strugała **/
+/** Modifications copyright(C) 2021 Adrian Strugala **/
 
 using System;
 using System.Collections.Generic;
@@ -37,8 +37,7 @@ namespace SolTechnology.Avro.BuildSchema
         private static readonly Dictionary<Type, Func<Type, LogicalTypeSchema>> TypeToAvroLogicalSchemaMap =
             new Dictionary<Type, Func<Type, LogicalTypeSchema>>
             {
-                //TODO ISSUE: Don't know how to handle static Precision and Scale in AvroDecimal -> decided to leave string implementation
-                // { typeof(decimal), type => new DecimalSchema(type) },  //
+                { typeof(decimal), type => new DecimalSchema(type) },
                 { typeof(Guid), type => new UuidSchema(type) },
                 { typeof(DateTime), type => new TimestampMillisecondsSchema(type) },
                 { typeof(DateTimeOffset), type => new TimestampMillisecondsSchema(type) },

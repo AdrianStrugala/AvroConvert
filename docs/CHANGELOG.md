@@ -217,4 +217,4 @@ START OF THE PROJECT
 \
 **v. 3.0.0 (xx.03.21)**
 - Added support for Avro Logical Types (BREAKING CHANGE)
-- ...
+- Improved deserialization time by removing duplicated schema implementation

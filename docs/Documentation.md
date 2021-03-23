@@ -86,15 +86,21 @@ string schemaInJsonFormat = AvroConvert.GenerateSchema(typeof(SimpleTestClass));
 Using class decorated with attributes
 ```csharp
 //Model
-[DataContract(Name = "User", Namespace = "user")]
+[DataContract(Name = "User", Namespace = "userspace")]
+[Description("This is Doc of User Class")]
 public class AttributeClass
 {
 	[DataMember(Name = "name")]
+	[Description("This is Doc of record field")]
 	public string StringProperty { get; set; }
 
 	[DataMember(Name = "favorite_number")]
-	// [NullableSchema] not necessary for 'System.Nullable' types
-	public int? NullableIntProperty { get; set; }
+	[DefaultValue(2137)]
+	public int? NullableIntPropertyWithDefaultValue { get; set; }
+
+	[DataMember(Name = "not_favorite_number")]
+	[NullableSchema]
+	public int AnotherWayOrIndicatingNullableProperty { get; set; }
 
 	[DataMember(Name = "favorite_color")]
 	[NullableSchema]
@@ -107,7 +113,52 @@ string schemaInJsonFormat = AvroConvert.GenerateSchema(typeof(AttributeClass));
 
 
 //Produces following schema:
-"{"type":"record","name":"user.User","fields":[{"name":"name","type":,"string"},{"name":"favorite_number","type":["null","int"]},{"name":"favorite_color","type":["null","string"]}]}"
+{
+  "type": "record",
+  "name": "userspace.User",
+  "doc": "This is Doc of User Class",
+  "fields": [
+    {
+      "name": "name",
+      "doc": "This is Doc of record field",
+      "aliases": [
+        "StringProperty"
+      ],
+      "type": "string"
+    },
+    {
+      "name": "favorite_number",
+      "aliases": [
+        "NullableIntPropertyWithDefaultValue"
+      ],
+      "type": [
+        "int",
+        "null"
+      ],
+      "default": 2137
+    },
+    {
+      "name": "not_favorite_number",
+      "aliases": [
+        "AnotherWayOrIndicatingNullableProperty"
+      ],
+      "type": [
+        "null",
+        "int"
+      ]
+    },
+    {
+      "name": "favorite_color",
+      "aliases": [
+        "AndAnotherString"
+      ],
+      "type": [
+        "null",
+        "string"
+      ]
+    }
+  ]
+}
 ```  
 
 

@@ -33,7 +33,7 @@ namespace SolTechnology.Avro.BuildSchema
         {
             this.GenerateDeserializer = true;
             this.GenerateSerializer = true;
-            this.Resolver = new AvroDataContractResolver(includeOnlyDataContractMembers: includeOnlyDataContractMembers);
+            this.Resolver = new AvroContractResolver(includeOnlyDataContractMembers: includeOnlyDataContractMembers);
             this.MaxItemsInSchemaTree = 1024;
             this.UsePosixTime = false;
             this.KnownTypes = new List<Type>();

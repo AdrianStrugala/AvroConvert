@@ -358,20 +358,12 @@ namespace SolTechnology.Avro.BuildSchema
         /// </returns>
         private TypeSchema BuildRecordTypeSchema(Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth)
         {
-            if (type == typeof(DateTimeOffset))
-            {
-                return this.settings.UsePosixTime
-                    ? (TypeSchema)new LongSchema(type)
-                    : new StringSchema(type);
-            }
-
-            NamedSchema schema;
-            if (schemas.TryGetValue(type.ToString(), out schema))
+            if (schemas.TryGetValue(type.ToString(), out var schema))
             {
                 return schema;
             }
 
-            var attr = this.GetNamedEntityAttributesFrom(type);
+            var attr = GetNamedEntityAttributesFrom(type);
             AvroContractResolver resolver = this.settings.Resolver;
             var record = new RecordSchema(
                 attr,
@@ -399,7 +391,7 @@ namespace SolTechnology.Avro.BuildSchema
 
         private bool HasApplicableKnownType(Type type)
         {
-            return this.GetApplicableKnownTypes(type).Count(t => t != type) != 0;
+            return GetApplicableKnownTypes(type).Count(t => t != type) != 0;
         }
 
         private IEnumerable<Type> GetApplicableKnownTypes(Type type)

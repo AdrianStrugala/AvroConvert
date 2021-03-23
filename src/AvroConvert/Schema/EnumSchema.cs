@@ -84,51 +84,21 @@ namespace SolTechnology.Avro.Schema
                 }
             }
         }
+        
+        internal ReadOnlyCollection<string> Symbols => new ReadOnlyCollection<string>(this.symbols);
 
-        /// <summary>
-        ///     Gets the symbols.
-        /// </summary>
-        internal ReadOnlyCollection<string> Symbols
-        {
-            get { return new ReadOnlyCollection<string>(this.symbols); }
-        }
-
-        /// <summary>
-        /// Gets the value by symbol.
-        /// </summary>
-        /// <param name="symbol">The symbol.</param>
-        /// <returns>Value corresponding to the symbol.</returns>
         internal int GetValueBySymbol(string symbol)
         {
             return this.symbolToValue[symbol];
         }
 
-        /// <summary>
-        /// Gets the symbol by integer value.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>Symbol that corresponds to the specified integer value.</returns>
         internal string GetSymbolByValue(int value)
         {
             return this.valueToSymbol[value];
         }
 
-        /// <summary>
-        ///     Gets the avro to C sharp value mapping.
-        /// </summary>
-        /// <value>
-        ///     The avro to C sharp value mapping.
-        /// </value>
-        internal long[] AvroToCSharpValueMapping
-        {
-            get { return this.avroToCSharpValueMapping.ToArray(); }
-        }
+        internal long[] AvroToCSharpValueMapping => this.avroToCSharpValueMapping.ToArray();
 
-        /// <summary>
-        ///     Converts current not to JSON according to the avro specification.
-        /// </summary>
-        /// <param name="writer">The writer.</param>
-        /// <param name="seenSchemas">The seen schemas.</param>
         internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
         {
             if (seenSchemas.Contains(this))

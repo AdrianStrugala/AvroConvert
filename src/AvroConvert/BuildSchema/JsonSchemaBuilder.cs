@@ -320,7 +320,15 @@ namespace SolTechnology.Avro.BuildSchema
                 case LogicalTypeSchema.LogicalTypeEnum.TimestampMicroseconds:
                     result = new TimestampMicrosecondsSchema();
                     break;
-                //TODO: time-millis, time-micros, date 
+                case LogicalTypeSchema.LogicalTypeEnum.TimeMilliseconds:
+                    result = new TimeMillisecondsSchema();
+                    break;
+                case LogicalTypeSchema.LogicalTypeEnum.TimeMicrosecond:
+                    result = new TimeMicrosecondsSchema();
+                    break;
+                case LogicalTypeSchema.LogicalTypeEnum.Date:
+                    result = new DateSchema();
+                    break;
                 default:
                     throw new SerializationException(
                         string.Format(CultureInfo.InvariantCulture, "Unknown LogicalType schema :'{0}'.", logicalType));

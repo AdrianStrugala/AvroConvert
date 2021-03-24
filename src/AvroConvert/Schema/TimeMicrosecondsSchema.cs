@@ -22,12 +22,14 @@ using SolTechnology.Avro.Schema.Abstract;
 namespace SolTechnology.Avro.Schema
 {
 
-    internal sealed class TimestampMicrosecondsSchema : LogicalTypeSchema
+    internal sealed class TimeMicrosecondsSchema : LogicalTypeSchema
     {
-        public TimestampMicrosecondsSchema() : this(typeof(DateTime))
+        private static readonly TimeSpan _maxTime = new TimeSpan(23, 59, 59);
+
+        public TimeMicrosecondsSchema() : this(typeof(TimeSpan))
         {
         }
-        public TimestampMicrosecondsSchema(Type runtimeType) : base(runtimeType)
+        public TimeMicrosecondsSchema(Type runtimeType) : base(runtimeType)
         {
             BaseTypeSchema = new LongSchema();
         }
@@ -35,35 +37,20 @@ namespace SolTechnology.Avro.Schema
         internal override AvroType Type => Avro.Schema.AvroType.Logical;
         internal override TypeSchema BaseTypeSchema { get; set; }
         internal override string LogicalTypeName => LogicalTypeEnum.TimeMicrosecond;
-        internal object ConvertToBaseValue(object logicalValue, TimestampMillisecondsSchema schema)
+        public object ConvertToBaseValue(object logicalValue, LogicalTypeSchema schema)
         {
-            DateTime date;
-            if (logicalValue is DateTimeOffset dateTimeOffset)
-            {
-                date = dateTimeOffset.DateTime;
-            }
-            else
-            {
-                date = ((DateTime)logicalValue);
-            }
+            var time = (TimeSpan)logicalValue;
 
-            var timeDiff = date - DateTimeExtensions.UnixEpochDateTime;
-            return timeDiff.Milliseconds / 1000;
+            if (time > _maxTime)
+                throw new ArgumentOutOfRangeException(nameof(logicalValue), "A 'time-micros' value can only have the range '00:00:00' to '23:59:59'.");
+
+            return (long)(time - DateTimeExtensions.UnixEpochDateTime.TimeOfDay).TotalMilliseconds * 1000;
         }
 
         internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type type)
         {
-            var noMicroseconds = (long)baseValue;
-            var result = DateTimeExtensions.UnixEpochDateTime.AddMilliseconds(noMicroseconds * 1000);
-
-            if (type == typeof(DateTimeOffset) || type == typeof(DateTimeOffset?))
-            {
-                return DateTimeOffset.FromUnixTimeMilliseconds(noMicroseconds * 1000);
-            }
-            else
-            {
-                return result;
-            }
+            var noMs = (long)baseValue / 1000;
+            return DateTimeExtensions.UnixEpochDateTime.TimeOfDay.Add(TimeSpan.FromMilliseconds(noMs));
         }
     }
 }

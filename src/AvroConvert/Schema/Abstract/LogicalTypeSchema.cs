@@ -31,7 +31,10 @@ namespace SolTechnology.Avro.Schema.Abstract
                 TimestampMilliseconds = "timestamp-millis",
                 TimestampMicroseconds = "timestamp-micros",
                 Decimal = "decimal",
-                Duration = "duration";
+                Duration = "duration",
+                TimeMilliseconds = "time-millis",
+                TimeMicrosecond = "time-micros ",
+                Date = "date";
         }
 
         internal abstract TypeSchema BaseTypeSchema { get; set; }

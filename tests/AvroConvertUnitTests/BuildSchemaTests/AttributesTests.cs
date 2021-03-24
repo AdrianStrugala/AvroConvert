@@ -20,6 +20,7 @@ namespace AvroConvertUnitTests.BuildSchemaTests
             //Act
             TypeSchema schema = builder.BuildSchema(typeof(AttributeClass));
 
+
             //Assert
             Assert.IsType<RecordSchema>(schema);
             var resultSchema = (RecordSchema)schema;
@@ -37,6 +38,13 @@ namespace AvroConvertUnitTests.BuildSchemaTests
             Assert.NotNull(intField);
             Assert.Equal(true, intField.HasDefaultValue);
             Assert.Equal(2137, intField.DefaultValue);
+
+
+            var decimalField = resultSchema.Fields.SingleOrDefault(f => f.Name == nameof(AttributeClass.AvroDecimal));
+            Assert.IsType<DecimalSchema>(decimalField.TypeSchema);
+            var decimalSchema = (DecimalSchema)decimalField.TypeSchema;
+            Assert.Equal(2, decimalSchema.Scale);
+            Assert.Equal(4, decimalSchema.Precision);
         }
     }
 }

@@ -8,6 +8,7 @@
 
 using System.Collections.Generic;
 using System.Reflection;
+using SolTechnology.Avro.Attributes;
 
 namespace SolTechnology.Avro.BuildSchema
 {

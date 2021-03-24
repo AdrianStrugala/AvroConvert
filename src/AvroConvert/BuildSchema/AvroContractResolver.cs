@@ -181,14 +181,19 @@ namespace SolTechnology.Avro.BuildSchema
             }
 
             var members = membersToSerialize
-            .Select(m => new
+            .Select(m =>
             {
-                Member = m,
-                Attribute = m.GetCustomAttributes(false).OfType<DataMemberAttribute>().SingleOrDefault(),
-                Nullable = m.GetCustomAttributes(false).OfType<NullableSchemaAttribute>().Any(), // m.GetType().CanContainNull() ||
-                DefaultValue = m.GetCustomAttributes(false).OfType<DefaultValueAttribute>().FirstOrDefault()?.Value,
-                HasDefaultValue = m.GetCustomAttributes(false).OfType<DefaultValueAttribute>().Any(),
-                Doc = m.GetCustomAttributes(false).OfType<DescriptionAttribute>().FirstOrDefault()?.Description
+                var customAttributes = m.GetCustomAttributes(false);
+
+                return new
+                {
+                    Member = m,
+                    Attribute = customAttributes.OfType<DataMemberAttribute>().SingleOrDefault(),
+                    Nullable = customAttributes.OfType<NullableSchemaAttribute>().Any(), // m.GetType().CanContainNull() ||
+                    DefaultValue = customAttributes.OfType<DefaultValueAttribute>().FirstOrDefault()?.Value,
+                    HasDefaultValue = customAttributes.OfType<DefaultValueAttribute>().Any(),
+                    Doc = customAttributes.OfType<DescriptionAttribute>().FirstOrDefault()?.Description
+                };
             });
 
 

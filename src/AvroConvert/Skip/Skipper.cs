@@ -18,70 +18,77 @@
 using SolTechnology.Avro.Exceptions;
 using SolTechnology.Avro.Read;
 using SolTechnology.Avro.Schema;
+using SolTechnology.Avro.Schema.Abstract;
 
 namespace SolTechnology.Avro.Skip
 {
     internal class Skipper
     {
-        internal void Skip(Schema.Schema schema, IReader d)
+        internal void Skip(TypeSchema schema, IReader d)
         {
-            switch (schema.Tag)
+            switch (schema.Type)
             {
-                case Schema.Schema.Type.Null:
+                case AvroType.Null:
                     d.SkipNull();
                     break;
-                case Schema.Schema.Type.Boolean:
+                case AvroType.Boolean:
                     d.SkipBoolean();
                     break;
-                case Schema.Schema.Type.Int:
+                case AvroType.Int:
                     d.SkipInt();
                     break;
-                case Schema.Schema.Type.Long:
+                case AvroType.Long:
                     d.SkipLong();
                     break;
-                case Schema.Schema.Type.Float:
+                case AvroType.Float:
                     d.SkipFloat();
                     break;
-                case Schema.Schema.Type.Double:
+                case AvroType.Double:
                     d.SkipDouble();
                     break;
-                case Schema.Schema.Type.String:
+                case AvroType.String:
                     d.SkipString();
                     break;
-                case Schema.Schema.Type.Bytes:
+                case AvroType.Bytes:
                     d.SkipBytes();
                     break;
-                case Schema.Schema.Type.Record:
-                    foreach (Field f in (RecordSchema)schema) Skip(f.Schema, d);
+                case AvroType.Record:
+                    foreach (var field in ((RecordSchema)schema).Fields)
+                    {
+                        Skip(field.TypeSchema, d);
+                    }
                     break;
-                case Schema.Schema.Type.Enumeration:
+                case AvroType.Enum:
                     d.SkipEnum();
                     break;
-                case Schema.Schema.Type.Fixed:
+                case AvroType.Fixed:
                     d.SkipFixed(((FixedSchema)schema).Size);
                     break;
-                case Schema.Schema.Type.Array:
+                case AvroType.Array:
                     {
-                        Schema.Schema s = ((ArraySchema)schema).ItemSchema;
+                        TypeSchema s = ((ArraySchema)schema).ItemSchema;
                         for (long n = d.ReadArrayStart(); n != 0; n = d.ReadArrayNext())
                         {
                             for (long i = 0; i < n; i++) Skip(s, d);
                         }
                     }
                     break;
-                case Schema.Schema.Type.Map:
+                case AvroType.Map:
                     {
-                        Schema.Schema s = ((MapSchema)schema).ValueSchema;
+                        TypeSchema s = ((MapSchema)schema).ValueSchema;
                         for (long n = d.ReadMapStart(); n != 0; n = d.ReadMapNext())
                         {
                             for (long i = 0; i < n; i++) { d.SkipString(); Skip(s, d); }
                         }
                     }
                     break;
-                case Schema.Schema.Type.Union:
-                    Skip(((UnionSchema)schema)[d.ReadUnionIndex()], d);
+                case AvroType.Union:
+                    Skip(((UnionSchema)schema).Schemas[d.ReadUnionIndex()], d);
                     break;
-                case Schema.Schema.Type.Error:
+                case AvroType.Logical:
+                    Skip(((LogicalTypeSchema) schema).BaseTypeSchema, d);
+                    break;
+                case AvroType.Error:
                     break;
                 default:
                     throw new AvroException("Unknown schema type: " + schema);

@@ -2,7 +2,7 @@
 using SolTechnology.Avro;
 using Xunit;
 
-namespace AvroConvertTests.CodecTests.Snappy
+namespace AvroConvertComponentTests.CodecTests.Snappy
 {
     public class Tests
     {

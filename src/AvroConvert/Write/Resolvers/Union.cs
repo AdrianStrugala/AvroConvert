@@ -1,5 +1,5 @@
 ﻿#region license
-/**Copyright (c) 2020 Adrian Strugała
+/**Copyright (c) 2021 Adrian Strugala
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -15,10 +15,10 @@
 */
 #endregion
 
-using System.Collections.Generic;
 using System.Linq;
 using SolTechnology.Avro.Exceptions;
 using SolTechnology.Avro.Schema;
+using SolTechnology.Avro.Schema.Abstract;
 
 namespace SolTechnology.Avro.Write.Resolvers
 {
@@ -44,60 +44,64 @@ namespace SolTechnology.Avro.Write.Resolvers
          * the data is byte[] and there are fixed and bytes schemas as branches, it choose the first one that matches.
          * Also it does not recognize the arrays of primitive types.
          */
-        private bool UnionBranchMatches(Schema.Schema sc, object obj)
+        private bool UnionBranchMatches(TypeSchema sc, object obj)
         {
-            if (obj == null && sc.Tag != Schema.Schema.Type.Null) return false;
-            switch (sc.Tag)
+            if (obj == null && sc.Type != AvroType.Null) return false;
+            switch (sc.Type)
             {
-                case Schema.Schema.Type.Null:
+                case AvroType.Null:
                     return obj == null;
-                case Schema.Schema.Type.Boolean:
+                case AvroType.Boolean:
                     return obj is bool;
-                case Schema.Schema.Type.Int:
+                case AvroType.Int:
                     return obj is int;
-                case Schema.Schema.Type.Long:
+                case AvroType.Long:
                     return obj is long;
-                case Schema.Schema.Type.Float:
+                case AvroType.Float:
                     return obj is float;
-                case Schema.Schema.Type.Double:
+                case AvroType.Double:
                     return obj is double;
-                case Schema.Schema.Type.Bytes:
+                case AvroType.Bytes:
                     return obj is byte[];
-                case Schema.Schema.Type.String:
+                case AvroType.String:
                     return true;
-                case Schema.Schema.Type.Error:
-                case Schema.Schema.Type.Record:
+                case AvroType.Error:
+                case AvroType.Record:
                     return true;
-                case Schema.Schema.Type.Enumeration:
+                case AvroType.Enum:
                     return obj is System.Enum;
-                case Schema.Schema.Type.Array:
+                case AvroType.Array:
                     return !(obj is byte[]);
-                case Schema.Schema.Type.Map:
+                case AvroType.Map:
                     return true;
-                case Schema.Schema.Type.Union:
+                case AvroType.Union:
                     return false; // Union directly within another union not allowed!
-                case Schema.Schema.Type.Fixed:
+                case AvroType.Fixed:
                     //return obj is GenericFixed && (obj as GenericFixed)._schema.Equals(s);
-                    return obj is Models.Fixed &&
-                           (obj as Models.Fixed).Schema.SchemaName.Equals((sc as FixedSchema).SchemaName);
+                    return obj is FixedModel &&
+                           (obj as FixedModel).Schema.FullName.Equals((sc as FixedSchema).FullName);
+                case AvroType.Logical:
+                    // return (sc as LogicalTypeSchema).IsInstanceOfLogicalType(obj);
+                    return true;
                 default:
-                    throw new AvroException("Unknown schema type: " + sc.Tag);
+                    throw new AvroException("Unknown schema type: " + sc.Type);
             }
         }
 
-        private void WriteUnion(UnionSchema unionSchema, Schema.Schema[] branchSchemas, Encoder.WriteItem[] branchWriters, object value, IWriter encoder)
+        private void WriteUnion(UnionSchema unionSchema, TypeSchema[] branchSchemas, Encoder.WriteItem[] branchWriters, object value, IWriter encoder)
         {
             int index = ResolveUnion(unionSchema, branchSchemas, value);
             encoder.WriteUnionIndex(index);
             branchWriters[index](value, encoder);
         }
 
-        private int ResolveUnion(UnionSchema us, Schema.Schema[] branchSchemas, object obj)
+        private int ResolveUnion(UnionSchema us, TypeSchema[] branchSchemas, object obj)
         {
             for (int i = 0; i < branchSchemas.Length; i++)
             {
                 if (UnionBranchMatches(branchSchemas[i], obj)) return i;
             }
+
             throw new AvroException("Cannot find a match for " + obj.GetType() + " in " + us);
         }
     }

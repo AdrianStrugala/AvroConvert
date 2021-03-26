@@ -13,7 +13,7 @@
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
 
-/** Modifications copyright(C) 2020 Adrian Strugała **/
+/** Modifications copyright(C) 2021 Adrian Strugala **/
 
 using System;
 using System.Collections.Generic;
@@ -23,15 +23,29 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using SolTechnology.Avro.Attributes;
 using SolTechnology.Avro.Extensions;
+using SolTechnology.Avro.Schema;
+using SolTechnology.Avro.Schema.Abstract;
 
 namespace SolTechnology.Avro.BuildSchema
 {
     /// <summary>
     ///     This class creates an avro schema given a c# type.
     /// </summary>
+
     internal sealed class ReflectionSchemaBuilder
     {
-        private static readonly Dictionary<Type, Func<Type, PrimitiveTypeSchema>> RuntimeTypeToAvroSchema =
+        private static readonly Dictionary<Type, Func<Type, LogicalTypeSchema>> TypeToAvroLogicalSchemaMap =
+            new Dictionary<Type, Func<Type, LogicalTypeSchema>>
+            {
+                { typeof(decimal), type => new DecimalSchema(type) },
+                { typeof(Guid), type => new UuidSchema(type) },
+                { typeof(DateTime), type => new TimestampMillisecondsSchema(type) },
+                { typeof(DateTimeOffset), type => new TimestampMillisecondsSchema(type) },
+                { typeof(TimeSpan), type => new DurationSchema(type) },
+            };
+
+
+        private static readonly Dictionary<Type, Func<Type, PrimitiveTypeSchema>> TypeToAvroPrimitiveSchemaMap =
             new Dictionary<Type, Func<Type, PrimitiveTypeSchema>>
             {
                 { typeof(AvroNull), type => new NullSchema(type) },
@@ -47,10 +61,10 @@ namespace SolTechnology.Avro.BuildSchema
                 { typeof(ulong), type => new LongSchema(type) },
                 { typeof(float), type => new FloatSchema() },
                 { typeof(double), type => new DoubleSchema() },
-                { typeof(decimal), type => new StringSchema(type) },
                 { typeof(string), type => new StringSchema(type) },
                 { typeof(Uri), type => new StringSchema(type) },
                 { typeof(byte[]), type => new BytesSchema() },
+                { typeof(decimal), type => new StringSchema(type) },
                 { typeof(DateTime), type => new LongSchema(type) }
             };
 
@@ -61,11 +75,11 @@ namespace SolTechnology.Avro.BuildSchema
         ///     Initializes a new instance of the <see cref="ReflectionSchemaBuilder" /> class.
         /// </summary>
         /// <param name="settings">The settings.</param>
-        internal ReflectionSchemaBuilder(AvroSerializerSettings settings)
+        internal ReflectionSchemaBuilder(AvroSerializerSettings settings = null)
         {
             if (settings == null)
             {
-                throw new ArgumentNullException("settings");
+                settings = new AvroSerializerSettings();
             }
 
             this.settings = settings;
@@ -88,11 +102,16 @@ namespace SolTechnology.Avro.BuildSchema
             }
 
             AvroContractResolver resolver = this.settings.Resolver;
-            this.knownTypes.UnionWith(resolver.GetKnownTypes(type) ?? new List<Type>());
+            knownTypes.UnionWith(resolver.GetKnownTypes(type) ?? new List<Type>());
             return this.CreateSchema(false, type, new Dictionary<string, NamedSchema>(), 0);
         }
 
-        private TypeSchema CreateSchema(bool forceNullable, Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth, Type prioritizedType = null)
+        private TypeSchema CreateSchema(bool forceNullable,
+            Type type,
+            Dictionary<string, NamedSchema> schemas,
+            uint currentDepth,
+            Type prioritizedType = null,
+            MemberInfo memberInfo = null)
         {
             if (currentDepth == this.settings.MaxItemsInSchemaTree)
             {
@@ -127,15 +146,21 @@ namespace SolTechnology.Avro.BuildSchema
             }
 
             return typeInfo.Nullable || forceNullable
-                ? this.CreateNullableSchema(type, schemas, currentDepth, prioritizedType)
-                : this.CreateNotNullableSchema(type, schemas, currentDepth);
+                ? this.CreateNullableSchema(type, schemas, currentDepth, prioritizedType, memberInfo)
+                : this.CreateNotNullableSchema(type, schemas, currentDepth, memberInfo);
         }
 
-        private TypeSchema CreateNullableSchema(Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth, Type prioritizedType)
+        private TypeSchema CreateNullableSchema(Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth, Type prioritizedType, MemberInfo info)
         {
             var typeSchemas = new List<TypeSchema> { new NullSchema(type) };
-            var notNullableSchema = this.CreateNotNullableSchema(type, schemas, currentDepth);
+            var notNullableType = type;
+            var underlyingType = Nullable.GetUnderlyingType(type);
+            if (underlyingType != null)
+            {
+                notNullableType = underlyingType;
+            }
 
+            var notNullableSchema = this.CreateNotNullableSchema(notNullableType, schemas, currentDepth, info);
             if (notNullableSchema is UnionSchema unionSchema)
             {
                 typeSchemas.AddRange(unionSchema.Schemas);
@@ -145,8 +170,8 @@ namespace SolTechnology.Avro.BuildSchema
                 typeSchemas.Add(notNullableSchema);
             }
 
-            typeSchemas = typeSchemas.OrderBy(x => 
-                prioritizedType == null && x.Type.ToString() != "Null" 
+            typeSchemas = typeSchemas.OrderBy(x =>
+                prioritizedType == null && x.Type.ToString() != "Null"
                 || prioritizedType != null && x.Type.ToString() == "Null")
                 .ToList();
 
@@ -163,37 +188,64 @@ namespace SolTechnology.Avro.BuildSchema
         /// New instance of schema.
         /// </returns>
         /// <exception cref="System.Runtime.Serialization.SerializationException">Thrown when maximum depth of object graph is reached.</exception>
-        private TypeSchema CreateNotNullableSchema(Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth)
+        private TypeSchema CreateNotNullableSchema(Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth, MemberInfo info)
         {
-            TypeSchema schema = TryBuildPrimitiveTypeSchema(type);
+            //Logical
+            TypeSchema schema = TryBuildLogicalTypeSchema(type, info);
             if (schema != null)
             {
                 return schema;
             }
 
-            if ((type.IsInterface() || type.IsAbstract())
-                || this.HasApplicableKnownType(type))
+            //Primitive
+            schema = TryBuildPrimitiveTypeSchema(type);
+            if (schema != null)
             {
-                return this.BuildKnownTypeSchema(type, schemas, currentDepth);
+                return schema;
             }
 
-            return this.BuildComplexTypeSchema(type, schemas, currentDepth);
+            //Others
+            if (type.IsInterface() || type.IsAbstract() || this.HasApplicableKnownType(type))
+            {
+                return BuildKnownTypeSchema(type, schemas, currentDepth, info);
+            }
+
+            return BuildComplexTypeSchema(type, schemas, currentDepth, info);
         }
 
-        /// <summary>
-        ///     Generates the primitive schema if the type is primitive.
-        /// </summary>
-        /// <param name="type">The type.</param>
-        /// <returns>
-        ///     New instance of schema.
-        /// </returns>
         private static TypeSchema TryBuildPrimitiveTypeSchema(Type type)
         {
-            if (!RuntimeTypeToAvroSchema.ContainsKey(type))
+            if (!TypeToAvroPrimitiveSchemaMap.ContainsKey(type))
             {
                 return null;
             }
-            return RuntimeTypeToAvroSchema[type](type);
+            return TypeToAvroPrimitiveSchemaMap[type](type);
+        }
+
+        private static TypeSchema TryBuildLogicalTypeSchema(Type type, MemberInfo info = null)
+        {
+            if (type == typeof(decimal))
+            {
+                return BuildDecimalTypeSchema(type, info);
+            }
+
+            if (!TypeToAvroLogicalSchemaMap.ContainsKey(type))
+            {
+                return null;
+            }
+
+            return TypeToAvroLogicalSchemaMap[type](type);
+        }
+
+        private static TypeSchema BuildDecimalTypeSchema(Type type, MemberInfo info)
+        {
+            var decimalAttribute = info?.GetCustomAttributes(false).OfType<AvroDecimalAttribute>().FirstOrDefault();
+            if (decimalAttribute != null)
+            {
+                return new DecimalSchema(type, decimalAttribute.Precision, decimalAttribute.Scale);
+            }
+
+            return new DecimalSchema(type);
         }
 
         /// <summary>
@@ -206,7 +258,7 @@ namespace SolTechnology.Avro.BuildSchema
         ///     New instance of schema.
         /// </returns>
         /// <exception cref="System.Runtime.Serialization.SerializationException">Thrown when <paramref name="type"/> is not supported.</exception>
-        private TypeSchema BuildComplexTypeSchema(Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth)
+        private TypeSchema BuildComplexTypeSchema(Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth, MemberInfo info)
         {
             if (type.IsEnum())
             {
@@ -228,7 +280,7 @@ namespace SolTechnology.Avro.BuildSchema
                  || dictionaryType.GetGenericArguments()[0] == typeof(Uri)))
             {
                 return new MapSchema(
-                    this.CreateNotNullableSchema(dictionaryType.GetGenericArguments()[0], schemas, currentDepth + 1),
+                    this.CreateNotNullableSchema(dictionaryType.GetGenericArguments()[0], schemas, currentDepth + 1, info),
                     this.CreateSchema(false, dictionaryType.GetGenericArguments()[1], schemas, currentDepth + 1),
                     type);
             }
@@ -268,7 +320,7 @@ namespace SolTechnology.Avro.BuildSchema
         /// </summary>
         /// <param name="type">The type.</param>
         /// <param name="schemas">The schemas.</param>
-        /// <returns>Enumeration schema.</returns>
+        /// <returns>Enum schema.</returns>
         private TypeSchema BuildEnumTypeSchema(Type type, Dictionary<string, NamedSchema> schemas)
         {
             if (type.IsFlagEnum())
@@ -327,29 +379,12 @@ namespace SolTechnology.Avro.BuildSchema
         /// </returns>
         private TypeSchema BuildRecordTypeSchema(Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth)
         {
-            if (type == typeof(DateTimeOffset))
-            {
-                return this.settings.UsePosixTime
-                    ? (TypeSchema)new LongSchema(type)
-                    : new StringSchema(type);
-            }
-
-            NamedSchema schema;
-            if (schemas.TryGetValue(type.ToString(), out schema))
+            if (schemas.TryGetValue(type.ToString(), out var schema))
             {
                 return schema;
             }
 
-            if (type == typeof(Guid))
-            {
-                var recordName = new SchemaName(type.GetStrippedFullName());
-                var attributes = new NamedEntityAttributes(recordName, new List<string>(), string.Empty);
-                var result = new FixedSchema(attributes, 16, type);
-                schemas.Add(type.ToString(), result);
-                return result;
-            }
-
-            var attr = this.GetNamedEntityAttributesFrom(type);
+            var attr = GetNamedEntityAttributesFrom(type);
             AvroContractResolver resolver = this.settings.Resolver;
             var record = new RecordSchema(
                 attr,
@@ -361,7 +396,7 @@ namespace SolTechnology.Avro.BuildSchema
             return record;
         }
 
-        private TypeSchema BuildKnownTypeSchema(Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth)
+        private TypeSchema BuildKnownTypeSchema(Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth, MemberInfo info)
         {
             var applicable = this.GetApplicableKnownTypes(type).ToList();
             if (applicable.Count == 0)
@@ -371,13 +406,13 @@ namespace SolTechnology.Avro.BuildSchema
             }
 
             var knownTypeSchemas = new List<TypeSchema>(applicable.Count);
-            applicable.ForEach(t => knownTypeSchemas.Add(this.BuildComplexTypeSchema(t, schemas, currentDepth)));
+            applicable.ForEach(t => knownTypeSchemas.Add(this.BuildComplexTypeSchema(t, schemas, currentDepth, info)));
             return new UnionSchema(knownTypeSchemas, type);
         }
 
         private bool HasApplicableKnownType(Type type)
         {
-            return this.GetApplicableKnownTypes(type).Count(t => t != type) != 0;
+            return GetApplicableKnownTypes(type).Count(t => t != type) != 0;
         }
 
         private IEnumerable<Type> GetApplicableKnownTypes(Type type)
@@ -405,7 +440,7 @@ namespace SolTechnology.Avro.BuildSchema
             }
 
 
-            return new UnionSchema(result.Select(type => this.CreateNotNullableSchema(type, schemas, currentDepth + 1)).ToList(), memberType);
+            return new UnionSchema(result.Select(type => CreateNotNullableSchema(type, schemas, currentDepth + 1, memberInfo)).ToList(), memberType);
         }
 
         private FixedSchema TryBuildFixedSchema(Type memberType, MemberInfo memberInfo, NamedSchema parentSchema)
@@ -464,7 +499,7 @@ namespace SolTechnology.Avro.BuildSchema
 
                 TypeSchema fieldSchema = this.TryBuildUnionSchema(memberType, info.MemberInfo, schemas, currentDepth)
                                          ?? this.TryBuildFixedSchema(memberType, info.MemberInfo, record)
-                                         ?? this.CreateSchema(info.Nullable, memberType, schemas, currentDepth + 1, info.DefaultValue?.GetType());
+                                         ?? this.CreateSchema(info.Nullable, memberType, schemas, currentDepth + 1, info.DefaultValue?.GetType(), info.MemberInfo);
 
 
 

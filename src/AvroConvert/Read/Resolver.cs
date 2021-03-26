@@ -18,6 +18,7 @@
 using System;
 using SolTechnology.Avro.Exceptions;
 using SolTechnology.Avro.Schema;
+using SolTechnology.Avro.Schema.Abstract;
 using SolTechnology.Avro.Skip;
 
 namespace SolTechnology.Avro.Read
@@ -25,10 +26,10 @@ namespace SolTechnology.Avro.Read
     internal partial class Resolver
     {
         private readonly Skipper _skipper;
-        private readonly Schema.Schema _readerSchema;
-        private readonly Schema.Schema _writerSchema;
+        private readonly TypeSchema _readerSchema;
+        private readonly TypeSchema _writerSchema;
 
-        internal Resolver(Schema.Schema writerSchema, Schema.Schema readerSchema)
+        internal Resolver(TypeSchema writerSchema, TypeSchema readerSchema)
         {
             _readerSchema = readerSchema;
             _writerSchema = writerSchema;
@@ -51,48 +52,50 @@ namespace SolTechnology.Avro.Read
         }
 
         internal object Resolve(
-            Schema.Schema writerSchema,
-            Schema.Schema readerSchema,
+            TypeSchema writerSchema,
+            TypeSchema readerSchema,
             IReader d,
             Type type)
         {
             try
             {
-                if (readerSchema.Tag == Schema.Schema.Type.Union && writerSchema.Tag != Schema.Schema.Type.Union)
+                if (readerSchema.Type == Schema.AvroType.Union && writerSchema.Type != Schema.AvroType.Union)
                 {
                     readerSchema = FindBranch(readerSchema as UnionSchema, writerSchema);
                 }
 
-                switch (writerSchema.Tag)
+                switch (writerSchema.Type)
                 {
-                    case Schema.Schema.Type.Null:
+                    case Schema.AvroType.Null:
                         return null;
-                    case Schema.Schema.Type.Boolean:
+                    case Schema.AvroType.Boolean:
                         return d.ReadBoolean();
-                    case Schema.Schema.Type.Int:
+                    case Schema.AvroType.Int:
                         return d.ReadInt();
-                    case Schema.Schema.Type.Long:
+                    case Schema.AvroType.Long:
                         return ResolveLong(type, d);
-                    case Schema.Schema.Type.Float:
+                    case Schema.AvroType.Float:
                         return d.ReadFloat();
-                    case Schema.Schema.Type.Double:
+                    case Schema.AvroType.Double:
                         return d.ReadDouble();
-                    case Schema.Schema.Type.String:
+                    case Schema.AvroType.String:
                         return ResolveString(type, d);
-                    case Schema.Schema.Type.Bytes:
+                    case Schema.AvroType.Bytes:
                         return d.ReadBytes();
-                    case Schema.Schema.Type.Error:
-                    case Schema.Schema.Type.Record:
+                    case Schema.AvroType.Logical:
+                        return ResolveLogical((LogicalTypeSchema)writerSchema, (LogicalTypeSchema)readerSchema, d, type);
+                    case Schema.AvroType.Error:
+                    case Schema.AvroType.Record:
                         return ResolveRecord((RecordSchema)writerSchema, (RecordSchema)readerSchema, d, type);
-                    case Schema.Schema.Type.Enumeration:
+                    case Schema.AvroType.Enum:
                         return ResolveEnum((EnumSchema)writerSchema, readerSchema, d, type);
-                    case Schema.Schema.Type.Fixed:
+                    case Schema.AvroType.Fixed:
                         return ResolveFixed((FixedSchema)writerSchema, readerSchema, d, type);
-                    case Schema.Schema.Type.Array:
+                    case Schema.AvroType.Array:
                         return ResolveArray(writerSchema, readerSchema, d, type);
-                    case Schema.Schema.Type.Map:
+                    case Schema.AvroType.Map:
                         return ResolveMap((MapSchema)writerSchema, readerSchema, d, type);
-                    case Schema.Schema.Type.Union:
+                    case Schema.AvroType.Union:
                         return ResolveUnion((UnionSchema)writerSchema, readerSchema, d, type);
                     default:
                         throw new AvroException("Unknown schema type: " + writerSchema);
@@ -100,7 +103,7 @@ namespace SolTechnology.Avro.Read
             }
             catch (Exception e)
             {
-                throw new AvroTypeMismatchException($"Unable to deserialize [{writerSchema.Name}] of schema [{writerSchema.Tag}] to the target type [{type}]", e);
+                throw new AvroTypeMismatchException($"Unable to deserialize [{writerSchema.Name}] of schema [{writerSchema.Type}] to the target type [{type}]", e);
             }
         }
     }

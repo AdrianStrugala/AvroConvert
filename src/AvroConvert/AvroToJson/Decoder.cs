@@ -5,12 +5,13 @@ using SolTechnology.Avro.Exceptions;
 using SolTechnology.Avro.FileHeader;
 using SolTechnology.Avro.FileHeader.Codec;
 using SolTechnology.Avro.Read;
+using SolTechnology.Avro.Schema.Abstract;
 
 namespace SolTechnology.Avro.AvroToJson
 {
     internal class Decoder
     {
-        internal object Decode(Stream stream, Schema.Schema schema)
+        internal object Decode(Stream stream, TypeSchema schema)
         {
             var reader = new Reader(stream);
             var header = new Header();
@@ -55,7 +56,7 @@ namespace SolTechnology.Avro.AvroToJson
                     } while ((len = reader.ReadMapNext()) != 0);
                 }
 
-                schema = schema ?? Schema.Schema.Parse(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
+                schema = schema ?? BuildSchema.Schema.Create(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
                 var resolver = new Resolver(schema);
 
                 // read in sync data 

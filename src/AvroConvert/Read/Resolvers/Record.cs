@@ -17,8 +17,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using SolTechnology.Avro.BuildSchema;
 using SolTechnology.Avro.Schema;
 
 namespace SolTechnology.Avro.Read
@@ -51,12 +53,11 @@ namespace SolTechnology.Avro.Read
                 typeMembers = cachedRecordMembers[typeHash];
             }
 
-            foreach (Field wf in writerSchema)
+            foreach (RecordField wf in writerSchema.Fields)
             {
-                if (readerSchema.Contains(wf.Name))
+                if (readerSchema.TryGetField(wf.Name, out var rf))
                 {
-                    Field rf = readerSchema.GetField(wf.Name);
-                    string name = rf.aliases?[0] ?? wf.Name;
+                    string name = rf.Aliases.FirstOrDefault() ?? wf.Name;
 
                     var memberInfo = typeMembers[name];
                     object value;
@@ -64,20 +65,20 @@ namespace SolTechnology.Avro.Read
                     switch (memberInfo)
                     {
                         case FieldInfo fieldInfo:
-                            value = Resolve(wf.Schema, rf.Schema, dec, fieldInfo.FieldType) ??
-                                           wf.DefaultValue?.ToObject(typeof(object));
+                            value = Resolve(wf.TypeSchema, rf.TypeSchema, dec, fieldInfo.FieldType) ??
+                                           wf.DefaultValue;
                             fieldInfo.SetValue(result, value);
                             break;
 
                         case PropertyInfo propertyInfo:
-                            value = Resolve(wf.Schema, rf.Schema, dec, propertyInfo.PropertyType) ??
-                                           wf.DefaultValue?.ToObject(typeof(object));
+                            value = Resolve(wf.TypeSchema, rf.TypeSchema, dec, propertyInfo.PropertyType) ??
+                                    wf.DefaultValue;
                             propertyInfo.SetValue(result, value, null);
                             break;
                     }
                 }
                 else
-                    _skipper.Skip(wf.Schema, dec);
+                    _skipper.Skip(wf.TypeSchema, dec);
             }
             return result;
         }

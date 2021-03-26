@@ -18,6 +18,8 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using SolTechnology.Avro.Schema;
+using SolTechnology.Avro.Schema.Abstract;
 
 namespace SolTechnology.Avro.BuildSchema
 {
@@ -94,6 +96,6 @@ namespace SolTechnology.Avro.BuildSchema
         /// <summary>
         /// Gets the type of the schema as string.
         /// </summary>
-        internal override global::SolTechnology.Avro.Schema.Schema.Type Type => surrogateSchema.Type;
+        internal override AvroType Type => surrogateSchema.Type;
     }
 }

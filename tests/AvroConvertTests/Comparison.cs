@@ -1,4 +1,4 @@
-﻿namespace AvroConvertTests
+﻿namespace AvroConvertComponentTests
 {
     static class Comparison
     {

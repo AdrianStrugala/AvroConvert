@@ -26,13 +26,13 @@ namespace SolTechnology.Avro.Write.Resolvers
         {
             return (value, e) =>
             {
-                if (!schema.Contains(value.ToString()))
+                if (!schema.Symbols.Contains(value.ToString()))
                 {
                     throw new AvroTypeException(
                         $"[Enum] Provided value is not of the enum [{schema.Name}] members");
                 }
 
-                e.WriteEnum(schema.Ordinal(value.ToString()));
+                e.WriteEnum(schema.GetValueBySymbol(value.ToString()));
             };
         }
     }

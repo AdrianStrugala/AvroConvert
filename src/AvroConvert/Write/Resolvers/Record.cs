@@ -15,7 +15,10 @@
 */
 #endregion
 
-using SolTechnology.Avro.Schema;
+
+using System.Linq;
+using SolTechnology.Avro.BuildSchema;
+using RecordSchema = SolTechnology.Avro.Schema.RecordSchema;
 
 namespace SolTechnology.Avro.Write.Resolvers
 {
@@ -26,11 +29,11 @@ namespace SolTechnology.Avro.Write.Resolvers
             WriteStep[] writeSteps = new WriteStep[recordSchema.Fields.Count];
 
             int index = 0;
-            foreach (Field field in recordSchema)
+            foreach (RecordField field in recordSchema.Fields)
             {
                 var record = new WriteStep
                 {
-                    WriteField = Resolver.ResolveWriter(field.Schema),
+                    WriteField = Resolver.ResolveWriter(field.TypeSchema),
                     Field = field
                 };
                 writeSteps[index++] = record;
@@ -48,7 +51,7 @@ namespace SolTechnology.Avro.Write.Resolvers
         {
             foreach (var writer in writers)
             {
-                string name = writer.Field.aliases?[0] ?? writer.Field.Name;
+                string name = writer.Field.Aliases.FirstOrDefault() ?? writer.Field.Name;
 
                 object value = recordObj.GetType().GetProperty(name)?.GetValue(recordObj, null);
                 if (value == null)

@@ -13,7 +13,7 @@
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
 
-/** Modifications copyright(C) 2020 Adrian Strugała **/
+/** Modifications copyright(C) 2021 Adrian Strugala **/
 
 using System;
 using System.Collections.Generic;
@@ -22,6 +22,8 @@ using System.Linq;
 using System.Runtime.Serialization;
 using Newtonsoft.Json.Linq;
 using SolTechnology.Avro.Attributes;
+using SolTechnology.Avro.Schema;
+using SolTechnology.Avro.Schema.Abstract;
 
 namespace SolTechnology.Avro.BuildSchema
 {
@@ -31,7 +33,7 @@ namespace SolTechnology.Avro.BuildSchema
     internal sealed class JsonSchemaBuilder
     {
         private static readonly Dictionary<string, Func<PrimitiveTypeSchema>> PrimitiveRuntimeType
-            = new Dictionary<string, Func<PrimitiveTypeSchema>>
+            = new Dictionary<string, Func<PrimitiveTypeSchema>>(comparer: StringComparer.InvariantCultureIgnoreCase)
         {
             { "null", () => new NullSchema() },
             { "boolean", () => new BooleanSchema() },
@@ -40,7 +42,7 @@ namespace SolTechnology.Avro.BuildSchema
             { "float", () => new FloatSchema() },
             { "double", () => new DoubleSchema() },
             { "bytes", () => new BytesSchema() },
-            { "string", () => new StringSchema() }
+            { "string", () => new StringSchema() },
         };
 
         private static readonly Dictionary<string, SortOrder> SortValue = new Dictionary<string, SortOrder>
@@ -132,26 +134,37 @@ namespace SolTechnology.Avro.BuildSchema
             JToken tokenType = token[Token.Type];
             if (tokenType.Type == JTokenType.String)
             {
-                var type = token.RequiredProperty<global::SolTechnology.Avro.Schema.Schema.Type>(Token.Type);
-                if (PrimitiveRuntimeType.ContainsKey(type.ToString()))
+                var typeString = token.RequiredProperty<string>(Token.Type);
+                Enum.TryParse(typeString, true, out AvroType type);
+
+                var logicalType = token.OptionalProperty<string>(Token.LogicalType);
+                if (logicalType != null)
                 {
-                    return this.ParsePrimitiveTypeFromObject(token);
+                    return this.ParseLogicalType(token, parent, namedSchemas, logicalType);
                 }
+
                 switch (type)
                 {
-                    case global::SolTechnology.Avro.Schema.Schema.Type.Record:
+                    case AvroType.Record:
                         return this.ParseRecordType(token, parent, namedSchemas);
-                    case global::SolTechnology.Avro.Schema.Schema.Type.Enumeration:
+                    case AvroType.Enum:
                         return this.ParseEnumType(token, parent, namedSchemas);
-                    case global::SolTechnology.Avro.Schema.Schema.Type.Array:
+                    case AvroType.Array:
                         return this.ParseArrayType(token, parent, namedSchemas);
-                    case global::SolTechnology.Avro.Schema.Schema.Type.Map:
+                    case AvroType.Map:
                         return this.ParseMapType(token, parent, namedSchemas);
-                    case global::SolTechnology.Avro.Schema.Schema.Type.Fixed:
+                    case AvroType.Fixed:
                         return this.ParseFixedType(token, parent);
                     default:
-                        throw new SerializationException(
+                        {
+                            if (PrimitiveRuntimeType.ContainsKey(type.ToString()))
+                            {
+                                return this.ParsePrimitiveTypeFromObject(token);
+                            }
+
+                            throw new SerializationException(
                             string.Format(CultureInfo.InvariantCulture, "Invalid type specified: '{0}'.", type));
+                        }
                 }
             }
 
@@ -181,7 +194,7 @@ namespace SolTechnology.Avro.BuildSchema
             foreach (var typeAlternative in unionToken.Children())
             {
                 var schema = this.Parse(typeAlternative, parent, namedSchemas);
-                if (schema.Type == global::SolTechnology.Avro.Schema.Schema.Type.Union)
+                if (schema.Type == AvroType.Union)
                 {
                     throw new SerializationException(
                         string.Format(CultureInfo.InvariantCulture, "Union schemas cannot be nested:'{0}'.", unionToken));
@@ -283,6 +296,45 @@ namespace SolTechnology.Avro.BuildSchema
 
             var valueSchema = this.Parse(valueType, parent, namedSchemas);
             return new MapSchema(new StringSchema(), valueSchema, typeof(Dictionary<string, object>));
+        }
+
+        private TypeSchema ParseLogicalType(JObject token, NamedSchema parent, Dictionary<string, NamedSchema> namedSchemas, string logicalType)
+        {
+            TypeSchema result;
+            switch (logicalType)
+            {
+                case LogicalTypeSchema.LogicalTypeEnum.Uuid:
+                    result = new UuidSchema();
+                    break;
+                case LogicalTypeSchema.LogicalTypeEnum.Decimal:
+                    var scale = token.OptionalProperty<int>(nameof(DecimalSchema.Scale).ToLower());
+                    var precision = token.RequiredProperty<int>(nameof(DecimalSchema.Precision).ToLower());
+                    result = new DecimalSchema(typeof(decimal), precision, scale);
+                    break;
+                case LogicalTypeSchema.LogicalTypeEnum.Duration:
+                    result = new DurationSchema();
+                    break;
+                case LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds:
+                    result = new TimestampMillisecondsSchema();
+                    break;
+                case LogicalTypeSchema.LogicalTypeEnum.TimestampMicroseconds:
+                    result = new TimestampMicrosecondsSchema();
+                    break;
+                case LogicalTypeSchema.LogicalTypeEnum.TimeMilliseconds:
+                    result = new TimeMillisecondsSchema();
+                    break;
+                case LogicalTypeSchema.LogicalTypeEnum.TimeMicrosecond:
+                    result = new TimeMicrosecondsSchema();
+                    break;
+                case LogicalTypeSchema.LogicalTypeEnum.Date:
+                    result = new DateSchema();
+                    break;
+                default:
+                    throw new SerializationException(
+                        string.Format(CultureInfo.InvariantCulture, "Unknown LogicalType schema :'{0}'.", logicalType));
+            }
+
+            return result;
         }
 
         /// <summary>

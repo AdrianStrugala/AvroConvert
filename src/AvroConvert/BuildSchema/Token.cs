@@ -1,4 +1,5 @@
-﻿// Copyright (c) Microsoft Corporation
+﻿#region license
+// Copyright (c) Microsoft Corporation
 // All rights reserved.
 // 
 // Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -13,7 +14,9 @@
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
 
-/** Modifications copyright(C) 2020 Adrian Strugała **/
+/** Modifications copyright(C) 2021 Adrian Strugala **/
+
+#endregion
 
 namespace SolTechnology.Avro.BuildSchema
 {
@@ -34,5 +37,6 @@ namespace SolTechnology.Avro.BuildSchema
         internal const string Items = "items";
         internal const string Values = "values";
         internal const string Size = "size";
+        internal const string LogicalType = "logicalType";
     }
 }

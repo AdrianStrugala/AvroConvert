@@ -27,7 +27,7 @@ namespace SolTechnology.Avro
         /// </summary>
         public static ILineReader<T> OpenDeserializer<T>(Stream stream)
         {
-            var reader = Decoder.OpenReader<T>(stream, Schema.Schema.Parse(GenerateSchema(typeof(T))));
+            var reader = Decoder.OpenReader<T>(stream, BuildSchema.Schema.Create(typeof(T)));
 
             return reader;
         }

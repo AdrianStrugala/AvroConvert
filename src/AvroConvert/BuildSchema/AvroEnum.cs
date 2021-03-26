@@ -18,6 +18,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using SolTechnology.Avro.Schema;
 
 namespace SolTechnology.Avro.BuildSchema
 {

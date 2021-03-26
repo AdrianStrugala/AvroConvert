@@ -1,10 +1,9 @@
-﻿using SolTechnology.Avro;
+﻿using System.IO;
+using SolTechnology.Avro;
+using Xunit;
 
-namespace AvroConvertTests
+namespace AvroConvertComponentTests
 {
-    using System.IO;
-    using Xunit;
-
     public class GetSchemaTests
     {
         private readonly byte[] _avroBytes;

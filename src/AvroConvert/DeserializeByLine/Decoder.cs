@@ -5,12 +5,13 @@ using SolTechnology.Avro.FileHeader;
 using SolTechnology.Avro.FileHeader.Codec;
 using SolTechnology.Avro.Read;
 using SolTechnology.Avro.Schema;
+using SolTechnology.Avro.Schema.Abstract;
 
 namespace SolTechnology.Avro.DeserializeByLine
 {
     internal class Decoder
     {
-        internal static ILineReader<T> OpenReader<T>(Stream stream, Schema.Schema readSchema)
+        internal static ILineReader<T> OpenReader<T>(Stream stream, TypeSchema readSchema)
         {
             var reader = new Reader(stream);
             var header = new Header();
@@ -55,8 +56,8 @@ namespace SolTechnology.Avro.DeserializeByLine
                     } while ((len = reader.ReadMapNext()) != 0);
                 }
 
-                readSchema = readSchema ?? Schema.Schema.Parse(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
-                Schema.Schema writeSchema = Schema.Schema.Parse(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
+                readSchema = readSchema ?? BuildSchema.Schema.Create(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
+                TypeSchema writeSchema = BuildSchema.Schema.Create(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
 
                 var resolver = new Resolver(writeSchema, readSchema);
 
@@ -86,7 +87,7 @@ namespace SolTechnology.Avro.DeserializeByLine
                     return new BlockLineReader<T>(reader, resolver, remainingBlocks);
                 }
 
-                if (writeSchema.Tag == Schema.Schema.Type.Array)
+                if (writeSchema.Type == AvroType.Array)
                 {
                     return new ListLineReader<T>(reader, new Resolver(((ArraySchema)writeSchema).ItemSchema, readSchema));
                 }

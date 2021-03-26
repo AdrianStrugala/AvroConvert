@@ -2,7 +2,7 @@
 using SolTechnology.Avro;
 using Xunit;
 
-namespace AvroConvertTests.Headless
+namespace AvroConvertComponentTests.Headless
 {
     public class HeadlessComponentTests
     {

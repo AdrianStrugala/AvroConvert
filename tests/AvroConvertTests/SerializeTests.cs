@@ -1,11 +1,10 @@
-﻿using SolTechnology.Avro;
+﻿using System.Collections.Generic;
+using AutoFixture;
+using SolTechnology.Avro;
+using Xunit;
 
-namespace AvroConvertTests
+namespace AvroConvertComponentTests
 {
-    using AutoFixture;
-    using System.Collections.Generic;
-    using Xunit;
-
     public class SerializeTests
     {
         private readonly Fixture _fixture;

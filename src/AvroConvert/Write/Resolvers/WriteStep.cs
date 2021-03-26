@@ -20,13 +20,13 @@
 /** Modifications copyright(C) 2020 Adrian Strugała **/
 #endregion
 
-using SolTechnology.Avro.Schema;
+using SolTechnology.Avro.BuildSchema;
 
 namespace SolTechnology.Avro.Write.Resolvers
 {
     internal class WriteStep
     {
         internal Encoder.WriteItem WriteField { get; set; }
-        internal Field Field { get; set; }
+        internal RecordField Field { get; set; }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace AvroConvertTests.CodecTests
+namespace AvroConvertComponentTests.CodecTests
 {
     [Equals(DoNotAddEqualityOperators = true)]
     public class TwitterModel

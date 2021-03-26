@@ -24,6 +24,12 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>AvroConvertUnitTests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
   <PropertyGroup>
     <PackageIcon>docs\mini-logo.png</PackageIcon>
     <PackageIconUrl>https://raw.githubusercontent.com/AdrianStrugala/AvroConvert/master/docs/mini-logo.png</PackageIconUrl>

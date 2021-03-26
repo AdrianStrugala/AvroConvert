@@ -23,14 +23,11 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using SolTechnology.Avro.Attributes;
+using SolTechnology.Avro.Schema;
+using SolTechnology.Avro.Schema.Abstract;
 
 namespace SolTechnology.Avro.BuildSchema
 {
-    /// <summary>
-    ///     Base class for schema objects.
-    /// </summary>
-    [SuppressMessage("Microsoft.Naming", "CA1724:TypeNamesShouldNotMatchNamespaces",
-        Justification = "It is a different namespace.")]
     internal abstract class Schema
     {
         private readonly Dictionary<string, string> attributes;
@@ -346,11 +343,6 @@ namespace SolTechnology.Avro.BuildSchema
         #endregion //Schema creation methods.
 
 
-        /// <summary>
-        /// Creates schema from JSON string.
-        /// </summary>
-        /// <param name="schemaInJson">The schema.</param>
-        /// <returns>Created schema.</returns>
         internal static TypeSchema Create(string schemaInJson)
         {
             if (string.IsNullOrEmpty(schemaInJson))
@@ -359,6 +351,22 @@ namespace SolTechnology.Avro.BuildSchema
             }
 
             return new JsonSchemaBuilder().BuildSchema(schemaInJson);
+        }
+
+        internal static TypeSchema Create(object obj)
+        {
+            var builder = new ReflectionSchemaBuilder();
+            var schema = builder.BuildSchema(obj?.GetType());
+
+            return schema;
+        }
+
+        internal static TypeSchema Create(Type type)
+        {
+            var builder = new ReflectionSchemaBuilder();
+            var schema = builder.BuildSchema(type);
+
+            return schema;
         }
     }
 }

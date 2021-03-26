@@ -13,38 +13,65 @@
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
 
-/** Modifications copyright(C) 2020 Adrian Strugała **/
+/** Modifications copyright(C) 2021 Adrian Strugala **/
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Globalization;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.Serialization;
+using SolTechnology.Avro.Attributes;
 using SolTechnology.Avro.Extensions;
 
 namespace SolTechnology.Avro.BuildSchema
 {
     /// <summary>
-    ///     Provides a mechanism for dynamically mapping C# types to and from Avro schema.
-    ///     Using derived contract resolvers, the <see cref="Microsoft.Hadoop.Avro.IAvroSerializer{T}"/> can identify what fields should be
-    ///     included in the schema and consequently serialized.
+    /// Allows optionally using standard <see cref="T:System.Runtime.Serialization.DataContractAttribute"/> and 
+    /// <see cref="T:System.Runtime.Serialization.DataMemberAttribute"/> attributes for defining what types/properties/fields
+    /// should be serialized.
     /// </summary>
-    /// <remarks>
-    ///     <see cref="AvroDataContractResolver"/> is used to serialize classes according to Data Contract attributes.
-    /// </remarks>
-    internal abstract class AvroContractResolver : IEquatable<AvroContractResolver>
+
+
+    internal class AvroContractResolver
     {
+
+        private readonly bool _allowNullable;
+        private readonly bool _useAlphabeticalOrder;
+        private readonly bool _includeOnlyDataContractMembers;
+
         /// <summary>
-        /// Gets the known types of an abstract type or interface that could be present in the tree of
+        /// Initializes a new instance of the <see cref="AvroContractResolver"/> class.
+        /// </summary>
+        /// <param name="usePropertyNameAsAlias">If set to <c>true</c>, Aliases get set to property names.</param>
+        /// <param name="allowNullable">If set to <c>true</c>, null values are allowed.</param>
+        /// <param name="useAlphabeticalOrder">If set to <c>true</c> use alphabetical data member order during serialization/deserialization.</param>
+        /// <param name="includeOnlyDataContractMembers">If set to <c>true</c> members without DataMemberAttribute won't be taken into consideration in serialization/deserialization.</param>
+        internal AvroContractResolver(bool allowNullable = false, bool useAlphabeticalOrder = false, bool includeOnlyDataContractMembers = false)
+        {
+            _allowNullable = allowNullable;
+            _useAlphabeticalOrder = useAlphabeticalOrder;
+            _includeOnlyDataContractMembers = includeOnlyDataContractMembers;
+        }
+
+        /// <summary>
+        /// Gets the known types out of an abstract type or interface that could be present in the tree of
         /// objects serialized with this contract resolver.
         /// </summary>
         /// <param name="type">The abstract type.</param>
-        /// <returns>An enumerable of known types.</returns>
-        internal virtual IEnumerable<Type> GetKnownTypes(Type type)
+        /// <returns>
+        /// An enumerable of known types.
+        /// </returns>
+        /// <exception cref="System.ArgumentNullException">The type argument is null.</exception>
+        internal IEnumerable<Type> GetKnownTypes(Type type)
         {
             if (type == null)
             {
                 throw new ArgumentNullException("type");
             }
 
-            return new List<Type>();
+            return new HashSet<Type>(type.GetAllKnownTypes());
         }
 
         /// <summary>
@@ -55,68 +82,144 @@ namespace SolTechnology.Avro.BuildSchema
         /// <returns>
         /// Serialization information about the type.
         /// </returns>
-        internal abstract TypeSerializationInfo ResolveType(Type type);
+        /// <exception cref="System.ArgumentNullException">The type argument is null.</exception>
+        internal TypeSerializationInfo ResolveType(Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException("type");
+            }
+
+            if (type.IsUnsupported())
+            {
+                throw new SerializationException(
+                    string.Format(CultureInfo.InvariantCulture, "Type '{0}' is not supported by the resolver.", type));
+            }
+
+            bool isNullable = this._allowNullable || type.CanContainNull();
+
+            if (type.IsInterface() ||
+                type.IsNativelySupported() ||
+                (type.IsEnum() && !type.GetTypeInfo().GetCustomAttributes(false).OfType<DataContractAttribute>().Any()))
+            {
+                return new TypeSerializationInfo
+                {
+                    Name = TypeExtensions.StripAvroNonCompatibleCharacters(type.Name),
+                    Namespace = TypeExtensions.StripAvroNonCompatibleCharacters(type.Namespace),
+                    Nullable = isNullable
+                };
+            }
+
+            type = Nullable.GetUnderlyingType(type) ?? type;
+
+            var attributes = type.GetTypeInfo().GetCustomAttributes(false);
+            var dataContract = attributes.OfType<DataContractAttribute>().SingleOrDefault();
+            if (dataContract == null && _includeOnlyDataContractMembers)
+            {
+                throw new SerializationException(
+                    string.Format(CultureInfo.InvariantCulture, "Type '{0}' is not supported by the resolver.", type));
+            }
+
+            var result = new TypeSerializationInfo
+            {
+                Name = TypeExtensions.StripAvroNonCompatibleCharacters(dataContract?.Name ?? type.Name),
+                Namespace = TypeExtensions.StripAvroNonCompatibleCharacters(dataContract?.Namespace ?? type.Namespace),
+                Nullable = isNullable,
+                Doc = attributes.OfType<DescriptionAttribute>().SingleOrDefault()?.Description
+            };
+            return result;
+        }
 
         /// <summary>
         /// Gets the serialization information about the type members.
         /// This information is used for creation of the corresponding schema nodes.
         /// </summary>
-        /// <param name="type">Type containing members which should be serialized.</param>
+        /// <param name="type">The type, members of which should be serialized.</param>
         /// <returns>
         /// Serialization information about the fields/properties.
         /// </returns>
-        internal abstract MemberSerializationInfo[] ResolveMembers(Type type);
-
-        /// <summary>
-        ///     Indicates whether the current object is equal to another object of the same type.
-        /// </summary>
-        /// <param name="other">An object to compare with this object.</param>
-        /// <returns>
-        ///     True, if the current object is equal to the <paramref name="other" /> parameter; otherwise, false.
-        /// </returns>
-        public virtual bool Equals(AvroContractResolver other)
+        /// <exception cref="System.ArgumentNullException">The type argument is null.</exception>
+        internal MemberSerializationInfo[] ResolveMembers(Type type)
         {
-            if (other == null)
+            if (type == null)
             {
-                return false;
+                throw new ArgumentNullException("type");
             }
 
-            return other.GetType() == this.GetType();
-        }
+            if (type.IsKeyValuePair())
+            {
+                var keyValueProperties = type.GetAllProperties();
 
-        /// <summary>
-        ///     Determines whether the specified <see cref="System.Object" /> is equal to this instance.
-        /// </summary>
-        /// <param name="obj">
-        ///     <see cref="System.Object" /> to compare with this instance.
-        /// </param>
-        /// <returns>
-        ///     <c>true</c> if the specified <see cref="System.Object" /> is equal to this instance; otherwise, <c>false</c>.
-        /// </returns>
-        public override bool Equals(object obj)
-        {
-            return this.Equals(obj as AvroContractResolver);
-        }
+                return keyValueProperties.Select(p => new MemberSerializationInfo
+                {
+                    Name = p.Name,
+                    MemberInfo = p,
+                    Nullable = false
+                }).ToArray();
+            }
 
-        /// <summary>
-        ///     Returns a hash code for this instance.
-        /// </summary>
-        /// <returns>
-        ///     A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.
-        /// </returns>
-        public override int GetHashCode()
-        {
-            return this.GetType().GetHashCode();
-        }
+            var allMembers = type.GetFieldsAndProperties(
+                BindingFlags.Public |
+                BindingFlags.NonPublic |
+                BindingFlags.Instance |
+                BindingFlags.DeclaredOnly);
 
-        /// <summary>
-        /// Strips Avro all non-compatible characters from a string.
-        /// </summary>
-        /// <param name="value">Input String.</param>
-        /// <returns>A string containing Avro compatible characters.</returns>
-        protected string StripAvroNonCompatibleCharacters(string value)
-        {
-            return TypeExtensions.StripAvroNonCompatibleCharacters(value);
+            var membersToSerialize = type.GetFieldsAndProperties(BindingFlags.Public | BindingFlags.Instance);
+
+            // add members that are explicitly marked with DataMember attribute
+            foreach (var memberInfo in allMembers)
+            {
+                if (membersToSerialize.Contains(memberInfo))
+                {
+                    continue;
+                }
+
+                if (memberInfo.GetCustomAttributes(false).OfType<DataMemberAttribute>().Any())
+                {
+                    membersToSerialize.Add(memberInfo);
+                }
+            }
+
+            var members = membersToSerialize
+            .Select(m =>
+            {
+                var customAttributes = m.GetCustomAttributes(false);
+
+                return new
+                {
+                    Member = m,
+                    Attribute = customAttributes.OfType<DataMemberAttribute>().SingleOrDefault(),
+                    Nullable = customAttributes.OfType<NullableSchemaAttribute>().Any(), // m.GetType().CanContainNull() ||
+                    DefaultValue = customAttributes.OfType<DefaultValueAttribute>().FirstOrDefault()?.Value,
+                    HasDefaultValue = customAttributes.OfType<DefaultValueAttribute>().Any(),
+                    Doc = customAttributes.OfType<DescriptionAttribute>().FirstOrDefault()?.Description
+                };
+            });
+
+
+            if (_includeOnlyDataContractMembers)
+            {
+                members = members.Where(m => m.Attribute != null);
+            }
+
+            var result = members.Select(m => new MemberSerializationInfo
+            {
+                Name = m.Attribute?.Name ?? m.Member.Name,
+                MemberInfo = m.Member,
+                Nullable = m.Nullable,
+                Aliases = m.Attribute?.Name != null ? new List<string> { m.Member.Name } : new List<string>(),
+                HasDefaultValue = m.HasDefaultValue,
+                DefaultValue = m.DefaultValue,
+                Doc = m.Doc
+            });
+
+
+            if (this._useAlphabeticalOrder)
+            {
+                result = result.OrderBy(p => p.Name);
+            }
+
+            return result.ToArray();
         }
     }
 }

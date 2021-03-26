@@ -1,208 +1,145 @@
-/**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright (c) Microsoft Corporation
+// All rights reserved.
+// 
+// Licensed under the Apache License, Version 2.0 (the "License"); you may not
+// use this file except in compliance with the License.  You may obtain a copy
+// of the License at http://www.apache.org/licenses/LICENSE-2.0
+// 
+// THIS CODE IS PROVIDED *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+// WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+// MERCHANTABLITY OR NON-INFRINGEMENT.
+// 
+// See the Apache Version 2.0 License for specific language governing
+// permissions and limitations under the License.
 
 /** Modifications copyright(C) 2020 Adrian Struga³a **/
 
 using System;
 using System.Collections.Generic;
-using Newtonsoft.Json.Linq;
-using SolTechnology.Avro.Exceptions;
+using System.Collections.ObjectModel;
+using System.Globalization;
+using System.Linq;
+using Newtonsoft.Json;
+using SolTechnology.Avro.Attributes;
+using SolTechnology.Avro.BuildSchema;
+using SolTechnology.Avro.Extensions;
+using SolTechnology.Avro.Schema.Abstract;
 
 namespace SolTechnology.Avro.Schema
 {
     /// <summary>
-    /// Class for enum type schemas
+    ///     Schema representing an enumeration.
+    ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html#Enums"> the specification</a>.
     /// </summary>
-    internal class EnumSchema : NamedSchema
+    internal sealed class EnumSchema : NamedSchema
     {
-        /// <summary>
-        /// List of strings representing the enum symbols
-        /// </summary>
-        internal IList<string> Symbols { get; private set;  }
+        private readonly List<string> symbols;
+        private readonly List<long> avroToCSharpValueMapping;
+        private readonly Dictionary<string, int> symbolToValue;
+        private readonly Dictionary<int, string> valueToSymbol;
 
         /// <summary>
-        /// Map of enum symbols and it's corresponding ordinal number
+        /// Initializes a new instance of the <see cref="EnumSchema"/> class.
         /// </summary>
-        private readonly IDictionary<string, int> symbolMap;
-
-        /// <summary>
-        /// Count of enum symbols
-        /// </summary>
-        internal int Count { get { return Symbols.Count; } }
-
-        /// <summary>
-        /// Static function to return new instance of EnumSchema
-        /// </summary>
-        /// <param name="jtok">JSON object for enum schema</param>
-        /// <param name="names">list of named schema already parsed in</param>
-        /// <param name="encspace">enclosing namespace for the enum schema</param>
-        /// <returns>new instance of enum schema</returns>
-        internal static EnumSchema NewInstance(JToken jtok, PropertyMap props, SchemaNames names, string encspace)
+        /// <param name="namedEntityAttributes">The named entity attributes.</param>
+        /// <param name="runtimeType">Type of the runtime.</param>
+        internal EnumSchema(NamedEntityAttributes namedEntityAttributes, Type runtimeType)
+            : this(namedEntityAttributes, runtimeType, new Dictionary<string, string>())
         {
-            SchemaName name = NamedSchema.GetName(jtok, encspace);
-            var aliases = NamedSchema.GetAliases(jtok, name.Space, name.EncSpace);
+        }
 
-            JArray jsymbols = jtok["symbols"] as JArray;
-            if (null == jsymbols)
-                throw new SchemaParseException("Enum has no symbols: " + name);
-
-            List<string> symbols = new List<string>();
-            IDictionary<string, int> symbolMap = new Dictionary<string, int>();
-            int i = 0;
-            foreach (JValue jsymbol in jsymbols)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EnumSchema" /> class.
+        /// </summary>
+        /// <param name="namedEntityAttributes">The named schema attributes.</param>
+        /// <param name="runtimeType">Type of the runtime.</param>
+        /// <param name="attributes">The attributes.</param>
+        internal EnumSchema(
+            NamedEntityAttributes namedEntityAttributes,
+            Type runtimeType,
+            Dictionary<string, string> attributes)
+            : base(namedEntityAttributes, runtimeType, attributes)
+        {
+            if (runtimeType == null)
             {
-                string s = (string)jsymbol.Value;
-                if (symbolMap.ContainsKey(s))
-                    throw new SchemaParseException("Duplicate symbol: " + s);
-
-                symbolMap[s] = i++;
-                symbols.Add(s);
+                throw new ArgumentNullException("runtimeType");
             }
-            return new EnumSchema(name, aliases, symbols, symbolMap, props, names);
-        }
 
-        /// <summary>
-        /// Constructor for enum schema
-        /// </summary>
-        /// <param name="name">name of enum</param>
-        /// <param name="aliases">list of aliases for the name</param>
-        /// <param name="symbols">list of enum symbols</param>
-        /// <param name="symbolMap">map of enum symbols and value</param>
-        /// <param name="names">list of named schema already read</param>
-        private EnumSchema(SchemaName name, IList<SchemaName> aliases, List<string> symbols,
-                            IDictionary<String, int> symbolMap, PropertyMap props, SchemaNames names)
-                            : base(Type.Enumeration, name, aliases, props, names)
-        {
-            if (null == name.Name) throw new SchemaParseException("name cannot be null for enum schema.");
-            this.Symbols = symbols;
-            this.symbolMap = symbolMap;
-        }
+            this.symbols = new List<string>();
+            this.symbolToValue = new Dictionary<string, int>();
+            this.valueToSymbol = new Dictionary<int, string>();
+            this.avroToCSharpValueMapping = new List<long>();
 
-        /// <summary>
-        /// Writes enum schema in JSON format
-        /// </summary>
-        /// <param name="writer">JSON writer</param>
-        /// <param name="names">list of named schema already written</param>
-        /// <param name="encspace">enclosing namespace of the enum schema</param>
-        protected internal override void WriteJsonFields(Newtonsoft.Json.JsonTextWriter writer, 
-                                                            SchemaNames names, string encspace)
-        {
-            base.WriteJsonFields(writer, names, encspace);
-            writer.WritePropertyName("symbols");
-            writer.WriteStartArray();
-            foreach (string s in this.Symbols)
-                writer.WriteValue(s);
-            writer.WriteEndArray();
-        }
-
-        /// <summary>
-        /// Returns the position of the given symbol within this enum. 
-        /// Throws AvroException if the symbol is not found in this enum.
-        /// </summary>
-        /// <param name="symbol">name of the symbol to find</param>
-        /// <returns>position of the given symbol in this enum schema</returns>
-        internal int Ordinal(string symbol)
-        {
-            if (symbolMap.TryGetValue(symbol, out var result)) return result;
-            throw new AvroException("No such symbol: " + symbol);
-        }
-
-        /// <summary>
-        /// Returns the enum symbol of the given index to the list
-        /// </summary>
-        /// <param name="index">symbol index</param>
-        /// <returns>symbol name</returns>
-        internal string this[int index]
-        {
-            get
+            if (runtimeType.IsEnum())
             {
-                if (index < Symbols.Count) return Symbols[index];
-                throw new AvroException("Enumeration out of range. Must be less than " + Symbols.Count + ", but is " + index);
-            }
-        }
-
-        /// <summary>
-        /// Checks if given symbol is in the list of enum symbols
-        /// </summary>
-        /// <param name="symbol">symbol to check</param>
-        /// <returns>true if symbol exist, false otherwise</returns>
-        internal bool Contains(string symbol)
-        {
-            return symbolMap.ContainsKey(symbol);
-        }
-
-        /// <summary>
-        /// Returns an enumerator that enumerates the symbols in this enum schema in the order of their definition.
-        /// </summary>
-        /// <returns>Enumeration over the symbols of this enum schema</returns>
-        internal IEnumerator<string> GetEnumerator()
-        {
-            return Symbols.GetEnumerator();
-        }
-
-        /// <summary>
-        /// Checks equality of two enum schema
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        public override bool Equals(object obj)
-        {
-            if (obj == this) return true;
-            if (obj != null && obj is EnumSchema)
-            {
-                EnumSchema that = obj as EnumSchema;
-                if (SchemaName.Equals(that.SchemaName) && Count == that.Count)
+                this.symbols = Enum.GetNames(runtimeType).ToList();
+                Array values = Enum.GetValues(runtimeType);
+                for (int i = 0; i < this.symbols.Count; i++)
                 {
-                    for (int i = 0; i < Count; i++) if (!Symbols[i].Equals(that.Symbols[i])) return false;
-                    return areEqual(that.Props, this.Props);
+                    int v = Convert.ToInt32(values.GetValue(i), CultureInfo.InvariantCulture);
+                    this.avroToCSharpValueMapping.Add(Convert.ToInt64(values.GetValue(i), CultureInfo.InvariantCulture));
+                    this.symbolToValue.Add(this.symbols[i], v);
+                    this.valueToSymbol.Add(v, this.symbols[i]);
                 }
             }
-            return false;
         }
+        
+        internal ReadOnlyCollection<string> Symbols => new ReadOnlyCollection<string>(this.symbols);
 
-        /// <summary>
-        /// Hashcode function
-        /// </summary>
-        /// <returns></returns>
-        public override int GetHashCode()
+        internal int GetValueBySymbol(string symbol)
         {
-            int result = SchemaName.GetHashCode() + getHashCode(Props);
-            foreach (string s in Symbols) result += 23 * s.GetHashCode();
-            return result;
+            return this.symbolToValue[symbol];
         }
 
-        /// <summary>
-        /// Checks if this schema can read data written by the given schema. Used for decoding data.
-        /// </summary>
-        /// <param name="writerSchema">writer schema</param>
-        /// <returns>true if this and writer schema are compatible based on the AVRO specification, false otherwise</returns>
-        internal override bool CanRead(Schema writerSchema)
+        internal string GetSymbolByValue(int value)
         {
-            if (writerSchema.Tag != Tag) return false;
-
-            EnumSchema that = writerSchema as EnumSchema;
-            if (!that.SchemaName.Equals(SchemaName))
-                if (!InAliases(that.SchemaName)) return false;
-
-            // we defer checking of symbols. Encoder may have a symbol missing from the reader, 
-            // but if writer never used the missing symbol, then reader should still be able to read the data
-
-            return true;
+            return this.valueToSymbol[value];
         }
+
+        internal long[] AvroToCSharpValueMapping => this.avroToCSharpValueMapping.ToArray();
+
+        internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
+        {
+            if (seenSchemas.Contains(this))
+            {
+                writer.WriteValue(this.FullName);
+                return;
+            }
+
+            seenSchemas.Add(this);
+            writer.WriteStartObject();
+            writer.WriteProperty("type", "enum");
+            writer.WriteProperty("name", this.FullName);
+            writer.WriteOptionalProperty("doc", this.Doc);
+            writer.WritePropertyName("symbols");
+            writer.WriteStartArray();
+            this.symbols.ForEach(writer.WriteValue);
+            writer.WriteEndArray();
+            writer.WriteEndObject();
+        }
+
+        internal void AddSymbol(string symbol)
+        {
+            if (string.IsNullOrEmpty(symbol))
+            {
+                throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, "Symbol should not be null."));
+            }
+
+            this.symbols.Add(symbol);
+            this.symbolToValue.Add(symbol, this.symbolToValue.Count);
+            this.valueToSymbol.Add(this.valueToSymbol.Count, symbol);
+
+            if (this.avroToCSharpValueMapping.Any())
+            {
+                this.avroToCSharpValueMapping.Add(this.avroToCSharpValueMapping.Last() + 1);
+            }
+            else
+            {
+                this.avroToCSharpValueMapping.Add(0);
+            }
+        }
+
+        internal override AvroType Type { get; } = Avro.Schema.AvroType.Enum;
     }
 }

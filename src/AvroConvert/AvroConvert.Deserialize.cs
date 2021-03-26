@@ -33,7 +33,7 @@ namespace SolTechnology.Avro
                 var decoder = new Decoder();
                 var deserialized = decoder.Decode<T>(
                     stream,
-                    Schema.Schema.Parse(GenerateSchema(typeof(T)))
+                    BuildSchema.Schema.Create(typeof(T))
                 );
                 return deserialized;
             }

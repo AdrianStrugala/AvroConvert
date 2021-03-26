@@ -1,17 +1,17 @@
 using System;
-using SolTechnology.Avro.Models;
 using SolTechnology.Avro.Schema;
+using SolTechnology.Avro.Schema.Abstract;
 
 namespace SolTechnology.Avro.Read
 {
     internal partial class Resolver
     {
-        protected virtual object ResolveFixed(FixedSchema writerSchema, Schema.Schema readerSchema, IReader d, Type type)
+        protected virtual object ResolveFixed(FixedSchema writerSchema, TypeSchema readerSchema, IReader d, Type type)
         {
             FixedSchema rs = (FixedSchema)readerSchema;
 
-            Fixed ru = new Fixed(rs);
-            byte[] bb = ((Fixed)ru).Value;
+            FixedModel ru = new FixedModel(rs);
+            byte[] bb = ((FixedModel)ru).Value;
             d.ReadFixed(bb);
 
             if (type == typeof(Guid))

@@ -1,11 +1,11 @@
-﻿using System.ComponentModel;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.Serialization;
 using SolTechnology.Avro.Attributes;
 
-namespace AvroConvertTests
+namespace AvroConvertComponentTests
 {
     [Equals(DoNotAddEqualityOperators = true)]
     public class User
@@ -72,6 +72,21 @@ namespace AvroConvertTests
         public Dictionary<bool, int> OtherDictionary { get; set; }
         public float FloatProp { get; set; }
         public TestEnum EnumProp { get; set; }
+    }
+
+
+    [Equals(DoNotAddEqualityOperators = true)]
+    public class LogicalTypesClass
+    {
+        public decimal One { get; set; }
+   
+        public Guid? Two { get; set; }
+
+        public TimeSpan Three { get; set; }
+
+        public DateTime? Four { get; set; }
+
+        public DateTimeOffset Five { get; set; }
     }
 
     [Equals(DoNotAddEqualityOperators = true)]
@@ -163,13 +178,6 @@ namespace AvroConvertTests
     }
 
     [Equals(DoNotAddEqualityOperators = true)]
-    public class ClassWithNullableTypes
-    {
-        public int? SomeNullableInt { get; set; }
-        public DateTime? NullableDateTime { get; set; }
-    }
-
-    [Equals(DoNotAddEqualityOperators = true)]
     public class ClassWithDateTimeOffset
     {
         public DateTimeOffset yeah { get; set; }
@@ -224,7 +232,7 @@ namespace AvroConvertTests
 
         public ComplexStruct(List<int> vals)
         {
-            this.savedValues = vals;
+            savedValues = vals;
         }
     }
 

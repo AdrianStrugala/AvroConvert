@@ -17,6 +17,7 @@
 
 using SolTechnology.Avro.Exceptions;
 using SolTechnology.Avro.Schema;
+using SolTechnology.Avro.Schema.Abstract;
 using SolTechnology.Avro.Write.Resolvers;
 
 namespace SolTechnology.Avro.Write
@@ -34,6 +35,10 @@ namespace SolTechnology.Avro.Write
         private static readonly Fixed Fixed;
         private static readonly Union Union;
         private static readonly Long Long;
+        private static readonly Uuid Uuid;
+        private static readonly Decimal Decimal;
+        private static readonly Duration Duration;
+        private static readonly TimestampMilliseconds TimestampMilliseconds;
 
         static Resolver()
         {
@@ -46,40 +51,60 @@ namespace SolTechnology.Avro.Write
             Fixed = new Fixed();
             Union = new Union();
             Long = new Long();
+            Uuid = new Uuid();
+            Decimal = new Decimal();
+            Duration = new Duration();
+            TimestampMilliseconds = new TimestampMilliseconds();
         }
 
-        internal static Encoder.WriteItem ResolveWriter(Schema.Schema schema)
+        internal static Encoder.WriteItem ResolveWriter(TypeSchema schema)
         {
-            switch (schema.Tag)
+            switch (schema.Type)
             {
-                case Schema.Schema.Type.Null:
+                case AvroType.Null:
                     return Null.Resolve;
-                case Schema.Schema.Type.Boolean:
-                    return (v, e) => Write<bool>(v, schema.Tag, e.WriteBoolean);
-                case Schema.Schema.Type.Int:
-                    return (v, e) => Write<int>(v, schema.Tag, e.WriteInt);
-                case Schema.Schema.Type.Long:
+                case AvroType.Boolean:
+                    return (v, e) => Write<bool>(v, schema.Type, e.WriteBoolean);
+                case AvroType.Int:
+                    return (v, e) => Write<int>(v, schema.Type, e.WriteInt);
+                case AvroType.Long:
                     return Long.Resolve;
-                case Schema.Schema.Type.Float:
-                    return (v, e) => Write<float>(v, schema.Tag, e.WriteFloat);
-                case Schema.Schema.Type.Double:
-                    return (v, e) => Write<double>(v, schema.Tag, e.WriteDouble);
-                case Schema.Schema.Type.String:
+                case AvroType.Float:
+                    return (v, e) => Write<float>(v, schema.Type, e.WriteFloat);
+                case AvroType.Double:
+                    return (v, e) => Write<double>(v, schema.Type, e.WriteDouble);
+                case AvroType.String:
                     return String.Resolve;
-                case Schema.Schema.Type.Bytes:
-                    return (v, e) => Write<byte[]>(v, schema.Tag, e.WriteBytes);
-                case Schema.Schema.Type.Error:
-                case Schema.Schema.Type.Record:
+                case AvroType.Bytes:
+                    return (v, e) => Write<byte[]>(v, schema.Type, e.WriteBytes);
+                case AvroType.Error:
+                case AvroType.Logical:
+                {
+                    var logicalTypeSchema = (LogicalTypeSchema)schema;
+                    switch (logicalTypeSchema.LogicalTypeName)
+                    {
+                            case LogicalTypeSchema.LogicalTypeEnum.Uuid:
+                                return Uuid.Resolve((UuidSchema) logicalTypeSchema);
+                            case LogicalTypeSchema.LogicalTypeEnum.Decimal:
+                                return Decimal.Resolve((DecimalSchema)logicalTypeSchema);
+                            case LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds:
+                                return TimestampMilliseconds.Resolve((TimestampMillisecondsSchema)logicalTypeSchema);
+                            case LogicalTypeSchema.LogicalTypeEnum.Duration:
+                                return Duration.Resolve((DurationSchema)logicalTypeSchema);
+                    }
+                }
+                    return String.Resolve;
+                case AvroType.Record:
                     return Record.Resolve((RecordSchema)schema);
-                case Schema.Schema.Type.Enumeration:
+                case AvroType.Enum:
                     return Enum.Resolve((EnumSchema)schema);
-                case Schema.Schema.Type.Fixed:
+                case AvroType.Fixed:
                     return Fixed.Resolve((FixedSchema)schema);
-                case Schema.Schema.Type.Array:
+                case AvroType.Array:
                     return Array.Resolve((ArraySchema)schema);
-                case Schema.Schema.Type.Map:
+                case AvroType.Map:
                     return Map.Resolve((MapSchema)schema);
-                case Schema.Schema.Type.Union:
+                case AvroType.Union:
                     return Union.Resolve((UnionSchema)schema);
                 default:
                     return (v, e) =>
@@ -95,7 +120,7 @@ namespace SolTechnology.Avro.Write
         /// <param name="value">The value to be serialized</param>
         /// <param name="tag">The schema type tag</param>
         /// <param name="writer">The writer which should be used to write the given type.</param>
-        private static void Write<S>(object value, Schema.Schema.Type tag, Writer<S> writer)
+        private static void Write<S>(object value, AvroType tag, Writer<S> writer)
         {
             if (value == null)
             {
@@ -104,7 +129,7 @@ namespace SolTechnology.Avro.Write
 
             if (!(value is S))
                 throw new AvroTypeMismatchException(
-                    $"[{typeof(S)}] required to write against [{tag.ToString()}] schema but found " + value.GetType());
+                    $"[{typeof(S)}] required to write against [{tag.ToString()}] schema but found " + value?.GetType());
 
             writer((S)value);
         }

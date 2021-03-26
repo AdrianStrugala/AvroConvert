@@ -1,9 +1,9 @@
-﻿using SolTechnology.Avro;
+﻿using System.Collections.Generic;
+using SolTechnology.Avro;
 using SolTechnology.Avro.Exceptions;
-using System.Collections.Generic;
 using Xunit;
 
-namespace AvroConvertTests
+namespace AvroConvertComponentTests
 {
     public class DeserializeTests
     {

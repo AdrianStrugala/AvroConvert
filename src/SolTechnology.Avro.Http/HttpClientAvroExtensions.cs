@@ -9,7 +9,7 @@ namespace SolTechnology.Avro.Http
         public static async Task<HttpResponseMessage> PostAsAvro(this HttpClient httpClient, string requestUri, object content)
         {
             var body = new ByteArrayContent(AvroConvert.Serialize(content));
-            body.Headers.ContentType = new MediaTypeHeaderValue("application/avro");
+            body.Headers.ContentType = new MediaTypeHeaderValue(Consts.AvroHeader);
             return await httpClient.PostAsync(requestUri, body);
         }
 
@@ -23,14 +23,14 @@ namespace SolTechnology.Avro.Http
         public static async Task<HttpResponseMessage> PutAsAvro(this HttpClient httpClient, string requestUri, object content)
         {
             var body = new ByteArrayContent(AvroConvert.Serialize(content));
-            body.Headers.ContentType = new MediaTypeHeaderValue("application/avro");
+            body.Headers.ContentType = new MediaTypeHeaderValue(Consts.AvroHeader);
             return await httpClient.PutAsync(requestUri, body);
         }
 
         public static async Task<HttpResponseMessage> PatchAsAvro(this HttpClient httpClient, string requestUri, object content)
         {
             var body = new ByteArrayContent(AvroConvert.Serialize(content));
-            body.Headers.ContentType = new MediaTypeHeaderValue("application/avro");
+            body.Headers.ContentType = new MediaTypeHeaderValue(Consts.AvroHeader);
             return await httpClient.PatchAsync(requestUri, body);
         }
     }

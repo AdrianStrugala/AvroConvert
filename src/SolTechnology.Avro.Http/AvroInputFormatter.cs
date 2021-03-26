@@ -11,7 +11,7 @@ namespace SolTechnology.Avro.Http
         {
             this.SupportedMediaTypes.Clear();
 
-            this.SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse("application/avro"));
+            this.SupportedMediaTypes.Add(MediaTypeHeaderValue.Parse(Consts.AvroHeader));
         }
 
         public override async Task<InputFormatterResult> ReadRequestBodyAsync(InputFormatterContext context)

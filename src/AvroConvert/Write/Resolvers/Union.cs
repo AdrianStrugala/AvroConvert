@@ -1,5 +1,5 @@
 ﻿#region license
-/**Copyright (c) 2020 Adrian Strugała
+/**Copyright (c) 2021 Adrian Strugala
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -19,8 +19,6 @@ using System.Linq;
 using SolTechnology.Avro.Exceptions;
 using SolTechnology.Avro.Schema;
 using SolTechnology.Avro.Schema.Abstract;
-using FixedSchema = SolTechnology.Avro.Schema.FixedSchema;
-using UnionSchema = SolTechnology.Avro.Schema.UnionSchema;
 
 namespace SolTechnology.Avro.Write.Resolvers
 {

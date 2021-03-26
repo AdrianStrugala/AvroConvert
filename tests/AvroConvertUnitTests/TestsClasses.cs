@@ -6,7 +6,6 @@ namespace AvroConvertUnitTests
 {
     [DataContract(Name = "User", Namespace = "userspace")]
     [Description("This is Doc of User Class")]
-    [AvroDecimal(Scale = 2, Precision = 4)]
     public class AttributeClass
     {
         [DataMember(Name = "name")]

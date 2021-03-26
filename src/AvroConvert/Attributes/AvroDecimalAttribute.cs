@@ -2,7 +2,7 @@
 
 namespace SolTechnology.Avro.Attributes
 {
-    // [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
     public class AvroDecimalAttribute : Attribute
     {
         public virtual int Scale { get; set; }

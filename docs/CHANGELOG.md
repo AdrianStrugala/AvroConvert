@@ -123,7 +123,7 @@ START OF THE PROJECT
 
 \
 **v. 1.8.1 (09.12.19)**
-- Fixed bug during deserializaion of object conaining property with empty list
+- Fixed bug during deserializaion of object containing property with empty list
 
 \
 **v. 2.0.0 (04.01.20)**
@@ -219,3 +219,7 @@ START OF THE PROJECT
 - Added support for Avro Logical Types !BREAKING CHANGE!
 - Improved deserialization time by removing duplicated schema implementation
 - Added support for Avro Doc attribute (.NET DescriptionAttribute)
+ 
+\
+**v. 3.0.1 (02.04.21)**
+- Fixed bug with deserialization of nullable enum field

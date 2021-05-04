@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-/** Modifications copyright(C) 2020 Adrian Struga³a **/
+/** Modifications copyright(C) 2020 Adrian Strugala **/
 
 using System;
 using System.IO;
@@ -291,6 +291,15 @@ namespace SolTechnology.Avro.Read
         private void Skip(long p)
         {
             stream.Seek(p, SeekOrigin.Current);
+        }
+
+        internal byte[] ReadToEnd()
+        {
+            using (MemoryStream ms = new MemoryStream())
+            {
+                stream.CopyTo(ms);
+                return ms.ToArray();
+            }
         }
     }
 }

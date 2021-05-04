@@ -18,8 +18,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Newtonsoft.Json;
 using SolTechnology.Avro.AvroToJson;
+using SolTechnology.Avro.Merge;
+using SolTechnology.Avro.Schema.Abstract;
 
 namespace SolTechnology.Avro
 {
@@ -30,10 +33,20 @@ namespace SolTechnology.Avro
         /// </summary>
         public static byte[] Merge<T>(IEnumerable<byte[]> avroObjects)
         {
-           //read header
-           //collect object - iterate
-           
+            var mergeDecoder = new MergeDecoder();
+            var itemSchema = BuildSchema.Schema.Create(typeof(T));
+            //read header
+            //collect object - iterate
 
+            byte[] avroData = new byte[1];
+
+           foreach (var avroObject in avroObjects)
+           {
+             avroData = mergeDecoder.ExtractAvroData(avroObject, itemSchema.ToString());
+           }
+
+           var x = avroObjects.First().Length;
+           var y = avroData.Length;
            //write header with IEnumerable<T>
            //store objects
 

@@ -129,7 +129,7 @@ namespace SolTechnology.Avro.Write
 
             if (!(value is S))
                 throw new AvroTypeMismatchException(
-                    $"[{typeof(S)}] required to write against [{tag.ToString()}] schema but found " + value?.GetType());
+                    $"[{typeof(S)}] required to write against [{tag}] schema but found " + value?.GetType());
 
             writer((S)value);
         }

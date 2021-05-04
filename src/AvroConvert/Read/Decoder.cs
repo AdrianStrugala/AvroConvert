@@ -12,7 +12,6 @@ namespace SolTechnology.Avro.Read
         internal T Decode<T>(Stream stream, TypeSchema readSchema)
         {
             var reader = new Reader(stream);
-            var header = new Header();
 
             // validate header 
             byte[] firstBytes = new byte[DataFileConstants.AvroHeader.Length];
@@ -33,20 +32,7 @@ namespace SolTechnology.Avro.Read
             }
             else
             {
-                // read meta data 
-                long len = reader.ReadMapStart();
-                if (len > 0)
-                {
-                    do
-                    {
-                        for (long i = 0; i < len; i++)
-                        {
-                            string key = reader.ReadString();
-                            byte[] val = reader.ReadBytes();
-                            header.AddMetadata(key, val);
-                        }
-                    } while ((len = reader.ReadMapNext()) != 0);
-                }
+                var header = reader.ReadHeader();
 
                 TypeSchema writeSchema = BuildSchema.Schema.Create(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
                 readSchema = readSchema ?? writeSchema;

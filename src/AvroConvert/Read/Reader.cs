@@ -28,7 +28,7 @@ namespace SolTechnology.Avro.Read
     /// <summary>
     /// IDecoder for Avro binary format
     /// </summary>
-    internal class Reader : IReader
+    internal partial class Reader : IReader
     {
         private readonly Stream stream;
 

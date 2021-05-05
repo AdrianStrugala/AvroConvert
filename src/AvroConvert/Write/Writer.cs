@@ -28,7 +28,7 @@ namespace SolTechnology.Avro.Write
     /// <summary>
     /// Write leaf values.
     /// </summary>
-    internal class Writer : IWriter
+    internal partial class Writer : IWriter
     {
         private readonly Stream _stream;
 

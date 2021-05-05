@@ -27,10 +27,11 @@ using SolTechnology.Avro.Exceptions;
 using SolTechnology.Avro.FileHeader;
 using SolTechnology.Avro.FileHeader.Codec;
 using SolTechnology.Avro.Schema.Abstract;
+using SolTechnology.Avro.Write;
 
-namespace SolTechnology.Avro.Write
+namespace SolTechnology.Avro.Merge
 {
-    internal class Encoder : IDisposable
+    internal class MergeEncoder : IDisposable
     {
         internal delegate void WriteItem(object value, IWriter encoder);
 
@@ -49,7 +50,7 @@ namespace SolTechnology.Avro.Write
         private readonly Metadata _metadata;
 
 
-        internal Encoder(TypeSchema schema, Stream outStream, CodecType codecType)
+        internal MergeEncoder(TypeSchema schema, Stream outStream, CodecType codecType)
         {
             _codec = AbstractCodec.CreateCodec(codecType);
             _stream = outStream;
@@ -57,16 +58,15 @@ namespace SolTechnology.Avro.Write
             _schema = schema;
             _syncInterval = DataFileConstants.DefaultSyncInterval;
 
+            _metadata.Add(DataFileConstants.CodecMetadataKey, _codec.Name);
+            _metadata.Add(DataFileConstants.SchemaMetadataKey, _schema.ToString());
+
             _blockCount = 0;
             _encoder = new Writer(_stream);
             _blockStream = new MemoryStream();
             _blockEncoder = new Writer(_blockStream);
 
-            GenerateSyncData();
-            _metadata.Add(DataFileConstants.CodecMetadataKey, _codec.Name);
-            _metadata.Add(DataFileConstants.SchemaMetadataKey, _schema.ToString());
-
-            _writer = Resolver.ResolveWriter(schema);
+            // _writer = Resolver.ResolveWriter(schema);
 
             _isOpen = true;
         }
@@ -98,12 +98,9 @@ namespace SolTechnology.Avro.Write
             return _stream.Position;
         }
 
-        private void WriteHeader()
+        internal void WriteHeader()
         {
-            _encoder.WriteHeader(_metadata, _syncData);
-            // _encoder.WriteFixed(DataFileConstants.AvroHeader);
-            // WriteMetaData();
-            // WriteSyncData();
+            // _encoder.WriteHeader(_metadata);
         }
 
         private void AssertOpen()

@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-/** Modifications copyright(C) 2020 Adrian Struga³a **/
+/** Modifications copyright(C) 2020 Adrian Strugaï¿½a **/
 #endregion
 
 using System;
@@ -32,15 +32,15 @@ namespace SolTechnology.Avro.Write
     /// </summary>
     internal partial class Writer : IWriter
     {
-        internal void WriteHeader(Metadata metadata, byte[] syncData)
+        internal void WriteHeader(Header header)
         {
             WriteFixed(DataFileConstants.AvroHeader);
 
             // Write metadata 
-            int size = metadata.GetSize();
+            int size = header.GetMetadataSize();
             WriteInt(size);
 
-            foreach (KeyValuePair<string, byte[]> metaPair in metadata.GetValue())
+            foreach (KeyValuePair<string, byte[]> metaPair in header.GetRawMetadata())
             {
                 WriteString(metaPair.Key);
                 WriteBytes(metaPair.Value);
@@ -49,7 +49,7 @@ namespace SolTechnology.Avro.Write
 
 
             // Write sync data
-            WriteFixed(syncData);
+            WriteFixed(header.SyncData);
         }
 
     }

@@ -33,64 +33,45 @@ namespace SolTechnology.Avro.Merge
 {
     internal class MergeEncoder : IDisposable
     {
-        internal delegate void WriteItem(object value, IWriter encoder);
-
-        private readonly TypeSchema _schema;
         private readonly AbstractCodec _codec;
         private readonly Stream _stream;
         private MemoryStream _blockStream;
         private readonly Writer _encoder;
         private IWriter _blockEncoder;
-        private readonly WriteItem _writer;
-        private byte[] _syncData;
+        private readonly Encoder.WriteItem _writer;
         private bool _isOpen;
-        private bool _headerWritten;
         private int _blockCount;
         private readonly int _syncInterval;
-        private readonly Metadata _metadata;
+        private readonly Header _header;
 
 
-        internal MergeEncoder(TypeSchema schema, Stream outStream, CodecType codecType)
+        internal MergeEncoder(TypeSchema schema, Stream outStream)
         {
-            _codec = AbstractCodec.CreateCodec(codecType);
+            _codec = new NullCodec();
             _stream = outStream;
-            _metadata = new Metadata();
-            _schema = schema;
-            _syncInterval = DataFileConstants.DefaultSyncInterval;
 
-            _metadata.Add(DataFileConstants.CodecMetadataKey, _codec.Name);
-            _metadata.Add(DataFileConstants.SchemaMetadataKey, _schema.ToString());
+            _syncInterval = DataFileConstants.DefaultSyncInterval;
 
             _blockCount = 0;
             _encoder = new Writer(_stream);
             _blockStream = new MemoryStream();
             _blockEncoder = new Writer(_blockStream);
 
-            // _writer = Resolver.ResolveWriter(schema);
+            _writer = Resolver.ResolveWriter(schema);
 
             _isOpen = true;
+            _header = new Header();
         }
 
         internal void Append(object datum)
         {
             AssertOpen();
-            EnsureHeader();
 
             _writer(datum, _blockEncoder);
 
             _blockCount++;
             WriteIfBlockFull();
         }
-
-        private void EnsureHeader()
-        {
-            if (!_headerWritten)
-            {
-                WriteHeader();
-                _headerWritten = true;
-            }
-        }
-
         internal long Sync()
         {
             AssertOpen();
@@ -98,33 +79,18 @@ namespace SolTechnology.Avro.Merge
             return _stream.Position;
         }
 
-        internal void WriteHeader()
+        internal void WriteHeader(string schema, CodecType codecType)
         {
-            // _encoder.WriteHeader(_metadata);
+            GenerateSyncData();
+            _header.AddMetadata(DataFileConstants.CodecMetadataKey, AbstractCodec.CreateCodec(codecType).Name);
+            _header.AddMetadata(DataFileConstants.SchemaMetadataKey, schema);
+
+            _encoder.WriteHeader(_header);
         }
 
         private void AssertOpen()
         {
             if (!_isOpen) throw new AvroRuntimeException("Cannot complete operation: avro file/stream not open");
-        }
-
-        private void WriteMetaData()
-        {
-            // Add sync, code & schema to metadata
-            GenerateSyncData();
-            _metadata.Add(DataFileConstants.CodecMetadataKey, _codec.Name);
-            _metadata.Add(DataFileConstants.SchemaMetadataKey, _schema.ToString());
-
-            // write metadata 
-            int size = _metadata.GetSize();
-            _encoder.WriteInt(size);
-
-            foreach (KeyValuePair<string, byte[]> metaPair in _metadata.GetValue())
-            {
-                _encoder.WriteString(metaPair.Key);
-                _encoder.WriteBytes(metaPair.Value);
-            }
-            _encoder.WriteMapEnd();
         }
 
         private void WriteIfBlockFull()
@@ -146,7 +112,7 @@ namespace SolTechnology.Avro.Merge
                 _encoder.WriteBytes(_codec.Compress(dataToWrite));
 
                 // write sync marker 
-                _encoder.WriteFixed(_syncData);
+                _encoder.WriteFixed(_header.SyncData);
 
                 // reset / re-init block
                 _blockCount = 0;
@@ -155,22 +121,16 @@ namespace SolTechnology.Avro.Merge
             }
         }
 
-        private void WriteSyncData()
-        {
-            _encoder.WriteFixed(_syncData);
-        }
-
         private void GenerateSyncData()
         {
-            _syncData = new byte[16];
+            _header.SyncData = new byte[16];
 
             Random random = new Random();
-            random.NextBytes(_syncData);
+            random.NextBytes(_header.SyncData);
         }
 
         public void Dispose()
         {
-            EnsureHeader();
             Sync();
             _stream.Flush();
             _stream.Dispose();

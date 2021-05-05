@@ -41,19 +41,18 @@ namespace SolTechnology.Avro.Write
         private readonly Writer _encoder;
         private IWriter _blockEncoder;
         private readonly WriteItem _writer;
-        private byte[] _syncData;
         private bool _isOpen;
         private bool _headerWritten;
         private int _blockCount;
         private readonly int _syncInterval;
-        private readonly Metadata _metadata;
+        private readonly Header _header;
 
 
         internal Encoder(TypeSchema schema, Stream outStream, CodecType codecType)
         {
             _codec = AbstractCodec.CreateCodec(codecType);
             _stream = outStream;
-            _metadata = new Metadata();
+            _header = new Header();
             _schema = schema;
             _syncInterval = DataFileConstants.DefaultSyncInterval;
 
@@ -63,8 +62,8 @@ namespace SolTechnology.Avro.Write
             _blockEncoder = new Writer(_blockStream);
 
             GenerateSyncData();
-            _metadata.Add(DataFileConstants.CodecMetadataKey, _codec.Name);
-            _metadata.Add(DataFileConstants.SchemaMetadataKey, _schema.ToString());
+            _header.AddMetadata(DataFileConstants.CodecMetadataKey, _codec.Name);
+            _header.AddMetadata(DataFileConstants.SchemaMetadataKey, _schema.ToString());
 
             _writer = Resolver.ResolveWriter(schema);
 
@@ -100,34 +99,12 @@ namespace SolTechnology.Avro.Write
 
         private void WriteHeader()
         {
-            _encoder.WriteHeader(_metadata, _syncData);
-            // _encoder.WriteFixed(DataFileConstants.AvroHeader);
-            // WriteMetaData();
-            // WriteSyncData();
+            _encoder.WriteHeader(_header);
         }
 
         private void AssertOpen()
         {
             if (!_isOpen) throw new AvroRuntimeException("Cannot complete operation: avro file/stream not open");
-        }
-
-        private void WriteMetaData()
-        {
-            // Add sync, code & schema to metadata
-            GenerateSyncData();
-            _metadata.Add(DataFileConstants.CodecMetadataKey, _codec.Name);
-            _metadata.Add(DataFileConstants.SchemaMetadataKey, _schema.ToString());
-
-            // write metadata 
-            int size = _metadata.GetSize();
-            _encoder.WriteInt(size);
-
-            foreach (KeyValuePair<string, byte[]> metaPair in _metadata.GetValue())
-            {
-                _encoder.WriteString(metaPair.Key);
-                _encoder.WriteBytes(metaPair.Value);
-            }
-            _encoder.WriteMapEnd();
         }
 
         private void WriteIfBlockFull()
@@ -149,7 +126,7 @@ namespace SolTechnology.Avro.Write
                 _encoder.WriteBytes(_codec.Compress(dataToWrite));
 
                 // write sync marker 
-                _encoder.WriteFixed(_syncData);
+                _encoder.WriteFixed(_header.SyncData);
 
                 // reset / re-init block
                 _blockCount = 0;
@@ -158,17 +135,12 @@ namespace SolTechnology.Avro.Write
             }
         }
 
-        private void WriteSyncData()
-        {
-            _encoder.WriteFixed(_syncData);
-        }
-
         private void GenerateSyncData()
         {
-            _syncData = new byte[16];
+            _header.SyncData = new byte[16];
 
             Random random = new Random();
-            random.NextBytes(_syncData);
+            random.NextBytes(_header.SyncData);
         }
 
         public void Dispose()

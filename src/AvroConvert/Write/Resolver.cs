@@ -79,20 +79,20 @@ namespace SolTechnology.Avro.Write
                     return (v, e) => Write<byte[]>(v, schema.Type, e.WriteBytes);
                 case AvroType.Error:
                 case AvroType.Logical:
-                {
-                    var logicalTypeSchema = (LogicalTypeSchema)schema;
-                    switch (logicalTypeSchema.LogicalTypeName)
                     {
+                        var logicalTypeSchema = (LogicalTypeSchema)schema;
+                        switch (logicalTypeSchema.LogicalTypeName)
+                        {
                             case LogicalTypeSchema.LogicalTypeEnum.Uuid:
-                                return Uuid.Resolve((UuidSchema) logicalTypeSchema);
+                                return Uuid.Resolve((UuidSchema)logicalTypeSchema);
                             case LogicalTypeSchema.LogicalTypeEnum.Decimal:
                                 return Decimal.Resolve((DecimalSchema)logicalTypeSchema);
                             case LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds:
                                 return TimestampMilliseconds.Resolve((TimestampMillisecondsSchema)logicalTypeSchema);
                             case LogicalTypeSchema.LogicalTypeEnum.Duration:
                                 return Duration.Resolve((DurationSchema)logicalTypeSchema);
+                        }
                     }
-                }
                     return String.Resolve;
                 case AvroType.Record:
                     return Record.Resolve((RecordSchema)schema);

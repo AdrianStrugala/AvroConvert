@@ -61,3 +61,5 @@ docs/AvroAPIArticle.synctex.gz
 .vs/**/*
 .vs/*
 **/.vs/**/*
+.vscode/launch.json
+.vscode/tasks.json

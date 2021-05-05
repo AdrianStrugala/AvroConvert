@@ -23,11 +23,13 @@ namespace AvroConvertComponentTests.Merge
 
 
             //Act
-            var resultJson = AvroConvert.Merge<User>(new List<byte[]> { avroObject });
+            var result = AvroConvert.Merge<User>(new List<byte[]> { avroObject });
+
+            var ForComaprison = AvroConvert.Serialize(new List<User> { user });
 
 
             //Assert
-            var deserializedResult = AvroConvert.Deserialize<List<User>>(resultJson);
+            var deserializedResult = AvroConvert.Deserialize<List<User>>(result);
             var deserializedUser = Assert.Single(deserializedResult);
             Assert.Equal(user, deserializedUser);
         }

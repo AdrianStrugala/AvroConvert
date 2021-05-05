@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-/** Modifications copyright(C) 2020 Adrian Strugała **/
+/** Modifications copyright(C) 2021 Adrian Strugala **/
 
 #endregion
 
@@ -28,28 +28,52 @@ namespace SolTechnology.Avro.FileHeader
 {
     internal class Header
     {
-        private Dictionary<string, string> MetaData { get; }
+        private Dictionary<string, byte[]> MetaData { get; }
 
-        internal byte[] SyncData { get; }
+        internal byte[] SyncData { get; set;}
 
         internal BuildSchema.Schema Schema { get; set; }
 
         internal Header()
         {
-            MetaData = new Dictionary<string, string>();
+            MetaData = new Dictionary<string, byte[]>();
             SyncData = new byte[16];
         }
 
         internal void AddMetadata(string key, byte[] value)
         {
-            var valueAsString = value == null ? null : System.Text.Encoding.UTF8.GetString(value);
-            MetaData.Add(key, valueAsString);
+            MetaData.Add(key, value);
+        }
+
+           internal void AddMetadata(string key, string value)
+        {
+            MetaData.Add(key, System.Text.Encoding.UTF8.GetBytes(value));
         }
 
         internal string GetMetadata(string key)
         {
             MetaData.TryGetValue(key, out var value);
+            if(value == null){
+                return null;
+            }
+            var valueAsString = System.Text.Encoding.UTF8.GetString(value);
+            return valueAsString;
+        }
+
+        internal byte[] GetRawMetadata(string key)
+        {
+            MetaData.TryGetValue(key, out var value);
             return value;
+        }
+
+        internal Dictionary<string, byte[]> GetRawMetadata()
+        {
+            return MetaData;
+        }
+
+        internal int GetMetadataSize()
+        {
+           return MetaData.Count;
         }
     }
 }

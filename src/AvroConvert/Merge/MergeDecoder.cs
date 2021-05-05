@@ -8,7 +8,6 @@ namespace SolTechnology.Avro.Merge
 {
     internal class MergeDecoder
     {
-
         internal byte[] ExtractAvroData(byte[] avroObject, string schema)
         {
             using (var stream = new MemoryStream(avroObject))

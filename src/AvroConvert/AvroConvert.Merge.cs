@@ -19,10 +19,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Newtonsoft.Json;
-using SolTechnology.Avro.AvroToJson;
+using SolTechnology.Avro.FileHeader.Codec;
 using SolTechnology.Avro.Merge;
-using SolTechnology.Avro.Schema.Abstract;
+using SolTechnology.Avro.Write;
 
 namespace SolTechnology.Avro
 {
@@ -33,26 +32,29 @@ namespace SolTechnology.Avro
         /// </summary>
         public static byte[] Merge<T>(IEnumerable<byte[]> avroObjects)
         {
-            var mergeDecoder = new MergeDecoder();
             var itemSchema = BuildSchema.Schema.Create(typeof(T));
-            //read header
-            //collect object - iterate
+            var targetSchema = BuildSchema.Schema.Create(typeof(List<T>));
+            var mergeDecoder = new MergeDecoder();
 
-            byte[] avroData = new byte[1];
+            List<byte[]> avroData = new List<byte[]>();
+            foreach (var avroObject in avroObjects)
+            {
+                avroData.Add(mergeDecoder.ExtractAvroData(avroObject, itemSchema.ToString()));
+            }
 
-           foreach (var avroObject in avroObjects)
-           {
-             avroData = mergeDecoder.ExtractAvroData(avroObject, itemSchema.ToString());
-           }
+            using (MemoryStream resultStream = new MemoryStream())
+            {
+                var byteArraySchema = BuildSchema.Schema.Create(typeof(List<byte[]>));
+                using (var encoder = new MergeEncoder(byteArraySchema, resultStream))
+                {
+                    encoder.WriteHeader(targetSchema.ToString(), CodecType.Null);
+                    encoder.Append(avroData);
+                }
 
-           var x = avroObjects.First().Length;
-           var y = avroData.Length;
-           //write header with IEnumerable<T>
-           //store objects
+                var result = resultStream.ToArray();
+                return result;
 
-           //drink bear
-
-           throw new NotImplementedException();
+            }
         }
     }
 }

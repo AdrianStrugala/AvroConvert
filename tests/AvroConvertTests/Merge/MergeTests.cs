@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using AutoFixture;
 using SolTechnology.Avro;
 using Xunit;
@@ -27,6 +28,9 @@ namespace AvroConvertComponentTests.Merge
 
             var ForComaprison = AvroConvert.Serialize(new List<User> { user });
 
+
+            var xs = BitConverter.ToString(result);
+            var xds = BitConverter.ToString(ForComaprison);
 
             //Assert
             var deserializedResult = AvroConvert.Deserialize<List<User>>(result);

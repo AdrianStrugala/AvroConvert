@@ -23,6 +23,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using SolTechnology.Avro.Exceptions;
 using SolTechnology.Avro.FileHeader;
 using SolTechnology.Avro.FileHeader.Codec;
@@ -36,9 +37,9 @@ namespace SolTechnology.Avro.Merge
         private readonly AbstractCodec _codec;
         private readonly Stream _stream;
         private MemoryStream _blockStream;
-        private readonly Writer _encoder;
+        private readonly Writer _writer;
         private IWriter _blockEncoder;
-        private readonly Encoder.WriteItem _writer;
+        private readonly Encoder.WriteItem _writeItem;
         private bool _isOpen;
         private int _blockCount;
         private readonly int _syncInterval;
@@ -53,11 +54,11 @@ namespace SolTechnology.Avro.Merge
             _syncInterval = DataFileConstants.DefaultSyncInterval;
 
             _blockCount = 0;
-            _encoder = new Writer(_stream);
+            _writer = new Writer(_stream);
             _blockStream = new MemoryStream();
             _blockEncoder = new Writer(_blockStream);
 
-            _writer = Resolver.ResolveWriter(schema);
+            _writeItem = Resolver.ResolveWriter(schema);
 
             _isOpen = true;
             _header = new Header();
@@ -67,7 +68,7 @@ namespace SolTechnology.Avro.Merge
         {
             AssertOpen();
 
-            _writer(datum, _blockEncoder);
+            _writeItem(datum, _blockEncoder);
 
             _blockCount++;
             WriteIfBlockFull();
@@ -85,7 +86,23 @@ namespace SolTechnology.Avro.Merge
             _header.AddMetadata(DataFileConstants.CodecMetadataKey, AbstractCodec.CreateCodec(codecType).Name);
             _header.AddMetadata(DataFileConstants.SchemaMetadataKey, schema);
 
-            _encoder.WriteHeader(_header);
+            _writer.WriteHeader(_header);
+        }
+
+        internal void WriteData(IEnumerable<byte[]> data)
+        {
+            long l = data.Count();
+            _writer.WriteArrayStart();
+            _writer.SetItemCount(l);
+
+            foreach (var bytes in data)
+            {
+                _writer.WriteBytesRaw(bytes);
+            }
+
+            _writer.WriteArrayEnd();
+
+            _writer.WriteFixed(_header.SyncData);
         }
 
         private void AssertOpen()
@@ -106,13 +123,13 @@ namespace SolTechnology.Avro.Merge
                 byte[] dataToWrite = _blockStream.ToArray();
 
                 // write count 
-                _encoder.WriteLong(_blockCount);
+                _writer.WriteLong(_blockCount);
 
                 // write data 
-                _encoder.WriteBytes(_codec.Compress(dataToWrite));
+                _writer.WriteBytes(_codec.Compress(dataToWrite));
 
                 // write sync marker 
-                _encoder.WriteFixed(_header.SyncData);
+                _writer.WriteFixed(_header.SyncData);
 
                 // reset / re-init block
                 _blockCount = 0;

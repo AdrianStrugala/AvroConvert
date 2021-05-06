@@ -86,7 +86,7 @@ namespace SolTechnology.Avro.Write
         {
             byte[] buffer = BitConverter.GetBytes(value);
             if (!BitConverter.IsLittleEndian) System.Array.Reverse(buffer);
-            writeBytes(buffer);
+            WriteBytesRaw(buffer);
         }
         /// <summary>
         ///A double is written as 8 bytes.
@@ -116,7 +116,7 @@ namespace SolTechnology.Avro.Write
         public void WriteBytes(byte[] value)
         {
             WriteLong(value.Length);
-            writeBytes(value);
+            WriteBytesRaw(value);
         }
 
         /// <summary>
@@ -176,7 +176,7 @@ namespace SolTechnology.Avro.Write
             _stream.Write(data, start, len);
         }
 
-        private void writeBytes(byte[] bytes)
+        public void WriteBytesRaw(byte[] bytes)
         {
             _stream.Write(bytes, 0, bytes.Length);
         }

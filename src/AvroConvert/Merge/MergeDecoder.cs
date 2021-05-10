@@ -38,12 +38,11 @@ namespace SolTechnology.Avro.Merge
                     // read in sync data 
                     reader.ReadFixed(header.SyncData);
 
-                    var data = reader.ReadToEnd();
+                    var remainingBlocks = reader.ReadLong();
+                    //TODO: take into consifer number of remaining blocks?
+                    var dataBlock = reader.ReadDataBlock();
 
-                    var dataWithoutSync = data.ToList();
-                    dataWithoutSync.RemoveRange(data.Length - DataFileConstants.SyncSize, DataFileConstants.SyncSize);
-
-                    return dataWithoutSync.ToArray();
+                    return dataBlock;
                 }
             }
         }

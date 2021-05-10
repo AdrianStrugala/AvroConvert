@@ -20,17 +20,17 @@ namespace AvroConvertComponentTests.Merge
         {
             //Arrange
             var user = _fixture.Create<User>();
+
+            user.favorite_color = "red";
+            user.favorite_number = 2137;
+            user.name = "Ash";
+
             var avroObject = AvroConvert.Serialize(user);
 
 
             //Act
             var result = AvroConvert.Merge<User>(new List<byte[]> { avroObject });
 
-            var ForComaprison = AvroConvert.Serialize(new List<User> { user });
-
-
-            var xs = BitConverter.ToString(result);
-            var xds = BitConverter.ToString(ForComaprison);
 
             //Assert
             var deserializedResult = AvroConvert.Deserialize<List<User>>(result);

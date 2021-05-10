@@ -48,15 +48,13 @@ namespace SolTechnology.Avro.Read
         }
 
 
-        internal T Read<T>(IReader reader, Header header, AbstractCodec codec, Resolver resolver)
+        internal T Read<T>(Reader reader, Header header, AbstractCodec codec, Resolver resolver)
         {
             var remainingBlocks = reader.ReadLong();
-            var blockSize = reader.ReadLong();
+
+            var dataBlock = reader.ReadDataBlock();
+
             var syncBuffer = new byte[DataFileConstants.SyncSize];
-
-            var dataBlock = new byte[blockSize];
-
-            reader.ReadFixed(dataBlock, 0, (int)blockSize);
             reader.ReadFixed(syncBuffer);
 
             if (!syncBuffer.SequenceEqual(header.SyncData))

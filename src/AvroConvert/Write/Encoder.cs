@@ -37,7 +37,7 @@ namespace SolTechnology.Avro.Write
         private readonly TypeSchema _schema;
         private readonly AbstractCodec _codec;
         private readonly Stream _stream;
-        private MemoryStream _blockStream;
+        private MemoryStream _blockTempBuffer;
         private readonly Writer _encoder;
         private IWriter _blockEncoder;
         private readonly WriteItem _writer;
@@ -58,8 +58,8 @@ namespace SolTechnology.Avro.Write
 
             _blockCount = 0;
             _encoder = new Writer(_stream);
-            _blockStream = new MemoryStream();
-            _blockEncoder = new Writer(_blockStream);
+            _blockTempBuffer = new MemoryStream();
+            _blockEncoder = new Writer(_blockTempBuffer);
 
             GenerateSyncData();
             _header.AddMetadata(DataFileConstants.CodecMetadataKey, _codec.Name);
@@ -109,7 +109,7 @@ namespace SolTechnology.Avro.Write
 
         private void WriteIfBlockFull()
         {
-            if (_blockStream.Position >= _syncInterval)
+            if (_blockTempBuffer.Position >= _syncInterval)
                 WriteBlock();
         }
 
@@ -117,7 +117,7 @@ namespace SolTechnology.Avro.Write
         {
             if (_blockCount > 0)
             {
-                byte[] dataToWrite = _blockStream.ToArray();
+                byte[] dataToWrite = _blockTempBuffer.ToArray();
 
                 // write count 
                 _encoder.WriteLong(_blockCount);
@@ -130,8 +130,8 @@ namespace SolTechnology.Avro.Write
 
                 // reset / re-init block
                 _blockCount = 0;
-                _blockStream = new MemoryStream();
-                _blockEncoder = new Writer(_blockStream);
+                _blockTempBuffer = new MemoryStream();
+                _blockEncoder = new Writer(_blockTempBuffer);
             }
         }
 
@@ -139,8 +139,10 @@ namespace SolTechnology.Avro.Write
         {
             _header.SyncData = new byte[16];
 
-            Random random = new Random();
-            random.NextBytes(_header.SyncData);
+            //TODO
+            // Random random = new Random();
+            // random.NextBytes(_header.SyncData);
+            _header.SyncData = new byte[] { 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, };
         }
 
         public void Dispose()

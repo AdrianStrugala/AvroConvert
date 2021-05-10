@@ -36,10 +36,9 @@ namespace SolTechnology.Avro.Merge
     {
         private readonly AbstractCodec _codec;
         private readonly Stream _stream;
-        private MemoryStream _blockStream;
+        private MemoryStream _tempBuffer;
         private readonly Writer _writer;
-        private IWriter _blockEncoder;
-        private readonly Encoder.WriteItem _writeItem;
+        private readonly Writer _tempWriter;
         private bool _isOpen;
         private int _blockCount;
         private readonly int _syncInterval;
@@ -55,24 +54,14 @@ namespace SolTechnology.Avro.Merge
 
             _blockCount = 0;
             _writer = new Writer(_stream);
-            _blockStream = new MemoryStream();
-            _blockEncoder = new Writer(_blockStream);
 
-            _writeItem = Resolver.ResolveWriter(schema);
+            _tempBuffer = new MemoryStream();
+            _tempWriter = new Writer(_tempBuffer);
 
             _isOpen = true;
             _header = new Header();
         }
 
-        internal void Append(object datum)
-        {
-            AssertOpen();
-
-            _writeItem(datum, _blockEncoder);
-
-            _blockCount++;
-            WriteIfBlockFull();
-        }
         internal long Sync()
         {
             AssertOpen();
@@ -92,17 +81,18 @@ namespace SolTechnology.Avro.Merge
         internal void WriteData(IEnumerable<byte[]> data)
         {
             long l = data.Count();
-            _writer.WriteArrayStart();
-            _writer.SetItemCount(l);
+            _tempWriter.WriteArrayStart();
+            _tempWriter.SetItemCount(l);
 
             foreach (var bytes in data)
             {
-                _writer.WriteBytesRaw(bytes);
+                _tempWriter.WriteBytesRaw(bytes);
             }
 
-            _writer.WriteArrayEnd();
+            _tempWriter.WriteArrayEnd();
 
-            _writer.WriteFixed(_header.SyncData);
+            _blockCount++;
+            WriteIfBlockFull();
         }
 
         private void AssertOpen()
@@ -112,7 +102,7 @@ namespace SolTechnology.Avro.Merge
 
         private void WriteIfBlockFull()
         {
-            if (_blockStream.Position >= _syncInterval)
+            if (_tempBuffer.Position >= _syncInterval)
                 WriteBlock();
         }
 
@@ -120,7 +110,7 @@ namespace SolTechnology.Avro.Merge
         {
             if (_blockCount > 0)
             {
-                byte[] dataToWrite = _blockStream.ToArray();
+                byte[] dataToWrite = _tempBuffer.ToArray();
 
                 // write count 
                 _writer.WriteLong(_blockCount);
@@ -133,8 +123,7 @@ namespace SolTechnology.Avro.Merge
 
                 // reset / re-init block
                 _blockCount = 0;
-                _blockStream = new MemoryStream();
-                _blockEncoder = new Writer(_blockStream);
+                _tempBuffer = new MemoryStream();
             }
         }
 
@@ -142,8 +131,11 @@ namespace SolTechnology.Avro.Merge
         {
             _header.SyncData = new byte[16];
 
-            Random random = new Random();
-            random.NextBytes(_header.SyncData);
+            //TODO
+            // Random random = new Random();
+            // random.NextBytes(_header.SyncData);
+
+            _header.SyncData = new byte[] { 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, };
         }
 
         public void Dispose()

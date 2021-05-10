@@ -48,7 +48,7 @@ namespace SolTechnology.Avro
                 using (var encoder = new MergeEncoder(byteArraySchema, resultStream))
                 {
                     encoder.WriteHeader(targetSchema.ToString(), CodecType.Null);
-                    // encoder.Append(avroData);
+
                     encoder.WriteData(avroData);
                 }
 

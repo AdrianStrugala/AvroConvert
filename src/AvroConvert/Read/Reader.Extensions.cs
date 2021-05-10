@@ -41,5 +41,15 @@ namespace SolTechnology.Avro.Read
 
             return header;
         }
+
+        internal byte[] ReadDataBlock()
+        {
+            var blockSize = ReadLong();
+
+            var dataBlock = new byte[blockSize];
+            ReadFixed(dataBlock, 0, (int)blockSize);
+
+            return dataBlock;
+        }
     }
 }

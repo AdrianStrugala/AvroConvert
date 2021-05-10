@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-/** Modifications copyright(C) 2020 Adrian Strugała **/
+/** Modifications copyright(C) 2021 Adrian Strugala **/
 #endregion
 
 using System;
@@ -80,11 +80,11 @@ namespace SolTechnology.Avro.Merge
 
         internal void WriteData(IEnumerable<byte[]> data)
         {
-            long l = data.Count();
+            var dataAsList = data.ToList();
             _tempWriter.WriteArrayStart();
-            _tempWriter.SetItemCount(l);
+            _tempWriter.SetItemCount(dataAsList.Count);
 
-            foreach (var bytes in data)
+            foreach (var bytes in dataAsList)
             {
                 _tempWriter.WriteBytesRaw(bytes);
             }
@@ -131,11 +131,8 @@ namespace SolTechnology.Avro.Merge
         {
             _header.SyncData = new byte[16];
 
-            //TODO
-            // Random random = new Random();
-            // random.NextBytes(_header.SyncData);
-
-            _header.SyncData = new byte[] { 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, };
+            Random random = new Random();
+            random.NextBytes(_header.SyncData);
         }
 
         public void Dispose()

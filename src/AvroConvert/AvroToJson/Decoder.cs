@@ -14,7 +14,6 @@ namespace SolTechnology.Avro.AvroToJson
         internal object Decode(Stream stream, TypeSchema schema)
         {
             var reader = new Reader(stream);
-            var header = new Header();
 
             // validate header 
             byte[] firstBytes = new byte[DataFileConstants.AvroHeader.Length];
@@ -41,25 +40,11 @@ namespace SolTechnology.Avro.AvroToJson
             }
             else
             {
-                // read meta data 
-                long len = reader.ReadMapStart();
-                if (len > 0)
-                {
-                    do
-                    {
-                        for (long i = 0; i < len; i++)
-                        {
-                            string key = reader.ReadString();
-                            byte[] val = reader.ReadBytes();
-                            header.AddMetadata(key, val);
-                        }
-                    } while ((len = reader.ReadMapNext()) != 0);
-                }
+                var header = reader.ReadHeader();
 
                 schema = schema ?? BuildSchema.Schema.Create(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
                 var resolver = new Resolver(schema);
 
-                // read in sync data 
                 reader.ReadFixed(header.SyncData);
                 var codec = AbstractCodec.CreateCodecFromString(header.GetMetadata(DataFileConstants.CodecMetadataKey));
 
@@ -68,19 +53,13 @@ namespace SolTechnology.Avro.AvroToJson
         }
 
 
-        internal object Read(IReader reader, Header header, AbstractCodec codec, Resolver resolver)
+        internal object Read(Reader reader, Header header, AbstractCodec codec, Resolver resolver)
         {
             var remainingBlocks = reader.ReadLong();
-            var blockSize = reader.ReadLong();
-            var syncBuffer = new byte[DataFileConstants.SyncSize];
 
-            var dataBlock = new byte[blockSize];
+            var dataBlock = reader.ReadDataBlock();
 
-            reader.ReadFixed(dataBlock, 0, (int)blockSize);
-            reader.ReadFixed(syncBuffer);
-
-            if (!syncBuffer.SequenceEqual(header.SyncData))
-                throw new AvroRuntimeException("Invalid sync!");
+            reader.ReadAndValidateSync(header.SyncData);
 
             dataBlock = codec.Decompress(dataBlock);
             reader = new Reader(new MemoryStream(dataBlock));

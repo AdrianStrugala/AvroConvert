@@ -35,7 +35,6 @@ namespace SolTechnology.Avro.Merge
                 {
                     var header = reader.ReadHeader();
 
-                    // read in sync data 
                     reader.ReadFixed(header.SyncData);
 
                     var remainingBlocks = reader.ReadLong();

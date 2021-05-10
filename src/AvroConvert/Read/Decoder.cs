@@ -54,11 +54,7 @@ namespace SolTechnology.Avro.Read
 
             var dataBlock = reader.ReadDataBlock();
 
-            var syncBuffer = new byte[DataFileConstants.SyncSize];
-            reader.ReadFixed(syncBuffer);
-
-            if (!syncBuffer.SequenceEqual(header.SyncData))
-                throw new AvroRuntimeException("Invalid sync!");
+            reader.ReadAndValidateSync(header.SyncData);
 
             dataBlock = codec.Decompress(dataBlock);
             reader = new Reader(new MemoryStream(dataBlock));

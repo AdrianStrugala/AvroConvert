@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using AutoFixture;
 using SolTechnology.Avro;
 using Xunit;
@@ -41,14 +42,26 @@ namespace AvroConvertComponentTests.Merge
         [Fact]
         public void Merge_MultipleObject_AllOfThemAreMerged()
         {
-            //Arrange
+            var users = _fixture.CreateMany<User>();
+
+            var avroObjects = users.Select(AvroConvert.Serialize);
 
 
             //Act
-            // var resultJson = AvroConvert.Merge();
+            var result = AvroConvert.Merge<User>(avroObjects);
 
 
             //Assert
+            var deserializedResult = AvroConvert.Deserialize<List<User>>(result);
+            Assert.NotNull(deserializedResult);
+            Assert.Equal(users.Count(), deserializedResult.Count);
+
+            foreach (var user in users)
+            {
+                var resultUser = deserializedResult.FirstOrDefault(r => r.name == user.name);
+                Assert.NotNull(resultUser);
+                Assert.Equal(user, resultUser);
+            }
         }
 
         [Fact]

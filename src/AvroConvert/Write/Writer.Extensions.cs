@@ -17,12 +17,10 @@
  * limitations under the License.
  */
 
-/** Modifications copyright(C) 2020 Adrian Struga�a **/
+/** Modifications copyright(C) 2021 Adrian Strugala **/
 #endregion
 
-using System;
 using System.Collections.Generic;
-using System.IO;
 using SolTechnology.Avro.FileHeader;
 
 namespace SolTechnology.Avro.Write
@@ -30,7 +28,7 @@ namespace SolTechnology.Avro.Write
     /// <summary>
     /// Write leaf values.
     /// </summary>
-    internal partial class Writer : IWriter
+    internal partial class Writer
     {
         internal void WriteHeader(Header header)
         {

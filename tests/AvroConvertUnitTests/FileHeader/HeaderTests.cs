@@ -1,4 +1,4 @@
-﻿using SolTechnology.Avro.FileHeader;
+﻿using SolTechnology.Avro.AvroObjectServices.FileHeader;
 using Xunit;
 
 namespace AvroConvertUnitTests.FileHeader

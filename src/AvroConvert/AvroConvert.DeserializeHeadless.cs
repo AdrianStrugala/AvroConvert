@@ -1,5 +1,5 @@
 ﻿#region license
-/**Copyright (c) 2020 Adrian Strugała
+/**Copyright (c) 2020 Adrian Strugala
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -17,7 +17,8 @@
 
 using System;
 using System.IO;
-using SolTechnology.Avro.Read;
+using SolTechnology.Avro.AvroObjectServices.BuildSchema;
+using SolTechnology.Avro.AvroObjectServices.Read;
 
 namespace SolTechnology.Avro
 {
@@ -28,7 +29,7 @@ namespace SolTechnology.Avro
         /// </summary>
         public static T DeserializeHeadless<T>(byte[] avroBytes, string schema)
         {
-            var avroSchema = BuildSchema.Schema.Create(schema);
+            var avroSchema = Schema.Create(schema);
             var reader = new Reader(new MemoryStream(avroBytes));
             var resolver = new Resolver(avroSchema, avroSchema);
             var result = resolver.Resolve<T>(reader, 1);

@@ -8,7 +8,7 @@ using Avro;
 using Avro.Generic;
 using Avro.IO;
 using SolTechnology.Avro;
-using SolTechnology.Avro.FileHeader.Codec;
+using SolTechnology.Avro.AvroObjectServices.FileHeader.Codec;
 
 namespace SolTechnology.PerformanceBenchmark
 {

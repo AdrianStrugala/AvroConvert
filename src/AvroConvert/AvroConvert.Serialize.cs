@@ -16,9 +16,9 @@
 #endregion
 
 using System.IO;
-using SolTechnology.Avro.BuildSchema;
-using SolTechnology.Avro.FileHeader.Codec;
-using SolTechnology.Avro.Write;
+using SolTechnology.Avro.AvroObjectServices.BuildSchema;
+using SolTechnology.Avro.AvroObjectServices.FileHeader.Codec;
+using SolTechnology.Avro.Features.Serialize;
 
 namespace SolTechnology.Avro
 {
@@ -40,7 +40,7 @@ namespace SolTechnology.Avro
         {
             using (MemoryStream resultStream = new MemoryStream())
             {
-                var schema = BuildSchema.Schema.Create(obj);
+                var schema = Schema.Create(obj);
                 using (var writer = new Encoder(schema, resultStream, codecType))
                 {
                     writer.Append(obj);

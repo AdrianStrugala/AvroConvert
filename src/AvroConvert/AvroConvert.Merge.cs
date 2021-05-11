@@ -19,9 +19,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using SolTechnology.Avro.FileHeader.Codec;
-using SolTechnology.Avro.Merge;
-using SolTechnology.Avro.Write;
+using SolTechnology.Avro.AvroObjectServices.BuildSchema;
+using SolTechnology.Avro.AvroObjectServices.FileHeader.Codec;
+using SolTechnology.Avro.Features.Merge;
 
 namespace SolTechnology.Avro
 {
@@ -32,8 +32,8 @@ namespace SolTechnology.Avro
         /// </summary>
         public static byte[] Merge<T>(IEnumerable<byte[]> avroObjects)
         {
-            var itemSchema = BuildSchema.Schema.Create(typeof(T));
-            var targetSchema = BuildSchema.Schema.Create(typeof(List<T>));
+            var itemSchema = Schema.Create(typeof(T));
+            var targetSchema = Schema.Create(typeof(List<T>));
             var mergeDecoder = new MergeDecoder();
 
             List<byte[]> avroData = new List<byte[]>();
@@ -44,7 +44,7 @@ namespace SolTechnology.Avro
 
             using (MemoryStream resultStream = new MemoryStream())
             {
-                var byteArraySchema = BuildSchema.Schema.Create(typeof(List<byte[]>));
+                var byteArraySchema = Schema.Create(typeof(List<byte[]>));
                 using (var encoder = new MergeEncoder(byteArraySchema, resultStream))
                 {
                     encoder.WriteHeader(targetSchema.ToString(), CodecType.Null);

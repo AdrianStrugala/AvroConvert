@@ -4,7 +4,6 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using AutoFixture;
-using Benchmark;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BrotliSharpLib;

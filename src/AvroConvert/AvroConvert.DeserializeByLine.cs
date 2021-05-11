@@ -16,7 +16,8 @@
 #endregion
 
 using System.IO;
-using SolTechnology.Avro.DeserializeByLine;
+using SolTechnology.Avro.AvroObjectServices.BuildSchema;
+using SolTechnology.Avro.Features.DeserializeByLine;
 
 namespace SolTechnology.Avro
 {
@@ -27,7 +28,7 @@ namespace SolTechnology.Avro
         /// </summary>
         public static ILineReader<T> OpenDeserializer<T>(Stream stream)
         {
-            var reader = Decoder.OpenReader<T>(stream, BuildSchema.Schema.Create(typeof(T)));
+            var reader = Decoder.OpenReader<T>(stream, Schema.Create(typeof(T)));
 
             return reader;
         }

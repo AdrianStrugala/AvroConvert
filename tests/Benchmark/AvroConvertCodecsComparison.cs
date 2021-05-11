@@ -2,7 +2,6 @@
 using System.IO;
 using System.Linq;
 using AutoFixture;
-using Benchmark;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using SolTechnology.Avro;

@@ -16,7 +16,8 @@
 #endregion
 
 using System.IO;
-using SolTechnology.Avro.Write;
+using SolTechnology.Avro.AvroObjectServices.BuildSchema;
+using SolTechnology.Avro.AvroObjectServices.Write;
 
 namespace SolTechnology.Avro
 {
@@ -29,7 +30,7 @@ namespace SolTechnology.Avro
         {
             MemoryStream resultStream = new MemoryStream();
             var encoder = new Writer(resultStream);
-            var writer = Resolver.ResolveWriter(BuildSchema.Schema.Create(schema));
+            var writer = Resolver.ResolveWriter(Schema.Create(schema));
             writer(obj, encoder);
 
             var result = resultStream.ToArray();

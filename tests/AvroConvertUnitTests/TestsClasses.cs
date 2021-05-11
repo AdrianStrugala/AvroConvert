@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Runtime.Serialization;
-using SolTechnology.Avro.Attributes;
+using SolTechnology.Avro.Infrastructure.Attributes;
 
 namespace AvroConvertUnitTests
 {

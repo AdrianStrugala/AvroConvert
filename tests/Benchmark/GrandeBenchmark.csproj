@@ -12,9 +12,6 @@
     <PackageReference Include="BrotliSharpLib" Version="0.3.3" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\AvroConvertToUpdate\AvroConvertVNext.csproj" />
-  </ItemGroup>
 
   <ItemGroup>
     <None Update="big_dataset.json">

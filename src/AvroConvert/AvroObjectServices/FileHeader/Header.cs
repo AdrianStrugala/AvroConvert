@@ -23,6 +23,7 @@
 #endregion
 
 using System.Collections.Generic;
+using SolTechnology.Avro.AvroObjectServices.Schema.Abstract;
 
 namespace SolTechnology.Avro.AvroObjectServices.FileHeader
 {
@@ -32,7 +33,7 @@ namespace SolTechnology.Avro.AvroObjectServices.FileHeader
 
         internal byte[] SyncData { get; set;}
 
-        internal BuildSchema.Schema Schema { get; set; }
+        internal TypeSchema Schema { get; set; }
 
         internal Header()
         {

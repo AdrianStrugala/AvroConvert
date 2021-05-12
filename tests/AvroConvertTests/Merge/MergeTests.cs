@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using AutoFixture;
 using SolTechnology.Avro;
+using SolTechnology.Avro.Infrastructure.Exceptions;
 using Xunit;
 
 namespace AvroConvertComponentTests.Merge
@@ -47,7 +47,7 @@ namespace AvroConvertComponentTests.Merge
             var avroObjects = users.Select(AvroConvert.Serialize);
 
 
-            //Act
+            //Act 
             var result = AvroConvert.Merge<User>(avroObjects);
 
 
@@ -67,27 +67,36 @@ namespace AvroConvertComponentTests.Merge
         [Fact]
         public void Merge_OnOfTheObjectsIsOfDifferentSchema_ExceptionIsThrown()
         {
-            //Arrange
+            var users = _fixture.CreateMany<User>();
+
+            var avroObjects = (users.Select(AvroConvert.Serialize)).ToArray();
+
+            avroObjects[1] = AvroConvert.Serialize(_fixture.Create<string>());
 
 
-            //Act
-            // var resultJson = AvroConvert.Merge();
+            //Act 
+            var exception = Record.Exception(() => AvroConvert.Merge<User>(avroObjects));
 
 
             //Assert
+            Assert.NotNull(exception);
+            Assert.IsType<InvalidAvroObjectException>(exception);
+            Assert.Contains("1", exception.Message);
+            Assert.Contains(typeof(User).ToString(), exception.Message);
         }
 
         [Fact]
         public void Merge_NotAvroObject_ExceptionIsThrown()
         {
-            //Arrange
+            var avroObjects = _fixture.CreateMany<byte[]>();
 
-
-            //Act
-            // var resultJson = AvroConvert.Merge();
+            //Act 
+            var exception = Record.Exception(() => AvroConvert.Merge<User>(avroObjects));
 
 
             //Assert
+            Assert.NotNull(exception);
+            Assert.IsType<InvalidAvroObjectException>(exception);
         }
     }
 }

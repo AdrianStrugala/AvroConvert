@@ -13,7 +13,7 @@
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
 
-/** Modifications copyright(C) 2020 Adrian Struga³a **/
+/** Modifications copyright(C) 2020 Adrian Strugala **/
 
 using System;
 using System.Collections.Generic;

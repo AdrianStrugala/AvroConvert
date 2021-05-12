@@ -8,7 +8,8 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BrotliSharpLib;
 using Newtonsoft.Json;
-using AvroConvertVNext = SolTechnology.PerformanceBenchmark.AvroConvertToUpdate;
+using SolTechnology.Avro;
+using SolTechnology.Avro.FileHeader.Codec;
 
 namespace GrandeBenchmark
 {
@@ -81,8 +82,8 @@ namespace GrandeBenchmark
         [Benchmark]
         public void Avro_Default()
         {
-            var serialized = AvroConvertVNext.AvroConvert.Serialize(data);
-            AvroConvertVNext.AvroConvert.Deserialize<List<User>>(serialized);
+            var serialized = AvroConvert.Serialize(data);
+            AvroConvert.Deserialize<List<User>>(serialized);
 
             var path = $"C:\\test\\disk-size.{nameof(Avro_Default).ToLower()}.txt";
             File.WriteAllText(path, ConstructSizeLog(serialized.Length));
@@ -91,8 +92,8 @@ namespace GrandeBenchmark
         [Benchmark]
         public void Avro_Gzip()
         {
-            var serialized = AvroConvertVNext.AvroConvert.Serialize(data, AvroConvertVNext.Codec.CodecType.GZip);
-            AvroConvertVNext.AvroConvert.Deserialize<List<User>>(serialized);
+            var serialized = AvroConvert.Serialize(data, CodecType.GZip);
+            AvroConvert.Deserialize<List<User>>(serialized);
 
             var path = $"C:\\test\\disk-size.{nameof(Avro_Gzip).ToLower()}.txt";
             File.WriteAllText(path, ConstructSizeLog(serialized.Length));
@@ -101,8 +102,8 @@ namespace GrandeBenchmark
         [Benchmark]
         public void Avro_Brotli()
         {
-            var serialized = AvroConvertVNext.AvroConvert.Serialize(data, AvroConvertVNext.Codec.CodecType.Brotli);
-            AvroConvertVNext.AvroConvert.Deserialize<List<User>>(serialized);
+            var serialized = AvroConvert.Serialize(data, CodecType.Brotli);
+            AvroConvert.Deserialize<List<User>>(serialized);
 
             var path = $"C:\\test\\disk-size.{nameof(Avro_Brotli).ToLower()}.txt";
             File.WriteAllText(path, ConstructSizeLog(serialized.Length));

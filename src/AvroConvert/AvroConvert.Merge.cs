@@ -15,20 +15,20 @@
 */
 #endregion
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.AvroObjectServices.FileHeader.Codec;
 using SolTechnology.Avro.Features.Merge;
+using SolTechnology.Avro.Infrastructure.Exceptions;
 
 namespace SolTechnology.Avro
 {
     public static partial class AvroConvert
     {
         /// <summary>
-        /// TODO
+        /// Merge multiple Avro objects of type T into one Avro object of type IEnumerable T
         /// </summary>
         public static byte[] Merge<T>(IEnumerable<byte[]> avroObjects)
         {
@@ -37,15 +37,22 @@ namespace SolTechnology.Avro
             var mergeDecoder = new MergeDecoder();
 
             List<byte[]> avroData = new List<byte[]>();
-            foreach (var avroObject in avroObjects)
+
+            avroObjects = avroObjects.ToList();
+            for (int i = 0; i < avroObjects.Count(); i++)
             {
-                avroData.Add(mergeDecoder.ExtractAvroData(avroObject, itemSchema.ToString()));
+                var avroFileContent = mergeDecoder.ExtractAvroObjectContent(avroObjects.ElementAt(i));
+                if (!itemSchema.CanRead(avroFileContent.Header.Schema))
+                {
+                    throw new InvalidAvroObjectException($"Schema from object of index [{i}] is not compatible with schema of type [{typeof(T)}]");
+                }
+
+                avroData.AddRange(avroFileContent.Data);
             }
 
             using (MemoryStream resultStream = new MemoryStream())
             {
-                var byteArraySchema = Schema.Create(typeof(List<byte[]>));
-                using (var encoder = new MergeEncoder(byteArraySchema, resultStream))
+                using (var encoder = new MergeEncoder(resultStream))
                 {
                     encoder.WriteHeader(targetSchema.ToString(), CodecType.Null);
 

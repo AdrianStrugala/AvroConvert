@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-/** Modifications copyright(C) 2020 Adrian Struga³a **/
+/** Modifications copyright(C) 2020 Adrian Strugala **/
 
 namespace SolTechnology.Avro.Infrastructure.Exceptions
 {

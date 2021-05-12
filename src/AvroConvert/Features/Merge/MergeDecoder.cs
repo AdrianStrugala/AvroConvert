@@ -17,6 +17,7 @@
 
 using System.IO;
 using System.Linq;
+using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.AvroObjectServices.FileHeader;
 using SolTechnology.Avro.AvroObjectServices.Read;
 using SolTechnology.Avro.Infrastructure.Exceptions;
@@ -25,7 +26,7 @@ namespace SolTechnology.Avro.Features.Merge
 {
     internal class MergeDecoder
     {
-        internal byte[] ExtractAvroData(byte[] avroObject)
+        internal AvroObjectContent ExtractAvroObjectContent(byte[] avroObject)
         {
             using (var stream = new MemoryStream(avroObject))
             {
@@ -50,15 +51,21 @@ namespace SolTechnology.Avro.Features.Merge
                 }
                 else
                 {
+                    AvroObjectContent result = new AvroObjectContent();
                     var header = reader.ReadHeader();
 
                     reader.ReadFixed(header.SyncData);
 
-                    var remainingBlocks = reader.ReadLong();
-                    //TODO: take into consifer number of remaining blocks?
-                    var dataBlock = reader.ReadDataBlock();
+                    result.Header = header;
+                    result.Header.Schema = Schema.Create(result.Header.GetMetadata(DataFileConstants.SchemaMetadataKey));
 
-                    return dataBlock;
+                    var remainingBlocks = reader.ReadLong();
+                    for (int i = 0; i < remainingBlocks; i++)
+                    {
+                        result.Data.Add(reader.ReadDataBlock());
+                    }
+
+                    return result;
                 }
             }
         }

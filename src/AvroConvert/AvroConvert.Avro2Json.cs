@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using Newtonsoft.Json;
-using SolTechnology.Avro.AvroToJson;
+using SolTechnology.Avro.AvroObjectServices.BuildSchema;
+using SolTechnology.Avro.Features.AvroToJson;
 
 namespace SolTechnology.Avro
 {
@@ -30,7 +31,7 @@ namespace SolTechnology.Avro
             using (var stream = new MemoryStream(avro))
             {
                 var decoder = new Decoder();
-                var deserialized = decoder.Decode(stream, BuildSchema.Schema.Create(avroSchema));
+                var deserialized = decoder.Decode(stream, Schema.Create(avroSchema));
                 var json = JsonConvert.SerializeObject(deserialized);
 
                 return json;

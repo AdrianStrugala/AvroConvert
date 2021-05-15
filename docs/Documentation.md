@@ -181,3 +181,27 @@ var serialized = AvroConvert.SerializeHeadless(toSerialize, schema);
 var deserialized = AvroConvert.DeserializeHeadless<User>(serialized, schema);
 
 ```
+
+### Merge
+
+Merges multiple Avro objects of type T into one of type IEnumerable of T
+
+```csharp
+
+byte[] result = AvroConvert.Merge<T>(IEnumerable<byte[]> avroObjects);
+
+example:
+//Arrange
+var users = _fixture.CreateMany<User>();
+var avroObjects = users.Select(AvroConvert.Serialize);
+
+
+//Act 
+var result = AvroConvert.Merge<User>(avroObjects);
+
+
+//Assert
+var deserializedResult = AvroConvert.Deserialize<List<User>>(result);
+
+
+```

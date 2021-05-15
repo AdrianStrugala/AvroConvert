@@ -16,7 +16,7 @@
 #endregion
 
 using System.IO;
-using SolTechnology.Avro.GetSchema;
+using SolTechnology.Avro.Features.GetSchema;
 
 namespace SolTechnology.Avro
 {

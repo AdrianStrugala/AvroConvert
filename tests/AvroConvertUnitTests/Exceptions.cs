@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using SolTechnology.Avro;
-using SolTechnology.Avro.Exceptions;
+using SolTechnology.Avro.Infrastructure.Exceptions;
 using Xunit;
 
 namespace AvroConvertUnitTests

@@ -1,6 +1,6 @@
 ﻿using BenchmarkDotNet.Running;
 
-namespace Benchmark
+namespace GrandeBenchmark
 {
     public class Program
     {

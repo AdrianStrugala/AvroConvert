@@ -16,7 +16,7 @@
 #endregion
 
 using System;
-using SolTechnology.Avro.BuildSchema;
+using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 
 namespace SolTechnology.Avro
 {
@@ -27,7 +27,7 @@ namespace SolTechnology.Avro
         /// </summary>
         public static string GenerateSchema(Type type)
         {
-            var reader = new ReflectionSchemaBuilder(new AvroSerializerSettings(false)).BuildSchema(type);
+            var reader = new ReflectionSchemaBuilder(new AvroSerializerSettings()).BuildSchema(type);
 
             return reader.ToString();
         }

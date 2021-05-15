@@ -17,7 +17,8 @@
 
 using System;
 using System.IO;
-using SolTechnology.Avro.Read;
+using SolTechnology.Avro.AvroObjectServices.BuildSchema;
+using SolTechnology.Avro.Features.Deserialize;
 
 namespace SolTechnology.Avro
 {
@@ -33,7 +34,7 @@ namespace SolTechnology.Avro
                 var decoder = new Decoder();
                 var deserialized = decoder.Decode<T>(
                     stream,
-                    BuildSchema.Schema.Create(typeof(T))
+                    Schema.Create(typeof(T))
                 );
                 return deserialized;
             }

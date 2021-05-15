@@ -20,6 +20,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{97C3224F-26F8-4FDF-A047-3D84C8625C94}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
+		src\AvroConvert\AvroConvert.csproj.DotSettings = src\AvroConvert\AvroConvert.csproj.DotSettings
+		src\AvroConvert\LICENSE = src\AvroConvert\LICENSE
+		src\AvroConvert\NOTICE = src\AvroConvert\NOTICE
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "In-updateBenchmark", "tests\PerformanceBenchmark\In-updateBenchmark.csproj", "{3216A422-1A2B-40DE-AC10-4C60E5C067A2}"
@@ -40,7 +43,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Http.Server", "tests\Http.S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Http.Client", "tests\Http.Client\Http.Client.csproj", "{7952E832-F277-4387-A1B1-40EF9EC9DFDF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvroConvertUnitTests", "tests\AvroConvertUnitTests\AvroConvertUnitTests.csproj", "{E4D7C0E6-D268-4B3D-A654-D86235828940}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvroConvertUnitTests", "tests\AvroConvertUnitTests\AvroConvertUnitTests.csproj", "{E4D7C0E6-D268-4B3D-A654-D86235828940}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

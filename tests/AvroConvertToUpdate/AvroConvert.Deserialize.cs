@@ -18,6 +18,7 @@
 using System;
 using System.IO;
 using SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Read;
+using Resolver = SolTechnology.PerformanceBenchmark.AvroConvertToUpdate.Read.Resolver;
 
 namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate
 {
@@ -36,9 +37,9 @@ namespace SolTechnology.PerformanceBenchmark.AvroConvertToUpdate
         public static T DeserializeHeadless<T>(byte[] avroBytes, string schema = null)
         {
             var readerSchema = Schema.Schema.Parse(schema ?? GenerateSchema(typeof(T)));
-            var _reader = new Reader(new MemoryStream(avroBytes));
-            var _resolver = new Resolver(readerSchema, readerSchema);
-            var result = _resolver.Resolve<T>(_reader, -1);
+            var reader = new Reader(new MemoryStream(avroBytes));
+            var resolver = new Resolver(readerSchema, readerSchema);
+            var result = resolver.Resolve<T>(reader, -1);
 
             return result;
         }

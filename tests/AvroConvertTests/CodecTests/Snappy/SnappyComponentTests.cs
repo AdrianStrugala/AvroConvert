@@ -1,6 +1,6 @@
 ﻿using AutoFixture;
 using SolTechnology.Avro;
-using SolTechnology.Avro.FileHeader.Codec;
+using SolTechnology.Avro.AvroObjectServices.FileHeader.Codec;
 using Xunit;
 
 namespace AvroConvertComponentTests.CodecTests.Snappy

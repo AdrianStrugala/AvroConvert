@@ -223,3 +223,7 @@ START OF THE PROJECT
 \
 **v. 3.0.1 (02.04.21)**
 - Fixed bug with deserialization of nullable enum field
+
+\
+**v. 3.1.0 (15.05.21)**
+- Added merge feature

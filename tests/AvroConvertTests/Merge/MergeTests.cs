@@ -42,6 +42,7 @@ namespace AvroConvertComponentTests.Merge
         [Fact]
         public void Merge_MultipleObject_AllOfThemAreMerged()
         {
+            //Arrange
             var users = _fixture.CreateMany<User>();
 
             var avroObjects = users.Select(AvroConvert.Serialize);

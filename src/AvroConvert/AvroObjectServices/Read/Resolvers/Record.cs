@@ -59,7 +59,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                 {
                     string name = rf.Aliases.FirstOrDefault() ?? wf.Name;
 
-                    var memberInfo = typeMembers[name];
+                    if (!typeMembers.TryGetValue(name, out var memberInfo))
+                    {
+                        continue;
+                    }
+
                     object value;
 
                     switch (memberInfo)

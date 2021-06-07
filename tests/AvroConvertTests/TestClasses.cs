@@ -139,7 +139,6 @@ namespace AvroConvertComponentTests
         public float floatProperty { get; set; }
     }
 
-
     [Equals(DoNotAddEqualityOperators = true)]
     [DataContract(Name = "User", Namespace = "user")]
     public class AttributeClass
@@ -295,5 +294,19 @@ namespace AvroConvertComponentTests
     public record TestRecord
     {
         public string Name { get; set; }
+    }
+
+    [Equals(DoNotAddEqualityOperators = true)]
+    public class SimpleClass
+    {
+        public string StringValue { get; set; }
+
+        public decimal DecimalValue { get; set; }
+    }
+
+    [Equals(DoNotAddEqualityOperators = true)]
+    public class SimpleClassWithMissingField
+    {
+        public string StringValue { get; set; }
     }
 }

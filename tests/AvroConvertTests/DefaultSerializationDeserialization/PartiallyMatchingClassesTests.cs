@@ -17,13 +17,13 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
         public void Component_SerializeBiggerObjectAndReadSmaller_NoError()
         {
             //Arrange
-            BiggerNestedTestClass toSerialize = _fixture.Create<BiggerNestedTestClass>();
+            ExtendedBaseTestClass toSerialize = _fixture.Create<ExtendedBaseTestClass>();
 
             //Act
 
             var result = AvroConvert.Serialize(toSerialize);
 
-            var deserialized = AvroConvert.Deserialize<NestedTestClass>(result);
+            var deserialized = AvroConvert.Deserialize<BaseTestClass>(result);
 
             //Assert
             Assert.NotNull(result);
@@ -37,13 +37,13 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
         public void Component_SerializeSmallerClassAndReadBigger_NoError()
         {
             //Arrange
-            SmallerNestedTestClass toSerialize = _fixture.Create<SmallerNestedTestClass>();
+            ReducedBaseTestClass toSerialize = _fixture.Create<ReducedBaseTestClass>();
 
             //Act
 
             var result = AvroConvert.Serialize(toSerialize);
 
-            var deserialized = AvroConvert.Deserialize<NestedTestClass>(result);
+            var deserialized = AvroConvert.Deserialize<BaseTestClass>(result);
 
             //Assert
             Assert.NotNull(result);
@@ -74,13 +74,13 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
         public void Component_SerializeAndDeserializeClassesWithDifferentPropertyCases_NoError()
         {
             //Arrange
-            NestedTestClass toSerialize = _fixture.Create<NestedTestClass>();
+            BaseTestClass toSerialize = _fixture.Create<BaseTestClass>();
 
 
             //Act
             var result = AvroConvert.Serialize(toSerialize);
 
-            var deserialized = AvroConvert.Deserialize<DifferentCaseNestedTestClass>(result);
+            var deserialized = AvroConvert.Deserialize<DifferentCaseBaseTestClass>(result);
 
 
             //Assert

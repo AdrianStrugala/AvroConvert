@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using AutoFixture;
 using SolTechnology.Avro;
 using Xunit;
@@ -17,29 +18,7 @@ namespace AvroConvertComponentTests
         public void Serialize_InputIsList_NoExceptionIsThrown()
         {
             //Arrange
-            SomeTestClass someTestClass = new SomeTestClass
-            {
-                objectProperty = new NestedTestClass
-                {
-                    justSomeProperty = "spoko",
-                    andLongProperty = 2137
-                },
-                simpleProperty = 111111
-            };
-
-            SomeTestClass someTestClass2 = new SomeTestClass
-            {
-                objectProperty = new NestedTestClass
-                {
-                    justSomeProperty = "loko",
-                    andLongProperty = 2137
-                },
-                simpleProperty = 2135
-            };
-
-            List<SomeTestClass> someTestClasses = new List<SomeTestClass>();
-            someTestClasses.Add(someTestClass);
-            someTestClasses.Add(someTestClass2);
+            List<BaseTestClass> someTestClasses = _fixture.CreateMany<BaseTestClass>().ToList();
 
             //Act
             var result = AvroConvert.Serialize(someTestClasses);
@@ -52,29 +31,7 @@ namespace AvroConvertComponentTests
         public void Serialize_InputIsArray_NoExceptionIsThrown()
         {
             //Arrange
-            SomeTestClass someTestClass = new SomeTestClass
-            {
-                objectProperty = new NestedTestClass
-                {
-                    justSomeProperty = "spoko",
-                    andLongProperty = 2137
-                },
-                simpleProperty = 111111
-            };
-
-            SomeTestClass dupa2 = new SomeTestClass
-            {
-                objectProperty = new NestedTestClass
-                {
-                    justSomeProperty = "loko",
-                    andLongProperty = 2137
-                },
-                simpleProperty = 2135
-            };
-
-            SomeTestClass[] someTestClasses = new SomeTestClass[2];
-            someTestClasses[0] = someTestClass;
-            someTestClasses[1] = dupa2;
+            BaseTestClass[] someTestClasses = _fixture.CreateMany<BaseTestClass>().ToArray();
 
             //Act
             var result = AvroConvert.Serialize(someTestClasses);

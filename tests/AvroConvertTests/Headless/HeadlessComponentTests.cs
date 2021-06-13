@@ -17,18 +17,19 @@ namespace AvroConvertComponentTests.Headless
         public void Component_SerializeHeadlessBiggerObjectAndReadSmaller_NoError()
         {
             //Arrange
-            VeryComplexClass toSerialize = _fixture.Create<VeryComplexClass>();
-            string schema = AvroConvert.GenerateSchema(typeof(VeryComplexClass));
+            ExtendedBaseTestClass toSerialize = _fixture.Create<ExtendedBaseTestClass>();
+            string schema = AvroConvert.GenerateSchema(typeof(BaseTestClass));
 
             //Act
             var result = AvroConvert.SerializeHeadless(toSerialize, schema);
 
-            var deserialized = AvroConvert.DeserializeHeadless<VeryComplexClass>(result, schema);
+            var deserialized = AvroConvert.DeserializeHeadless<BaseTestClass>(result, schema);
 
             //Assert
             Assert.NotNull(result);
             Assert.NotNull(deserialized);
-            Assert.Equal(toSerialize, deserialized);
+            Assert.Equal(toSerialize.andLongProperty, deserialized.andLongProperty);
+            Assert.Equal(toSerialize.justSomeProperty, deserialized.justSomeProperty);
         }
     }
 }

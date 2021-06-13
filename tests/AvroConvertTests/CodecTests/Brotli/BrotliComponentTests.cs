@@ -18,13 +18,13 @@ namespace AvroConvertComponentTests.CodecTests.Brotli
         public void Brotli_SerializeAndDeserializeComplexClass_NoError()
         {
             //Arrange
-            BiggerNestedTestClass toSerialize = _fixture.Create<BiggerNestedTestClass>();
+            ExtendedBaseTestClass toSerialize = _fixture.Create<ExtendedBaseTestClass>();
 
 
             //Act
             var result = AvroConvert.Serialize(toSerialize, CodecType.Brotli);
 
-            var deserialized = AvroConvert.Deserialize<BiggerNestedTestClass>(result);
+            var deserialized = AvroConvert.Deserialize<ExtendedBaseTestClass>(result);
 
 
             //Assert
@@ -37,13 +37,13 @@ namespace AvroConvertComponentTests.CodecTests.Brotli
         public void Brotli_SerializeBiggerObjectAndReadSmaller_NoError()
         {
             //Arrange
-            BiggerNestedTestClass toSerialize = _fixture.Create<BiggerNestedTestClass>();
+            ExtendedBaseTestClass toSerialize = _fixture.Create<ExtendedBaseTestClass>();
 
 
             //Act
             var result = AvroConvert.Serialize(toSerialize, CodecType.Brotli);
 
-            var deserialized = AvroConvert.Deserialize<NestedTestClass>(result);
+            var deserialized = AvroConvert.Deserialize<BaseTestClass>(result);
 
 
             //Assert
@@ -58,13 +58,13 @@ namespace AvroConvertComponentTests.CodecTests.Brotli
         public void Brotli_SerializeSmallerClassAndReadBigger_NoError()
         {
             //Arrange
-            SmallerNestedTestClass toSerialize = _fixture.Create<SmallerNestedTestClass>();
+            ReducedBaseTestClass toSerialize = _fixture.Create<ReducedBaseTestClass>();
 
 
             //Act
             var result = AvroConvert.Serialize(toSerialize, CodecType.Brotli);
 
-            var deserialized = AvroConvert.Deserialize<NestedTestClass>(result);
+            var deserialized = AvroConvert.Deserialize<BaseTestClass>(result);
 
 
             //Assert

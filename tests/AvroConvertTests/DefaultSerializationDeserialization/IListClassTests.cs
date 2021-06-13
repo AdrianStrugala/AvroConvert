@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using AutoFixture;
 using SolTechnology.Avro;
 using Xunit;
@@ -19,33 +20,11 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
         public void Component_ClassWithList_ListsAreEqual()
         {
             //Arrange
-            SomeTestClass someTestClass = new SomeTestClass
-            {
-                objectProperty = new NestedTestClass
-                {
-                    justSomeProperty = "spoko",
-                    andLongProperty = 2137
-                },
-                simpleProperty = 111111
-            };
-
-            SomeTestClass someTestsClass2 = new SomeTestClass
-            {
-                objectProperty = new NestedTestClass
-                {
-                    justSomeProperty = "loko",
-                    andLongProperty = 2137
-                },
-                simpleProperty = 2135
-            };
-
-            SomeTestClass[] someTestClasses = new SomeTestClass[2];
-            someTestClasses[0] = someTestClass;
-            someTestClasses[1] = someTestsClass2;
+            var someTestClasses = _fixture.CreateMany<BaseTestClass>().ToList();
 
             //Act
             var serialized = AvroConvert.Serialize(someTestClasses);
-            var deserialized = AvroConvert.Deserialize<List<SomeTestClass>>(serialized);
+            var deserialized = AvroConvert.Deserialize<List<BaseTestClass>>(serialized);
 
             //Assert
             Assert.NotNull(deserialized);
@@ -157,11 +136,11 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
         public void Component_ObjectIsIImmutableSet_ResultIsTheSameAsInput()
         {
             //Arrange
-            IImmutableSet<SomeTestClass> set = _fixture.Create<IEnumerable<SomeTestClass>>().ToImmutableHashSet();
+            IImmutableSet<BaseTestClass> set = _fixture.Create<IEnumerable<BaseTestClass>>().ToImmutableHashSet();
 
             //Act
             var result = AvroConvert.Serialize(set);
-            var deserialized = AvroConvert.Deserialize<ImmutableHashSet<SomeTestClass>>(result);
+            var deserialized = AvroConvert.Deserialize<ImmutableHashSet<BaseTestClass>>(result);
 
             //Assert
             Assert.NotNull(result);

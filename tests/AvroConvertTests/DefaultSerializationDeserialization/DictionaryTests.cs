@@ -37,13 +37,13 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
         public void Component_ObjectIsDictionaryOfComplexTypes_ResultIsTheSameAsInput()
         {
             //Arrange
-            Dictionary<Uri, SomeTestClass> dictionary = _fixture.Create<Dictionary<Uri, SomeTestClass>>();
+            Dictionary<Uri, BaseTestClass> dictionary = _fixture.Create<Dictionary<Uri, BaseTestClass>>();
 
             //Act
 
             var result = AvroConvert.Serialize(dictionary);
 
-            var deserialized = AvroConvert.Deserialize<Dictionary<Uri, SomeTestClass>>(result);
+            var deserialized = AvroConvert.Deserialize<Dictionary<Uri, BaseTestClass>>(result);
 
             //Assert
             Assert.NotNull(result);
@@ -73,13 +73,13 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
         public void Component_ObjectContainsDictionaryAndMap_ResultIsTheSameAsInput()
         {
             //Arrange
-            BiggerNestedTestClass testClass = _fixture.Create<BiggerNestedTestClass>();
+            ExtendedBaseTestClass testClass = _fixture.Create<ExtendedBaseTestClass>();
 
 
             //Act
             var result = AvroConvert.Serialize(testClass);
 
-            var deserialized = AvroConvert.Deserialize<BiggerNestedTestClass>(result);
+            var deserialized = AvroConvert.Deserialize<ExtendedBaseTestClass>(result);
 
 
             //Assert

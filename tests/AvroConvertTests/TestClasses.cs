@@ -11,9 +11,7 @@ namespace AvroConvertComponentTests
     public class User
     {
         public string name { get; set; }
-
         public int? favorite_number { get; set; }
-
         public string favorite_color { get; set; }
     }
 
@@ -24,37 +22,29 @@ namespace AvroConvertComponentTests
     }
 
     [Equals(DoNotAddEqualityOperators = true)]
-    public class SomeTestClass
-    {
-        public NestedTestClass objectProperty { get; set; }
-
-        public int simpleProperty { get; set; }
-    }
-
-    [Equals(DoNotAddEqualityOperators = true)]
-    public class NestedTestClass
+    public class BaseTestClass
     {
         public string justSomeProperty { get; set; }
-
         public long andLongProperty { get; set; }
+        public User objectProperty { get; set; }
     }
 
     [Equals(DoNotAddEqualityOperators = true)]
-    public class DifferentCaseNestedTestClass
+    public class DifferentCaseBaseTestClass
     {
         public string JustSomeProperty { get; set; }
-
         public long AndLongProperty { get; set; }
+        public User ObjectProperty { get; set; }
     }
 
     [Equals(DoNotAddEqualityOperators = true)]
-    public class SmallerNestedTestClass
+    public class ReducedBaseTestClass
     {
         public string justSomeProperty { get; set; }
     }
 
     [Equals(DoNotAddEqualityOperators = true)]
-    public class BiggerNestedTestClass
+    public class ExtendedBaseTestClass
     {
         public string justSomeProperty { get; set; }
         public long andLongProperty { get; set; }
@@ -66,6 +56,7 @@ namespace AvroConvertComponentTests
         public List<bool> Bools;
         [DefaultValue(9200000000000000007)]
         public long? AndLongBigDefaultedProperty { get; set; }
+        public User objectProperty { get; set; }
         public ClassWithConstructorPopulatingProperty AnotherClass { get; set; }
         public double DoubleProperty { get; set; }
         public Dictionary<string, int> AvroMap { get; set; }
@@ -92,13 +83,13 @@ namespace AvroConvertComponentTests
     [Equals(DoNotAddEqualityOperators = true)]
     public class ClassWithConstructorPopulatingProperty
     {
-        public List<NestedTestClass> nestedList { get; set; }
+        public List<BaseTestClass> nestedList { get; set; }
         public List<ClassWithSimpleList> anotherList { get; set; }
         public string stringProperty { get; set; }
 
         public ClassWithConstructorPopulatingProperty()
         {
-            nestedList = new List<NestedTestClass>();
+            nestedList = new List<BaseTestClass>();
             anotherList = new List<ClassWithSimpleList>();
         }
 

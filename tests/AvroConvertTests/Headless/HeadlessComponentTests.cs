@@ -31,5 +31,23 @@ namespace AvroConvertComponentTests.Headless
             Assert.Equal(toSerialize.andLongProperty, deserialized.andLongProperty);
             Assert.Equal(toSerialize.justSomeProperty, deserialized.justSomeProperty);
         }
+
+        [Fact]
+        public void Component_DeserializeWithMissingFields_NoError()
+        {
+            //Arrange
+            BaseTestClass toSerialize = _fixture.Create<BaseTestClass>();
+            string schema = AvroConvert.GenerateSchema(typeof(BaseTestClass));
+
+            //Act
+            var result = AvroConvert.SerializeHeadless(toSerialize, schema);
+
+            var deserialized = AvroConvert.DeserializeHeadless<ReducedBaseTestClass>(result, schema);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(toSerialize.justSomeProperty, deserialized.justSomeProperty);
+        }
     }
 }

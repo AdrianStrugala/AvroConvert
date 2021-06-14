@@ -227,3 +227,7 @@ START OF THE PROJECT
 \
 **v. 3.1.0 (15.05.21)**
 - Added merge feature
+
+\
+**v. 3.1.1 (14.06.21)**
+- Ignore missing fields when deserializing - This use case for this is when the producer has added a field (and the schema has been updated in the Schema Registry), but consumers are still using classes that don't yet have the field.

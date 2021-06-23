@@ -17,11 +17,8 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
 
         private static byte[] GetNullableFlags(MemberInfo member)
         {
-            var attributes = member.GetCustomAttributes(true)
+            var nullableAttribute = member.GetCustomAttributes(true)
                 .OfType<Attribute>()
-                .ToArray();
-
-            var nullableAttribute = attributes
                 .FirstOrDefault(a => a.GetType().FullName == "System.Runtime.CompilerServices.NullableAttribute");
 
             if (nullableAttribute != null)
@@ -31,15 +28,14 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
                     .GetValue(nullableAttribute) ?? EmptyFlags;
             }
 
-            var typeAttributes = member.DeclaringType?.GetCustomAttributes(false);
-
-            var nullableContextAttribute = typeAttributes?
+            var nullableContextAttribute = member.DeclaringType?
+                .GetCustomAttributes(false)
                 .FirstOrDefault(a => a.GetType().FullName == "System.Runtime.CompilerServices.NullableContextAttribute");
 
             if (nullableContextAttribute != null)
             {
                 var value = nullableContextAttribute.GetType()
-                    .GetRuntimeField("Flag")
+                    .GetRuntimeField("Flag")?
                     .GetValue(nullableContextAttribute) ?? 0;
 
                 return new[] {(byte) value};

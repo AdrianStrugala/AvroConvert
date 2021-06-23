@@ -287,4 +287,14 @@ namespace AvroConvertComponentTests
     {
         public string Name { get; set; }
     }
+
+#nullable enable
+    [Equals(DoNotAddEqualityOperators = true)]
+    public class ClassWithNullableMembers
+    {
+        public string? NullableStringProperty { get; set; }
+
+        public string? NullableField { get; set; }
+    }
+#nullable disable
 }

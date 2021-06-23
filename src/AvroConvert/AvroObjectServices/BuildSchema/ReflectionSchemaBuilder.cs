@@ -138,7 +138,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 }
             }
 
-            var typeInfo = this.settings.Resolver.ResolveType(type);
+            var typeInfo = this.settings.Resolver.ResolveType(type, memberInfo);
             if (typeInfo == null)
             {
                 throw new SerializationException(

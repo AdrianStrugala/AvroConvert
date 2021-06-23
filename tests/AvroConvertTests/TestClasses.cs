@@ -294,7 +294,7 @@ namespace AvroConvertComponentTests
     {
         public string? NullableStringProperty { get; set; }
 
-        public string? NullableField { get; set; }
+        public string? NullableField;
     }
 #nullable disable
 }

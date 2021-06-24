@@ -79,11 +79,12 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         /// This information is used for creation of the corresponding schema node.
         /// </summary>
         /// <param name="type">The type to resolve.</param>
+        /// <param name="member">The member type containing the type, if specified</param>
         /// <returns>
         /// Serialization information about the type.
         /// </returns>
         /// <exception cref="System.ArgumentNullException">The type argument is null.</exception>
-        internal TypeSerializationInfo ResolveType(Type type)
+        internal TypeSerializationInfo ResolveType(Type type, MemberInfo member = null)
         {
             if (type == null)
             {
@@ -96,7 +97,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                     string.Format(CultureInfo.InvariantCulture, "Type '{0}' is not supported by the resolver.", type));
             }
 
-            bool isNullable = this._allowNullable || type.CanContainNull();
+            bool isNullable = this._allowNullable || type.CanContainNull() || (!type.IsValueType && member?.IsNullableReferenceType() == true);
 
             if (type.IsInterface() ||
                 type.IsNativelySupported() ||

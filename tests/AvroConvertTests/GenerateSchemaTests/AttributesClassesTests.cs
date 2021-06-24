@@ -130,5 +130,18 @@ namespace AvroConvertComponentTests.GenerateSchemaTests
             // Assert
             Assert.Contains("{\"name\":\"favorite_number\",\"type\":[\"null\",\"int\"]}", schema);
         }
+
+        [Fact]
+        public void GenerateSchema_PropertiesAreNullableReferenceTypes_SchemaIndicatesMembersAreNullable()
+        {
+            //Arrange
+
+            //Act
+            string schema = AvroConvert.GenerateSchema(typeof(ClassWithNullableMembers));
+
+            // Assert
+            Assert.Contains("{\"name\":\"NullableStringProperty\",\"type\":[\"null\",\"string\"]}", schema);
+            Assert.Contains("{\"name\":\"NullableField\",\"type\":[\"null\",\"string\"]}", schema);
+        }
     }
 }

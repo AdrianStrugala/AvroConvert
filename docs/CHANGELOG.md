@@ -231,3 +231,7 @@ START OF THE PROJECT
 \
 **v. 3.1.1 (14.06.21)**
 - Ignore missing fields when deserializing - This use case for this is when the producer has added a field (and the schema has been updated in the Schema Registry), but consumers are still using classes that don't yet have the field.
+
+\
+**v. 3.1.2 (24.06.21)**
+- Allow generation of nullable reference types by using C#8 nullable annotation

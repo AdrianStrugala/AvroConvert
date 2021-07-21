@@ -80,6 +80,15 @@ namespace SolTechnology.Avro.AvroObjectServices.Schema
 
             //Resize value to match schema Scale property
             int sizeDiff = logicalScale - scale;
+            if(sizeDiff < 0)
+            {
+                throw new AvroTypeException(
+$@"Decimal Scale for value [{logicalValue}] is equal to [{scale}]. This exceeds default setting [{logicalScale}].
+Consider adding following attribute to your property:
+
+[AvroDecimal(Precision = 28, Scale = {scale})]
+");
+            }
 
             string trailingZeros = new string('0', sizeDiff);
             var logicalValueString = logicalValue.ToString();
@@ -93,10 +102,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Schema
             {
                 valueWithTrailingZeros = $"{logicalValue}{avroDecimal.SeparatorCharacter}{trailingZeros}";
             }
-            
-            avroDecimal = new AvroDecimal(valueWithTrailingZeros);
-            var buffer = avroDecimal.UnscaledValue.ToByteArray();
 
+            avroDecimal = new AvroDecimal(valueWithTrailingZeros);
+
+            var buffer = avroDecimal.UnscaledValue.ToByteArray();
             Array.Reverse(buffer);
 
             return AvroType.Bytes == schema.BaseTypeSchema.Type

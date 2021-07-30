@@ -66,7 +66,7 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             //Assert
             Assert.NotNull(result);
             Assert.NotNull(deserialized);
-            Assert.Equal(toSerialize.StringProperty, deserialized.StringProperty);
+            Assert.Equal(toSerialize.NullableStringProperty, deserialized.NullableStringProperty);
             Assert.Equal(toSerialize.NullableIntProperty, deserialized.NullableIntProperty);
         }
 

@@ -522,9 +522,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                     return result;
                 });
 
-            return aliases
-                .Select(alias => string.IsNullOrEmpty(@namespace) || alias.Contains(".") ? alias : @namespace + "." + alias)
-                .ToList();
+            return aliases;
         }
     }
 }

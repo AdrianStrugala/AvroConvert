@@ -70,7 +70,7 @@ namespace AvroConvertComponentTests
     public class LogicalTypesClass
     {
         public decimal One { get; set; }
-   
+
         public Guid? Two { get; set; }
 
         public TimeSpan Three { get; set; }
@@ -136,14 +136,18 @@ namespace AvroConvertComponentTests
     public class AttributeClass
     {
         [DataMember(Name = "name")]
-        public string StringProperty { get; set; }
+        [NullableSchema]
+        public string NullableStringProperty { get; set; }
 
         [DataMember(Name = "favorite_number")]
         [NullableSchema]
-        public int? NullableIntProperty { get; set; }
+        public int NullableIntProperty { get; set; }
 
         [DataMember(Name = "favorite_color")]
         public string AndAnotherString { get; set; }
+
+        [DefaultValue(2137)]
+        public int? NullableIntPropertyWithDefaultValue { get; set; }
     }
 
     [Equals(DoNotAddEqualityOperators = true)]
@@ -151,7 +155,8 @@ namespace AvroConvertComponentTests
     public class SmallerAttributeClass
     {
         [DataMember(Name = "name")]
-        public string StringProperty { get; set; }
+        [NullableSchema]
+        public string NullableStringProperty { get; set; }
 
         [DataMember(Name = "favorite_number")]
         [NullableSchema]

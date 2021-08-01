@@ -27,7 +27,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 {
     internal partial class Resolver
     {
-        private readonly Dictionary<Type, Func<IList>> cachedArrayInitializers = new Dictionary<Type, Func<IList>>();
+        private readonly Dictionary<int, Func<IList>> _cachedArrayInitializers = new Dictionary<int, Func<IList>>();
 
         internal object ResolveArray(TypeSchema writerSchema, TypeSchema readerSchema, IReader d, Type type, long itemsCount = 0)
         {
@@ -43,17 +43,18 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             }
 
             var containingType = type.GetEnumeratedType();
+            var typeHash = type.GetHashCode();
 
             Func<IList> resultFunc;
-            if (cachedArrayInitializers.ContainsKey(containingType))
+            if (_cachedArrayInitializers.ContainsKey(typeHash))
             {
-                resultFunc = cachedArrayInitializers[containingType];
+                resultFunc = _cachedArrayInitializers[typeHash];
             }
             else
             {
                 var resultType = typeof(List<>).MakeGenericType(containingType);
                 resultFunc = Expression.Lambda<Func<IList>>(Expression.New(resultType)).Compile();
-                cachedArrayInitializers.Add(containingType, resultFunc);
+                _cachedArrayInitializers.Add(typeHash, resultFunc);
             }
             IList result = resultFunc.Invoke();
 

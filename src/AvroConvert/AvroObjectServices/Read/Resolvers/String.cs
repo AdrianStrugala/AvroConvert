@@ -22,26 +22,21 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 {
     internal partial class Resolver
     {
-        private Dictionary<Type, Func<object>> @switch(string value) => new Dictionary<Type, Func<object>>
-        {
-            {typeof(decimal), () => decimal.Parse(value)},
-            {typeof(DateTimeOffset), () => DateTimeOffset.Parse(value)},
-            {typeof(DateTimeOffset?), () => DateTimeOffset.Parse(value)},
-            {typeof(Uri), () => new Uri(value)},
-        };
-
         internal object ResolveString(Type type, IReader reader)
         {
             var value = reader.ReadString();
 
-            if (type == typeof(string))
+            switch (type)
             {
-                return value;
-            }
-
-            if (@switch(value).TryGetValue(type, out Func<object> resultFunc))
-            {
-                return resultFunc.Invoke();
+                case Type _ when type == typeof(string):
+                    return value;
+                case Type _ when type == typeof(decimal):
+                    return decimal.Parse(value);
+                case Type _ when type == typeof(DateTimeOffset):
+                case Type _ when type == typeof(DateTimeOffset?):
+                    return DateTimeOffset.Parse(value);
+                case Type _ when type == typeof(Uri):
+                    return new Uri(value);
             }
 
             return value;

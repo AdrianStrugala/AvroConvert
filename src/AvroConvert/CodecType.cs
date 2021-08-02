@@ -23,6 +23,6 @@ namespace SolTechnology.Avro
         Deflate = 1,
         Snappy = 2,
         GZip = 3,
-        Brotli =4
+        Brotli = 4
     }
 }

@@ -235,3 +235,9 @@ START OF THE PROJECT
 \
 **v. 3.1.2 (24.06.21)**
 - Allow generation of nullable reference types by using C#8 nullable annotation
+
+\
+**v. 3.1.3 (02.08.21)**
+- Significantly improve both serialization and deserialization time
+- Reduced memory allocation
+- Fixed Avro attributes handling in headless deserialization

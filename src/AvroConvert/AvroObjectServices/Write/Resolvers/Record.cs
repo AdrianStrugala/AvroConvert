@@ -16,7 +16,10 @@
 #endregion
 
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.Features.Serialize;
 using RecordSchema = SolTechnology.Avro.AvroObjectServices.Schema.RecordSchema;
@@ -25,6 +28,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 {
     internal class Record
     {
+        private readonly Dictionary<int, Func<object, string, object>> gettersDictionary = new Dictionary<int, Func<object, string, object>>();
+
         internal Encoder.WriteItem Resolve(RecordSchema recordSchema)
         {
             WriteStep[] writeSteps = new WriteStep[recordSchema.Fields.Count];
@@ -48,20 +53,58 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 
             return RecordResolver;
         }
+
         private void WriteRecordFields(object recordObj, WriteStep[] writers, IWriter encoder)
         {
+            var type = recordObj.GetType();
+            var typeHash = type.GetHashCode();
+
+            Func<object, string, object> getters;
+            if (gettersDictionary.ContainsKey(typeHash))
+            {
+                getters = gettersDictionary[typeHash];
+            }
+            else
+            {
+                getters = GenerateGetValue(type);
+                gettersDictionary.Add(typeHash, getters);
+            }
+
             foreach (var writer in writers)
             {
                 string name = writer.Field.Aliases.FirstOrDefault() ?? writer.Field.Name;
 
-                object value = recordObj.GetType().GetProperty(name)?.GetValue(recordObj, null);
+                var value = getters.Invoke(recordObj, name);
                 if (value == null)
                 {
-                    value = recordObj.GetType().GetField(name)?.GetValue(recordObj);
+                    value = type.GetField(name)?.GetValue(recordObj);
                 }
 
                 writer.WriteField(value, encoder);
             }
+        }
+
+        private static Func<object, string, object> GenerateGetValue(Type type)
+        {
+            var instance = Expression.Parameter(typeof(object), "instance");
+            var memberName = Expression.Parameter(typeof(string), "memberName");
+            var nameHash = Expression.Variable(typeof(int), "nameHash");
+            var calHash = Expression.Assign(nameHash,
+                Expression.Call(memberName, typeof(object).GetMethod("GetHashCode")));
+            var cases = new List<SwitchCase>();
+            foreach (var propertyInfo in type.GetProperties())
+            {
+                var property = Expression.Property(Expression.Convert(instance, type), propertyInfo.Name);
+                var propertyHash = Expression.Constant(propertyInfo.Name.GetHashCode(), typeof(int));
+
+                cases.Add(Expression.SwitchCase(Expression.Convert(property, typeof(object)), propertyHash));
+            }
+
+            var switchEx = Expression.Switch(nameHash, Expression.Constant(null), cases.ToArray());
+            var methodBody = Expression.Block(typeof(object), new[] { nameHash }, calHash, switchEx);
+
+            return Expression.Lambda<Func<object, string, object>>(methodBody, instance, memberName).Compile();
+
         }
     }
 }

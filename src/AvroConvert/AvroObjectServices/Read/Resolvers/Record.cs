@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using FastMember;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.AvroObjectServices.Schema;
 
@@ -27,63 +28,59 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 {
     internal partial class Resolver
     {
-        private readonly Dictionary<int, Dictionary<string, MemberInfo>> cachedRecordMembers = new Dictionary<int, Dictionary<string, MemberInfo>>();
+        private readonly Dictionary<int, Dictionary<string, Func<object>>> readStepsDictionary = new Dictionary<int, Dictionary<string, Func<object>>>();
+        private readonly Dictionary<int, TypeAccessor> accessorDictionary = new Dictionary<int, TypeAccessor>();
 
         protected virtual object ResolveRecord(RecordSchema writerSchema, RecordSchema readerSchema, IReader dec, Type type)
         {
             object result = FormatterServices.GetUninitializedObject(type);
             var typeHash = type.GetHashCode();
 
-            var typeMembers = new Dictionary<string, MemberInfo>(StringComparer.InvariantCultureIgnoreCase);
+            TypeAccessor accessor;
+            Dictionary<string, Func<object>> readSteps;
 
-            if (!cachedRecordMembers.ContainsKey(typeHash))
+            if (!accessorDictionary.ContainsKey(typeHash))
             {
-                foreach (var propertyInfo in type.GetProperties())
+                accessor = TypeAccessor.Create(type);
+                readSteps = new Dictionary<string, Func<object>>();
+
+                foreach (RecordField wf in writerSchema.Fields)
                 {
-                    typeMembers.Add(propertyInfo.Name, propertyInfo);
+                    if (readerSchema.TryGetField(wf.Name, out var rf))
+                    {
+                        string name = rf.Aliases.FirstOrDefault() ?? wf.Name;
+
+                        var members = accessor.GetMembers();
+                        var memberInfo = members.FirstOrDefault(n => n.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+                        if (memberInfo == null)
+                        {
+                            continue;
+                        }
+
+                        Func<object> func = () => Resolve(wf.TypeSchema, rf.TypeSchema, dec, memberInfo.Type) ?? wf.DefaultValue;
+                        accessor[result, memberInfo.Name] = func.Invoke();
+
+                        readSteps.Add(memberInfo.Name, func);
+
+                    }
+                    else
+                        _skipper.Skip(wf.TypeSchema, dec);
                 }
-                foreach (var fieldInfo in type.GetFields())
-                {
-                    typeMembers.Add(fieldInfo.Name, fieldInfo);
-                }
-                cachedRecordMembers.Add(typeHash, typeMembers);
+
+                readStepsDictionary.Add(typeHash, readSteps);
+                accessorDictionary.Add(typeHash, accessor);
             }
             else
             {
-                typeMembers = cachedRecordMembers[typeHash];
-            }
+                accessor = accessorDictionary[typeHash];
+                readSteps = readStepsDictionary[typeHash];
 
-            foreach (RecordField wf in writerSchema.Fields)
-            {
-                if (readerSchema.TryGetField(wf.Name, out var rf))
+                foreach (var readStep in readSteps)
                 {
-                    string name = rf.Aliases.FirstOrDefault() ?? wf.Name;
-
-                    if (!typeMembers.TryGetValue(name, out var memberInfo))
-                    {
-                        continue;
-                    }
-
-                    object value;
-
-                    switch (memberInfo)
-                    {
-                        case FieldInfo fieldInfo:
-                            value = Resolve(wf.TypeSchema, rf.TypeSchema, dec, fieldInfo.FieldType) ??
-                                           wf.DefaultValue;
-                            fieldInfo.SetValue(result, value);
-                            break;
-
-                        case PropertyInfo propertyInfo:
-                            value = Resolve(wf.TypeSchema, rf.TypeSchema, dec, propertyInfo.PropertyType) ??
-                                    wf.DefaultValue;
-                            propertyInfo.SetValue(result, value, null);
-                            break;
-                    }
+                    accessor[result, readStep.Key] = readStep.Value.Invoke();
                 }
-                else
-                    _skipper.Skip(wf.TypeSchema, dec);
             }
+
             return result;
         }
     }

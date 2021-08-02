@@ -80,7 +80,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
                     value = type.GetField(name)?.GetValue(recordObj);
                 }
 
-
                 writer.WriteField(value, encoder);
             }
         }

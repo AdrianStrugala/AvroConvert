@@ -9,7 +9,6 @@ using BenchmarkDotNet.Configs;
 using BrotliSharpLib;
 using Newtonsoft.Json;
 using SolTechnology.Avro;
-using SolTechnology.Avro.FileHeader.Codec;
 
 namespace GrandeBenchmark
 {

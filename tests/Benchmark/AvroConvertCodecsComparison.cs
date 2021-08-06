@@ -5,7 +5,6 @@ using AutoFixture;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using SolTechnology.Avro;
-using SolTechnology.Avro.FileHeader.Codec;
 
 namespace GrandeBenchmark
 {

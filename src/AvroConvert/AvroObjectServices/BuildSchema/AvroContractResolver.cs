@@ -182,20 +182,21 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             }
 
             var members = membersToSerialize
-            .Select(m =>
-            {
-                var customAttributes = m.GetCustomAttributes(false);
-
-                return new
+                .Where(x => !x.GetCustomAttributes(false).OfType<IgnoreDataMemberAttribute>().Any())
+                .Select(m =>
                 {
-                    Member = m,
-                    Attribute = customAttributes.OfType<DataMemberAttribute>().SingleOrDefault(),
-                    Nullable = customAttributes.OfType<NullableSchemaAttribute>().Any(), // m.GetType().CanContainNull() ||
-                    DefaultValue = customAttributes.OfType<DefaultValueAttribute>().FirstOrDefault()?.Value,
-                    HasDefaultValue = customAttributes.OfType<DefaultValueAttribute>().Any(),
-                    Doc = customAttributes.OfType<DescriptionAttribute>().FirstOrDefault()?.Description
-                };
-            });
+                    var customAttributes = m.GetCustomAttributes(false);
+
+                    return new
+                    {
+                        Member = m,
+                        Attribute = customAttributes.OfType<DataMemberAttribute>().SingleOrDefault(),
+                        Nullable = customAttributes.OfType<NullableSchemaAttribute>().Any(), // m.GetType().CanContainNull() ||
+                        DefaultValue = customAttributes.OfType<DefaultValueAttribute>().FirstOrDefault()?.Value,
+                        HasDefaultValue = customAttributes.OfType<DefaultValueAttribute>().Any(),
+                        Doc = customAttributes.OfType<DescriptionAttribute>().FirstOrDefault()?.Description
+                    };
+                });
 
 
             if (_includeOnlyDataContractMembers)

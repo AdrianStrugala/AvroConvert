@@ -241,3 +241,7 @@ START OF THE PROJECT
 - Significantly improve both serialization and deserialization time
 - Reduced memory allocation
 - Fixed Avro attributes handling in headless deserialization
+
+\
+**v. 3.1.4 (12.08.21)**
+- Allow data members to be ignored with IgnoredDataMember attribute

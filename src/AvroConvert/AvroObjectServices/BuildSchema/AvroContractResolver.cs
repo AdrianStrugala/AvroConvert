@@ -167,6 +167,9 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
             var membersToSerialize = type.GetFieldsAndProperties(BindingFlags.Public | BindingFlags.Instance);
 
+            var attributes = allMembers
+                .ToDictionary(x => x, x => x.GetCustomAttributes(false));
+
             // add members that are explicitly marked with DataMember attribute
             foreach (var memberInfo in allMembers)
             {
@@ -175,17 +178,17 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                     continue;
                 }
 
-                if (memberInfo.GetCustomAttributes(false).OfType<DataMemberAttribute>().Any())
+                if (attributes[memberInfo].OfType<DataMemberAttribute>().Any())
                 {
                     membersToSerialize.Add(memberInfo);
                 }
             }
 
             var members = membersToSerialize
-                .Where(x => !x.GetCustomAttributes(false).OfType<IgnoreDataMemberAttribute>().Any())
+                .Where(x => !attributes[x].OfType<IgnoreDataMemberAttribute>().Any())
                 .Select(m =>
                 {
-                    var customAttributes = m.GetCustomAttributes(false);
+                    var customAttributes = attributes[m];
 
                     return new
                     {

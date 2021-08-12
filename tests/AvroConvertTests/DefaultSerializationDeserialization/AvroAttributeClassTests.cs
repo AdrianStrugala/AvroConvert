@@ -92,5 +92,22 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             Assert.Equal(100, deserialized.andLongSmallDefaultedProperty);
             Assert.Null(deserialized.andNullProperty);
         }
+
+        [Fact]
+        public void Component_ClassContainsAvroAttributes_IgnoredPropertiesAreNotSerialized()
+        {
+            //Arrange
+            AttributeClass toSerialize = _fixture.Create<AttributeClass>();
+
+            //Act
+            var result = AvroConvert.Serialize(toSerialize);
+
+            var deserialized = AvroConvert.Deserialize<AttributeClass>(result);
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Null(deserialized.IgnoredProperty);
+        }
     }
 }

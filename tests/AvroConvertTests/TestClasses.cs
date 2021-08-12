@@ -148,6 +148,9 @@ namespace AvroConvertComponentTests
 
         [DefaultValue(2137)]
         public int? NullableIntPropertyWithDefaultValue { get; set; }
+
+        [IgnoreDataMember]
+        public string IgnoredProperty { get; set; }
     }
 
     [Equals(DoNotAddEqualityOperators = true)]

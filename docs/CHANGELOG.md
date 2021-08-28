@@ -245,3 +245,8 @@ START OF THE PROJECT
 \
 **v. 3.1.4 (12.08.21)**
 - Allow data members to be ignored with IgnoredDataMember attribute
+
+\
+**v. 3.1.5 (28.08.21)**
+- Fix serialization of inheriting class (from class)
+- Fix serialization of private fields marked with DataMember attribute

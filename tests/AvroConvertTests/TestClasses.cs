@@ -138,19 +138,22 @@ namespace AvroConvertComponentTests
         [DataMember(Name = "name")]
         [NullableSchema]
         public string NullableStringProperty { get; set; }
-
+        
         [DataMember(Name = "favorite_number")]
         [NullableSchema]
         public int NullableIntProperty { get; set; }
-
+        
         [DataMember(Name = "favorite_color")]
         public string AndAnotherString { get; set; }
-
+        
         [DefaultValue(2137)]
         public int? NullableIntPropertyWithDefaultValue { get; set; }
-
+        
         [IgnoreDataMember]
         public string IgnoredProperty { get; set; }
+
+        [DataMember]
+        private long privateProperty { get; set; }
     }
 
     [Equals(DoNotAddEqualityOperators = true)]
@@ -305,4 +308,23 @@ namespace AvroConvertComponentTests
         public string? NullableField;
     }
 #nullable disable
+
+    public class BaseClass
+    {
+        public string BaseProp { get; set; }
+    }
+
+    public class InheritingClass : BaseClass
+    {
+    }
+
+    public interface BaseInterface
+    {
+        public string BaseProp { get; set; }
+    }
+
+    public class InheritingClassFromInterface : BaseInterface
+    {
+        public string BaseProp { get; set; }
+    }
 }

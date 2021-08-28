@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using AutoFixture;
 using SolTechnology.Avro;
 using Xunit;
@@ -20,8 +22,8 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             //Arrange
             AttributeClass toSerialize = _fixture.Create<AttributeClass>();
 
-            //Act
 
+            //Act
             var result = AvroConvert.Serialize(toSerialize);
 
             var deserialized = AvroConvert.Deserialize<User>(result);
@@ -40,8 +42,8 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             //Arrange
             AttributeClassWithoutGetters toSerialize = _fixture.Create<AttributeClassWithoutGetters>();
 
-            //Act
 
+            //Act
             var result = AvroConvert.Serialize(toSerialize);
 
             var deserialized = AvroConvert.Deserialize<User>(result);
@@ -59,6 +61,7 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
         {
             //Arrange
             ComplexStruct toSerialize = new ComplexStruct(_fixture.Create<List<int>>());
+
 
             //Act
             var result = AvroConvert.Serialize(toSerialize);
@@ -108,6 +111,35 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             Assert.NotNull(result);
             Assert.NotNull(deserialized);
             Assert.Null(deserialized.IgnoredProperty);
+        }
+
+        [Fact]
+        public void Component_PrivatePropertyIsMarkedAsDataMember_ItIsSerialized()
+        {
+            //Arrange
+            long expectedValue = 2137;
+
+            AttributeClass toSerialize = _fixture.Create<AttributeClass>();
+            typeof(AttributeClass)
+                .GetFields(BindingFlags.NonPublic | BindingFlags.Instance).FirstOrDefault(f => f.Name.Contains("privateProperty"))?
+                .SetValue(toSerialize, expectedValue);
+
+
+            //Act
+            var result = AvroConvert.Serialize(toSerialize);
+
+            var deserialized = AvroConvert.Deserialize<AttributeClass>(result);
+
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+
+            var resultValue = typeof(AttributeClass)
+                .GetFields(BindingFlags.NonPublic | BindingFlags.Instance).FirstOrDefault(f => f.Name.Contains("privateProperty"))?
+                .GetValue(deserialized);
+
+            Assert.Equal(expectedValue, resultValue);
         }
     }
 }

@@ -165,7 +165,10 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 BindingFlags.Instance |
                 BindingFlags.DeclaredOnly);
 
-            var membersToSerialize = type.GetFieldsAndProperties(BindingFlags.Public | BindingFlags.Instance);
+            var membersToSerialize = type.GetFieldsAndProperties(
+                BindingFlags.Public |
+                BindingFlags.Instance |
+                BindingFlags.DeclaredOnly);
 
             var attributes = allMembers
                 .ToDictionary(x => x, x => x.GetCustomAttributes(false));

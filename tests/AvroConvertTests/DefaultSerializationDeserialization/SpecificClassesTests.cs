@@ -72,5 +72,37 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             Assert.Equal(testObject.Five.Month, deserialized.Five.Month);
             Assert.Equal(testObject.Five.Year, deserialized.Five.Year);
         }
+
+        [Fact]
+        public void Component_InheritingClass_ResultIsTheSameAsInput()
+        {
+            //Arrange
+            InheritingClass testObject = _fixture.Create<InheritingClass>();
+
+            //Act
+            var serialized = AvroConvert.Serialize(testObject);
+
+            var deserialized = AvroConvert.Deserialize<InheritingClass>(serialized);
+
+            //Assert
+            Assert.NotNull(serialized);
+            Assert.NotNull(deserialized);
+        }
+
+        [Fact]
+        public void Component_InheritingClassFromInterface_ResultIsTheSameAsInput()
+        {
+            //Arrange
+            InheritingClassFromInterface testObject = _fixture.Create<InheritingClassFromInterface>();
+
+            //Act
+            var serialized = AvroConvert.Serialize(testObject);
+
+            var deserialized = AvroConvert.Deserialize<InheritingClassFromInterface>(serialized);
+
+            //Assert
+            Assert.NotNull(serialized);
+            Assert.NotNull(deserialized);
+        }
     }
 }

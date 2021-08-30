@@ -113,7 +113,7 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             Assert.Null(deserialized.IgnoredProperty);
         }
 
-        [Fact]
+        [Fact(Skip = "Scenario not supported")]
         public void Component_PrivatePropertyIsMarkedAsDataMember_ItIsSerialized()
         {
             //Arrange

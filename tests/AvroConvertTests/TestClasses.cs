@@ -151,9 +151,6 @@ namespace AvroConvertComponentTests
         
         [IgnoreDataMember]
         public string IgnoredProperty { get; set; }
-
-        [DataMember]
-        private long privateProperty { get; set; }
     }
 
     [Equals(DoNotAddEqualityOperators = true)]

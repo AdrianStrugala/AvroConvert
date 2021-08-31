@@ -114,7 +114,7 @@ using (var reader = AvroConvert.OpenDeserializer<CustomClass>(new MemoryStream(a
 
 ## Support
 
-If you find my work usefull, you san support it :)
+If you find my work useful, you can support it :)
 
 <p align="center">
     <a href="https://www.buymeacoffee.com/adrianstrugala" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 31px !important;width: 130px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>

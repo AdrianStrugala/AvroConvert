@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SolTechnology.Avro.AvroObjectServices.Schema.Abstract;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
 namespace SolTechnology.Avro.Features.GenerateClass
@@ -78,6 +79,10 @@ namespace SolTechnology.Avro.Features.GenerateClass
                                     {
                                         fieldType = ResolveArray(typeObj, field);
                                     }
+                                    else if (typeObj["logicalType"] != null)
+                                    {
+                                        fieldType = ResolveLogical(typeObj);
+                                    }
                                     else
                                     {
                                         throw new InvalidAvroObjectException($"Unable to process field type of {typeObj["type"]}");
@@ -127,8 +132,8 @@ namespace SolTechnology.Avro.Features.GenerateClass
                                     throw new InvalidAvroObjectException($"Unable to process field type of {field["type"].GetType().Name}");
                                 }
 
-                                if (fieldType == "boolean")
-                                    fieldType = "bool";
+                                if (fieldType.Contains("boolean"))
+                                    fieldType = fieldType.Replace("boolean", "bool");
                                 if (fieldType == "bytes")
                                     fieldType = "byte[]";
 
@@ -180,6 +185,29 @@ namespace SolTechnology.Avro.Features.GenerateClass
             else
             {
                 throw new InvalidAvroObjectException($"Unidentified newtonsoft object type {json.GetType().Name}");
+            }
+        }
+
+        private string ResolveLogical(JObject typeObj)
+        {
+            string logicalType = typeObj["logicalType"].ToString();
+
+            switch (logicalType)
+            {
+                case LogicalTypeSchema.LogicalTypeEnum.Date:
+                case LogicalTypeSchema.LogicalTypeEnum.TimestampMicroseconds:
+                case LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds:
+                    return "DateTime";
+                case LogicalTypeSchema.LogicalTypeEnum.Decimal:
+                    return "decimal";
+                case LogicalTypeSchema.LogicalTypeEnum.Duration:
+                case LogicalTypeSchema.LogicalTypeEnum.TimeMicrosecond:
+                case LogicalTypeSchema.LogicalTypeEnum.TimeMilliseconds:
+                    return "TimeSpan";
+                case LogicalTypeSchema.LogicalTypeEnum.Uuid:
+                    return "Guid";
+                default:
+                    throw new InvalidAvroObjectException($"Unidentified logicalType {logicalType}");
             }
         }
 

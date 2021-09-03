@@ -139,12 +139,12 @@ resultSchema);
                 "\tpublic int? favorite_number { get; set; }\r\n" +
                 "\tpublic string favorite_color { get; set; }\r\n" +
                 "}\r\n" +
-                "\r\n",
+                "\r\n"+
                 "public class ClassWithSimpleList\r\n" +
                 "{\r\n" +
                 "\tpublic int[] someList { get; set; }\r\n" +
                 "}\r\n" +
-                "\r\n" +
+                "\r\n",
                 
                 resultSchema);
         }

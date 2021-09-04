@@ -167,7 +167,7 @@ resultSchema);
                 "\tpublic Guid? Two { get; set; }\r\n" +
                 "\tpublic TimeSpan Three { get; set; }\r\n" +
                 "\tpublic DateTime? Four { get; set; }\r\n" +
-                "\tpublic DateTimeOffset Five { get; set; }\r\n" +
+                "\tpublic DateTime Five { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n",
                 resultSchema);

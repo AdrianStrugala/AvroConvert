@@ -69,25 +69,7 @@ namespace SolTechnology.Avro.Features.GenerateClass
                                 }
                                 else if (field["type"] is JObject)
                                 {
-                                    JObject typeObj = field["type"] as JObject;
-                                    string objectType = typeObj["type"].ToString();
-                                    if (objectType == "record" || objectType == "enum")
-                                    {
-                                        fieldType = typeObj["name"].ToString();
-                                    }
-                                    else if (typeObj["type"].ToString() == "array")
-                                    {
-                                        fieldType = ResolveArray(typeObj, field);
-                                    }
-                                    else if (typeObj["logicalType"] != null)
-                                    {
-                                        fieldType = ResolveLogical(typeObj);
-                                    }
-                                    else
-                                    {
-                                        throw new InvalidAvroObjectException($"Unable to process field type of {typeObj["type"]}");
-                                    }
-
+                                    fieldType = ResolveField(field);
                                 }
                                 else if (field["type"] is JArray)
                                 {
@@ -109,18 +91,19 @@ namespace SolTechnology.Avro.Features.GenerateClass
                                     }
                                     else if (arrayFieldType is JObject)
                                     {
-                                        if (arrayFieldType["type"].ToString() == "array" && arrayFieldType["items"] is JObject && ((JObject)arrayFieldType["items"])["type"].ToString() == "record")
-                                        {
-                                            fieldType = ((JObject)arrayFieldType["items"])["name"].ToString();
-                                        }
-                                        else if (arrayFieldType["type"].ToString() == "array" && arrayFieldType["items"] is JValue)
-                                        {
-                                            fieldType = arrayFieldType["items"].ToString();
-                                        }
-                                        else
-                                        {
-                                            throw new InvalidAvroObjectException($"Unable to create field of type {arrayFieldType}");
-                                        }
+                                        fieldType = ResolveField(arrayFieldType);
+                                        // if (arrayFieldType["type"].ToString() == "array" && arrayFieldType["items"] is JObject && ((JObject)arrayFieldType["items"])["type"].ToString() == "record")
+                                        // {
+                                        //     fieldType = ((JObject)arrayFieldType["items"])["name"].ToString();
+                                        // }
+                                        // else if (arrayFieldType["type"].ToString() == "array" && arrayFieldType["items"] is JValue)
+                                        // {
+                                        //     fieldType = arrayFieldType["items"].ToString();
+                                        // }
+                                        // else
+                                        // {
+                                        //     throw new InvalidAvroObjectException($"Unable to create field of type {arrayFieldType}");
+                                        // }
                                     }
                                     else
                                     {
@@ -188,6 +171,31 @@ namespace SolTechnology.Avro.Features.GenerateClass
             }
         }
 
+        private string ResolveField(JToken field)
+        {
+            string fieldType;
+            JObject typeObj = field["type"] as JObject;
+            string objectType = typeObj["type"].ToString();
+            if (objectType == "record" || objectType == "enum")
+            {
+                fieldType = typeObj["name"].ToString();
+            }
+            else if (typeObj["type"].ToString() == "array")
+            {
+                fieldType = ResolveArray(typeObj, field);
+            }
+            else if (typeObj["logicalType"] != null)
+            {
+                fieldType = ResolveLogical(typeObj);
+            }
+            else
+            {
+                throw new InvalidAvroObjectException($"Unable to process field type of {typeObj["type"]}");
+            }
+
+            return fieldType;
+        }
+
         private string ResolveLogical(JObject typeObj)
         {
             string logicalType = typeObj["logicalType"].ToString();
@@ -216,9 +224,9 @@ namespace SolTechnology.Avro.Features.GenerateClass
             string fieldType;
 
             // If this is an array of a specific class that's being defined in this area of the json
-            if (typeObj["items"] is JObject && ((JObject) typeObj["items"])["type"].ToString() == "record")
+            if (typeObj["items"] is JObject && ((JObject)typeObj["items"])["type"].ToString() == "record")
             {
-                fieldType = ((JObject) typeObj["items"])["name"] + "[]";
+                fieldType = ((JObject)typeObj["items"])["name"] + "[]";
             }
             else if (typeObj["items"] is JValue value)
             {

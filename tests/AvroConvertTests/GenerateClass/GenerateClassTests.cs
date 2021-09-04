@@ -148,5 +148,29 @@ resultSchema);
                 
                 resultSchema);
         }
+
+        [Fact]
+        public void GenerateClass_ClassWithLogicalTypes_OutputIsEqualToExpected()
+        {
+            //Arrange
+            var schema = AvroConvert.GenerateSchema(typeof(LogicalTypesClass));
+
+            //Act
+            string resultSchema = AvroConvert.GenerateClass(schema);
+
+
+            //Assert
+            Assert.Equal(
+                "public class LogicalTypesClass\r\n" +
+                "{\r\n" +
+                "\tpublic decimal One { get; set; }\r\n" +
+                "\tpublic Guid? Two { get; set; }\r\n" +
+                "\tpublic TimeSpan Three { get; set; }\r\n" +
+                "\tpublic DateTime? Four { get; set; }\r\n" +
+                "\tpublic DateTimeOffset Five { get; set; }\r\n" +
+                "}\r\n" +
+                "\r\n",
+                resultSchema);
+        }
     }
 }

@@ -1,4 +1,7 @@
-﻿using AutoFixture;
+﻿using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using AutoFixture;
 using SolTechnology.Avro;
 using Xunit;
 
@@ -30,6 +33,37 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             Assert.NotNull(result);
             Assert.NotNull(deserialized);
             Assert.Equal(toSerialize, deserialized);
+        }
+
+        [Fact]
+        public void Serialize_MultiThreadSerialization_NoExceptionIsThrown()
+        {
+            //Arrange
+            VeryComplexClass testClass = _fixture.Create<VeryComplexClass>();
+
+
+            //Act
+            List<Task> listOfTasks = new List<Task>();
+
+            for (var counter = 0; counter < 10; counter++)
+            {
+                listOfTasks.Add(Task.Run(() =>
+                {
+                    for (var iMessagesCntr = 0; iMessagesCntr < 100; iMessagesCntr++)
+                    {
+                        var result = AvroConvert.Serialize(testClass);
+                        var deserialized = AvroConvert.Deserialize<VeryComplexClass>(result);
+
+                        //Assert
+                        Assert.Equal(testClass, deserialized);
+
+                        Thread.Sleep(counter
+);
+                    }
+                }));
+            }
+
+            Task.WaitAll(listOfTasks.ToArray());
         }
     }
 }

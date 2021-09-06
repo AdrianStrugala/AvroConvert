@@ -2,13 +2,13 @@
 using SolTechnology.Avro;
 using Xunit;
 
-namespace AvroConvertComponentTests.GenerateClass
+namespace AvroConvertComponentTests.GenerateModel
 {
-    public class GenerateClassTests
+    public class GenerateModelTests
     {
         private readonly byte[] _avroBytes;
 
-        public GenerateClassTests()
+        public GenerateModelTests()
         {
             _avroBytes = File.ReadAllBytes("example2.avro");
         }
@@ -20,7 +20,7 @@ namespace AvroConvertComponentTests.GenerateClass
 
 
             //Act
-            string resultSchema = AvroConvert.GenerateClass(_avroBytes);
+            string resultClass = AvroConvert.GenerateModel(_avroBytes);
 
 
             //Assert
@@ -32,7 +32,7 @@ namespace AvroConvertComponentTests.GenerateClass
 "\tpublic string? favorite_color { get; set; }\r\n" +
 "}\r\n" +
 "\r\n",
-resultSchema);
+resultClass);
         }
 
 
@@ -43,7 +43,7 @@ resultSchema);
             var schema = AvroConvert.GenerateSchema(typeof(BaseTestClass));
 
             //Act
-            string resultSchema = AvroConvert.GenerateClass(schema);
+            string resultSchema = AvroConvert.GenerateModel(schema);
 
 
             //Assert
@@ -72,7 +72,7 @@ resultSchema);
             var schema = AvroConvert.GenerateSchema(typeof(ClassWithEnum));
 
             //Act
-            string resultSchema = AvroConvert.GenerateClass(schema);
+            string resultSchema = AvroConvert.GenerateModel(schema);
 
 
             //Assert
@@ -92,7 +92,7 @@ resultSchema);
             var schema = AvroConvert.GenerateSchema(typeof(VeryComplexClass));
 
             //Act
-            string resultSchema = AvroConvert.GenerateClass(schema);
+            string resultSchema = AvroConvert.GenerateModel(schema);
 
 
             //Assert
@@ -156,7 +156,7 @@ resultSchema);
             var schema = AvroConvert.GenerateSchema(typeof(LogicalTypesClass));
 
             //Act
-            string resultSchema = AvroConvert.GenerateClass(schema);
+            string resultSchema = AvroConvert.GenerateModel(schema);
 
 
             //Assert

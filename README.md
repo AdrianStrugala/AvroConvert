@@ -109,6 +109,12 @@ using (var reader = AvroConvert.OpenDeserializer<CustomClass>(new MemoryStream(a
 }
 ```
 
+* Generation of C# models from Avro file or schema
+
+```csharp
+  string resultModel = AvroConvert.GenerateModel(_avroBytes);
+```
+
 
 [Full Documentation](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md)
 

@@ -182,6 +182,7 @@ var deserialized = AvroConvert.DeserializeHeadless<User>(serialized, schema);
 
 ```
 
+
 ### Merge
 
 Merges multiple Avro objects of type T into one of type IEnumerable of T
@@ -202,6 +203,55 @@ var result = AvroConvert.Merge<User>(avroObjects);
 
 //Assert
 var deserializedResult = AvroConvert.Deserialize<List<User>>(result);
+
+```
+
+
+### Generate Model
+
+Generates C# .NET classes (models) from Avro file or schema.
+This action is inversed to GenerateSchema.
+
+```csharp
+//Given is schema
+var schema = AvroConvert.GenerateSchema(typeof(User));
+
+{
+   "type":"record",
+   "name":"AvroConvertComponentTests.User",
+   "fields":[
+      {
+         "name":"name",
+         "type":"string"
+      },
+      {
+         "name":"favorite_number",
+         "type":[
+            "null",
+            "int"
+         ]
+      },
+      {
+         "name":"favorite_color",
+         "type":"string"
+      }
+   ]
+}
+
+//Action
+string resultModel = AvroConvert.GenerateModel(schema); //string
+
+OR
+
+string resultModel = AvroConvert.GenerateModel(avroFileContent); //byte[]
+
+//Produces following schema:
+public class User
+{
+	public string name { get; set; }
+	public int? favorite_number { get; set; }
+	public string? favorite_color { get; set; }
+}
 
 
 ```

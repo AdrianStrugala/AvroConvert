@@ -249,3 +249,8 @@ START OF THE PROJECT
 \
 **v. 3.1.5 (30.08.21)**
 - Fix serialization of inheriting class (from class)
+
+\
+**v. 3.2.0 (xx.xx.21)**
+- Added 'Generate C# Class' feature
+- Fix multithreaded serialization

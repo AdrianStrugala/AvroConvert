@@ -20,7 +20,7 @@
 */
 #endregion
 
-using SolTechnology.Avro.Features.GenerateClass;
+using SolTechnology.Avro.Features.GenerateModel;
 
 namespace SolTechnology.Avro
 {
@@ -29,21 +29,21 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Generates C# .NET classes from schema in given AVRO object
         /// </summary>
-        public static string GenerateClass(byte[] avroBytes)
+        public static string GenerateModel(byte[] avroBytes)
         {
-            var generateClassHandler = new GenerateClassHandler();
-            var result = generateClassHandler.HandleAvroObject(avroBytes);
+            var generateClassHandler = new GenerateModel();
+            var result = generateClassHandler.FromAvroObject(avroBytes);
 
             return result;
         }
 
         /// <summary>
-        /// Generates C# .NET classes from schema in given AVRO schema
+        /// Generates C# .NET classes from given AVRO schema
         /// </summary>
-        public static string GenerateClass(string schema)
+        public static string GenerateModel(string schema)
         {
-            var generateClassHandler = new GenerateClassHandler();
-            var result = generateClassHandler.HandleAvroSchema(schema);
+            var generateClassHandler = new GenerateModel();
+            var result = generateClassHandler.FromAvroSchema(schema);
 
             return result;
         }

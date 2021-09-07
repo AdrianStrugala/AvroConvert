@@ -1,10 +1,9 @@
 ﻿$csProjName = 'AvroConvert.csproj';
 
-cd E:\workspace\AvroConvert\scripts
 
-cd ../src/AvroConvert
+cd src/AvroConvert
 
-((Get-Content -Path $csProjName -Raw) -replace '3.1.5', '21.37') | Set-Content -Path $csProjName
+((Get-Content -Path $csProjName -Raw) -replace '3.1.5', '3.2.0') | Set-Content -Path $csProjName
 dotnet build -c Release
 dotnet pack -c Release
 

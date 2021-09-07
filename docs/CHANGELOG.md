@@ -252,5 +252,5 @@ START OF THE PROJECT
 
 \
 **v. 3.2.0 (xx.xx.21)**
-- Added 'Generate C# Class' feature
+- Added 'Generate C# Model' feature
 - Fix multithreaded serialization

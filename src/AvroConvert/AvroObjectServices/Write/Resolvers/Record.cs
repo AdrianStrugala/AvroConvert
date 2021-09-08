@@ -17,10 +17,10 @@
 
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.Features.Serialize;
 using RecordSchema = SolTechnology.Avro.AvroObjectServices.Schema.RecordSchema;
@@ -29,7 +29,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 {
     internal class Record
     {
-        private readonly Dictionary<int, Func<object, string, object>> gettersDictionary = new Dictionary<int, Func<object, string, object>>();
+        private readonly ConcurrentDictionary<int, Func<object, string, object>> gettersDictionary = new ConcurrentDictionary<int, Func<object, string, object>>();
 
         internal Encoder.WriteItem Resolve(RecordSchema recordSchema)
         {
@@ -68,7 +68,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
             else
             {
                 getters = GenerateGetValue(type);
-                gettersDictionary.Add(typeHash, getters);
+                gettersDictionary.AddOrUpdate(typeHash, getters, (key, existingVal) => existingVal);
             }
 
             foreach (var writer in writers)

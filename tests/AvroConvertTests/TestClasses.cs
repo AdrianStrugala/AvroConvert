@@ -138,17 +138,17 @@ namespace AvroConvertComponentTests
         [DataMember(Name = "name")]
         [NullableSchema]
         public string NullableStringProperty { get; set; }
-        
+
         [DataMember(Name = "favorite_number")]
         [NullableSchema]
         public int NullableIntProperty { get; set; }
-        
+
         [DataMember(Name = "favorite_color")]
         public string AndAnotherString { get; set; }
-        
+
         [DefaultValue(2137)]
         public int? NullableIntPropertyWithDefaultValue { get; set; }
-        
+
         [IgnoreDataMember]
         public string IgnoredProperty { get; set; }
     }

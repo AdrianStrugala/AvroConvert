@@ -1,11 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>Adrian Strugala</Authors>
-    <AssemblyVersion>3.1.5.0</AssemblyVersion>
-    <Version>3.1.5</Version>
+    <AssemblyVersion>3.2.0.0</AssemblyVersion>
+    <Version>3.2.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Description>Apache Avro serializer for .NET.</Description>
     <PackageLicenseUrl>https://creativecommons.org/licenses/by-nc-sa/3.0/</PackageLicenseUrl>
@@ -47,3 +47,4 @@
   </ItemGroup>
 
 </Project>
+

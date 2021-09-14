@@ -1,11 +1,21 @@
-﻿$csProjName = 'AvroConvert.csproj';
+﻿$nextVersion = '3.2.0'
 
 
+
+$csProjName = 'AvroConvert.csproj';
+
+cd scripts
+$currentVersion = Get-Content .\version.txt -Raw 
+
+cd ../
 cd src/AvroConvert
 
-((Get-Content -Path $csProjName -Raw) -replace '3.1.5', '3.2.0') | Set-Content -Path $csProjName
+((Get-Content -Path $csProjName -Raw) -replace $currentVersion, $nextVersion) | Set-Content -Path $csProjName
 dotnet build -c Release
 dotnet pack -c Release
 
 cd ../../
-Get-ChildItem .\src\AvroConvert\obj\Release -Filter *.nuspec | Copy-Item -Destination . -Force -PassThru
+Get-ChildItem .\src\AvroConvert\bin\Release -Filter *nupkg | Copy-Item -Destination . -Force -PassThru
+
+cd scripts
+Set-Content -Path .\version.txt -Value $nextVersion;

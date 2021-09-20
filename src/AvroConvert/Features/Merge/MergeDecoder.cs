@@ -62,7 +62,7 @@ namespace SolTechnology.Avro.Features.Merge
                     var remainingBlocks = reader.ReadLong();
                     for (int i = 0; i < remainingBlocks; i++)
                     {
-                        result.Data.Add(reader.ReadDataBlock());
+                        // result.Data.Add(reader.ReadDataBlock());
                     }
 
                     return result;

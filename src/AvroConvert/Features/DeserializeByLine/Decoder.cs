@@ -75,13 +75,10 @@ namespace SolTechnology.Avro.Features.DeserializeByLine
                 reader.ReadFixed(header.SyncData);
                 var codec = AbstractCodec.CreateCodecFromString(header.GetMetadata(DataFileConstants.CodecMetadataKey));
 
-                var remainingBlocks = reader.ReadLong();
+                var itemsCount = reader.ReadLong();
 
-                var dataBlock = reader.ReadDataBlock();
+                var dataBlock = reader.ReadDataBlock(header.SyncData, codec);
 
-                reader.ReadAndValidateSync(header.SyncData);
-
-                dataBlock = codec.Decompress(dataBlock);
                 dataReader = new Reader(new MemoryStream(dataBlock));
 
 
@@ -100,9 +97,9 @@ namespace SolTechnology.Avro.Features.DeserializeByLine
 
 
 
-                if (remainingBlocks > 1)
+                if (itemsCount > 1)
                 {
-                    return new BlockLineReader<T>(dataReader, resolver, remainingBlocks);
+                    return new BlockLineReader<T>(dataReader, resolver, itemsCount);
                 }
 
                 if (writeSchema.Type == AvroType.Array)
@@ -110,6 +107,8 @@ namespace SolTechnology.Avro.Features.DeserializeByLine
                     return new ListLineReader<T>(dataReader, new Resolver(((ArraySchema)writeSchema).ItemSchema, readSchema));
                 }
 
+                //TODO: zrobić recordLineReader here (1 item)
+                //TODO: no i ogarnąć jak przetwarzać wiele bloków
                 return new ListLineReader<T>(dataReader, resolver);
             }
         }

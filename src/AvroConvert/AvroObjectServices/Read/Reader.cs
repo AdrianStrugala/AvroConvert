@@ -43,6 +43,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         {
         }
 
+        public bool IsReadToEnd()
+        {
+            return this.stream.Position == this.stream.Length;
+        }
+
         /// <summary>
         /// a boolean is written as a single byte 
         /// whose value is either 0 (false) or 1 (true).

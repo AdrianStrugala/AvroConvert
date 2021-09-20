@@ -20,6 +20,7 @@
 */
 #endregion
 
+using System;
 using System.IO;
 using System.Linq;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
@@ -74,17 +75,24 @@ namespace SolTechnology.Avro.Features.Deserialize
 
         internal T Read<T>(Reader reader, Header header, AbstractCodec codec, Resolver resolver)
         {
-            var remainingBlocks = reader.ReadLong();
+            long itemsCount = 0;
+            byte[] dataBlock = new byte[0];
 
-            var dataBlock = reader.ReadDataBlock();
+            do
+            {
+                itemsCount += reader.ReadLong();
+                var data = reader.ReadDataBlock(header.SyncData, codec);
 
-            reader.ReadAndValidateSync(header.SyncData);
+                int array1OriginalLength = dataBlock.Length;
+                Array.Resize(ref dataBlock, array1OriginalLength + data.Length);
+                Array.Copy(data, 0, dataBlock, array1OriginalLength, data.Length);
 
-            dataBlock = codec.Decompress(dataBlock);
+            } while (!reader.IsReadToEnd());
+
+
             reader = new Reader(new MemoryStream(dataBlock));
 
-            return resolver.Resolve<T>(reader, remainingBlocks);
-
+            return resolver.Resolve<T>(reader, itemsCount);
         }
     }
 }

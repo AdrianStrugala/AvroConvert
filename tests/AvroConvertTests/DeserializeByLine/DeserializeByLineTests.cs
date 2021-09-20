@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using AutoFixture;
+using FluentAssertions;
 using SolTechnology.Avro;
 using Xunit;
 
@@ -238,5 +239,35 @@ namespace AvroConvertComponentTests.DeserializeByLine
             //Assert
             Assert.Equal(expectedResult, result);
         }
+
+        [Fact]
+        public void DeserializeByLine_FileContainsBlocksOfArrays_ResultCountIsAsExpected()
+        {
+            //Arrange
+            var result = new List<kylosample>();
+
+
+
+            //Act
+            using (var stream = File.OpenRead("userdata1.avro"))
+            {
+                using (var reader = AvroConvert.OpenDeserializer<kylosample>(stream))
+                {
+                    while (reader.HasNext())
+                    {
+                        var item = reader.ReadNext();
+
+                        result.Add(item);
+                    }
+                }
+            }
+
+
+            //Assert
+            result.Should().HaveCount(1000);
+        }
     }
+   
+
+
 }

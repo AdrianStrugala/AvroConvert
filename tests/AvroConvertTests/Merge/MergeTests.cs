@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using AutoFixture;
+using FluentAssertions;
 using SolTechnology.Avro;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 using Xunit;
@@ -13,7 +15,7 @@ namespace AvroConvertComponentTests.Merge
 
         public MergeTests()
         {
-            _fixture = new AutoFixture.Fixture();
+            _fixture = new Fixture();
         }
 
         [Fact]
@@ -98,6 +100,22 @@ namespace AvroConvertComponentTests.Merge
             //Assert
             Assert.NotNull(exception);
             Assert.IsType<InvalidAvroObjectException>(exception);
+        }
+
+        [Fact]
+        public void Merge_TwoFilesWithMultipleBlocks_EveryItemIsMerged()
+        {
+            //Arrange
+            var content = File.ReadAllBytes("userdata1.avro");
+
+
+            //Act
+            var result = AvroConvert.Merge<kylosample>(new List<byte[]> { content, content });
+            var toCheck = AvroConvert.Deserialize<List<kylosample>>(result);
+
+
+            //Assert
+            toCheck.Should().HaveCount(2000);
         }
     }
 }

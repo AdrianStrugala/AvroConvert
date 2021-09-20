@@ -79,7 +79,7 @@ resultClass);
             Assert.Equal(
                 "public class ClassWithEnum\r\n" +
                 "{\r\n" +
-                "\tpublic TestEnum EnumProp { get; set; }\r\n" +
+                "\tpublic TestEnum? EnumProp { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n",
                 resultSchema);

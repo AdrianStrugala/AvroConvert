@@ -37,7 +37,7 @@ namespace SolTechnology.Avro.Features.DeserializeByLine
         internal static ILineReader<T> OpenReader<T>(Stream stream, TypeSchema readSchema)
         {
             var reader = new Reader(stream);
-            Reader blockReader = null;
+            Reader dataReader = null;
 
             // validate header 
             byte[] firstBytes = new byte[DataFileConstants.AvroHeader.Length];
@@ -51,7 +51,7 @@ namespace SolTechnology.Avro.Features.DeserializeByLine
                 //stream shorter than AvroHeader
             }
 
-            //does not contain header
+            //headless
             if (!firstBytes.SequenceEqual(DataFileConstants.AvroHeader))
             {
                 if (readSchema == null)
@@ -82,7 +82,7 @@ namespace SolTechnology.Avro.Features.DeserializeByLine
                 reader.ReadAndValidateSync(header.SyncData);
 
                 dataBlock = codec.Decompress(dataBlock);
-                blockReader = new Reader(new MemoryStream(dataBlock));
+                dataReader = new Reader(new MemoryStream(dataBlock));
 
 
 
@@ -102,15 +102,15 @@ namespace SolTechnology.Avro.Features.DeserializeByLine
 
                 if (remainingBlocks > 1)
                 {
-                    return new BlockLineReader<T>(blockReader, resolver, remainingBlocks);
+                    return new BlockLineReader<T>(dataReader, resolver, remainingBlocks);
                 }
 
                 if (writeSchema.Type == AvroType.Array)
                 {
-                    return new ListLineReader<T>(reader, new Resolver(((ArraySchema)writeSchema).ItemSchema, readSchema));
+                    return new ListLineReader<T>(dataReader, new Resolver(((ArraySchema)writeSchema).ItemSchema, readSchema));
                 }
 
-                return new ListLineReader<T>(reader, new Resolver(writeSchema, readSchema));
+                return new ListLineReader<T>(dataReader, resolver);
             }
         }
     }

@@ -26,11 +26,11 @@ namespace SolTechnology.Avro.Features.DeserializeByLine
 {
     public class BlockLineReader<T> : ILineReader<T>
     {
-        private readonly IReader reader;
+        private readonly Reader reader;
         private readonly Resolver resolver;
         private long blockCount;
 
-        internal BlockLineReader(IReader reader, Resolver resolver, long blockCount)
+        internal BlockLineReader(Reader reader, Resolver resolver, long blockCount)
         {
             this.reader = reader;
             this.resolver = resolver;
@@ -44,7 +44,7 @@ namespace SolTechnology.Avro.Features.DeserializeByLine
 
         public T ReadNext()
         {
-            var result = resolver.Resolve<T>(reader, 0);
+            var result = resolver.Resolve<T>(reader);
             blockCount--;
 
             return result;

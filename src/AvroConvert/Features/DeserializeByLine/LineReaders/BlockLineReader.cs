@@ -22,7 +22,7 @@
 
 using SolTechnology.Avro.AvroObjectServices.Read;
 
-namespace SolTechnology.Avro.Features.DeserializeByLine
+namespace SolTechnology.Avro.Features.DeserializeByLine.LineReaders
 {
     public class BlockLineReader<T> : ILineReader<T>
     {

@@ -26,8 +26,8 @@ using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.AvroObjectServices.FileHeader;
 using SolTechnology.Avro.AvroObjectServices.FileHeader.Codec;
 using SolTechnology.Avro.AvroObjectServices.Read;
-using SolTechnology.Avro.AvroObjectServices.Schema;
 using SolTechnology.Avro.AvroObjectServices.Schema.Abstract;
+using SolTechnology.Avro.Features.DeserializeByLine.LineReaders;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
 namespace SolTechnology.Avro.Features.DeserializeByLine
@@ -37,7 +37,6 @@ namespace SolTechnology.Avro.Features.DeserializeByLine
         internal static ILineReader<T> OpenReader<T>(Stream stream, TypeSchema readSchema)
         {
             var reader = new Reader(stream);
-            Reader dataReader = null;
 
             // validate header 
             byte[] firstBytes = new byte[DataFileConstants.AvroHeader.Length];
@@ -69,47 +68,12 @@ namespace SolTechnology.Avro.Features.DeserializeByLine
                 readSchema = readSchema ?? Schema.Create(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
                 TypeSchema writeSchema = Schema.Create(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
 
-                var resolver = new Resolver(writeSchema, readSchema);
-
                 // read in sync data 
                 reader.ReadFixed(header.SyncData);
                 var codec = AbstractCodec.CreateCodecFromString(header.GetMetadata(DataFileConstants.CodecMetadataKey));
 
-                var itemsCount = reader.ReadLong();
 
-                var dataBlock = reader.ReadDataBlock(header.SyncData, codec);
-
-                dataReader = new Reader(new MemoryStream(dataBlock));
-
-
-
-                // // stream.Position == stream.Length
-                //
-                //     //@ND
-                // remainingBlocks = reader.ReadLong();
-                // dataBlock = reader.ReadDataBlock();
-                // reader.ReadAndValidateSync(header.SyncData);
-                // dataBlock = codec.Decompress(dataBlock);
-                // blockReader = new Reader(new MemoryStream(dataBlock));
-
-
-
-
-
-
-                if (itemsCount > 1)
-                {
-                    return new BlockLineReader<T>(dataReader, resolver, itemsCount);
-                }
-
-                if (writeSchema.Type == AvroType.Array)
-                {
-                    return new ListLineReader<T>(dataReader, new Resolver(((ArraySchema)writeSchema).ItemSchema, readSchema));
-                }
-
-                //TODO: zrobić recordLineReader here (1 item)
-                //TODO: no i ogarnąć jak przetwarzać wiele bloków
-                return new ListLineReader<T>(dataReader, resolver);
+                return new BaseLineReader<T>(reader, header.SyncData, codec, writeSchema, readSchema);
             }
         }
     }

@@ -22,43 +22,41 @@
 
 using SolTechnology.Avro.AvroObjectServices.Read;
 
-namespace SolTechnology.Avro.Features.DeserializeByLine
+namespace SolTechnology.Avro.Features.DeserializeByLine.LineReaders
 {
-    internal class ListLineReader<T> : ILineReader<T>
+    internal class RecordLineReader<T> : ILineReader<T>
     {
-        private readonly IReader reader;
-        private readonly Resolver resolver;
-        private int itemsCount;
+        private readonly Reader _dataReader;
+        private readonly Resolver _resolver;
 
-        public ListLineReader(IReader reader, Resolver resolver)
+        private bool _hasNext;
+
+        public RecordLineReader(Reader dataReader, Resolver resolver)
         {
-            this.reader = reader;
-            this.resolver = resolver;
-
-            itemsCount = (int)reader.ReadArrayStart();
+            _dataReader = dataReader;
+            _resolver = resolver;
+            _hasNext = true;
         }
+
         public bool HasNext()
         {
-            if (itemsCount == 0)
+            if (_hasNext)
             {
-                itemsCount = (int)reader.ReadArrayNext();
-                return itemsCount != 0;
-            }
-            else
-            {
+                _hasNext = false;
                 return true;
             }
+
+            return _hasNext;
         }
 
         public T ReadNext()
         {
-            var result = resolver.Resolve<T>(reader);
-            itemsCount--;
-            return result;
+            return _resolver.Resolve<T>(_dataReader);
         }
 
         public void Dispose()
         {
+
         }
     }
 }

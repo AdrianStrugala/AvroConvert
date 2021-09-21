@@ -19,7 +19,7 @@ namespace AvroConvertComponentTests.DeserializeByLine
         }
 
         [Fact]
-        public void Deserialize_BlockData_ItIsCorrectlyDeserialized()
+        public void DeserializeByLine_BlockData_ItIsCorrectlyDeserialized()
         {
             //Arrange
             var expectedResult = new List<User>();
@@ -55,7 +55,7 @@ namespace AvroConvertComponentTests.DeserializeByLine
         }
 
         [Fact]
-        public void SerializeClassWithList_ThenDeserialize_ListsAreEqual()
+        public void DeserializeByLine_ClassWithList_ListsAreEqual()
         {
             //Arrange
             var someTestClasses = _fixture.CreateMany<ClassWithSimpleList>().ToList();
@@ -83,7 +83,7 @@ namespace AvroConvertComponentTests.DeserializeByLine
         }
 
         [Fact]
-        public void Component_ObjectIsList_ResultIsTheSameAsInput()
+        public void DeserializeByLine_ObjectIsList_ResultIsTheSameAsInput()
         {
             //Arrange
             List<int> list = _fixture.Create<List<int>>();
@@ -112,7 +112,7 @@ namespace AvroConvertComponentTests.DeserializeByLine
         }
 
         [Fact]
-        public void Component_ObjectIsArray_ResultIsTheSameAsInput()
+        public void DeserializeByLine_ObjectIsArray_ResultIsTheSameAsInput()
         {
             //Arrange
             int[] array = _fixture.Create<int[]>();
@@ -141,7 +141,7 @@ namespace AvroConvertComponentTests.DeserializeByLine
         }
 
         [Fact]
-        public void Component_ObjectIsHashSet_ResultIsTheSameAsInput()
+        public void DeserializeByLine_ObjectIsHashSet_ResultIsTheSameAsInput()
         {
             //Arrange
             HashSet<int> hashset = _fixture.Create<HashSet<int>>();
@@ -169,7 +169,7 @@ namespace AvroConvertComponentTests.DeserializeByLine
         }
 
         [Fact]
-        public void Component_HeadlessList_ResultIsTheSameAsInput()
+        public void DeserializeByLine_HeadlessList_ResultIsTheSameAsInput()
         {
             //Arrange
             List<int> list = _fixture.Create<List<int>>();
@@ -266,8 +266,31 @@ namespace AvroConvertComponentTests.DeserializeByLine
             //Assert
             result.Should().HaveCount(1000);
         }
+
+        [Fact]
+        public void Deserialize_SingleItem_ItIsCorrectlyDeserialized()
+        {
+            //Arrange
+            var expectedResult = 1;
+            var serialized = AvroConvert.Serialize(expectedResult);
+
+
+            //Act
+            var result = new List<int>();
+            using (var reader = AvroConvert.OpenDeserializer<int>(new MemoryStream(serialized)))
+            {
+                while (reader.HasNext())
+                {
+                    var item = reader.ReadNext();
+
+                    result.Add(item);
+                }
+            }
+
+
+            //Assert
+            result.Should().HaveCount(1);
+            result.Should().ContainEquivalentOf(1);
+        }
     }
-   
-
-
 }

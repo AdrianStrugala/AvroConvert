@@ -73,15 +73,14 @@ namespace SolTechnology.Avro.Features.Merge
             _writer.WriteHeader(_header);
         }
 
-        internal void WriteData(IEnumerable<byte[]> data)
+        internal void WriteData(List<DataBlock> dataBlocks)
         {
-            var dataAsList = data.ToList();
             _tempWriter.WriteArrayStart();
-            _tempWriter.SetItemCount(dataAsList.Count);
+            _tempWriter.SetItemCount(dataBlocks.Select(x => x.ItemsCount).Sum());
 
-            foreach (var bytes in dataAsList)
+            foreach (var dataBlock in dataBlocks)
             {
-                _tempWriter.WriteBytesRaw(bytes);
+                _tempWriter.WriteBytesRaw(dataBlock.Data);
             }
 
             _tempWriter.WriteArrayEnd();

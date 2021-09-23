@@ -19,6 +19,7 @@ using System.IO;
 using System.Linq;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.AvroObjectServices.FileHeader;
+using SolTechnology.Avro.AvroObjectServices.FileHeader.Codec;
 using SolTechnology.Avro.AvroObjectServices.Read;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
@@ -53,17 +54,24 @@ namespace SolTechnology.Avro.Features.Merge
                 {
                     AvroObjectContent result = new AvroObjectContent();
                     var header = reader.ReadHeader();
+                    result.Codec = AbstractCodec.CreateCodecFromString(header.GetMetadata(DataFileConstants.CodecMetadataKey));
 
                     reader.ReadFixed(header.SyncData);
 
                     result.Header = header;
                     result.Header.Schema = Schema.Create(result.Header.GetMetadata(DataFileConstants.SchemaMetadataKey));
 
-                    var remainingBlocks = reader.ReadLong();
-                    for (int i = 0; i < remainingBlocks; i++)
+                    do
                     {
-                        // result.Data.Add(reader.ReadDataBlock());
-                    }
+                        var blockContent = new DataBlock
+                        {
+                            ItemsCount = reader.ReadLong(),
+                            Data = reader.ReadDataBlock(header.SyncData, result.Codec)
+                        };
+
+                        result.DataBlocks.Add(blockContent);
+
+                    } while (!reader.IsReadToEnd());
 
                     return result;
                 }

@@ -1,16 +1,24 @@
 ﻿using System.Collections.Generic;
 using SolTechnology.Avro.AvroObjectServices.FileHeader;
+using SolTechnology.Avro.AvroObjectServices.FileHeader.Codec;
 
 namespace SolTechnology.Avro.Features.Merge
 {
     internal class AvroObjectContent
     {
-        public Header Header { get; set; }
-        public List<byte[]> Data { get; set; }
+        internal Header Header { get; set; }
+        internal List<DataBlock> DataBlocks { get; set; }
+        internal AbstractCodec Codec { get; set; }
 
-        public AvroObjectContent()
+        internal AvroObjectContent()
         {
-            Data = new List<byte[]>();
+            DataBlocks = new List<DataBlock>();
         }
+    }
+
+    internal class DataBlock
+    {
+        internal long ItemsCount { get; set; }
+        internal  byte[] Data { get; set; }
     }
 }

@@ -36,7 +36,7 @@ namespace SolTechnology.Avro
             var targetSchema = Schema.Create(typeof(List<T>));
             var mergeDecoder = new MergeDecoder();
 
-            List<byte[]> avroData = new List<byte[]>();
+            List<DataBlock> avroDataBlocks = new List<DataBlock>();
 
             avroObjects = avroObjects.ToList();
             for (int i = 0; i < avroObjects.Count(); i++)
@@ -47,7 +47,7 @@ namespace SolTechnology.Avro
                     throw new InvalidAvroObjectException($"Schema from object of index [{i}] is not compatible with schema of type [{typeof(T)}]");
                 }
 
-                avroData.AddRange(avroFileContent.Data);
+                avroDataBlocks.AddRange(avroFileContent.DataBlocks);
             }
 
             using (MemoryStream resultStream = new MemoryStream())
@@ -56,7 +56,7 @@ namespace SolTechnology.Avro
                 {
                     encoder.WriteHeader(targetSchema.ToString(), CodecType.Null);
 
-                    encoder.WriteData(avroData);
+                    encoder.WriteData(avroDataBlocks);
                 }
 
                 var result = resultStream.ToArray();

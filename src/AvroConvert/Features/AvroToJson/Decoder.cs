@@ -78,28 +78,31 @@ namespace SolTechnology.Avro.Features.AvroToJson
 
         internal object Read(Reader reader, Header header, AbstractCodec codec, Resolver resolver)
         {
-            var itemsCount = reader.ReadLong();
+            var result = new List<object>();
 
-            var dataBlock = reader.ReadDataBlock(header.SyncData, codec);
-
-            reader = new Reader(new MemoryStream(dataBlock));
-
-            if (itemsCount > 1)
+            do
             {
-                var result = new List<object>();
+                long itemsCount = reader.ReadLong();
+                var data = reader.ReadDataBlock(header.SyncData, codec);
 
-                for (int i = 0; i < itemsCount; i++)
+                reader = new Reader(new MemoryStream(data));
+
+                if (itemsCount > 1)
                 {
-                    result.Add(resolver.Resolve(reader));
+                    for (int i = 0; i < itemsCount; i++)
+                    {
+                        result.Add(resolver.Resolve(reader));
+                    }
+                }
+                else
+                {
+                    return resolver.Resolve(reader);
                 }
 
-                return result;
-            }
-            else
-            {
-                return resolver.Resolve(reader);
-            }
-        }
+            } while (!reader.IsReadToEnd());
 
+
+            return result;
+        }
     }
 }

@@ -15,8 +15,10 @@
 */
 #endregion
 
+using System.IO;
 using System.Linq;
 using SolTechnology.Avro.AvroObjectServices.FileHeader;
+using SolTechnology.Avro.AvroObjectServices.FileHeader.Codec;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
 namespace SolTechnology.Avro.AvroObjectServices.Read
@@ -44,7 +46,16 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             return header;
         }
 
-        internal byte[] ReadDataBlock()
+        internal byte[] ReadDataBlock(byte[] syncData, AbstractCodec codec)
+        {
+            var dataBlock = ReadRawBlock();
+            ReadAndValidateSync(syncData);
+            dataBlock = codec.Decompress(dataBlock);
+
+            return dataBlock;
+        }
+
+        private byte[] ReadRawBlock()
         {
             var blockSize = ReadLong();
 

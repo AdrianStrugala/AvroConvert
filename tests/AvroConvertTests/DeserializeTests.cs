@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.IO;
+using FluentAssertions;
 using SolTechnology.Avro;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 using Xunit;
@@ -73,6 +75,20 @@ namespace AvroConvertComponentTests
 
             //Assert
             Assert.IsType<InvalidAvroObjectException>(result);
+        }
+
+        [Fact]
+        public void Deserialize_FileWithMultipleBlocks_EveryItemIsRead()
+        {
+            //Arrange
+
+
+            //Act
+            var result = AvroConvert.Deserialize<List<kylosample>>((File.ReadAllBytes("userdata1.avro")));
+
+
+            //Assert
+            result.Should().HaveCount(1000);
         }
     }
 }

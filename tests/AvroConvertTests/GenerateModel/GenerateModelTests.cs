@@ -66,7 +66,7 @@ resultClass);
         }
 
         [Fact]
-        public void GenerateClass_ClassWithEnum_OutputIsEqualToExpected()
+        public void GenerateClass_ClassWithEnum_GeneratedModelIsAsExpected()
         {
             //Arrange
             var schema = AvroConvert.GenerateSchema(typeof(ClassWithEnum));
@@ -80,6 +80,14 @@ resultClass);
                 "public class ClassWithEnum\r\n" +
                 "{\r\n" +
                 "\tpublic TestEnum? EnumProp { get; set; }\r\n" +
+                "}\r\n" +
+                "\r\n" +
+                "public enum TestEnum\r\n" +
+                "{\r\n" +
+                "\ta\r\n" +
+                "\tbe\r\n" +
+                "\tca\r\n" +
+                "\tdlo\r\n" +
                 "}\r\n" +
                 "\r\n",
                 resultSchema);
@@ -139,13 +147,13 @@ resultClass);
                 "\tpublic int? favorite_number { get; set; }\r\n" +
                 "\tpublic string favorite_color { get; set; }\r\n" +
                 "}\r\n" +
-                "\r\n"+
+                "\r\n" +
                 "public class ClassWithSimpleList\r\n" +
                 "{\r\n" +
                 "\tpublic int[] someList { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n",
-                
+
                 resultSchema);
         }
 
@@ -168,6 +176,29 @@ resultClass);
                 "\tpublic TimeSpan Three { get; set; }\r\n" +
                 "\tpublic DateTime? Four { get; set; }\r\n" +
                 "\tpublic DateTime Five { get; set; }\r\n" +
+                "}\r\n" +
+                "\r\n",
+                resultSchema);
+        }
+
+        [Fact]
+        public void GenerateClass_Enum_GeneratedModelIsAsExpected()
+        {
+            //Arrange
+            var schema = AvroConvert.GenerateSchema(typeof(TestEnum));
+
+            //Act
+            string resultSchema = AvroConvert.GenerateModel(schema);
+
+
+            //Assert
+            Assert.Equal(
+                "public enum TestEnum\r\n" +
+                "{\r\n" +
+                "\ta\r\n" +
+                "\tbe\r\n" +
+                "\tca\r\n" +
+                "\tdlo\r\n" +
                 "}\r\n" +
                 "\r\n",
                 resultSchema);

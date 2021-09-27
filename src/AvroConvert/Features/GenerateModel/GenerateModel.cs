@@ -20,6 +20,7 @@
 */
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -44,6 +45,7 @@ namespace SolTechnology.Avro.Features.GenerateModel
 
             AvroModel model = new AvroModel();
             Resolve(json, model);
+            EnsureUniqueNames(model);
 
             StringBuilder sb = new StringBuilder();
             foreach (AvroClass ac in model.Classes)
@@ -71,6 +73,29 @@ namespace SolTechnology.Avro.Features.GenerateModel
             }
 
             return sb.ToString();
+        }
+
+        private void EnsureUniqueNames(AvroModel model)
+        {
+            foreach (IGrouping<string, AvroClass> avroClasses in model.Classes.GroupBy(c => c.ClassName))
+            {
+                if (avroClasses.Count() == 1)
+                {
+                    continue;
+                }
+
+                foreach (var avroClass in avroClasses)
+                {
+                    foreach (var avroField in model.Classes
+                                                    .SelectMany(c => c.Fields)
+                                                    .Where(f => f.FieldType == avroClass.ClassName && f.Namespace == avroClass.ClassNamespace))
+                    {
+                        avroField.FieldType = avroField.Namespace + avroField.FieldType;
+                    }
+
+                    avroClass.ClassName = avroClass.ClassNamespace + avroClass.ClassName;
+                }
+            }
         }
 
         private void Resolve(object json, AvroModel model)
@@ -123,9 +148,11 @@ namespace SolTechnology.Avro.Features.GenerateModel
 
         private void ResolveRecord(JObject parent, AvroModel model)
         {
+            var shortName = parent["name"].ToString().Split('.').Last();
             AvroClass c = new AvroClass()
             {
-                ClassName = parent["name"].ToString().Split('.').Last()
+                ClassName = shortName,
+                ClassNamespace = ExtractNamespace(parent, parent["name"].ToString(), shortName)
             };
             model.Classes.Add(c);
 
@@ -135,12 +162,12 @@ namespace SolTechnology.Avro.Features.GenerateModel
                 if (field is JObject)
                 {
                     // Get Field type
-                    string fieldType;
+                    AvroField fieldType = new AvroField();
                     bool isNullable = false;
 
                     if (field["type"] is JValue)
                     {
-                        fieldType = field["type"].ToString();
+                        fieldType.FieldType = field["type"].ToString();
                     }
                     else if (field["type"] is JObject fieldJObject)
                     {
@@ -162,7 +189,7 @@ namespace SolTechnology.Avro.Features.GenerateModel
                         JToken arrayFieldType = types.FirstOrDefault(x => x.ToString() != "null");
                         if (arrayFieldType is JValue)
                         {
-                            fieldType = arrayFieldType.ToString();
+                            fieldType.FieldType = arrayFieldType.ToString();
                         }
                         else if (arrayFieldType is JObject arrayFieldJObject)
                         {
@@ -178,21 +205,20 @@ namespace SolTechnology.Avro.Features.GenerateModel
                         throw new InvalidAvroObjectException($"Unable to process field type of {field["type"].GetType().Name}");
                     }
 
-                    if (fieldType.Contains("boolean"))
-                        fieldType = fieldType.Replace("boolean", "bool");
-                    if (fieldType == "bytes")
-                        fieldType = "byte[]";
+                    if (fieldType.FieldType.Contains("boolean"))
+                        fieldType.FieldType = fieldType.FieldType.Replace("boolean", "bool");
+                    if (fieldType.FieldType == "bytes")
+                        fieldType.FieldType = "byte[]";
+
+                    fieldType.Name = field["name"].ToString();
+                    fieldType.FieldType = fieldType.FieldType.Split('.').Last();
 
                     if (isNullable)
                     {
-                        fieldType += "?";
+                        fieldType.FieldType += "?";
                     }
 
-                    c.Fields.Add(new AvroField()
-                    {
-                        Name = field["name"].ToString(),
-                        FieldType = fieldType.Split('.').Last()
-                    });
+                    c.Fields.Add(fieldType);
                 }
                 else
                 {
@@ -200,6 +226,21 @@ namespace SolTechnology.Avro.Features.GenerateModel
                 }
             }
         }
+
+        // private AvroField BuildAvroField(JToken field, string fieldType)
+        // {
+        //     string shortType = fieldType = fieldType.Split('.').Last();
+        //     string @namespace;
+        //
+        //  
+        //
+        //     return new AvroField
+        //     {
+        //         Name = field["name"].ToString(),
+        //         Namespace = @namespace,
+        //         FieldType = shortType
+        //     };
+        // }
 
         private void ResolveEnum(JToken propValue, AvroModel model)
         {
@@ -214,8 +255,9 @@ namespace SolTechnology.Avro.Features.GenerateModel
             model.Enums.Add(result);
         }
 
-        private string ResolveField(JObject typeObj)
+        private AvroField ResolveField(JObject typeObj)
         {
+            AvroField result = new AvroField();
             string fieldType;
 
             string objectType = typeObj["type"].ToString();
@@ -236,7 +278,30 @@ namespace SolTechnology.Avro.Features.GenerateModel
                 throw new InvalidAvroObjectException($"Unable to process field type of {typeObj["type"]}");
             }
 
-            return fieldType;
+            string shortType = fieldType.Split('.').Last();
+
+            result.FieldType = shortType;
+            result.Namespace = ExtractNamespace(typeObj, fieldType, shortType);
+
+            return result;
+        }
+
+        private static string ExtractNamespace(JObject typeObj, string longName, string shortName)
+        {
+            string @namespace;
+            if (typeObj.ContainsKey("namespace"))
+            {
+                @namespace = typeObj["namespace"].ToString();
+            }
+            else
+            {
+                int place = longName.LastIndexOf(shortName, StringComparison.InvariantCulture);
+                @namespace = longName.Remove(place, shortName.Length);
+            }
+
+            @namespace = @namespace.Replace(".", "");
+
+            return @namespace;
         }
 
         private string ResolveLogical(JObject typeObj)
@@ -298,6 +363,7 @@ namespace SolTechnology.Avro.Features.GenerateModel
         internal class AvroClass
         {
             public string ClassName { get; set; }
+            public string ClassNamespace { get; set; }
             public List<AvroField> Fields { get; set; } = new List<AvroField>();
         }
 
@@ -305,6 +371,7 @@ namespace SolTechnology.Avro.Features.GenerateModel
         {
             public string FieldType { get; set; }
             public string Name { get; set; }
+            public string Namespace { get; set; }
         }
     }
 }

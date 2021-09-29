@@ -20,33 +20,50 @@
 */
 #endregion
 
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SolTechnology.Avro.AvroObjectServices.Schema.Abstract;
+using SolTechnology.Avro.Features.GenerateModel.Models;
+using SolTechnology.Avro.Features.GenerateModel.Resolvers;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
 namespace SolTechnology.Avro.Features.GenerateModel
 {
-    public class GenerateModel
+    internal class GenerateModel
     {
-        public string FromAvroObject(byte[] avroData)
+        private NamespaceHelper _namespaceHelper;
+        private EnumModelResolver _enumResolver;
+        private LogicalModelResolver _logicalResolver;
+        private ArrayModelResolver _arrayResolver;
+
+        private void Initialize()
+        {
+            _namespaceHelper = new NamespaceHelper();
+            _enumResolver = new EnumModelResolver();
+            _logicalResolver = new LogicalModelResolver();
+            _arrayResolver = new ArrayModelResolver();
+        }
+
+
+        internal string FromAvroObject(byte[] avroData)
         {
             string schema = AvroConvert.GetSchema(avroData);
             return FromAvroSchema(schema);
         }
 
-        public string FromAvroSchema(string schema)
+        internal string FromAvroSchema(string schema)
         {
+            Initialize();
+
             JObject json = (JObject)JsonConvert.DeserializeObject(schema);
 
-            List<AvroClass> classes = new List<AvroClass>();
-            GetRecordClasses(json, classes);
+            AvroModel model = new AvroModel();
+            Resolve(json, model);
+            _namespaceHelper.EnsureUniqueNames(model);
 
             StringBuilder sb = new StringBuilder();
-            foreach (AvroClass ac in classes)
+            foreach (AvroClass ac in model.Classes)
             {
                 sb.AppendLine($"public class {ac.ClassName}");
                 sb.AppendLine("{");
@@ -58,10 +75,23 @@ namespace SolTechnology.Avro.Features.GenerateModel
                 sb.AppendLine();
             }
 
+            foreach (AvroEnum @enum in model.Enums)
+            {
+                sb.AppendLine($"public enum {@enum.EnumName}");
+                sb.AppendLine("{");
+                foreach (string symbol in @enum.Symbols)
+                {
+                    sb.AppendLine($"	{symbol}");
+                }
+                sb.AppendLine("}");
+                sb.AppendLine();
+            }
+
             return sb.ToString();
         }
 
-        private void GetRecordClasses(object json, List<AvroClass> classes)
+
+        private void Resolve(object json, AvroModel model)
         {
             if (json is JObject parent)
             {
@@ -69,85 +99,15 @@ namespace SolTechnology.Avro.Features.GenerateModel
                 {
                     if (prop.Key == "type" && prop.Value.ToString() == "record")
                     {
-                        AvroClass c = new AvroClass()
-                        {
-                            ClassName = parent["name"].ToString().Split('.').Last()
-                        };
-                        classes.Add(c);
-
-                        // Get Fields
-                        foreach (var field in parent["fields"] as JArray)
-                        {
-                            if (field is JObject)
-                            {
-                                // Get Field type
-                                string fieldType;
-                                bool isNullable = false;
-
-                                if (field["type"] is JValue)
-                                {
-                                    fieldType = field["type"].ToString();
-                                }
-                                else if (field["type"] is JObject fieldJObject)
-                                {
-                                    fieldType = ResolveField(fieldJObject);
-                                }
-                                else if (field["type"] is JArray types)
-                                {
-                                    foreach (var e in types)
-                                    {
-                                        if (e.ToString() == "null")
-                                            isNullable = true;
-                                    }
-
-                                    if (types.Count > 2)
-                                        throw new InvalidAvroObjectException($"Unable to determine acceptable data type for {field["type"]}");
-
-                                    // Is the field type an object that's defined in this spot
-                                    JToken arrayFieldType = types.FirstOrDefault(x => x.ToString() != "null");
-                                    if (arrayFieldType is JValue)
-                                    {
-                                        fieldType = arrayFieldType.ToString();
-                                    }
-                                    else if (arrayFieldType is JObject arrayFieldJObject)
-                                    {
-                                        fieldType = ResolveField(arrayFieldJObject);
-                                    }
-                                    else
-                                    {
-                                        throw new InvalidAvroObjectException($"Unable to create array in array {arrayFieldType}");
-                                    }
-                                }
-                                else
-                                {
-                                    throw new InvalidAvroObjectException($"Unable to process field type of {field["type"].GetType().Name}");
-                                }
-
-                                if (fieldType.Contains("boolean"))
-                                    fieldType = fieldType.Replace("boolean", "bool");
-                                if (fieldType == "bytes")
-                                    fieldType = "byte[]";
-
-                                if (isNullable)
-                                {
-                                    fieldType += "?";
-                                }
-
-                                c.Fields.Add(new AvroField()
-                                {
-                                    Name = field["name"].ToString(),
-                                    FieldType = fieldType.Split('.').Last()
-                                });
-                            }
-                            else
-                            {
-                                throw new InvalidAvroObjectException($"Field type {field.GetType().Name} not supported");
-                            }
-                        }
+                        ResolveRecord(parent, model);
                     }
-                    if (prop.Value is JObject)
+                    else if (prop.Key == "type" && prop.Value.ToString() == "enum")
                     {
-                        GetRecordClasses(prop.Value, classes);
+                        _enumResolver.ResolveEnum(parent, model);
+                    }
+                    else if (prop.Value is JObject)
+                    {
+                        Resolve(prop.Value, model);
                     }
                     else if (prop.Value is JArray array)
                     {
@@ -155,11 +115,11 @@ namespace SolTechnology.Avro.Features.GenerateModel
                         {
                             if (arrayItem is JObject jObject)
                             {
-                                GetRecordClasses(jObject, classes);
+                                Resolve(jObject, model);
                             }
                             else if (arrayItem is JValue)
                             {
-                                // This could be any item in an array
+                                // This could be any item in an array - for example nullable
                             }
                             else
                             {
@@ -179,86 +139,119 @@ namespace SolTechnology.Avro.Features.GenerateModel
             }
         }
 
-        private string ResolveField(JObject typeObj)
+        private void ResolveRecord(JObject parent, AvroModel model)
         {
+            var shortName = parent["name"].ToString().Split('.').Last();
+            AvroClass c = new AvroClass()
+            {
+                ClassName = shortName,
+                ClassNamespace = _namespaceHelper.ExtractNamespace(parent, parent["name"].ToString(), shortName)
+            };
+            model.Classes.Add(c);
+
+            // Get Fields
+            foreach (var field in parent["fields"] as JArray)
+            {
+                if (field is JObject fieldObject)
+                {
+                    // Get Field type
+                    AvroField fieldType = new AvroField();
+                    bool isNullable = false;
+
+                    if (field["type"] is JValue)
+                    {
+                        fieldType = ResolveField(fieldObject);
+                    }
+                    else if (field["type"] is JObject fieldJObject)
+                    {
+                        fieldType = ResolveField(fieldJObject);
+                    }
+                    else if (field["type"] is JArray types)
+                    {
+                        foreach (var e in types)
+                        {
+                            if (e.ToString() == "null")
+                                isNullable = true;
+                        }
+
+                        if (types.Count > 2)
+                            throw new InvalidAvroObjectException(
+                                $"Unable to determine acceptable data type for {field["type"]}");
+
+                        // Is the field type an object that's defined in this spot
+                        JToken arrayFieldType = types.FirstOrDefault(x => x.ToString() != "null");
+
+                        if (arrayFieldType is JValue)
+                        {
+                            fieldObject["type"] = arrayFieldType;
+                            fieldType = ResolveField(fieldObject);
+                        }
+                        else if (arrayFieldType is JObject arrayFieldJObject)
+                        {
+                            fieldType = ResolveField(arrayFieldJObject);
+                        }
+                        else
+                        {
+                            throw new InvalidAvroObjectException($"Unable to create array in array {arrayFieldType}");
+                        }
+                    }
+                    else
+                    {
+                        throw new InvalidAvroObjectException($"Unable to process field type of {field["type"].GetType().Name}");
+                    }
+
+                    if (isNullable)
+                    {
+                        fieldType.FieldType += "?";
+                    }
+
+                    fieldType.Name = field["name"].ToString();
+
+                    c.Fields.Add(fieldType);
+                }
+                else
+                {
+                    throw new InvalidAvroObjectException($"Field type {field.GetType().Name} not supported");
+                }
+            }
+        }
+
+        private AvroField ResolveField(JObject typeObj)
+        {
+            AvroField result = new AvroField();
             string fieldType;
 
             string objectType = typeObj["type"].ToString();
+
             if (objectType == "record" || objectType == "enum")
             {
                 fieldType = typeObj["name"].ToString();
             }
             else if (typeObj["type"].ToString() == "array")
             {
-                fieldType = ResolveArray(typeObj);
+                fieldType = _arrayResolver.ResolveArray(typeObj);
             }
             else if (typeObj["logicalType"] != null)
             {
-                fieldType = ResolveLogical(typeObj);
+                fieldType = _logicalResolver.ResolveLogical(typeObj);
             }
             else
             {
-                throw new InvalidAvroObjectException($"Unable to process field type of {typeObj["type"]}");
+                fieldType = objectType;
             }
 
-            return fieldType;
-        }
+            string shortType = fieldType.Split('.').Last();
+            result.Namespace = _namespaceHelper.ExtractNamespace(typeObj, fieldType, shortType);
 
-        private string ResolveLogical(JObject typeObj)
-        {
-            string logicalType = typeObj["logicalType"].ToString();
+            if (shortType.Contains("boolean"))
+                shortType = shortType.Replace("boolean", "bool");
+            if (shortType == "bytes")
+                shortType = "byte[]";
 
-            switch (logicalType)
-            {
-                case LogicalTypeSchema.LogicalTypeEnum.Date:
-                case LogicalTypeSchema.LogicalTypeEnum.TimestampMicroseconds:
-                case LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds:
-                    return "DateTime";
-                case LogicalTypeSchema.LogicalTypeEnum.Decimal:
-                    return "decimal";
-                case LogicalTypeSchema.LogicalTypeEnum.Duration:
-                case LogicalTypeSchema.LogicalTypeEnum.TimeMicrosecond:
-                case LogicalTypeSchema.LogicalTypeEnum.TimeMilliseconds:
-                    return "TimeSpan";
-                case LogicalTypeSchema.LogicalTypeEnum.Uuid:
-                    return "Guid";
-                default:
-                    throw new InvalidAvroObjectException($"Unidentified logicalType {logicalType}");
-            }
-        }
-
-        private static string ResolveArray(JObject typeObj)
-        {
-            string fieldType;
-
-            // If this is an array of a specific class that's being defined in this area of the json
-            if (typeObj["items"] is JObject && ((JObject)typeObj["items"])["type"].ToString() == "record")
-            {
-                fieldType = ((JObject)typeObj["items"])["name"] + "[]";
-            }
-            else if (typeObj["items"] is JValue value)
-            {
-                fieldType = value + "[]";
-            }
-            else
-            {
-                throw new InvalidAvroObjectException($"{typeObj}");
-            }
-
-            return fieldType;
-        }
+            result.FieldType = shortType;
 
 
-        public class AvroClass
-        {
-            public string ClassName { get; set; }
-            public List<AvroField> Fields { get; set; } = new List<AvroField>();
-        }
-
-        public class AvroField
-        {
-            public string FieldType { get; set; }
-            public string Name { get; set; }
+            return result;
         }
     }
 }

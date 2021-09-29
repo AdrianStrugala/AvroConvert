@@ -251,6 +251,13 @@ START OF THE PROJECT
 - Fix serialization of inheriting class (from class)
 
 \
-**v. 3.2.0 (xx.xx.21)**
+**v. 3.2.0 (14.09.21)**
 - Added 'Generate C# Model' feature
 - Fix multithreaded serialization
+
+\
+**v. 3.2.1 (29.09.21)**
+- Added enums to GenerateModel output
+- Fixed bug with reading only first data block
+- Added namespaces in GenerateModel output, when multiple classes are of the same name
+- Fixed bug with reading single item by DeserializeByLine

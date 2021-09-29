@@ -1,4 +1,4 @@
-﻿$nextVersion = '3.2.0'
+﻿$nextVersion = '3.2.1'
 
 
 

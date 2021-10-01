@@ -279,5 +279,127 @@ resultClass);
                 "\r\n",
                 resultClass);
         }
+
+        [Fact]
+        public void GenerateClass_SameNameClassesOneFieldIsAnArray_TheyAreGeneratedWithNamespaces()
+        {
+            //Arrange
+            string schema = @"
+                        {
+  ""type"": ""record"",
+  ""name"": ""Result"",
+  ""fields"": [
+    {
+      ""name"": ""module"",
+      ""type"": {
+        ""type"": ""record"",
+        ""name"": ""module"",
+        ""fields"": [
+          {
+            ""name"": ""moduleIdName"",
+            ""type"": [
+              ""null"",
+              ""string""
+            ],
+            ""default"": null
+          },
+          {
+            ""name"": ""data"",
+            ""type"": {
+              ""type"": ""array"",
+              ""items"": {
+                ""type"": ""record"",
+                ""name"": ""module"",
+                ""namespace"": ""data"",
+                ""fields"": [
+                  {
+                    ""name"": ""isControl"",
+                    ""type"": [
+                      ""null"",
+                      ""boolean""
+                    ],
+                    ""default"": null
+                  }
+                ]
+              }
+            }
+          },
+          {
+            ""name"": ""instrumentId"",
+            ""type"": [
+              ""null"",
+              ""int""
+            ],
+            ""default"": null
+          }
+        ]
+      }
+    },
+    {
+      ""name"": ""customerInfo"",
+      ""type"": {
+        ""type"": ""record"",
+        ""name"": ""customerInfo"",
+        ""fields"": [
+          {
+            ""name"": ""country"",
+            ""type"": ""string"",
+            ""doc"": """"
+          },
+          {
+            ""name"": ""customerNumber"",
+            ""type"": ""string"",
+            ""doc"": """"
+          }
+        ]
+      },
+      ""doc"": """"
+    },
+    {
+      ""name"": ""deviceId"",
+      ""type"": ""string""
+    },
+    {
+      ""name"": ""url"",
+      ""type"": ""string"",
+      ""doc"": """"
+    }
+  ]
+}";
+
+            //Act
+            string resultClass = AvroConvert.GenerateModel(schema);
+
+
+            //Assert
+            Assert.Equal(
+                "public class Result\r\n" +
+                "{\r\n" +
+                "\tpublic module module { get; set; }\r\n" +
+                "\tpublic customerInfo customerInfo { get; set; }\r\n" +
+                "\tpublic string deviceId { get; set; }\r\n" +
+                "\tpublic string url { get; set; }\r\n" +
+                "}\r\n" +
+                "\r\n" +
+                "public class module\r\n" +
+                "{\r\n" +
+                "\tpublic string? moduleIdName { get; set; }\r\n" +
+                "\tpublic datamodule[] data { get; set; }\r\n" +
+                "\tpublic int? instrumentId { get; set; }\r\n" +
+                "}\r\n" +
+                "\r\n" +
+                "public class datamodule\r\n" +
+                "{\r\n" +
+                "\tpublic bool? isControl { get; set; }\r\n" +
+                "}\r\n" +
+                "\r\n" +
+                "public class customerInfo\r\n" +
+                "{\r\n" +
+                "\tpublic string country { get; set; }\r\n" +
+                "\tpublic string customerNumber { get; set; }\r\n" +
+                "}\r\n" +
+                "\r\n",
+                resultClass);
+        }
     }
 }

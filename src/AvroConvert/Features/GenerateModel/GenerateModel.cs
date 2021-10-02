@@ -219,29 +219,29 @@ namespace SolTechnology.Avro.Features.GenerateModel
         private AvroField ResolveField(JObject typeObj)
         {
             AvroField result = new AvroField();
-            string fieldType;
 
             string objectType = typeObj["type"].ToString();
 
             if (objectType == "record" || objectType == "enum")
             {
-                fieldType = typeObj["name"].ToString();
+                result.FieldType = typeObj["name"].ToString();
             }
             else if (typeObj["type"].ToString() == "array")
             {
-                fieldType = _arrayResolver.ResolveArray(typeObj);
+                result = _arrayResolver.ResolveArray(typeObj);
             }
             else if (typeObj["logicalType"] != null)
             {
-                fieldType = _logicalResolver.ResolveLogical(typeObj);
+                result.FieldType = _logicalResolver.ResolveLogical(typeObj);
             }
             else
             {
-                fieldType = objectType;
+                result.FieldType = objectType;
             }
 
-            string shortType = fieldType.Split('.').Last();
-            result.Namespace = _namespaceHelper.ExtractNamespace(typeObj, fieldType, shortType);
+            string shortType = result.FieldType.Split('.').Last();
+            if (string.IsNullOrEmpty(result.Namespace))
+                result.Namespace = _namespaceHelper.ExtractNamespace(typeObj, result.FieldType, shortType);
 
             if (shortType.Contains("boolean"))
                 shortType = shortType.Replace("boolean", "bool");

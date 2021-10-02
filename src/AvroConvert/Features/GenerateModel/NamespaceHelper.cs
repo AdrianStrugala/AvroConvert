@@ -44,7 +44,10 @@ namespace SolTechnology.Avro.Features.GenerateModel
                 {
                     foreach (var avroField in model.Classes
                         .SelectMany(c => c.Fields)
-                        .Where(f => f.FieldType == avroClass.ClassName && f.Namespace == avroClass.ClassNamespace))
+                        .Where(f => (f.FieldType == avroClass.ClassName ||
+                                    f.FieldType == avroClass.ClassName + "[]" ||
+                                    f.FieldType == avroClass.ClassName + "?") &&
+                                    f.Namespace == avroClass.ClassNamespace))
                     {
                         avroField.FieldType = avroField.Namespace + avroField.FieldType;
                     }

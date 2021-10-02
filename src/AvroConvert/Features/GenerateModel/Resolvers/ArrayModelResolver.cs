@@ -24,31 +24,33 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Newtonsoft.Json.Linq;
+using SolTechnology.Avro.Features.GenerateModel.Models;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
 namespace SolTechnology.Avro.Features.GenerateModel.Resolvers
 {
     internal class ArrayModelResolver
     {
-        internal string ResolveArray(JObject typeObj)
+        internal AvroField ResolveArray(JObject typeObj)
         {
-            string fieldType;
+            var avroField = new AvroField();
 
             // If this is an array of a specific class that's being defined in this area of the json
             if (typeObj["items"] is JObject && ((JObject)typeObj["items"])["type"].ToString() == "record")
             {
-                fieldType = ((JObject)typeObj["items"])["name"] + "[]";
+                avroField.FieldType = ((JObject)typeObj["items"])["name"] + "[]";
+                avroField.Namespace = ((JObject)typeObj["items"])["namespace"]?.ToString();
             }
             else if (typeObj["items"] is JValue value)
             {
-                fieldType = value + "[]";
+                avroField.FieldType = value + "[]";
             }
             else
             {
                 throw new InvalidAvroObjectException($"{typeObj}");
             }
 
-            return fieldType;
+            return avroField;
         }
     }
 }

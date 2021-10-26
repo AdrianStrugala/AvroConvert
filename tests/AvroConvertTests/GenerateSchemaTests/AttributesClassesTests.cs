@@ -91,7 +91,7 @@ namespace AvroConvertComponentTests.GenerateSchemaTests
             string schema = AvroConvert.GenerateSchema(typeof(MixedDataMembers), includeOnlyDataContractMembers: true);
 
             //Assert
-            Assert.Contains("{\"type\":\"record\",\"name\":\"AvroConvertComponentTests.MixedDataMembers\",\"fields\":[{\"name\":\"savedValues\",\"type\":{\"type\":\"array\",\"items\":\"int\"}},{\"name\":\"andAnother\",\"type\":[\"null\",\"long\"]}]}", schema);
+            Assert.Contains("{\"type\":\"record\",\"name\":\"MixedDataMembers\",\"namespace\":\"AvroConvertComponentTests\",\"fields\":[{\"name\":\"savedValues\",\"type\":{\"type\":\"array\",\"items\":\"int\"}},{\"name\":\"andAnother\",\"type\":[\"null\",\"long\"]}]}", schema);
         }
 
         [Fact]
@@ -103,7 +103,7 @@ namespace AvroConvertComponentTests.GenerateSchemaTests
             string schema = AvroConvert.GenerateSchema(typeof(TestEnum));
 
             //Assert
-            Assert.Contains("{\"type\":\"enum\",\"name\":\"AvroConvertComponentTests.TestEnum\",\"symbols\":[\"a\",\"be\",\"ca\",\"dlo\"]}", schema);
+            Assert.Contains("{\"type\":\"enum\",\"name\":\"TestEnum\",\"namespace\":\"AvroConvertComponentTests\",\"symbols\":[\"a\",\"be\",\"ca\",\"dlo\"]}", schema);
         }
 
         [Fact]

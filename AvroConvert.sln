@@ -43,7 +43,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Http.Client", "tests\Http.C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvroConvertUnitTests", "tests\AvroConvertUnitTests\AvroConvertUnitTests.csproj", "{E4D7C0E6-D268-4B3D-A654-D86235828940}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Profiler", "tests\Profiler\Profiler.csproj", "{F2E89AF6-EFDD-4233-A15D-3AE4D5CFE48F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Profiler", "tests\Profiler\Profiler.csproj", "{F2E89AF6-EFDD-4233-A15D-3AE4D5CFE48F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

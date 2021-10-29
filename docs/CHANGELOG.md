@@ -261,3 +261,11 @@ START OF THE PROJECT
 - Fixed bug with reading only first data block
 - Added namespaces in GenerateModel output, when multiple classes are of the same name
 - Fixed bug with reading single item by DeserializeByLine
+
+\
+**v. 3.2.2 (02.10.21)**
+- Fixed GenerateModel problem, when field is array or nullable
+
+\
+**v. 3.2.3 (29.10.21)**
+- Split fullName field into name and namespace in GenerateSchema to match documentation

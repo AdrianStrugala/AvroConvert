@@ -85,7 +85,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Schema
             seenSchemas.Add(this);
             writer.WriteStartObject();
             writer.WriteProperty("type", "record");
-            writer.WriteProperty("name", FullName);
+            writer.WriteProperty("name", Name);
+            writer.WriteOptionalProperty("namespace", Namespace);
             writer.WriteOptionalProperty("doc", Doc);
             writer.WriteOptionalProperty("aliases", Aliases);
             writer.WritePropertyName("fields");

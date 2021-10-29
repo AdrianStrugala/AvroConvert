@@ -216,7 +216,8 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
         {
             writer.WriteStartObject();
-            writer.WriteProperty("name", this.FullName);
+            writer.WriteProperty("name", Name);
+            writer.WriteOptionalProperty("namespace", Namespace);
             writer.WriteOptionalProperty("doc", this.Doc);
             writer.WriteOptionalProperty("aliases", this.Aliases);
             writer.WritePropertyName("type");

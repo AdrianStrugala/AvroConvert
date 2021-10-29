@@ -109,7 +109,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Schema
             seenSchemas.Add(this);
             writer.WriteStartObject();
             writer.WriteProperty("type", "enum");
-            writer.WriteProperty("name", this.FullName);
+            writer.WriteProperty("name", Name);
+            writer.WriteOptionalProperty("namespace", Namespace);
             writer.WriteOptionalProperty("doc", this.Doc);
             writer.WritePropertyName("symbols");
             writer.WriteStartArray();

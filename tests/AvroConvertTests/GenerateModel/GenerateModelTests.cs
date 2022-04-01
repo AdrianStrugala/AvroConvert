@@ -84,9 +84,9 @@ resultClass);
                 "\r\n" +
                 "public enum TestEnum\r\n" +
                 "{\r\n" +
-                "\ta\r\n" +
-                "\tbe\r\n" +
-                "\tca\r\n" +
+                "\ta,\r\n" +
+                "\tbe,\r\n" +
+                "\tca,\r\n" +
                 "\tdlo\r\n" +
                 "}\r\n" +
                 "\r\n",
@@ -195,9 +195,9 @@ resultClass);
             Assert.Equal(
                 "public enum TestEnum\r\n" +
                 "{\r\n" +
-                "\ta\r\n" +
-                "\tbe\r\n" +
-                "\tca\r\n" +
+                "\ta,\r\n" +
+                "\tbe,\r\n" +
+                "\tca,\r\n" +
                 "\tdlo\r\n" +
                 "}\r\n" +
                 "\r\n",

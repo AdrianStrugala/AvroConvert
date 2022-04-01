@@ -79,10 +79,7 @@ namespace SolTechnology.Avro.Features.GenerateModel
             {
                 sb.AppendLine($"public enum {@enum.EnumName}");
                 sb.AppendLine("{");
-                foreach (string symbol in @enum.Symbols)
-                {
-                    sb.AppendLine($"	{symbol}");
-                }
+                sb.AppendLine($"	{string.Join(",\r\n	", @enum.Symbols)}");
                 sb.AppendLine("}");
                 sb.AppendLine();
             }

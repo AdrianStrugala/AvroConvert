@@ -269,3 +269,8 @@ START OF THE PROJECT
 \
 **v. 3.2.3 (29.10.21)**
 - Split fullName field into name and namespace in GenerateSchema to match documentation
+
+\
+**v. 3.2.4 (10.04.22)**
+- Add codegen support for Default and Doc Fields
+- Fixed bug with missing commas on Enum generation

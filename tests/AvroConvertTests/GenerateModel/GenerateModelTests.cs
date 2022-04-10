@@ -84,9 +84,9 @@ resultClass);
                 "\r\n" +
                 "public enum TestEnum\r\n" +
                 "{\r\n" +
-                "\ta\r\n" +
-                "\tbe\r\n" +
-                "\tca\r\n" +
+                "\ta,\r\n" +
+                "\tbe,\r\n" +
+                "\tca,\r\n" +
                 "\tdlo\r\n" +
                 "}\r\n" +
                 "\r\n",
@@ -195,9 +195,9 @@ resultClass);
             Assert.Equal(
                 "public enum TestEnum\r\n" +
                 "{\r\n" +
-                "\ta\r\n" +
-                "\tbe\r\n" +
-                "\tca\r\n" +
+                "\ta,\r\n" +
+                "\tbe,\r\n" +
+                "\tca,\r\n" +
                 "\tdlo\r\n" +
                 "}\r\n" +
                 "\r\n",
@@ -397,6 +397,126 @@ resultClass);
                 "{\r\n" +
                 "\tpublic string country { get; set; }\r\n" +
                 "\tpublic string customerNumber { get; set; }\r\n" +
+                "}\r\n" +
+                "\r\n",
+                resultClass);
+        }
+
+        [Fact]
+        public void GenerateClass_TheyAreGeneratedWithDocumentation()
+        {
+            //Arrange
+            string schema = @"
+                                {
+          ""type"": ""record"",
+          ""name"": ""Result"",
+          ""fields"": [
+            {
+              ""name"": ""testString"",
+              ""type"": ""string"",
+              ""doc"": ""This is a doc field""
+            },
+            {
+              ""name"": ""testBoolean"",
+              ""type"": ""boolean""
+            },
+            {
+              ""name"": ""testInt"",
+              ""type"": ""int""
+            },
+            {
+              ""name"": ""testLong"",
+              ""type"": ""long""
+            },
+            {
+              ""name"": ""testFloat"",
+              ""type"": ""float""
+            },
+            {
+              ""name"": ""testDouble"",
+              ""type"": ""double""
+            }
+          ]
+        }";
+
+
+            //Act
+            string resultClass = AvroConvert.GenerateModel(schema);
+
+            //Assert
+            Assert.Equal(
+                "public class Result\r\n" +
+                "{\r\n" +
+                "\t/// <summary>\r\n" +
+                "\t/// This is a doc field\r\n" +
+                "\t/// </summary>\r\n" +
+                "\tpublic string testString { get; set; }\r\n" +
+                "\tpublic bool testBoolean { get; set; }\r\n" +
+                "\tpublic int testInt { get; set; }\r\n" +
+                "\tpublic long testLong { get; set; }\r\n" +
+                "\tpublic float testFloat { get; set; }\r\n" +
+                "\tpublic double testDouble { get; set; }\r\n" +
+                "}\r\n" +
+                "\r\n",
+                resultClass);
+        }
+
+
+        [Fact]
+        public void GenerateClass_TheyAreGeneratedWithDefaults()
+        {
+            //Arrange
+            string schema = @"
+                                {
+          ""type"": ""record"",
+          ""name"": ""Result"",
+          ""fields"": [
+            {
+              ""name"": ""testString"",
+              ""type"": ""string"",
+              ""default"": ""Default String""
+            },
+            {
+              ""name"": ""testBoolean"",
+              ""type"": ""boolean"",
+              ""default"": ""TRUE""
+            },
+            {
+              ""name"": ""testInt"",
+              ""type"": ""int"",
+              ""default"": 123
+            },
+            {
+              ""name"": ""testLong"",
+              ""type"": ""long"",
+              ""default"": 123
+            },
+            {
+              ""name"": ""testFloat"",
+              ""type"": ""float"",
+              ""default"": 1.23
+            },
+            {
+              ""name"": ""testDouble"",
+              ""type"": ""double"",
+              ""default"": 1.23
+            }
+          ]
+        }";
+
+            //Act
+            string resultClass = AvroConvert.GenerateModel(schema);
+
+            //Assert
+            Assert.Equal(
+                "public class Result\r\n" +
+                "{\r\n" +
+                "\tpublic string testString { get; set; } = \"Default String\";\r\n" +
+                "\tpublic bool testBoolean { get; set; } = true;\r\n" +
+                "\tpublic int testInt { get; set; } = 123;\r\n" +
+                "\tpublic long testLong { get; set; } = 123;\r\n" +
+                "\tpublic float testFloat { get; set; } = 1.23;\r\n" +
+                "\tpublic double testDouble { get; set; } = 1.23;\r\n" +
                 "}\r\n" +
                 "\r\n",
                 resultClass);

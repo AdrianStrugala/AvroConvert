@@ -69,7 +69,31 @@ namespace SolTechnology.Avro.Features.GenerateModel
                 sb.AppendLine("{");
                 foreach (AvroField field in ac.Fields)
                 {
-                    sb.AppendLine($"	public {field.FieldType} {field.Name} {{ get; set; }}");
+                    if (!string.IsNullOrWhiteSpace(field.Doc))
+                    {
+                        sb.AppendLine("\t/// <summary>");
+                        sb.AppendLine($"\t/// {field.Doc}");
+                        sb.AppendLine("\t/// </summary>");
+                    }
+
+                    string defaultVal = string.Empty;
+                    if (!string.IsNullOrWhiteSpace(field.Default))
+                    {
+                        switch (field.FieldType)
+                        {
+                            case "string":
+                                defaultVal = $" = \"{field.Default}\";";
+                                break;
+                            case "bool":
+                                bool.TryParse(field.Default, out bool parsedVal);
+                                defaultVal = $" = {parsedVal.ToString().ToLower()};";
+                                break;
+                            default:
+                                defaultVal = $" = {field.Default};";
+                                break;
+                        }
+                    }
+                    sb.AppendLine($"	public {field.FieldType} {field.Name} {{ get; set; }}{defaultVal}");
                 }
                 sb.AppendLine("}");
                 sb.AppendLine();
@@ -79,10 +103,7 @@ namespace SolTechnology.Avro.Features.GenerateModel
             {
                 sb.AppendLine($"public enum {@enum.EnumName}");
                 sb.AppendLine("{");
-                foreach (string symbol in @enum.Symbols)
-                {
-                    sb.AppendLine($"	{symbol}");
-                }
+                sb.AppendLine($"	{string.Join(",\r\n	", @enum.Symbols)}");
                 sb.AppendLine("}");
                 sb.AppendLine();
             }
@@ -206,6 +227,16 @@ namespace SolTechnology.Avro.Features.GenerateModel
                     }
 
                     fieldType.Name = field["name"].ToString();
+
+                    if (field["default"] is JValue)
+                    {
+                        fieldType.Default = field["default"].ToString();
+                    }
+
+                    if (field["doc"] is JValue)
+                    {
+                        fieldType.Doc = field["doc"].ToString();
+                    }
 
                     c.Fields.Add(fieldType);
                 }

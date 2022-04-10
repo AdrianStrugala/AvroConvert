@@ -50,5 +50,7 @@ namespace SolTechnology.Avro.Features.GenerateModel.Models
         public string FieldType { get; set; }
         public string Name { get; set; }
         public string Namespace { get; set; }
+        public string Default { get; set; }
+        public string Doc { get; set; }
     }
 }

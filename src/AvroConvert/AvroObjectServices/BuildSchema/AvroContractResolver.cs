@@ -55,24 +55,6 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             _includeOnlyDataContractMembers = includeOnlyDataContractMembers;
         }
 
-        /// <summary>
-        /// Gets the known types out of an abstract type or interface that could be present in the tree of
-        /// objects serialized with this contract resolver.
-        /// </summary>
-        /// <param name="type">The abstract type.</param>
-        /// <returns>
-        /// An enumerable of known types.
-        /// </returns>
-        /// <exception cref="System.ArgumentNullException">The type argument is null.</exception>
-        internal IEnumerable<Type> GetKnownTypes(Type type)
-        {
-            if (type == null)
-            {
-                throw new ArgumentNullException("type");
-            }
-
-            return new HashSet<Type>(type.GetAllKnownTypes());
-        }
 
         /// <summary>
         /// Gets the serialization information about the type.

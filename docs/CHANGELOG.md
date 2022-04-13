@@ -274,3 +274,7 @@ START OF THE PROJECT
 **v. 3.2.4 (10.04.22)**
 - Add codegen support for Default and Doc Fields
 - Fixed bug with missing commas on Enum generation
+
+\
+**v. 3.2.5 (13.04.22)**
+- Allowed schema generation for Abstract class and Interface properties

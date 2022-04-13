@@ -2,7 +2,7 @@
 using SolTechnology.Avro;
 using Xunit;
 
-namespace AvroConvertComponentTests.GenerateSchemaTests
+namespace AvroConvertComponentTests.GenerateSchema
 {
     public class LogicalTypeTests
     {

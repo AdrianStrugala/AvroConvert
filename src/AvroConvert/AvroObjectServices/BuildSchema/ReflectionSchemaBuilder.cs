@@ -13,7 +13,7 @@
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
 
-/** Modifications copyright(C) 2021 Adrian Strugala **/
+/** Modifications copyright(C) 2022 Adrian Strugala **/
 
 using System;
 using System.Collections.Generic;
@@ -69,7 +69,6 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             };
 
         private readonly AvroSerializerSettings settings;
-        private readonly HashSet<Type> knownTypes;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="ReflectionSchemaBuilder" /> class.
@@ -83,7 +82,6 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             }
 
             this.settings = settings;
-            this.knownTypes = new HashSet<Type>(this.settings.KnownTypes);
         }
 
         /// <summary>
@@ -96,14 +94,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         /// <exception cref="System.ArgumentNullException">Thrown when <paramref name="type"/> parameter is null.</exception>
         internal TypeSchema BuildSchema(Type type)
         {
-            if (type == null)
-            {
-                return new NullSchema();
-            }
-
-            AvroContractResolver resolver = this.settings.Resolver;
-            knownTypes.UnionWith(resolver.GetKnownTypes(type) ?? new List<Type>());
-            return this.CreateSchema(false, type, new Dictionary<string, NamedSchema>(), 0);
+            return type == null ? new NullSchema() : CreateSchema(false, type, new Dictionary<string, NamedSchema>(), 0);
         }
 
         private TypeSchema CreateSchema(bool forceNullable,
@@ -205,11 +196,6 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             }
 
             //Others
-            if (type.IsInterface() || type.IsAbstract() || this.HasApplicableKnownType(type))
-            {
-                return BuildKnownTypeSchema(type, schemas, currentDepth, info);
-            }
-
             return BuildComplexTypeSchema(type, schemas, currentDepth, info);
         }
 
@@ -306,7 +292,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             }
 
             // Others
-            if (type.IsClass() || type.IsValueType())
+            if (type.IsClass() || type.IsValueType() || type.IsInterface)
             {
                 return this.BuildRecordTypeSchema(type, schemas, currentDepth);
             }
@@ -394,34 +380,6 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             var members = resolver.ResolveMembers(type);
             this.AddRecordFields(members, schemas, currentDepth, record);
             return record;
-        }
-
-        private TypeSchema BuildKnownTypeSchema(Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth, MemberInfo info)
-        {
-            var applicable = this.GetApplicableKnownTypes(type).ToList();
-            if (applicable.Count == 0)
-            {
-                throw new SerializationException(
-                    string.Format(CultureInfo.InvariantCulture, "Could not find any matching known type for '{0}'.", type));
-            }
-
-            var knownTypeSchemas = new List<TypeSchema>(applicable.Count);
-            applicable.ForEach(t => knownTypeSchemas.Add(this.BuildComplexTypeSchema(t, schemas, currentDepth, info)));
-            return new UnionSchema(knownTypeSchemas, type);
-        }
-
-        private bool HasApplicableKnownType(Type type)
-        {
-            return GetApplicableKnownTypes(type).Count(t => t != type) != 0;
-        }
-
-        private IEnumerable<Type> GetApplicableKnownTypes(Type type)
-        {
-            var allKnownTypes = new HashSet<Type>(this.knownTypes)
-            {
-                type
-            };
-            return allKnownTypes.Where(t => t.CanBeKnownTypeOf(type));
         }
 
         private TypeSchema TryBuildUnionSchema(Type memberType, MemberInfo memberInfo, Dictionary<string, NamedSchema> schemas, uint currentDepth)

@@ -36,7 +36,6 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             this.Resolver = new AvroContractResolver(includeOnlyDataContractMembers: includeOnlyDataContractMembers);
             this.MaxItemsInSchemaTree = 1024;
             this.UsePosixTime = false;
-            this.KnownTypes = new List<Type>();
         }
 
         /// <summary>

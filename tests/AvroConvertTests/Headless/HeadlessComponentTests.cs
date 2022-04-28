@@ -1,4 +1,5 @@
 ﻿using AutoFixture;
+using NodaTime;
 using SolTechnology.Avro;
 using Xunit;
 
@@ -78,5 +79,41 @@ namespace AvroConvertComponentTests.Headless
             Assert.Equal(toSerialize.NullableStringProperty, deserialized.NullableStringProperty);
             Assert.Equal(2137, deserialized.NullableIntPropertyWithDefaultValue);
         }
+
+        [Fact]
+        public void Component_NodaTime_ResultIsEqualToInput()
+        {
+            //Arrange
+            Error appError = new Error
+            {
+//AppName = "MyApplication",
+ //               Id = 123,
+                Date = new StructWithPrivateFields(2137),
+                Dupa = SystemClock.Instance.GetCurrentInstant()
+            };
+
+            string avroSchema = AvroConvert.GenerateSchema(typeof(Error));
+
+            var x = appError.Dupa;
+
+            //Act
+            var result = AvroConvert.SerializeHeadless(appError, avroSchema);
+
+            var deserialized = AvroConvert.DeserializeHeadless<Error>(result, avroSchema);
+
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(appError, deserialized);
+        }
+    }
+
+    public class Error
+    {
+  //      public int Id { get; set; }
+  //      public string AppName { get; set; }
+        public StructWithPrivateFields Date { get; set; }
+        public Instant Dupa { get; set; }
     }
 }

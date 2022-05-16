@@ -48,7 +48,10 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         /// <param name="allowNullable">If set to <c>true</c>, null values are allowed.</param>
         /// <param name="useAlphabeticalOrder">If set to <c>true</c> use alphabetical data member order during serialization/deserialization.</param>
         /// <param name="includeOnlyDataContractMembers">If set to <c>true</c> members without DataMemberAttribute won't be taken into consideration in serialization/deserialization.</param>
-        internal AvroContractResolver(bool allowNullable = false, bool useAlphabeticalOrder = false, bool includeOnlyDataContractMembers = false)
+        internal AvroContractResolver(
+            bool allowNullable = false,
+            bool useAlphabeticalOrder = false, 
+            bool includeOnlyDataContractMembers = false)
         {
             _allowNullable = allowNullable;
             _useAlphabeticalOrder = useAlphabeticalOrder;
@@ -75,8 +78,8 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
             if (type.IsUnsupported())
             {
-                throw new SerializationException(
-                    string.Format(CultureInfo.InvariantCulture, "Type '{0}' is not supported by the resolver.", type));
+                throw new NotSupportedException(
+                    string.Format(CultureInfo.InvariantCulture, "Type [{0}] is not supported by the AvroConvert.", type));
             }
 
             bool isNullable = this._allowNullable || type.CanContainNull() || (!type.IsValueType && member?.IsNullableReferenceType() == true);

@@ -8,7 +8,7 @@ namespace AvroConvertComponentTests.GenerateSchema
     {
 
         [Fact]
-        public void GenerateSchema_PropertiesAreDecoratedWithDefaultValueAttributes_SchemaContainsDefaultFieldForMembers()
+        public void GenerateSchema_ClassIsChildOfAbstractClass_SchemaIsGenerated()
         {
             //Arrange
 

@@ -41,7 +41,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 
             if (!accessorDictionary.ContainsKey(typeHash))
             {
-                accessor = TypeAccessor.Create(type);
+                accessor = TypeAccessor.Create(type, true);
                 readSteps = new Dictionary<string, Func<object>>();
 
                 foreach (RecordField wf in writerSchema.Fields)

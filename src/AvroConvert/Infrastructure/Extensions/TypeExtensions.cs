@@ -40,18 +40,7 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
         internal static bool IsUnsupported(this Type type)
         {
             return type == typeof(IntPtr)
-                || type == typeof(UIntPtr)
-                || type == typeof(object)
-                || type.ContainsGenericParameters()
-                || (!type.IsArray
-                && !type.IsValueType()
-                && !type.IsAnonymous()
-                && !type.HasParameterlessConstructor()
-                && type != typeof(string)
-                && type != typeof(Uri)
-                && !type.IsAbstract()
-                && !type.IsInterface()
-                && !(type.IsGenericType() && type.ImplementsSupportedInterface()));
+                   || type == typeof(UIntPtr);
         }
 
         private static readonly HashSet<Type> NativelySupported = new HashSet<Type>

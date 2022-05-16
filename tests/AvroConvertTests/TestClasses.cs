@@ -341,4 +341,40 @@ namespace AvroConvertComponentTests
         public string title { get; set; }
         public string comments { get; set; }
     }
+
+
+
+    public class ClassWithoutDefaultConstructor
+    {
+        public string Name { get; private set; }
+
+        public ClassWithoutDefaultConstructor(string name)
+        {
+            Name = name;
+        }
+    }
+
+    public class VeryComplexClassWithoutDefaultConstructor
+    {
+        public List<ClassWithArray> ClassesWithArray { get; set; }
+        public ClassWithGuid[] ClassesWithGuid { get; set; }
+        public ClassWithConstructorPopulatingProperty anotherClass { get; set; }
+        public User simpleClass { get; set; }
+        public int simpleObject { get; set; }
+        public List<bool> bools { get; set; }
+        public double doubleProperty { get; set; }
+        public float floatProperty { get; set; }
+
+        public VeryComplexClassWithoutDefaultConstructor(List<ClassWithArray> classesWithArray, ClassWithGuid[] classesWithGuid, ClassWithConstructorPopulatingProperty anotherClass, User simpleClass, int simpleObject, List<bool> bools, double doubleProperty, float floatProperty)
+        {
+            ClassesWithArray = classesWithArray;
+            ClassesWithGuid = classesWithGuid;
+            this.anotherClass = anotherClass;
+            this.simpleClass = simpleClass;
+            this.simpleObject = simpleObject;
+            this.bools = bools;
+            this.doubleProperty = doubleProperty;
+            this.floatProperty = floatProperty;
+        }
+    }
 }

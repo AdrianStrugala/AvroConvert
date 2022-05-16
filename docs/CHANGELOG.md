@@ -278,3 +278,7 @@ START OF THE PROJECT
 \
 **v. 3.2.5 (13.04.22)**
 - Allowed schema generation for Abstract class and Interface properties
+
+\
+**v. 3.2.6 (16.05.22)**
+- Added support for class with parameterized constructor only in: Schema Generation, Serialization, Deserialization

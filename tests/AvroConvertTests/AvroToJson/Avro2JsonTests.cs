@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.IO;
+using Newtonsoft.Json;
 using SolTechnology.Avro;
 using Xunit;
 
@@ -6,6 +7,8 @@ namespace AvroConvertComponentTests.AvroToJson
 {
     public class Avro2JsonTests
     {
+        private readonly byte[] _headerOnlyAvroBytes = File.ReadAllBytes("header_only.avro");
+
         [Fact]
         public void Avro2Json_ConvertComplexType_ProducedDesiredJson()
         {
@@ -121,6 +124,20 @@ namespace AvroConvertComponentTests.AvroToJson
 
             //Assert
             Assert.Equal(expectedJson, resultJson);
+        }
+
+        [Fact]
+        public void Avro2Json_ConvertFileContainingHeaderOnly_NoExceptionIsThrown()
+        {
+            //Arrange
+
+
+            //Act
+            var resultJson = AvroConvert.Avro2Json(_headerOnlyAvroBytes);
+
+
+            //Assert
+            Assert.Equal(@"""""", resultJson);
         }
     }
 }

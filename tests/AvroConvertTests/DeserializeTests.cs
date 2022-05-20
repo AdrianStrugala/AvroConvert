@@ -9,7 +9,8 @@ namespace AvroConvertComponentTests
 {
     public class DeserializeTests
     {
-        private readonly byte[] _avroBytes = System.IO.File.ReadAllBytes("example2.avro");
+        private readonly byte[] _avroBytes = File.ReadAllBytes("example2.avro");
+        private readonly byte[] _schemaOnlyAvroBytes = File.ReadAllBytes("header_only.avro");
 
 
         [Fact]
@@ -60,6 +61,19 @@ namespace AvroConvertComponentTests
 
             //Assert
             Assert.Equal(expectedResult, result);
+        }
+
+        [Fact]
+        public void Deserialize_FileContainsNoAvroData_NoExceptionIsThrown()
+        {
+            //Arrange
+
+            //Act
+            var result = AvroConvert.Deserialize(_schemaOnlyAvroBytes, typeof(List<UserNameClass>));
+
+
+            //Assert
+            Assert.Equal(null, result);
         }
 
         [Fact]

@@ -7,10 +7,12 @@ namespace AvroConvertComponentTests.GenerateModel
     public class GenerateModelTests
     {
         private readonly byte[] _avroBytes;
+        private readonly byte[] _schemaOnlyAvroBytes;
 
         public GenerateModelTests()
         {
             _avroBytes = File.ReadAllBytes("example2.avro");
+            _schemaOnlyAvroBytes = File.ReadAllBytes("header_only.avro");
         }
 
         [Fact]
@@ -33,6 +35,28 @@ namespace AvroConvertComponentTests.GenerateModel
 "}\r\n" +
 "\r\n",
 resultClass);
+        }
+
+        [Fact]
+        public void GenerateClass_SchemaOnlyAvroFile_OutputIsEqualToExpected()
+        {
+            //Arrange
+
+
+            //Act
+            string resultClass = AvroConvert.GenerateModel(_schemaOnlyAvroBytes);
+
+
+            //Assert
+            Assert.Equal(
+                "public class User\r\n" +
+                "{\r\n" +
+                "\tpublic string name { get; set; }\r\n" +
+                "\tpublic int? favorite_number { get; set; }\r\n" +
+                "\tpublic string favorite_color { get; set; }\r\n" +
+                "}\r\n" +
+                "\r\n",
+                resultClass);
         }
 
 

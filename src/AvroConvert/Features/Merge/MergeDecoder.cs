@@ -61,6 +61,11 @@ namespace SolTechnology.Avro.Features.Merge
                     result.Header = header;
                     result.Header.Schema = Schema.Create(result.Header.GetMetadata(DataFileConstants.SchemaMetadataKey));
 
+                    if (reader.IsReadToEnd())
+                    {
+                        return result;
+                    }
+
                     do
                     {
                         var blockContent = new DataBlock

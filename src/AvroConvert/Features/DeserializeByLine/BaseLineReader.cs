@@ -46,13 +46,18 @@ namespace SolTechnology.Avro.Features.DeserializeByLine
             _writeSchema = writeSchema;
             _readSchema = readSchema;
 
+            if (_reader.IsReadToEnd())
+            {
+                return;
+            }
+
             LoadNextDataBlock();
         }
 
 
         public bool HasNext()
         {
-            var hasNext = _lineReaderInternal.HasNext();
+            var hasNext = _lineReaderInternal != null && _lineReaderInternal.HasNext();
 
             if (!hasNext)
             {
@@ -100,7 +105,7 @@ namespace SolTechnology.Avro.Features.DeserializeByLine
 
         public void Dispose()
         {
-            _lineReaderInternal.Dispose();
+            _lineReaderInternal?.Dispose();
         }
     }
 }

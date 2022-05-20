@@ -75,8 +75,13 @@ namespace SolTechnology.Avro.Features.Deserialize
 
         internal T Read<T>(Reader reader, Header header, AbstractCodec codec, Resolver resolver)
         {
+            if (reader.IsReadToEnd())
+            {
+                return default;
+            }
+
             long itemsCount = 0;
-            byte[] dataBlock = new byte[0];
+            byte[] dataBlock = Array.Empty<byte>();
 
             do
             {

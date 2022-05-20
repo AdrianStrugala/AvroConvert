@@ -11,7 +11,8 @@ namespace AvroConvertComponentTests.DeserializeByLine
     public class DeserializeByLineTests
     {
         private readonly Fixture _fixture;
-        private readonly byte[] _avroBytes = System.IO.File.ReadAllBytes("example2.avro");
+        private readonly byte[] _avroBytes = File.ReadAllBytes("example2.avro");
+        private readonly byte[] _headerOnlyAvroBytes = File.ReadAllBytes("header_only.avro");
 
         public DeserializeByLineTests()
         {
@@ -291,6 +292,28 @@ namespace AvroConvertComponentTests.DeserializeByLine
             //Assert
             result.Should().HaveCount(1);
             result.Should().ContainEquivalentOf(1);
+        }
+
+        [Fact]
+        public void DeserializeByLine_FileContainsOnlyAvroHeader_NoExceptionIsThrown()
+        {
+            //Arrange
+            
+            //Act
+            var result = new List<User>();
+            using (var reader = AvroConvert.OpenDeserializer<User>(new MemoryStream(_headerOnlyAvroBytes)))
+            {
+                while (reader.HasNext())
+                {
+                    var item = reader.ReadNext();
+
+                    result.Add(item);
+                }
+            }
+
+
+            //Assert
+            result.Should().BeEmpty();
         }
     }
 }

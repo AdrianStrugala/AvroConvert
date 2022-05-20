@@ -12,6 +12,8 @@ namespace AvroConvertComponentTests.Merge
     public class MergeTests
     {
         private readonly Fixture _fixture;
+        private readonly byte[] _headerOnlyAvroBytes = File.ReadAllBytes("header_only.avro");
+
 
         public MergeTests()
         {
@@ -39,6 +41,21 @@ namespace AvroConvertComponentTests.Merge
             var deserializedResult = AvroConvert.Deserialize<List<User>>(result);
             var deserializedUser = Assert.Single(deserializedResult);
             Assert.Equal(user, deserializedUser);
+        }
+
+
+        [Fact]
+        public void Merge_FileWithHeaderOnly_DoesNotThrowException()
+        {
+            //Arrange
+
+            //Act
+            var result = AvroConvert.Merge<User>(new List<byte[]> { _headerOnlyAvroBytes});
+
+
+            //Assert
+            var deserializedResult = AvroConvert.Deserialize<List<User>>(result);
+            deserializedResult.Should().BeEmpty();
         }
 
         [Fact]

@@ -78,6 +78,12 @@ namespace SolTechnology.Avro.Features.AvroToJson
 
         internal object Read(Reader reader, Header header, AbstractCodec codec, Resolver resolver)
         {
+            if (reader.IsReadToEnd())
+            {
+                return string.Empty;
+            }
+
+
             var result = new List<object>();
 
             do

@@ -282,3 +282,7 @@ START OF THE PROJECT
 \
 **v. 3.2.6 (16.05.22)**
 - Added support for class with parameterized constructor only in: Schema Generation, Serialization, Deserialization
+
+\
+**v. 3.2.7 (20.05.22)**
+- Added support for files containg only Avro Schema for: Deserialization, DeserializationByLine, Merge, GetSchema, Avro2Json

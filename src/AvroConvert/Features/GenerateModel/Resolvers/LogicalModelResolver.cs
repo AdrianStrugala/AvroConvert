@@ -20,13 +20,8 @@
 */
 #endregion
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Newtonsoft.Json.Linq;
 using SolTechnology.Avro.AvroObjectServices.Schema.Abstract;
-using SolTechnology.Avro.Features.GenerateModel.Models;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
 namespace SolTechnology.Avro.Features.GenerateModel.Resolvers

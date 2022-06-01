@@ -286,3 +286,7 @@ START OF THE PROJECT
 \
 **v. 3.2.7 (20.05.22)**
 - Added support for files containg only Avro Schema for: Deserialization, DeserializationByLine, Merge, GetSchema, Avro2Json
+
+\
+**v. 3.2.8 (01.06.22)**
+- Added support for Fixed and Map in GenerateModel

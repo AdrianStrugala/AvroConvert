@@ -27,7 +27,7 @@ namespace SolTechnology.Avro
     public static partial class AvroConvert
     {
         /// <summary>
-        /// Generates C# .NET classes from schema in given AVRO object
+        /// Generates C# .NET classes from given AVRO object containing schema
         /// </summary>
         public static string GenerateModel(byte[] avroBytes)
         {

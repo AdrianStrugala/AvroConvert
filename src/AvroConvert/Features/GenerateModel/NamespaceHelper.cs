@@ -21,38 +21,37 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Newtonsoft.Json.Linq;
-using SolTechnology.Avro.Features.GenerateModel.Models;
+using SolTechnology.Avro.Features.GenerateModel.NetModel;
 
 namespace SolTechnology.Avro.Features.GenerateModel
 {
     internal class NamespaceHelper
     {
-        internal void EnsureUniqueNames(AvroModel model)
+        internal void EnsureUniqueNames(NetModel.NetModel model)
         {
-            foreach (IGrouping<string, AvroClass> avroClasses in model.Classes.GroupBy(c => c.ClassName))
+            foreach (IGrouping<string, INetType> netTypes in model.NetTypes.GroupBy(c => c.Name))
             {
-                if (avroClasses.Count() == 1)
+                if (netTypes.Count() == 1)
                 {
                     continue;
                 }
 
-                foreach (var avroClass in avroClasses)
+                
+                foreach (var netClass in netTypes.OfType<NetClass>().ToList())
                 {
-                    foreach (var avroField in model.Classes
+                    foreach (var avroField in model.NetTypes.OfType<NetClass>().ToList()
                         .SelectMany(c => c.Fields)
-                        .Where(f => (f.FieldType == avroClass.ClassName ||
-                                    f.FieldType == avroClass.ClassName + "[]" ||
-                                    f.FieldType == avroClass.ClassName + "?") &&
-                                    f.Namespace == avroClass.ClassNamespace))
+                        .Where(f => (f.FieldType == netClass.Name ||
+                                    f.FieldType == netClass.Name + "[]" ||
+                                    f.FieldType == netClass.Name + "?") &&
+                                    f.Namespace == netClass.ClassNamespace))
                     {
                         avroField.FieldType = avroField.Namespace + avroField.FieldType;
                     }
-
-                    avroClass.ClassName = avroClass.ClassNamespace + avroClass.ClassName;
+                
+                    netClass.Name = netClass.ClassNamespace + netClass.Name;
                 }
             }
         }

@@ -545,5 +545,94 @@ resultClass);
                 "\r\n",
                 resultClass);
         }
+
+        [Fact]
+        public void GenerateClass_SchemaContainsMap_ItIsTranslatedToDictionary()
+        {
+            //Arrange
+            string schema = @"
+         {
+    ""type"": ""record"",
+    ""name"": ""exampleAvro"",
+    ""fields"": [
+        {
+            ""name"": ""mapdata"",
+            ""type"": ""map"",
+            ""values"": ""int""
+        }
+    ]
+}";
+
+            //Act
+            string resultClass = AvroConvert.GenerateModel(schema);
+
+            //Assert
+            Assert.Equal(
+                "public class exampleAvro\r\n" +
+                "{\r\n" +
+                "\tpublic Dictionary<string,int> mapdata { get; set; }\r\n" +
+                "}\r\n" +
+                "\r\n",
+                resultClass);
+        }
+
+        [Fact]
+        public void GenerateClass_SchemaContainsFixed_ItIsTranslatedToByteArray()
+        {
+            //Arrange
+            string schema = @"
+         {
+    ""type"": ""record"",
+    ""name"": ""exampleAvro"",
+    ""fields"": [
+        {
+            ""name"": ""bdata"",
+            ""type"": ""fixed"",
+            ""size"": 1048576
+        }
+    ]
+}";
+
+            //Act
+            string resultClass = AvroConvert.GenerateModel(schema);
+
+            //Assert
+            Assert.Equal(
+                "public class exampleAvro\r\n" +
+                "{\r\n" +
+                "\tpublic byte[] bdata { get; set; }\r\n" +
+                "}\r\n" +
+                "\r\n",
+                resultClass);
+        }
+
+        [Fact]
+        public void GenerateClass_SchemaContainsBytes_ItIsTranslatedToByteArray()
+        {
+            //Arrange
+            string schema = @"
+         {
+    ""type"": ""record"",
+    ""name"": ""exampleAvro"",
+    ""fields"": [
+        {
+            ""name"": ""bdata"",
+            ""type"": ""bytes""
+        }
+    ]
+}";
+
+            //Act
+            string resultClass = AvroConvert.GenerateModel(schema);
+
+            //Assert
+            Assert.Equal(
+                "public class exampleAvro\r\n" +
+                "{\r\n" +
+                "\tpublic byte[] bdata { get; set; }\r\n" +
+                "}\r\n" +
+                "\r\n",
+                resultClass);
+        }
     }
 }

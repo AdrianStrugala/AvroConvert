@@ -1,5 +1,5 @@
 ﻿#region license
-/**Copyright (c) 2021 Adrian Strugala
+/**Copyright (c) 2022 Adrian Strugala
 *
 * Licensed under the CC BY-NC-SA 3.0 License(the "License");
 * you may not use this file except in compliance with the License.
@@ -20,25 +20,16 @@
 */
 #endregion
 
-using System.Linq;
-using Newtonsoft.Json.Linq;
-using SolTechnology.Avro.Features.GenerateModel.NetModel;
-
-namespace SolTechnology.Avro.Features.GenerateModel.Resolvers
+namespace SolTechnology.Avro.Infrastructure.Extensions
 {
-    internal class EnumModelResolver
+    internal static class StringExtensions
     {
-        internal void ResolveEnum(JToken propValue, NetModel.NetModel model)
+        public static string TryReplace(this string @string, string pattern, string replacement)
         {
-            var result = new NetEnum();
+            if (@string.Contains(pattern))
+                @string = @string.Replace(pattern, replacement);
 
-            var name = propValue["name"].ToString().Split('.').Last();
-            var symbols = (JArray)propValue["symbols"];
-
-            result.Name = name;
-            result.Symbols = symbols.Select(s => s.ToString()).ToList();
-
-            model.NetTypes.Add(result);
+            return @string;
         }
     }
 }

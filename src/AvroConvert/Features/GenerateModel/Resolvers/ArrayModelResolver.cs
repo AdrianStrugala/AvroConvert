@@ -20,20 +20,17 @@
 */
 #endregion
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Newtonsoft.Json.Linq;
-using SolTechnology.Avro.Features.GenerateModel.Models;
+using SolTechnology.Avro.Features.GenerateModel.NetModel;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
 namespace SolTechnology.Avro.Features.GenerateModel.Resolvers
 {
     internal class ArrayModelResolver
     {
-        internal AvroField ResolveArray(JObject typeObj)
+        internal NetClassField ResolveArray(JObject typeObj)
         {
-            var avroField = new AvroField();
+            var avroField = new NetClassField();
 
             // If this is an array of a specific class that's being defined in this area of the json
             if (typeObj["items"] is JObject && ((JObject)typeObj["items"])["type"].ToString() == "record")

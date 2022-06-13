@@ -41,6 +41,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 
         protected static TypeSchema FindBranch(UnionSchema us, TypeSchema schema)
         {
+            //TODO throws here on try of deserialization [int, null] to long
+
             var resultSchema = us.Schemas.FirstOrDefault(s => s.Type == schema.Type);
 
             if (resultSchema == null)

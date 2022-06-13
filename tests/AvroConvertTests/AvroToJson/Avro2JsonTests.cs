@@ -1,6 +1,8 @@
-﻿using System.IO;
+﻿using System.Dynamic;
+using System.IO;
 using Newtonsoft.Json;
 using SolTechnology.Avro;
+using SolTechnology.Avro.Features.JsonToAvro;
 using Xunit;
 
 namespace AvroConvertComponentTests.AvroToJson
@@ -20,15 +22,30 @@ namespace AvroConvertComponentTests.AvroToJson
 
             var expectedJson = JsonConvert.SerializeObject(user);
 
-            var avroSerialized = AvroConvert.Serialize(user);
+         //   var avroSerialized = AvroConvert.Serialize(user);
+
+
+            
+            // ------------------------------------
+            var json = JsonConvert.SerializeObject(user);
+            var xd = JsonConvert.DeserializeObject<ExpandoObject>(json);
+
+
+            var sth = new ExpandoSchemaBuilder();
+            var jsonSchema = sth.SerializeExpando(xd, xd);
+
+
+         //   var res = AvroConvert.Serialize(xd);
+
+            var wtf = AvroConvert.Deserialize<User>(jsonSchema);
 
 
             //Act
-            var resultJson = AvroConvert.Avro2Json(avroSerialized);
+       //     var resultJson = AvroConvert.Avro2Json(avroSerialized);
 
 
             //Assert
-            Assert.Equal(expectedJson, resultJson);
+      //      Assert.Equal(expectedJson, resultJson);
         }
 
         [Fact]

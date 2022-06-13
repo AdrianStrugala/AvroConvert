@@ -425,7 +425,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 memberType);
         }
 
-        private void AddRecordFields(
+        public void AddRecordFields(
             IEnumerable<MemberSerializationInfo> members,
             Dictionary<string, NamedSchema> schemas,
             uint currentDepth,

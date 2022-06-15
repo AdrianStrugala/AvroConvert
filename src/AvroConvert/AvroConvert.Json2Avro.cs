@@ -1,6 +1,10 @@
-﻿using System.Dynamic;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Dynamic;
+using System.Linq;
 using Newtonsoft.Json;
 using SolTechnology.Avro.Features.JsonToAvro;
+using SolTechnology.Avro.Infrastructure.Extensions;
 
 namespace SolTechnology.Avro
 {
@@ -13,10 +17,31 @@ namespace SolTechnology.Avro
         {
             var decoder = new JsonToAvroDecoder();
 
-            var expando = JsonConvert.DeserializeObject<ExpandoObject>(json, new ExpandoObjectJsonConverter());
-            var result = decoder.SerializeExpando(expando, CodecType.Null);
+            var unknownObject = JsonConvert.DeserializeObject<object>(json);
+            var enumerable = unknownObject.GetType().FindEnumerableType();
+            if (enumerable != null)
+            {
+                var childItem = ((IList)unknownObject)[0];
 
-            return result;
+                var xd = JsonConvert.DeserializeObject<List<ExpandoObject>>(json, new ExpandoObjectJsonConverter());
+                var result = decoder.SerializeExpando(xd, CodecType.Null);
+                return result;
+                //dupa
+            }
+
+            var expando = JsonConvert.DeserializeObject<ExpandoObject>(json, new ExpandoObjectJsonConverter());
+
+          
+
+            if (expando != null && expando.Any())
+            {
+                var result = decoder.SerializeExpando(expando, CodecType.Null);
+                return result;
+            }
+
+           
+
+            return Serialize(unknownObject, CodecType.Null);
         }
 
 

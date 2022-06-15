@@ -374,6 +374,14 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
             return type?.GetElementType() ?? type.GenericTypeArguments.FirstOrDefault();
 
         }
+        
+        public static Type FindEnumerableType(this Type type)
+        {
+            return type?
+                .GetAllInterfaces()
+                .SingleOrDefault(t => t.IsGenericType() && t.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+
+        }
 
         internal static bool IsValueType(this Type type)
         {

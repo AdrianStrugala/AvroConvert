@@ -21,31 +21,14 @@ namespace AvroConvertComponentTests.AvroToJson
             user.name = "red";
 
             var expectedJson = JsonConvert.SerializeObject(user);
-
-         //   var avroSerialized = AvroConvert.Serialize(user);
-
-
-            
-            // ------------------------------------
-            var json = JsonConvert.SerializeObject(user);
-            var xd = JsonConvert.DeserializeObject<ExpandoObject>(json);
-
-
-            var sth = new ExpandoSchemaBuilder();
-            var jsonSchema = sth.SerializeExpando(xd, xd);
-
-
-         //   var res = AvroConvert.Serialize(xd);
-
-            var wtf = AvroConvert.Deserialize<User>(jsonSchema);
-
+            var avroSerialized = AvroConvert.Serialize(user);
 
             //Act
-       //     var resultJson = AvroConvert.Avro2Json(avroSerialized);
+            var resultJson = AvroConvert.Avro2Json(avroSerialized);
 
 
             //Assert
-      //      Assert.Equal(expectedJson, resultJson);
+            Assert.Equal(expectedJson, resultJson);
         }
 
         [Fact]

@@ -12,30 +12,21 @@ namespace SolTechnology.Avro.Features.JsonToAvro
 {
     public class ExpandoSchemaBuilder
     {
+
         internal TypeSchema BuildSchema(ExpandoObject expandoObject)
         {
             var reflectionSchemaBuilder = new ReflectionSchemaBuilder();
 
             RecordSchema record = new RecordSchema(new NamedEntityAttributes(
                 new SchemaName("UnknownObject"),
-                new List<string>(), 
+                new List<string>(),
                 ""),
                 typeof(object));
-            //record.Name = "UnknownObject";
 
-            // record.
-            //
-            // var members = resolver.ResolveMembers(type);
-            // reflectionSchemaBuilder.AddRecordFields(members, schemas, currentDepth, record);
-
-           
-
-            // reflectionSchemaBuilder.BuildSchema()
 
             for (int i = 0; i < expandoObject.Count(); i++)
             {
                 var property = expandoObject.ElementAt(i);
-
 
                 TypeSchema fieldSchema = reflectionSchemaBuilder.BuildSchema(property.Value.GetType());
 
@@ -53,21 +44,6 @@ namespace SolTechnology.Avro.Features.JsonToAvro
 
 
             return record;
-        }
-
-        public byte[] SerializeExpando(object obj, ExpandoObject s)
-        {
-            using (MemoryStream resultStream = new MemoryStream())
-            {
-                var schema = BuildSchema(s);
-
-                using (var writer = new SolTechnology.Avro.Features.Serialize.Encoder(schema, resultStream, CodecType.Null))
-                {
-                    writer.Append(obj);
-                }
-                var result = resultStream.ToArray();
-                return result;
-            }
         }
     }
 }

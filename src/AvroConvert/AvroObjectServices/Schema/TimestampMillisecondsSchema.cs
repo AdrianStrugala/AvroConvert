@@ -34,7 +34,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schema
 
         internal override AvroType Type => AvroType.Logical;
         internal override TypeSchema BaseTypeSchema { get; set; }
-        internal override string LogicalTypeName => "timestamp-millis";
+        internal override string LogicalTypeName => LogicalTypeEnum.TimestampMilliseconds;
 
         internal object ConvertToBaseValue(object logicalValue, TimestampMillisecondsSchema schema)
         {

@@ -34,8 +34,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Schema
 
         internal override AvroType Type => AvroType.Logical;
         internal override TypeSchema BaseTypeSchema { get; set; }
-        internal override string LogicalTypeName => LogicalTypeEnum.TimeMicrosecond;
-        internal object ConvertToBaseValue(object logicalValue, TimestampMillisecondsSchema schema)
+        internal override string LogicalTypeName => LogicalTypeEnum.TimestampMicroseconds;
+        internal object ConvertToBaseValue(object logicalValue, TimestampMicrosecondsSchema schema)
         {
             DateTime date;
             if (logicalValue is DateTimeOffset dateTimeOffset)
@@ -47,18 +47,17 @@ namespace SolTechnology.Avro.AvroObjectServices.Schema
                 date = ((DateTime)logicalValue);
             }
 
-            var timeDiff = date - DateTimeExtensions.UnixEpochDateTime;
-            return timeDiff.Milliseconds / 1000;
+            return (long)(date - DateTimeExtensions.UnixEpochDateTime).TotalMilliseconds * 1000;
         }
 
         internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type type)
         {
             var noMicroseconds = (long)baseValue;
-            var result = DateTimeExtensions.UnixEpochDateTime.AddMilliseconds(noMicroseconds * 1000);
+            var result = DateTimeExtensions.UnixEpochDateTime.AddMilliseconds(noMicroseconds / 1000);
 
             if (type == typeof(DateTimeOffset) || type == typeof(DateTimeOffset?))
             {
-                return DateTimeOffset.FromUnixTimeMilliseconds(noMicroseconds * 1000);
+                return DateTimeOffset.FromUnixTimeMilliseconds(noMicroseconds / 1000);
             }
             else
             {

@@ -199,7 +199,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                         string.Format(CultureInfo.InvariantCulture, "Union schemas cannot be nested:'{0}'.", unionToken));
                 }
 
-                if (types.Contains(schema.Type.ToString()))
+                if (schema.Type.ToString() != "Record" && types.Contains(schema.Type.ToString()))
                 {
                     throw new SerializationException(
                         string.Format(CultureInfo.InvariantCulture, "Unions cannot contains schemas of the same type: '{0}'.", schema.Type));

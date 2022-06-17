@@ -67,8 +67,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
                 case AvroType.String:
                     return true;
                 case AvroType.Error:
-                case AvroType.Record:
                     return true;
+                case AvroType.Record:
+                    return obj.GetType().FullName.Equals((sc as RecordSchema).FullName);
                 case AvroType.Enum:
                     return obj is System.Enum;
                 case AvroType.Array:

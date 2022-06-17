@@ -177,7 +177,7 @@ namespace SolTechnology.Avro.Features.AvroToJson
 
         protected static TypeSchema FindBranch(UnionSchema us, TypeSchema schema)
         {
-            var resultSchema = us.Schemas.FirstOrDefault(s => s.Type == schema.Type);
+            var resultSchema = us.Schemas.FirstOrDefault(s => s.Name == schema.Name);
 
             if (resultSchema == null)
             {

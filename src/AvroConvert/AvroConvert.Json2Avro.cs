@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -16,32 +17,8 @@ namespace SolTechnology.Avro
         public static byte[] Json2Avro(string json)
         {
             var decoder = new JsonToAvroDecoder();
+            return decoder.DecodeJson(json, CodecType.Null);
 
-            var unknownObject = JsonConvert.DeserializeObject<object>(json);
-            var enumerable = unknownObject.GetType().FindEnumerableType();
-            if (enumerable != null)
-            {
-                var childItem = ((IList)unknownObject)[0];
-
-                var xd = JsonConvert.DeserializeObject<List<ExpandoObject>>(json, new ExpandoObjectJsonConverter());
-                var result = decoder.SerializeExpando(xd, CodecType.Null);
-                return result;
-                //dupa
-            }
-
-            var expando = JsonConvert.DeserializeObject<ExpandoObject>(json, new ExpandoObjectJsonConverter());
-
-          
-
-            if (expando != null && expando.Any())
-            {
-                var result = decoder.SerializeExpando(expando, CodecType.Null);
-                return result;
-            }
-
-           
-
-            return Serialize(unknownObject, CodecType.Null);
         }
 
 

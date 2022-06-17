@@ -129,6 +129,24 @@ namespace AvroConvertComponentTests.JsonToAvro
         }
 
         [Fact]
+        public void JsonToAvro_Float_ProducedDesiredAvro()
+        {
+            //Arrange
+            var testClass = _fixture.Create<float>();
+
+            var serializedJson = JsonConvert.SerializeObject(testClass);
+
+
+            //Act
+            var resultAvro = AvroConvert.Json2Avro(serializedJson);
+
+
+            //Assert
+            var deserialized = AvroConvert.Deserialize<float>(resultAvro);
+            deserialized.Should().Be(testClass);
+        }
+
+        [Fact]
         public void JsonToAvro_Decimal_ProducedDesiredAvro()
         {
             //Arrange

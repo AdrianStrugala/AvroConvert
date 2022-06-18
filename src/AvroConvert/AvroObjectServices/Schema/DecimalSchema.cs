@@ -80,7 +80,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schema
 
             //Resize value to match schema Scale property
             int sizeDiff = logicalScale - scale;
-            if(sizeDiff < 0)
+            if (sizeDiff < 0)
             {
                 throw new AvroTypeException(
 $@"Decimal Scale for value [{logicalValue}] is equal to [{scale}]. This exceeds default setting [{logicalScale}].
@@ -116,7 +116,7 @@ Consider adding following attribute to your property:
                     avroDecimal.Sign < 0 ? (byte)0xFF : (byte)0x00));
         }
 
-        internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type type)
+        internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type readType)
         {
             var buffer = AvroType.Bytes == schema.BaseTypeSchema.Type
                 ? (byte[])baseValue
@@ -126,7 +126,38 @@ Consider adding following attribute to your property:
             var avroDecimal = new AvroDecimal(new BigInteger(buffer), Scale);
 
 
-            return AvroDecimal.ToDecimal(avroDecimal);
+            var value = AvroDecimal.ToDecimal(avroDecimal);
+
+            if (readType != typeof(decimal))
+            {
+                if (readType == typeof(int))
+                {
+                    return Convert.ToInt32(value);
+                }
+
+                if (readType == typeof(short))
+                {
+                    return Convert.ToInt16(value);
+                }
+
+                if (readType == typeof(double))
+                {
+                    return Convert.ToDouble(value);
+                }
+
+
+                if (readType == typeof(long))
+                {
+                    return Convert.ToInt64(value);
+                }
+
+                if (readType == typeof(float))
+                {
+                    return Convert.ToSingle(value);
+                }
+            }
+
+            return value;
         }
 
         private static byte[] GetDecimalFixedByteArray(byte[] sourceBuffer, int size, byte fillValue)

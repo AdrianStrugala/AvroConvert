@@ -54,7 +54,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         internal object Resolve(
             TypeSchema writerSchema,
             TypeSchema readerSchema,
-            IReader d,
+            IReader reader,
             Type type)
         {
             try
@@ -69,41 +69,41 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                     case Schema.AvroType.Null:
                         return null;
                     case Schema.AvroType.Boolean:
-                        return d.ReadBoolean();
+                        return reader.ReadBoolean();
                     case Schema.AvroType.Int:
-                        return d.ReadInt();
+                        return ResolveInt(type, reader);
                     case Schema.AvroType.Long:
-                        return ResolveLong(type, d);
+                        return ResolveLong(type, reader);
                     case Schema.AvroType.Float:
-                        return d.ReadFloat();
+                        return ResolveFloat(type, reader);
                     case Schema.AvroType.Double:
-                        return d.ReadDouble();
+                        return ResolveDouble(type, reader);
                     case Schema.AvroType.String:
-                        return ResolveString(type, d);
+                        return ResolveString(type, reader);
                     case Schema.AvroType.Bytes:
-                        return d.ReadBytes();
+                        return reader.ReadBytes();
                     case Schema.AvroType.Logical:
-                        return ResolveLogical((LogicalTypeSchema)writerSchema, (LogicalTypeSchema)readerSchema, d, type);
+                        return ResolveLogical((LogicalTypeSchema)writerSchema, readerSchema, reader, type);
                     case Schema.AvroType.Error:
                     case Schema.AvroType.Record:
-                        return ResolveRecord((RecordSchema)writerSchema, (RecordSchema)readerSchema, d, type);
+                        return ResolveRecord((RecordSchema)writerSchema, (RecordSchema)readerSchema, reader, type);
                     case Schema.AvroType.Enum:
-                        return ResolveEnum((EnumSchema)writerSchema, readerSchema, d, type);
+                        return ResolveEnum((EnumSchema)writerSchema, readerSchema, reader, type);
                     case Schema.AvroType.Fixed:
-                        return ResolveFixed((FixedSchema)writerSchema, readerSchema, d, type);
+                        return ResolveFixed((FixedSchema)writerSchema, readerSchema, reader, type);
                     case Schema.AvroType.Array:
-                        return ResolveArray(writerSchema, readerSchema, d, type);
+                        return ResolveArray(writerSchema, readerSchema, reader, type);
                     case Schema.AvroType.Map:
-                        return ResolveMap((MapSchema)writerSchema, readerSchema, d, type);
+                        return ResolveMap((MapSchema)writerSchema, readerSchema, reader, type);
                     case Schema.AvroType.Union:
-                        return ResolveUnion((UnionSchema)writerSchema, readerSchema, d, type);
+                        return ResolveUnion((UnionSchema)writerSchema, readerSchema, reader, type);
                     default:
                         throw new AvroException("Unknown schema type: " + writerSchema);
                 }
             }
             catch (Exception e)
             {
-                throw new AvroTypeMismatchException($"Unable to deserialize [{writerSchema.Name}] of schema [{writerSchema.Type}] to the target type [{type}]", e);
+                throw new AvroTypeMismatchException($"Unable to deserialize [{writerSchema.Name}] of schema [{writerSchema.Type}] to the target type [{type}]. Inner exception:", e);
             }
         }
     }

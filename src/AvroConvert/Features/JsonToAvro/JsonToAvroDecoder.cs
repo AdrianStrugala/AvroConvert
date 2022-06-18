@@ -57,22 +57,30 @@ namespace SolTechnology.Avro.Features.JsonToAvro
 
         private object TryDecodePrimitive(string json)
         {
-            var incomingObject = JsonConvert.DeserializeObject<object>(json, new IntJsonConverter());
-            var incomingObjectType = incomingObject?.GetType();
-
-            if (incomingObjectType == typeof(string) ||
-                incomingObjectType == typeof(int) ||
-                incomingObjectType == typeof(decimal) ||
-                incomingObjectType == typeof(double) ||
-                incomingObjectType == typeof(float) ||
-                incomingObjectType == typeof(Guid) ||
-                incomingObjectType == typeof(Uri) ||
-                incomingObjectType == typeof(byte) ||
-                incomingObjectType == typeof(byte) ||
-                incomingObjectType == typeof(long))
+            try
             {
-                return incomingObject;
+                var incomingObject = JsonConvert.DeserializeObject<object>(json, new IntJsonConverter());
+                var incomingObjectType = incomingObject?.GetType();
+
+                if (incomingObjectType == typeof(string) ||
+                    incomingObjectType == typeof(int) ||
+                    incomingObjectType == typeof(decimal) ||
+                    incomingObjectType == typeof(double) ||
+                    incomingObjectType == typeof(float) ||
+                    incomingObjectType == typeof(Guid) ||
+                    incomingObjectType == typeof(Uri) ||
+                    incomingObjectType == typeof(byte) ||
+                    incomingObjectType == typeof(byte) ||
+                    incomingObjectType == typeof(long))
+                {
+                    return incomingObject;
+                }
             }
+            catch (JsonSerializationException)
+            {
+
+            }
+
 
             return null;
         }

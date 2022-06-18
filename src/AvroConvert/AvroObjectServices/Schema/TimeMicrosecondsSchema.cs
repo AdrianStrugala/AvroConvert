@@ -47,7 +47,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schema
             return (long)(time - DateTimeExtensions.UnixEpochDateTime.TimeOfDay).TotalMilliseconds * 1000;
         }
 
-        internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type type)
+        internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type readType)
         {
             var noMs = (long)baseValue / 1000;
             return DateTimeExtensions.UnixEpochDateTime.TimeOfDay.Add(TimeSpan.FromMilliseconds(noMs));

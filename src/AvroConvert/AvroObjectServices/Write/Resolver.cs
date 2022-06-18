@@ -15,11 +15,16 @@
 */
 #endregion
 
+using System;
 using SolTechnology.Avro.AvroObjectServices.Schema;
 using SolTechnology.Avro.AvroObjectServices.Schema.Abstract;
 using SolTechnology.Avro.AvroObjectServices.Write.Resolvers;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Infrastructure.Exceptions;
+using Array = SolTechnology.Avro.AvroObjectServices.Write.Resolvers.Array;
+using Decimal = SolTechnology.Avro.AvroObjectServices.Write.Resolvers.Decimal;
+using Enum = SolTechnology.Avro.AvroObjectServices.Write.Resolvers.Enum;
+using String = SolTechnology.Avro.AvroObjectServices.Write.Resolvers.String;
 
 namespace SolTechnology.Avro.AvroObjectServices.Write
 {
@@ -128,11 +133,20 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
                 value = default(S);
             }
 
-            if (!(value is S))
+            if (!(value is S sValue))
+            {
+                //Resolve Short
+                if (typeof(S) == typeof(int) && value?.GetType() == typeof(short))
+                {
+                    writer((S)(object)Convert.ToInt32(value));
+                    return;
+                }
+
                 throw new AvroTypeMismatchException(
                     $"[{typeof(S)}] required to write against [{tag}] schema but found " + value?.GetType());
+            }
 
-            writer((S)value);
+            writer(sValue);
         }
     }
 }

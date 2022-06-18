@@ -290,3 +290,8 @@ START OF THE PROJECT
 \
 **v. 3.2.8 (01.06.22)**
 - Added support for Fixed and Map in GenerateModel
+
+\
+**v. 3.3.0 (xxx)**
+- Added support for short (int16) C# type
+- Allowed conversion for different read and write number C# types (ex: int -> long)

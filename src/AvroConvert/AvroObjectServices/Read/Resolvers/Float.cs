@@ -21,11 +21,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 {
     internal partial class Resolver
     {
-        internal object ResolveLong(Type readType, IReader reader)
+        internal object ResolveFloat(Type readType, IReader reader)
         {
-            long value = reader.ReadLong();
+            float value = reader.ReadFloat();
 
-            if (readType != typeof(long))
+            if (readType != typeof(float))
             {
                 if (readType == typeof(int))
                 {
@@ -43,9 +43,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                 }
 
 
-                if (readType == typeof(float))
+                if (readType == typeof(long))
                 {
-                    return Convert.ToSingle(value);
+                    return Convert.ToInt64(value);
                 }
 
                 if (readType == typeof(double))

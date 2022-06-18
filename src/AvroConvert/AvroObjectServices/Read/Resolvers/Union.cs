@@ -49,7 +49,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                 }
             }
 
-            throw new AvroException("No matching schema for " + writerSchema + " in " + us);
+            throw new AvroException("Unable to find matching schema for " + writerSchema + " in " + us);
         }
     }
 }

@@ -1,7 +1,7 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
+using Newtonsoft.Json;
 
-namespace SolTechnology.Avro.Infrastructure.Extensions.JsonConverters
+namespace SolTechnology.Avro.Infrastructure.Extensions.JsonConvert
 {
     internal class IntJsonConverter : JsonConverter
     {

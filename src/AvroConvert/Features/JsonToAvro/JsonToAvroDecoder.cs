@@ -3,13 +3,21 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using SolTechnology.Avro.Infrastructure.Extensions;
-using SolTechnology.Avro.Infrastructure.Extensions.JsonConverters;
+using SolTechnology.Avro.Infrastructure.Extensions.JsonConvert;
 
 namespace SolTechnology.Avro.Features.JsonToAvro
 {
     internal class JsonToAvroDecoder
     {
+        private readonly ExpandoSerializer _expandoSerializer;
+
+        public JsonToAvroDecoder()
+        {
+            _expandoSerializer = new ExpandoSerializer();
+        }
+
         internal byte[] DecodeJson(string json, CodecType codecType)
         {
             object deserializedJson;
@@ -17,8 +25,9 @@ namespace SolTechnology.Avro.Features.JsonToAvro
             //Array
             if (json.StartsWith("["))
             {
-                deserializedJson = DecodeArray(json);
-                return AvroConvert.Serialize(deserializedJson, codecType);
+                var expandoList = DecodeArray(json);
+                var sth = _expandoSerializer.SerializeExpando(expandoList, CodecType.Null);
+                return sth;
             }
 
 
@@ -31,13 +40,12 @@ namespace SolTechnology.Avro.Features.JsonToAvro
 
 
             //Class
-            var decoder = new ExpandoSerializer();
-            var expando = JsonConvert.DeserializeObject<ExpandoObject>(json, new ExpandoObjectJsonConverter());
-            var result = decoder.SerializeExpando(expando, CodecType.Null);
+            var expando = JsonConvertExtensions.DeserializeExpando<ExpandoObject>(json);
+            var result = _expandoSerializer.SerializeExpando(expando, CodecType.Null);
             return result;
         }
 
-        private object DecodeArray(string json)
+        private List<ExpandoObject> DecodeArray(string json)
         {
             var incomingObject = JsonConvert.DeserializeObject<object>(json);
 
@@ -46,10 +54,9 @@ namespace SolTechnology.Avro.Features.JsonToAvro
             {
                 var childItem = ((IList)incomingObject)[0];
 
-                var xd = JsonConvert.DeserializeObject<List<ExpandoObject>>(json, new ExpandoObjectJsonConverter());
-                // var result = decoder.SerializeExpando(xd, CodecType.Null);
-                // return result;
-                //dupa
+                var xd = JsonConvertExtensions.DeserializeExpando<List<ExpandoObject>>(json);
+              
+                return xd;
             }
 
             return null;
@@ -59,7 +66,7 @@ namespace SolTechnology.Avro.Features.JsonToAvro
         {
             try
             {
-                var incomingObject = JsonConvert.DeserializeObject<object>(json, new IntJsonConverter());
+                var incomingObject = JsonConvertExtensions.DeserializeExpando<object>(json);
                 var incomingObjectType = incomingObject?.GetType();
 
                 if (incomingObjectType == typeof(string) ||

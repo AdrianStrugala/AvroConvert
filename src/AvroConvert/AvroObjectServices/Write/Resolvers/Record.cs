@@ -22,8 +22,12 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
+using SolTechnology.Avro.Features.JsonToAvro;
 using SolTechnology.Avro.Features.Serialize;
+using SolTechnology.Avro.Infrastructure.Extensions.JsonConvert;
 using RecordSchema = SolTechnology.Avro.AvroObjectServices.Schema.RecordSchema;
 
 namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
@@ -100,8 +104,44 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 
                 var value = expando.ToList().FirstOrDefault(x => x.Key == name).Value;
 
+                switch (value)
+                {
+                    case JObject jObject:
+                        value = JsonConvertExtensions.DeserializeExpando<ExpandoObject>(jObject.ToString());
+                        break;
+                    case JArray jArray:
+                        value = jArray.ToObject<object[]>();
+                        value = ((object[])value).Select(ApplySwithcxD);
+                        break;
+                    case JValue jValue:
+                        value = jValue.Value;
+                        break;
+                }
+
                 writer.WriteField(value, encoder);
             }
+        }
+
+        private object ApplySwithcxD(object value)
+        {
+            switch (value)
+            {
+                case JObject jObject:
+                    value = JsonConvertExtensions.DeserializeExpando<ExpandoObject>(jObject.ToString());
+                    break;
+                case JArray jArray:
+                    value = jArray.ToObject<object[]>();
+                    if (jArray.FirstOrDefault() is JObject)
+                    {
+
+                    }
+                    break;
+                case JValue jValue:
+                    value = jValue.Value;
+                    break;
+            }
+
+            return value;
         }
 
         private static Func<object, string, object> GenerateGetValue(Type type)

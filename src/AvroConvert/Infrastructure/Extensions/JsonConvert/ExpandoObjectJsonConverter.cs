@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
-using System.Text;
 using Newtonsoft.Json;
 
-namespace SolTechnology.Avro.Features.JsonToAvro
+namespace SolTechnology.Avro.Infrastructure.Extensions.JsonConvert
 {
     public class ExpandoObjectJsonConverter : JsonConverter
     {

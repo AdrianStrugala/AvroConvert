@@ -122,7 +122,7 @@ namespace AvroConvertComponentTests
     {
         public List<ClassWithArray> ClassesWithArray { get; set; }
         public ClassWithGuid[] ClassesWithGuid { get; set; }
-        //    public ClassWithConstructorPopulatingProperty anotherClass { get; set; }
+        public ClassWithConstructorPopulatingProperty anotherClass { get; set; }
         public User simpleClass { get; set; }
         public int simpleObject { get; set; }
         public List<bool> bools { get; set; }

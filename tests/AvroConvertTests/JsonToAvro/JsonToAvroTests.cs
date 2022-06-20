@@ -181,5 +181,23 @@ namespace AvroConvertComponentTests.JsonToAvro
             var deserialized = AvroConvert.Deserialize<List<User>>(resultAvro);
             deserialized.Should().BeEquivalentTo(testClass);
         }
+
+        [Fact]
+        public void JsonToAvro_ClassWithDictionary_ProducedDesiredAvro()
+        {
+            //Arrange
+            var testClass = _fixture.Create<ExtendedBaseTestClass>();
+
+            var serializedJson = JsonConvert.SerializeObject(testClass);
+
+
+            //Act
+            var resultAvro = AvroConvert.Json2Avro(serializedJson);
+
+
+            //Assert
+            var deserialized = AvroConvert.Deserialize<ExtendedBaseTestClass>(resultAvro);
+            deserialized.Should().BeEquivalentTo(testClass);
+        }
     }
 }

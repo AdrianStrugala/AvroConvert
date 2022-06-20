@@ -8,7 +8,7 @@ namespace SolTechnology.Avro.Features.JsonToAvro
     internal class ExpandoSerializer
     {
         internal byte[] SerializeExpando(ExpandoObject expandoObject, CodecType codecType)
-        {
+          {
             var expandoSchemaBuilder = new ExpandoSchemaBuilder();
 
             using (MemoryStream resultStream = new MemoryStream())

@@ -20,29 +20,38 @@ namespace SolTechnology.Avro.Features.JsonToAvro
 
         internal byte[] DecodeJson(string json, CodecType codecType)
         {
-            object deserializedJson;
-
-            //Array
-            if (json.StartsWith("["))
+            try
             {
-                var expandoList = DecodeArray(json);
-                var sth = _expandoSerializer.SerializeExpando(expandoList, CodecType.Null);
-                return sth;
+                object deserializedJson;
+
+                //Array
+                if (json.StartsWith("["))
+                {
+                    var expandoList = DecodeArray(json);
+                    var sth = _expandoSerializer.SerializeExpando(expandoList, CodecType.Null);
+                    return sth;
+                }
+
+
+                //Primitive
+                deserializedJson = TryDecodePrimitive(json);
+                if (deserializedJson != null)
+                {
+                    return AvroConvert.Serialize(deserializedJson, codecType);
+                }
+
+
+                //Class
+                var expando = JsonConvertExtensions.DeserializeExpando<ExpandoObject>(json);
+                var result = _expandoSerializer.SerializeExpando(expando, CodecType.Null);
+                return result;
             }
-
-
-            //Primitive
-            deserializedJson = TryDecodePrimitive(json);
-            if (deserializedJson != null)
+            catch (Exception e)
             {
-                return AvroConvert.Serialize(deserializedJson, codecType);
+                Console.WriteLine(e);
+                throw;
             }
-
-
-            //Class
-            var expando = JsonConvertExtensions.DeserializeExpando<ExpandoObject>(json);
-            var result = _expandoSerializer.SerializeExpando(expando, CodecType.Null);
-            return result;
+      
         }
 
         private List<ExpandoObject> DecodeArray(string json)

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using AutoFixture;
 using FluentAssertions;
 using Newtonsoft.Json;
@@ -183,7 +184,7 @@ namespace AvroConvertComponentTests.JsonToAvro
         }
 
         [Fact]
-        public void JsonToAvro_ClassWithDictionary_ProducedDesiredAvro()
+        public void JsonToAvro_ClassWithDictionary_ThrowsNotSupportedException()
         {
             //Arrange
             var testClass = _fixture.Create<ExtendedBaseTestClass>();
@@ -192,12 +193,11 @@ namespace AvroConvertComponentTests.JsonToAvro
 
 
             //Act
-            var resultAvro = AvroConvert.Json2Avro(serializedJson);
+            var exception = Record.Exception(() => AvroConvert.Json2Avro(serializedJson));
 
 
             //Assert
-            var deserialized = AvroConvert.Deserialize<ExtendedBaseTestClass>(resultAvro);
-            deserialized.Should().BeEquivalentTo(testClass);
+            exception.Should().BeOfType<NotSupportedException>();
         }
     }
 }

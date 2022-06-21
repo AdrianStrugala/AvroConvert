@@ -37,7 +37,7 @@ namespace SolTechnology.Avro.Features.JsonToAvro
             for (int i = 0; i < expandoObject.Count(); i++)
             {
                 var property = expandoObject.ElementAt(i);
-                
+
                 TypeSchema fieldSchema = BuildSchemaInternal(property.Value, property.Key);
 
                 var recordField = new RecordField(
@@ -62,14 +62,23 @@ namespace SolTechnology.Avro.Features.JsonToAvro
 
             if (item is JObject objectProperty)
             {
-                var innerExpandoObject = JsonConvertExtensions.DeserializeExpando<ExpandoObject>(objectProperty.ToString());
-                fieldSchema = BuildSchema(innerExpandoObject, name);
+
+             //   if (IsDictionary(objectProperty, name))
+                // {
+                //     throw new NotSupportedException(
+                //         $"Property [{name}] recognized as Dictionary. Dictionaries are not supported for anonymous Json2Avro invocation. To resolve the problem, please invoke generic Json2Avro<T> method.");
+                // }
+                // else
+                // {
+                    var innerExpandoObject = JsonConvertExtensions.DeserializeExpando<ExpandoObject>(objectProperty.ToString());
+                    fieldSchema = BuildSchema(innerExpandoObject, name);
+        //        }
             }
             else if (item is JArray arrayProperty)
             {
                 fieldSchema = BuildArraySchema(arrayProperty, name);
             }
-            else if(item is JValue jValue)
+            else if (item is JValue jValue)
             {
                 fieldSchema = _reflectionSchemaBuilder.BuildSchema(jValue.Value?.GetType());
             }
@@ -80,6 +89,7 @@ namespace SolTechnology.Avro.Features.JsonToAvro
 
             return fieldSchema;
         }
+
 
         internal TypeSchema BuildArraySchema(JArray incomingObject, string name = null)
         {
@@ -101,6 +111,34 @@ namespace SolTechnology.Avro.Features.JsonToAvro
             ArraySchema array = new ArraySchema(childSchema, typeof(object));
 
             return array;
+        }
+
+
+        private bool IsDictionary(JObject objectProperty, string name)
+        {
+            //No idea how to do this better
+
+            if (objectProperty.HasValues)
+            {
+                if (objectProperty.First != null && objectProperty.First<object>().GetType() != typeof(string))
+                {
+                    return true;
+                }
+
+                if (name.Contains("Dictionary") ||
+                    name.Contains("dictionary") ||
+                    name.Contains("dict") ||
+                    name.Contains("Dict") ||
+                    name.Contains("Map") ||
+                    name.Contains("map"))
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
+            return false;
         }
 
     }

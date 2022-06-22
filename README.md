@@ -12,8 +12,8 @@
 </p>
 
 <p align="center">
- <a href="https://www.nuget.org/packages/AvroConvert"><img src="https://img.shields.io/badge/Nuget-v3.2.8-blue?logo=nuget"></a>
- <a href="https://github.com/AdrianStrugala/AvroConvert"><img src="https://img.shields.io/badge/Downloads-175k-blue?logo=github"></a>
+ <a href="https://www.nuget.org/packages/AvroConvert"><img src="https://img.shields.io/badge/Nuget-v3.2.9-blue?logo=nuget"></a>
+ <a href="https://github.com/AdrianStrugala/AvroConvert"><img src="https://img.shields.io/badge/Downloads-180k-blue?logo=github"></a>
  <a href="https://ci.appveyor.com/project/AdrianStrugala/avroconvert"><img src="https://img.shields.io/appveyor/build/AdrianStrugala/AvroConvert?logo=azuredevops"></a>
 
 </p>
@@ -112,7 +112,13 @@ using (var reader = AvroConvert.OpenDeserializer<CustomClass>(new MemoryStream(a
 * Generation of C# models from Avro file or schema
 
 ```csharp
-  string resultModel = AvroConvert.GenerateModel(_avroBytes);
+  string resultModel = AvroConvert.GenerateModel(avroObject);
+```
+
+* Conversion of Avro to JSON directly
+
+```csharp
+  var resultJson = AvroConvert.Avro2Json(avroObject);
 ```
 
 

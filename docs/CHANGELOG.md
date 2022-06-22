@@ -290,3 +290,9 @@ START OF THE PROJECT
 \
 **v. 3.2.8 (01.06.22)**
 - Added support for Fixed and Map in GenerateModel
+
+\
+**v. 3.2.9 (22.06.22)**
+- Added support for union of Records
+- Fixed Avro2Json timestamp serialization and deserialization
+- Added Generic Json2Avro feature as foundation for dynamic one

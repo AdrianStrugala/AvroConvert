@@ -78,6 +78,8 @@ namespace SolTechnology.Avro.Features.AvroToJson
                     return ResolveMap((MapSchema)readerSchema, d);
                 case AvroType.Union:
                     return ResolveUnion((UnionSchema)readerSchema, d);
+                case AvroType.Logical:
+                    return ResolveLogical((LogicalTypeSchema)readerSchema, d);
                 default:
                     throw new AvroException("Unknown schema type: " + readerSchema);
             }
@@ -185,6 +187,12 @@ namespace SolTechnology.Avro.Features.AvroToJson
             }
 
             return resultSchema;
+        }
+
+        private object ResolveLogical(LogicalTypeSchema readerSchema, IReader reader)
+        {
+            var baseValue = Resolve(readerSchema.BaseTypeSchema, reader);
+            return readerSchema.ConvertToLogicalValue(baseValue, readerSchema, readerSchema.RuntimeType);
         }
     }
 }

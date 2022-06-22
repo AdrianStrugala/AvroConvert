@@ -40,6 +40,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
         private static readonly Decimal Decimal;
         private static readonly Duration Duration;
         private static readonly TimestampMilliseconds TimestampMilliseconds;
+        private static readonly TimestampMicroseconds TimestampMicroseconds;
 
         static Resolver()
         {
@@ -56,6 +57,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
             Decimal = new Decimal();
             Duration = new Duration();
             TimestampMilliseconds = new TimestampMilliseconds();
+            TimestampMicroseconds = new TimestampMicroseconds();
         }
 
         internal static Encoder.WriteItem ResolveWriter(TypeSchema schema)
@@ -90,6 +92,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
                                 return Decimal.Resolve((DecimalSchema)logicalTypeSchema);
                             case LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds:
                                 return TimestampMilliseconds.Resolve((TimestampMillisecondsSchema)logicalTypeSchema);
+                            case LogicalTypeSchema.LogicalTypeEnum.TimestampMicroseconds:
+                                return TimestampMicroseconds.Resolve((TimestampMicrosecondsSchema)logicalTypeSchema);
                             case LogicalTypeSchema.LogicalTypeEnum.Duration:
                                 return Duration.Resolve((DurationSchema)logicalTypeSchema);
                         }

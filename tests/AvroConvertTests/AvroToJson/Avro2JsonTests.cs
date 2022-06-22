@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Newtonsoft.Json;
 using SolTechnology.Avro;
 using Xunit;
@@ -138,6 +139,25 @@ namespace AvroConvertComponentTests.AvroToJson
 
             //Assert
             Assert.Equal(@"""""", resultJson);
+        }
+
+        [Fact]
+        public void Avro2Json_ConvertDateTime_ProducedDesiredJson()
+        {
+            //Arrange
+            var testObject = new DateTime(2022, 06, 13, 2, 0, 0, DateTimeKind.Utc);
+
+            var expectedJson = JsonConvert.SerializeObject(testObject);
+
+            var avroSerialized = AvroConvert.Serialize(testObject);
+
+
+            //Act
+            var resultJson = AvroConvert.Avro2Json(avroSerialized);
+
+
+            //Assert
+            Assert.Equal(expectedJson, resultJson);
         }
     }
 }

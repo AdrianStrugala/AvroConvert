@@ -20,44 +20,34 @@
 */
 #endregion
 
-using System.IO;
 using Newtonsoft.Json;
-using SolTechnology.Avro.AvroObjectServices.BuildSchema;
-using SolTechnology.Avro.Features.AvroToJson;
 
 namespace SolTechnology.Avro
 {
     public static partial class AvroConvert
     {
         /// <summary>
-        /// Converts AVRO object directly to JSON format
+        /// Converts Json object directly to Avro format
         /// </summary>
-        public static string Avro2Json(byte[] avro)
+        public static byte[] Json2Avro<T>(string json)
         {
-            using (var stream = new MemoryStream(avro))
-            {
-                var decoder = new Decoder();
-                var deserialized = decoder.Decode(stream, null);
-                var json = JsonConvert.SerializeObject(deserialized);
+            var deserializedJson = JsonConvert.DeserializeObject<T>(json);
+            var result = AvroConvert.Serialize(deserializedJson);
 
-                return json;
-            }
+            return result;
         }
 
 
         /// <summary>
-        /// Converts AVRO object compatible with given <paramref name="avroSchema"/> directly to JSON format
+        ///  Converts Json object directly to Avro format
+        /// Choosing <paramref name="codecType"/> reduces output object size
         /// </summary>
-        public static string Avro2Json(byte[] avro, string avroSchema)
+        public static byte[] Json2Avro<T>(string json, CodecType codecType)
         {
-            using (var stream = new MemoryStream(avro))
-            {
-                var decoder = new Decoder();
-                var deserialized = decoder.Decode(stream, Schema.Create(avroSchema));
-                var json = JsonConvert.SerializeObject(deserialized);
+            var deserializedJson = JsonConvert.DeserializeObject<T>(json);
+            var result = AvroConvert.Serialize(deserializedJson, codecType);
 
-                return json;
-            }
+            return result;
         }
     }
 }

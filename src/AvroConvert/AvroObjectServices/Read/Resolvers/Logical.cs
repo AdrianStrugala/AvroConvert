@@ -16,7 +16,7 @@
 #endregion
 
 using System;
-using SolTechnology.Avro.AvroObjectServices.Schema.Abstract;
+using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 
 namespace SolTechnology.Avro.AvroObjectServices.Read
 {

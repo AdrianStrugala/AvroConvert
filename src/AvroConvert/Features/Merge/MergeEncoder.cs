@@ -21,7 +21,6 @@ using System.IO;
 using System.Linq;
 using SolTechnology.Avro.AvroObjectServices.FileHeader;
 using SolTechnology.Avro.AvroObjectServices.FileHeader.Codec;
-using SolTechnology.Avro.AvroObjectServices.Schema.Abstract;
 using SolTechnology.Avro.AvroObjectServices.Write;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 

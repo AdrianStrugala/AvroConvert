@@ -21,7 +21,7 @@
 #endregion
 
 using Newtonsoft.Json.Linq;
-using SolTechnology.Avro.AvroObjectServices.Schema.Abstract;
+using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
 namespace SolTechnology.Avro.Features.GenerateModel.Resolvers

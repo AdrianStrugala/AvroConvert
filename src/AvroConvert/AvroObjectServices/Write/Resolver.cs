@@ -15,8 +15,8 @@
 */
 #endregion
 
-using SolTechnology.Avro.AvroObjectServices.Schema;
-using SolTechnology.Avro.AvroObjectServices.Schema.Abstract;
+using SolTechnology.Avro.AvroObjectServices.Schemas;
+using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.AvroObjectServices.Write.Resolvers;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Infrastructure.Exceptions;

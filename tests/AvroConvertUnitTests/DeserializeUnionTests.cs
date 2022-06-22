@@ -1,9 +1,10 @@
 ﻿using Newtonsoft.Json;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
-using SolTechnology.Avro.AvroObjectServices.Schema.Abstract;
 using SolTechnology.Avro;
 using System;
 using System.IO;
+using SolTechnology.Avro.AvroObjectServices.Schemas;
+using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using Xunit;
 using SolTechnology.Avro.Features.Serialize;
 
@@ -25,7 +26,7 @@ namespace AvroConvertUnitTests
         [InlineData(typeof(byte[]))]
         public void UnionsOfSameTypeShouldThrowException(Type type)
         {
-            var unionSchema = Schema.CreateUnion(Schema.Create(type), Schema.Create(type));
+            var unionSchema = new UnionSchema(Schema.Create(type), Schema.Create(type));
 
             Assert.ThrowsAny<Exception>(() => 
                 Schema.Create(unionSchema.ToString())
@@ -35,7 +36,7 @@ namespace AvroConvertUnitTests
         [Fact]
         public void UnionsOfDifferentRecordTypesShouldBeAllowed()
         {
-            var unionSchema = Schema.CreateUnion(Schema.Create(typeof(Person)), Schema.Create(typeof(Car)));
+            var unionSchema = new UnionSchema(Schema.Create(typeof(Person)), Schema.Create(typeof(Car)));
 
             var fromJsonSchema = Schema.Create(unionSchema.ToString());
 
@@ -52,7 +53,7 @@ namespace AvroConvertUnitTests
             var person = new Person { Name = "My Name" };
 
             // NOTE: Person is first schema in union
-            var unionSchema = Schema.CreateUnion(Schema.Create(typeof(Person)), Schema.Create(typeof(Car)));
+            var unionSchema = new UnionSchema(Schema.Create(typeof(Person)), Schema.Create(typeof(Car)));
 
             //Act
             // Serialize/deserialize with union schema
@@ -72,7 +73,7 @@ namespace AvroConvertUnitTests
             var person = new Person { Name = "My Name" };
 
             // NOTE: Person is second schema in union
-            var unionSchema = Schema.CreateUnion(Schema.Create(typeof(Car)), Schema.Create(typeof(Person)));
+            var unionSchema = new UnionSchema(Schema.Create(typeof(Car)), Schema.Create(typeof(Person)));
 
             //Act
             // Serialize/deserialize with union schema

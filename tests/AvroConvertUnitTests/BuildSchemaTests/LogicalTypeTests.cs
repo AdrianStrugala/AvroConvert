@@ -1,7 +1,7 @@
 ﻿using System;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
-using SolTechnology.Avro.AvroObjectServices.Schema;
-using SolTechnology.Avro.AvroObjectServices.Schema.Abstract;
+using SolTechnology.Avro.AvroObjectServices.Schemas;
+using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using Xunit;
 
 namespace AvroConvertUnitTests.BuildSchemaTests

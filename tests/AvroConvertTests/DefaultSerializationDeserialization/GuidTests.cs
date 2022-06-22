@@ -26,7 +26,6 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
 
             //Assert
             Assert.NotNull(result);
-            Assert.NotNull(deserialized);
             Assert.Equal(testClass, deserialized);
         }
 
@@ -42,7 +41,6 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
 
             //Assert
             Assert.NotNull(result);
-            Assert.NotNull(deserialized);
             Assert.Equal(testClass, deserialized);
         }
 

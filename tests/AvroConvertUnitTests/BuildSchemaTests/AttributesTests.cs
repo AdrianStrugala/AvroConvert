@@ -2,8 +2,8 @@
 using System.Linq;
 using SolTechnology.Avro;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
-using SolTechnology.Avro.AvroObjectServices.Schema;
-using SolTechnology.Avro.AvroObjectServices.Schema.Abstract;
+using SolTechnology.Avro.AvroObjectServices.Schemas;
+using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using Xunit;
 
 namespace AvroConvertUnitTests.BuildSchemaTests
@@ -36,7 +36,7 @@ namespace AvroConvertUnitTests.BuildSchemaTests
 
             var intField = resultSchema.Fields.SingleOrDefault(f => f.Name == "favorite_number");
             Assert.NotNull(intField);
-            Assert.Equal(true, intField.HasDefaultValue);
+            Assert.True(intField.HasDefaultValue);
             Assert.Equal(2137, intField.DefaultValue);
 
 

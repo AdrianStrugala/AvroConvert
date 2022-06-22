@@ -24,8 +24,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SolTechnology.Avro.AvroObjectServices.Read;
-using SolTechnology.Avro.AvroObjectServices.Schema;
-using SolTechnology.Avro.AvroObjectServices.Schema.Abstract;
+using SolTechnology.Avro.AvroObjectServices.Schemas;
+using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
+using SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
 namespace SolTechnology.Avro.Features.AvroToJson
@@ -116,8 +117,8 @@ namespace SolTechnology.Avro.Features.AvroToJson
 
         protected virtual object ResolveFixed(FixedSchema readerSchema, IReader d)
         {
-            FixedModel ru = new FixedModel(readerSchema);
-            byte[] bb = ((FixedModel)ru).Value;
+            AvroFixed ru = new AvroFixed(readerSchema);
+            byte[] bb = ((AvroFixed)ru).Value;
             d.ReadFixed(bb);
             return ru.Value;
         }

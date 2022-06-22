@@ -16,7 +16,7 @@
 #endregion
 
 using System;
-using SolTechnology.Avro.AvroObjectServices.Schema;
+using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 

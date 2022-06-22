@@ -1,6 +1,7 @@
 using System;
-using SolTechnology.Avro.AvroObjectServices.Schema;
-using SolTechnology.Avro.AvroObjectServices.Schema.Abstract;
+using SolTechnology.Avro.AvroObjectServices.Schemas;
+using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
+using SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes;
 
 namespace SolTechnology.Avro.AvroObjectServices.Read
 {
@@ -10,8 +11,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         {
             FixedSchema rs = (FixedSchema)readerSchema;
 
-            FixedModel ru = new FixedModel(rs);
-            byte[] bb = ((FixedModel)ru).Value;
+            AvroFixed ru = new AvroFixed(rs);
+            byte[] bb = ((AvroFixed)ru).Value;
             d.ReadFixed(bb);
 
             if (type == typeof(Guid))

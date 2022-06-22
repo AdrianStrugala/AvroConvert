@@ -23,7 +23,7 @@
 #endregion
 
 using System.Collections.Generic;
-using SolTechnology.Avro.AvroObjectServices.Schema.Abstract;
+using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 
 namespace SolTechnology.Avro.AvroObjectServices.FileHeader
 {

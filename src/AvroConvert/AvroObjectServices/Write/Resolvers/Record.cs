@@ -21,9 +21,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using SolTechnology.Avro.AvroObjectServices.BuildSchema;
+using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.Features.Serialize;
-using RecordSchema = SolTechnology.Avro.AvroObjectServices.Schema.RecordSchema;
 
 namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 {
@@ -36,7 +35,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
             WriteStep[] writeSteps = new WriteStep[recordSchema.Fields.Count];
 
             int index = 0;
-            foreach (RecordField field in recordSchema.Fields)
+            foreach (RecordFieldSchema field in recordSchema.Fields)
             {
                 var record = new WriteStep
                 {

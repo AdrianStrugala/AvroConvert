@@ -17,7 +17,7 @@
 
 using System.Collections;
 using System.Linq;
-using SolTechnology.Avro.AvroObjectServices.Schema;
+using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.Features.Serialize;
 
 namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers

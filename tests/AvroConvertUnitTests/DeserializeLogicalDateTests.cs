@@ -1,12 +1,11 @@
 ﻿using SolTechnology.Avro;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
-using SolTechnology.Avro.AvroObjectServices.Schema;
-using SolTechnology.Avro.AvroObjectServices.Schema.Abstract;
 using SolTechnology.Avro.Features.Serialize;
 using System;
 using System.IO;
 using Xunit;
 using Newtonsoft.Json;
+using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 
 namespace AvroConvertUnitTests
 {

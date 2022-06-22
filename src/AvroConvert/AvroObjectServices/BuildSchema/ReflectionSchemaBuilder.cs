@@ -21,8 +21,8 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
-using SolTechnology.Avro.AvroObjectServices.Schema;
-using SolTechnology.Avro.AvroObjectServices.Schema.Abstract;
+using SolTechnology.Avro.AvroObjectServices.Schemas;
+using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Infrastructure.Attributes;
 using SolTechnology.Avro.Infrastructure.Extensions;
 
@@ -107,26 +107,6 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             if (currentDepth == this.settings.MaxItemsInSchemaTree)
             {
                 throw new SerializationException(string.Format(CultureInfo.InvariantCulture, "Maximum depth of object graph reached."));
-            }
-
-            var surrogate = this.settings.Surrogate;
-            if (surrogate != null)
-            {
-                var surrogateType = surrogate.GetSurrogateType(type);
-                if (surrogateType == null || surrogateType.IsUnsupported())
-                {
-                    throw new SerializationException(
-                        string.Format(CultureInfo.InvariantCulture, "Type '{0}' is not supported.", surrogateType ?? type));
-                }
-
-                if (type != surrogateType)
-                {
-                    return new SurrogateSchema(
-                        type,
-                        surrogateType,
-                        new Dictionary<string, string>(),
-                        this.CreateSchema(forceNullable, surrogateType, schemas, currentDepth + 1));
-                }
             }
 
             var typeInfo = this.settings.Resolver.ResolveType(type, memberInfo);
@@ -464,7 +444,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 var aliases = info
                     .Aliases
                     .ToList();
-                var recordField = new RecordField(
+                var recordField = new RecordFieldSchema(
                     new NamedEntityAttributes(new SchemaName(info.Name), aliases, info.Doc),
                     fieldSchema,
                     SortOrder.Ascending,

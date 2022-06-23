@@ -61,12 +61,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 
         private void WriteRecordFields(object recordObj, WriteStep[] writers, IWriter encoder)
         {
-            if (recordObj is JObject expando)
-            {
-                HandleExpando(expando, writers, encoder);
-                return;
-            }
-
             var type = recordObj.GetType();
             var typeHash = type.GetHashCode();
 
@@ -93,54 +87,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 
                 writer.WriteField(value, encoder);
             }
-        }
-
-        private void HandleExpando(JObject expando, WriteStep[] writers, IWriter encoder)
-        {
-            foreach (var writer in writers)
-            {
-                string name = writer.Field.Aliases.FirstOrDefault() ?? writer.Field.Name;
-
-                object value = expando.Properties().FirstOrDefault(x => x.Name == name).Value;
-
-                switch (value)
-                {
-                    case JObject jObject:
-                        value = jObject;
-                        break;
-                    case JArray jArray:
-                        value = jArray.ToObject<object[]>();
-                        value = ((object[])value).Select(ApplySwithcxD);
-                        break;
-                    case JValue jValue:
-                        value = jValue.Value;
-                        break;
-                }
-
-                writer.WriteField(value, encoder);
-            }
-        }
-
-        private object ApplySwithcxD(object value)
-        {
-            switch (value)
-            {
-                case JObject jObject:
-                    value = JsonConvertExtensions.DeserializeExpando<ExpandoObject>(jObject.ToString());
-                    break;
-                case JArray jArray:
-                    value = jArray.ToObject<object[]>();
-                    if (jArray.FirstOrDefault() is JObject)
-                    {
-
-                    }
-                    break;
-                case JValue jValue:
-                    value = jValue.Value;
-                    break;
-            }
-
-            return value;
         }
 
         private static Func<object, string, object> GenerateGetValue(Type type)

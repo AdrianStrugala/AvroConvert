@@ -22,7 +22,7 @@ namespace AvroConvertUnitTests
 
             // Change schema logical type from timestamp-millis to timestamp-micros (a bit hacky)
             var schemaJson = schema.ToString().Replace(LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds, LogicalTypeSchema.LogicalTypeEnum.TimestampMicroseconds);
-            var microsecondsSchema = new JsonSchemaBuilder().BuildSchema(schemaJson);
+            var microsecondsSchema = new TypeSchemaBuilder().BuildSchema(schemaJson);
             
             byte[] result;
             using (MemoryStream resultStream = new MemoryStream())

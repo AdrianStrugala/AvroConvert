@@ -25,30 +25,30 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         {
             float value = reader.ReadFloat();
 
-            if (readType != typeof(float))
+            if (readType != typeof(float) )
             {
-                if (readType == typeof(int))
+                if (readType == typeof(int) || readType == typeof(int?))
                 {
                     return Convert.ToInt32(value);
                 }
 
-                if (readType == typeof(short))
+                if (readType == typeof(short) || readType == typeof(short?))
                 {
                     return Convert.ToInt16(value);
                 }
 
-                if (readType == typeof(decimal))
+                if (readType == typeof(decimal) || readType == typeof(decimal?))
                 {
                     return Convert.ToDecimal(value);
                 }
 
 
-                if (readType == typeof(long))
+                if (readType == typeof(long) || readType == typeof(long?))
                 {
                     return Convert.ToInt64(value);
                 }
 
-                if (readType == typeof(double))
+                if (readType == typeof(double) || readType == typeof(double?))
                 {
                     return Convert.ToDouble(value);
                 }

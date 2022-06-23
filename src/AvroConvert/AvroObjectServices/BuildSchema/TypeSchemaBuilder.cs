@@ -33,7 +33,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
     /// <summary>
     ///     Class responsible for building the internal representation of the schema given a JSON string.
     /// </summary>
-    internal sealed class JsonSchemaBuilder
+    internal sealed class TypeSchemaBuilder
     {
         private static readonly Dictionary<string, Func<PrimitiveTypeSchema>> PrimitiveRuntimeType
             = new Dictionary<string, Func<PrimitiveTypeSchema>>(comparer: StringComparer.InvariantCultureIgnoreCase)

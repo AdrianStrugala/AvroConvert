@@ -8,11 +8,11 @@ using Xunit;
 
 namespace AvroConvertComponentTests.JsonToAvro
 {
-    public class JsonToAvroTests
+    public class DynamicJson2AvroTests
     {
         private readonly Fixture _fixture;
 
-        public JsonToAvroTests()
+        public DynamicJson2AvroTests()
         {
             _fixture = new Fixture();
         }

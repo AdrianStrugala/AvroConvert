@@ -6,11 +6,11 @@ using Xunit;
 
 namespace AvroConvertComponentTests.JsonToAvro
 {
-    public class Json2AvroTests
+    public class GenericJson2AvroTests
     {
         private readonly Fixture _fixture;
 
-        public Json2AvroTests()
+        public GenericJson2AvroTests()
         {
             _fixture = new AutoFixture.Fixture();
         }

@@ -1,72 +1,43 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
-using System.Dynamic;
+using System.IO;
+using System.Linq;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
-using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.Infrastructure.Extensions;
-using SolTechnology.Avro.Infrastructure.Extensions.JsonConvert;
 
 namespace SolTechnology.Avro.Features.JsonToAvro
 {
     internal class JsonToAvroDecoder
     {
-        private readonly ExpandoSerializer _expandoSerializer;
+        private readonly JsonSerializer jsonSerializer;
 
         public JsonToAvroDecoder()
         {
-            _expandoSerializer = new ExpandoSerializer();
+            jsonSerializer = new JsonSerializer();
         }
 
         internal byte[] DecodeJson(string json, CodecType codecType)
         {
-            try
+            var token = JToken.Parse(json);
+
+            //Array
+            if (token.Type == JTokenType.Array)
             {
-                object deserializedJson;
-
-                //Array
-                if (json.StartsWith("["))
-                {
-                    var expandoList = DecodeArray(json);
-                    var sth = _expandoSerializer.SerializeExpando(expandoList, CodecType.Null);
-                    return sth;
-                }
-
-
-                //Primitive
-                deserializedJson = TryDecodePrimitive(json);
-                if (deserializedJson != null)
-                {
-                    return AvroConvert.Serialize(deserializedJson, codecType);
-                }
-
-
-                //Class
-                var expando = JsonConvertExtensions.DeserializeExpando<ExpandoObject>(json);
-
-                var rep = JsonConvert.DeserializeObject<JObject>(json);
-
-                var lol = new ExpandoSchemaBuilder();
-                var schema = lol.BuildSchema(rep);
-
-
-
-                var xd = new JsonObjectParser();
-
-                var dupa = xd.Parse(schema, json);
-
-
-                var result = _expandoSerializer.SerializeExpando(rep, CodecType.Null);
-                return result;
+                return SerializeJArray(DecodeArray(json), codecType);
             }
-            catch (Exception e)
+
+
+            //Class
+            if (token.Type == JTokenType.Object)
             {
-                Console.WriteLine(e);
-                throw;
+                var jObject = (JObject)token;
+                return SerializeJArray(new List<JObject> { jObject }, codecType);
             }
-      
+
+            //Assume Primitive
+            return AvroConvert.Serialize(token.ToObject<object>(), codecType);
+
         }
 
         private List<JObject> DecodeArray(string json)
@@ -78,42 +49,35 @@ namespace SolTechnology.Avro.Features.JsonToAvro
             {
                 var childItem = ((IList)incomingObject)[0];
 
-                var xd = JsonConvertExtensions.DeserializeExpando<List<JObject>>(json);
-              
+                var xd = JsonConvert.DeserializeObject<List<JObject>>(json);
+
                 return xd;
             }
 
             return null;
         }
 
-        private object TryDecodePrimitive(string json)
+        internal byte[] SerializeJArray(List<JObject> expandoObjects, CodecType codecType)
         {
-            try
-            {
-                var incomingObject = JsonConvertExtensions.DeserializeExpando<object>(json);
-                var incomingObjectType = incomingObject?.GetType();
+            var expandoSchemaBuilder = new JsonSchemaBuilder();
 
-                if (incomingObjectType == typeof(string) ||
-                    incomingObjectType == typeof(int) ||
-                    incomingObjectType == typeof(decimal) ||
-                    incomingObjectType == typeof(double) ||
-                    incomingObjectType == typeof(float) ||
-                    incomingObjectType == typeof(Guid) ||
-                    incomingObjectType == typeof(Uri) ||
-                    incomingObjectType == typeof(byte) ||
-                    incomingObjectType == typeof(byte) ||
-                    incomingObjectType == typeof(long))
+            using (MemoryStream resultStream = new MemoryStream())
+            {
+                var schema = expandoSchemaBuilder.BuildSchema(expandoObjects.FirstOrDefault());
+
+                using (var writer = new Serialize.Encoder(schema, resultStream, codecType))
                 {
-                    return incomingObject;
+                    foreach (var expandoObject in expandoObjects)
+                    {
+
+                        writer.Append(expandoObject);
+                    }
                 }
+
+                var result = resultStream.ToArray();
+                return result;
             }
-            catch (JsonSerializationException)
-            {
-
-            }
-
-
-            return null;
         }
+
     }
 }

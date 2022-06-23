@@ -1,27 +1,18 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Dynamic;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Infrastructure.Attributes;
-using SolTechnology.Avro.Infrastructure.Extensions;
-using SolTechnology.Avro.Infrastructure.Extensions.JsonConvert;
 
 namespace SolTechnology.Avro.Features.JsonToAvro
 {
-    public class ExpandoSchemaBuilder
+    public class JsonSchemaBuilder
     {
         private readonly ReflectionSchemaBuilder _reflectionSchemaBuilder;
 
-        public ExpandoSchemaBuilder()
+        public JsonSchemaBuilder()
         {
             _reflectionSchemaBuilder = new ReflectionSchemaBuilder();
         }
@@ -32,7 +23,7 @@ namespace SolTechnology.Avro.Features.JsonToAvro
                 new SchemaName(name ?? "UnknownObject"),
                 new List<string>(),
                 ""),
-                typeof(object));
+                typeof(JObject));
 
 
             for (int i = 0; i < expandoObject.Properties().Count(); i++)

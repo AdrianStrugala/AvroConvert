@@ -16,6 +16,7 @@
 #endregion
 
 using System;
+using Newtonsoft.Json.Linq;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.AvroObjectServices.Write.Resolvers;
@@ -46,6 +47,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
         private static readonly Duration Duration;
         private static readonly TimestampMilliseconds TimestampMilliseconds;
         private static readonly TimestampMicroseconds TimestampMicroseconds;
+        private static readonly Json Json;
 
         static Resolver()
         {
@@ -63,6 +65,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
             Duration = new Duration();
             TimestampMilliseconds = new TimestampMilliseconds();
             TimestampMicroseconds = new TimestampMicroseconds();
+            Json = new Json();
         }
 
         internal static Encoder.WriteItem ResolveWriter(TypeSchema schema)
@@ -105,6 +108,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
                     }
                     return String.Resolve;
                 case AvroType.Record:
+                    if (schema.RuntimeType == typeof(JObject))
+                    {
+                        return Json.Resolve((RecordSchema)schema);
+                    }
                     return Record.Resolve((RecordSchema)schema);
                 case AvroType.Enum:
                     return Enum.Resolve((EnumSchema)schema);

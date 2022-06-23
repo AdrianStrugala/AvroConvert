@@ -61,7 +61,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 
         private void WriteRecordFields(object recordObj, WriteStep[] writers, IWriter encoder)
         {
-            if (recordObj is ExpandoObject expando)
+            if (recordObj is JObject expando)
             {
                 HandleExpando(expando, writers, encoder);
                 return;
@@ -95,18 +95,18 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
             }
         }
 
-        private void HandleExpando(ExpandoObject expando, WriteStep[] writers, IWriter encoder)
+        private void HandleExpando(JObject expando, WriteStep[] writers, IWriter encoder)
         {
             foreach (var writer in writers)
             {
                 string name = writer.Field.Aliases.FirstOrDefault() ?? writer.Field.Name;
 
-                var value = expando.ToList().FirstOrDefault(x => x.Key == name).Value;
+                object value = expando.Properties().FirstOrDefault(x => x.Name == name).Value;
 
                 switch (value)
                 {
                     case JObject jObject:
-                        value = JsonConvertExtensions.DeserializeExpando<ExpandoObject>(jObject.ToString());
+                        value = jObject;
                         break;
                     case JArray jArray:
                         value = jArray.ToObject<object[]>();

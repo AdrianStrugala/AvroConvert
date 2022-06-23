@@ -26,7 +26,7 @@ namespace SolTechnology.Avro.Features.JsonToAvro
             _reflectionSchemaBuilder = new ReflectionSchemaBuilder();
         }
 
-        internal TypeSchema BuildSchema(ExpandoObject expandoObject, string name = null)
+        internal TypeSchema BuildSchema(JObject expandoObject, string name = null)
         {
             RecordSchema record = new RecordSchema(new NamedEntityAttributes(
                 new SchemaName(name ?? "UnknownObject"),
@@ -35,14 +35,14 @@ namespace SolTechnology.Avro.Features.JsonToAvro
                 typeof(object));
 
 
-            for (int i = 0; i < expandoObject.Count(); i++)
+            for (int i = 0; i < expandoObject.Properties().Count(); i++)
             {
-                var property = expandoObject.ElementAt(i);
+                var property = expandoObject.Properties().ElementAt(i);
 
-                TypeSchema fieldSchema = BuildSchemaInternal(property.Value, property.Key);
+                TypeSchema fieldSchema = BuildSchemaInternal(property.Value, property.Name);
 
                 var recordField = new RecordFieldSchema(
-                    new NamedEntityAttributes(new SchemaName(property.Key), new List<string>(), string.Empty),
+                    new NamedEntityAttributes(new SchemaName(property.Name), new List<string>(), string.Empty),
                     fieldSchema,
                     SortOrder.Ascending,
                     false,
@@ -71,8 +71,8 @@ namespace SolTechnology.Avro.Features.JsonToAvro
                 // }
                 // else
                 // {
-                    var innerExpandoObject = JsonConvertExtensions.DeserializeExpando<ExpandoObject>(objectProperty.ToString());
-                    fieldSchema = BuildSchema(innerExpandoObject, name);
+                    // var innerExpandoObject = JsonConvertExtensions.DeserializeExpando<ExpandoObject>(objectProperty.ToString());
+                    fieldSchema = BuildSchema(objectProperty, name);
         //        }
             }
             else if (item is JArray arrayProperty)

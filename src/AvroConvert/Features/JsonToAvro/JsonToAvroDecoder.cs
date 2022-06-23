@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.Infrastructure.Extensions;
 using SolTechnology.Avro.Infrastructure.Extensions.JsonConvert;
@@ -45,8 +46,10 @@ namespace SolTechnology.Avro.Features.JsonToAvro
                 //Class
                 var expando = JsonConvertExtensions.DeserializeExpando<ExpandoObject>(json);
 
+                var rep = JsonConvert.DeserializeObject<JObject>(json);
+
                 var lol = new ExpandoSchemaBuilder();
-                var schema = lol.BuildSchema(expando);
+                var schema = lol.BuildSchema(rep);
 
 
 
@@ -55,7 +58,7 @@ namespace SolTechnology.Avro.Features.JsonToAvro
                 var dupa = xd.Parse(schema, json);
 
 
-                var result = _expandoSerializer.SerializeExpando(expando, CodecType.Null);
+                var result = _expandoSerializer.SerializeExpando(rep, CodecType.Null);
                 return result;
             }
             catch (Exception e)
@@ -66,7 +69,7 @@ namespace SolTechnology.Avro.Features.JsonToAvro
       
         }
 
-        private List<ExpandoObject> DecodeArray(string json)
+        private List<JObject> DecodeArray(string json)
         {
             var incomingObject = JsonConvert.DeserializeObject<object>(json);
 
@@ -75,7 +78,7 @@ namespace SolTechnology.Avro.Features.JsonToAvro
             {
                 var childItem = ((IList)incomingObject)[0];
 
-                var xd = JsonConvertExtensions.DeserializeExpando<List<ExpandoObject>>(json);
+                var xd = JsonConvertExtensions.DeserializeExpando<List<JObject>>(json);
               
                 return xd;
             }

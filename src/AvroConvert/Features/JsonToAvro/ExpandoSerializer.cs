@@ -2,12 +2,13 @@
 using System.Dynamic;
 using System.IO;
 using System.Linq;
+using Newtonsoft.Json.Linq;
 
 namespace SolTechnology.Avro.Features.JsonToAvro
 {
     internal class ExpandoSerializer
     {
-        internal byte[] SerializeExpando(ExpandoObject expandoObject, CodecType codecType)
+        internal byte[] SerializeExpando(JObject expandoObject, CodecType codecType)
         {
             var expandoSchemaBuilder = new ExpandoSchemaBuilder();
 
@@ -25,7 +26,7 @@ namespace SolTechnology.Avro.Features.JsonToAvro
             }
         }
 
-        internal byte[] SerializeExpando(List<ExpandoObject> expandoObjects, CodecType codecType)
+        internal byte[] SerializeExpando(List<JObject> expandoObjects, CodecType codecType)
         {
             var expandoSchemaBuilder = new ExpandoSchemaBuilder();
 

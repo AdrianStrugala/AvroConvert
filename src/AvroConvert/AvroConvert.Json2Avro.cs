@@ -21,6 +21,8 @@
 #endregion
 
 using Newtonsoft.Json;
+using SolTechnology.Avro.AvroObjectServices.BuildSchema;
+using SolTechnology.Avro.Features.JsonToAvro;
 
 namespace SolTechnology.Avro
 {
@@ -31,6 +33,8 @@ namespace SolTechnology.Avro
         /// </summary>
         public static byte[] Json2Avro(string json)
         {
+
+            
             var decoder = new JsonToAvroDecoder();
             return decoder.DecodeJson(json, CodecType.Null);
 

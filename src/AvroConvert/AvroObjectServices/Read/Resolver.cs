@@ -68,34 +68,34 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                 {
                     case AvroType.Null:
                         return null;
-                    case Schema.AvroType.Boolean:
+                    case AvroType.Boolean:
                         return reader.ReadBoolean();
-                    case Schema.AvroType.Int:
+                    case AvroType.Int:
                         return ResolveInt(type, reader);
-                    case Schema.AvroType.Long:
+                    case AvroType.Long:
                         return ResolveLong(type, reader);
-                    case Schema.AvroType.Float:
+                    case AvroType.Float:
                         return ResolveFloat(type, reader);
-                    case Schema.AvroType.Double:
+                    case AvroType.Double:
                         return ResolveDouble(type, reader);
-                    case Schema.AvroType.String:
+                    case AvroType.String:
                         return ResolveString(type, reader);
-                    case Schema.AvroType.Bytes:
+                    case AvroType.Bytes:
                         return reader.ReadBytes();
-                    case Schema.AvroType.Logical:
+                    case AvroType.Logical:
                         return ResolveLogical((LogicalTypeSchema)writerSchema, readerSchema, reader, type);
-                    case Schema.AvroType.Error:
-                    case Schema.AvroType.Record:
+                    case AvroType.Error:
+                    case AvroType.Record:
                         return ResolveRecord((RecordSchema)writerSchema, (RecordSchema)readerSchema, reader, type);
-                    case Schema.AvroType.Enum:
+                    case AvroType.Enum:
                         return ResolveEnum((EnumSchema)writerSchema, readerSchema, reader, type);
-                    case Schema.AvroType.Fixed:
+                    case AvroType.Fixed:
                         return ResolveFixed((FixedSchema)writerSchema, readerSchema, reader, type);
-                    case Schema.AvroType.Array:
+                    case AvroType.Array:
                         return ResolveArray(writerSchema, readerSchema, reader, type);
-                    case Schema.AvroType.Map:
+                    case AvroType.Map:
                         return ResolveMap((MapSchema)writerSchema, readerSchema, reader, type);
-                    case Schema.AvroType.Union:
+                    case AvroType.Union:
                         return ResolveUnion((UnionSchema)writerSchema, readerSchema, reader, type);
                     default:
                         throw new AvroException("Unknown schema type: " + writerSchema);

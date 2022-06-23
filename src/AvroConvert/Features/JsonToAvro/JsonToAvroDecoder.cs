@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.Infrastructure.Extensions;
 using SolTechnology.Avro.Infrastructure.Extensions.JsonConvert;
 
@@ -43,6 +44,17 @@ namespace SolTechnology.Avro.Features.JsonToAvro
 
                 //Class
                 var expando = JsonConvertExtensions.DeserializeExpando<ExpandoObject>(json);
+
+                var lol = new ExpandoSchemaBuilder();
+                var schema = lol.BuildSchema(expando);
+
+
+
+                var xd = new JsonObjectParser();
+
+                var dupa = xd.Parse(schema, json);
+
+
                 var result = _expandoSerializer.SerializeExpando(expando, CodecType.Null);
                 return result;
             }

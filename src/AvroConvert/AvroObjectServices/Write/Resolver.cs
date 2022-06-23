@@ -15,6 +15,7 @@
 */
 #endregion
 
+using System;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.AvroObjectServices.Write.Resolvers;

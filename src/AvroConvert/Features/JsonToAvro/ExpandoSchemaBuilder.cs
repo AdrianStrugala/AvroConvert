@@ -9,8 +9,9 @@ using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
-using SolTechnology.Avro.AvroObjectServices.Schema;
-using SolTechnology.Avro.AvroObjectServices.Schema.Abstract;
+using SolTechnology.Avro.AvroObjectServices.Schemas;
+using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
+using SolTechnology.Avro.Infrastructure.Attributes;
 using SolTechnology.Avro.Infrastructure.Extensions;
 using SolTechnology.Avro.Infrastructure.Extensions.JsonConvert;
 
@@ -40,7 +41,7 @@ namespace SolTechnology.Avro.Features.JsonToAvro
 
                 TypeSchema fieldSchema = BuildSchemaInternal(property.Value, property.Key);
 
-                var recordField = new RecordField(
+                var recordField = new RecordFieldSchema(
                     new NamedEntityAttributes(new SchemaName(property.Key), new List<string>(), string.Empty),
                     fieldSchema,
                     SortOrder.Ascending,

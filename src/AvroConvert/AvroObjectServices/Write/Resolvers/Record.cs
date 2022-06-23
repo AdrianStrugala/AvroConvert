@@ -28,8 +28,7 @@ using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.Features.JsonToAvro;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Infrastructure.Extensions.JsonConvert;
-using RecordSchema = SolTechnology.Avro.AvroObjectServices.Schema.RecordSchema;
-
+using SolTechnology.Avro.AvroObjectServices.Schemas;
 namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 {
     internal class Record
@@ -41,7 +40,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
             WriteStep[] writeSteps = new WriteStep[recordSchema.Fields.Count];
 
             int index = 0;
-            foreach (RecordField field in recordSchema.Fields)
+            foreach (RecordFieldSchema field in recordSchema.Fields)
             {
                 var record = new WriteStep
                 {

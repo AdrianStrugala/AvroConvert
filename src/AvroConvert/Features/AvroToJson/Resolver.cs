@@ -24,8 +24,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SolTechnology.Avro.AvroObjectServices.Read;
-using SolTechnology.Avro.AvroObjectServices.Schema;
-using SolTechnology.Avro.AvroObjectServices.Schema.Abstract;
+using SolTechnology.Avro.AvroObjectServices.Schemas;
+using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
+using SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
 namespace SolTechnology.Avro.Features.AvroToJson
@@ -78,6 +79,8 @@ namespace SolTechnology.Avro.Features.AvroToJson
                     return ResolveMap((MapSchema)readerSchema, d);
                 case AvroType.Union:
                     return ResolveUnion((UnionSchema)readerSchema, d);
+                case AvroType.Logical:
+                    return ResolveLogical((LogicalTypeSchema)readerSchema, d);
                 default:
                     throw new AvroException("Unknown schema type: " + readerSchema);
             }
@@ -114,8 +117,8 @@ namespace SolTechnology.Avro.Features.AvroToJson
 
         protected virtual object ResolveFixed(FixedSchema readerSchema, IReader d)
         {
-            FixedModel ru = new FixedModel(readerSchema);
-            byte[] bb = ((FixedModel)ru).Value;
+            AvroFixed ru = new AvroFixed(readerSchema);
+            byte[] bb = ((AvroFixed)ru).Value;
             d.ReadFixed(bb);
             return ru.Value;
         }
@@ -177,7 +180,7 @@ namespace SolTechnology.Avro.Features.AvroToJson
 
         protected static TypeSchema FindBranch(UnionSchema us, TypeSchema schema)
         {
-            var resultSchema = us.Schemas.FirstOrDefault(s => s.Type == schema.Type);
+            var resultSchema = us.Schemas.FirstOrDefault(s => s.Name == schema.Name);
 
             if (resultSchema == null)
             {
@@ -185,6 +188,12 @@ namespace SolTechnology.Avro.Features.AvroToJson
             }
 
             return resultSchema;
+        }
+
+        private object ResolveLogical(LogicalTypeSchema readerSchema, IReader reader)
+        {
+            var baseValue = Resolve(readerSchema.BaseTypeSchema, reader);
+            return readerSchema.ConvertToLogicalValue(baseValue, readerSchema, readerSchema.RuntimeType);
         }
     }
 }

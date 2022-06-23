@@ -16,8 +16,9 @@
 #endregion
 
 using System.Linq;
-using SolTechnology.Avro.AvroObjectServices.Schema;
-using SolTechnology.Avro.AvroObjectServices.Schema.Abstract;
+using SolTechnology.Avro.AvroObjectServices.Schemas;
+using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
+using SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
@@ -67,8 +68,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
                 case AvroType.String:
                     return true;
                 case AvroType.Error:
-                case AvroType.Record:
                     return true;
+                case AvroType.Record:
+                    return obj.GetType().FullName.Equals((sc as RecordSchema).FullName);
                 case AvroType.Enum:
                     return obj is System.Enum;
                 case AvroType.Array:
@@ -79,8 +81,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
                     return false; // Union directly within another union not allowed!
                 case AvroType.Fixed:
                     //return obj is GenericFixed && (obj as GenericFixed)._schema.Equals(s);
-                    return obj is FixedModel &&
-                           (obj as FixedModel).Schema.FullName.Equals((sc as FixedSchema).FullName);
+                    return obj is AvroFixed &&
+                           (obj as AvroFixed).Schema.FullName.Equals((sc as FixedSchema).FullName);
                 case AvroType.Logical:
                     // return (sc as LogicalTypeSchema).IsInstanceOfLogicalType(obj);
                     return true;

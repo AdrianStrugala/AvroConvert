@@ -48,7 +48,7 @@ public class DefaultValueClass
 > 2137
 ```
 
-Deserialization of large collection of AVRO objects one by one
+Deserialization of large collection of Avro objects one by one
 ```csharp
 using (var reader = AvroConvert.OpenDeserializer<CustomClass>(new MemoryStream(avroObject)))
 {
@@ -60,6 +60,88 @@ using (var reader = AvroConvert.OpenDeserializer<CustomClass>(new MemoryStream(a
 }
 ```
 
+### Reading Avro schema from Avro encoded object
+```csharp
+string schemaInJsonFormat = AvroConvert.GetSchema(byte[] avroObject)
+```
+
+
+### Avro2Json
+
+Converts Avro serialized object directly to JSON format. Useful for a minimal API approach
+
+```csharp
+
+var resultJson = AvroConvert.Avro2Json(byte[] avroData);
+
+
+example:
+//Arrange
+var user = _fixture.Creat<User>();
+var avroData = AvroConvert.Serialize(user);
+
+
+//Act 
+var resultJson = AvroConvert.Avro2Json(avroData);
+
+
+//Assert
+var expectedJson = JsonConvert.SerializeObject(user);
+Assert.Equal(expectedJson, resultJson);
+
+```
+
+
+
+### Generate Model
+
+Generates C# .NET classes (models) from Avro file or schema.
+This action is inversed to GenerateSchema.
+
+```csharp
+//Given is schema
+var schema = AvroConvert.GenerateSchema(typeof(User));
+
+{
+   "type":"record",
+   "name":"AvroConvertComponentTests.User",
+   "fields":[
+      {
+         "name":"name",
+         "type":"string"
+      },
+      {
+         "name":"favorite_number",
+         "type":[
+            "null",
+            "int"
+         ]
+      },
+      {
+         "name":"favorite_color",
+         "type":"string"
+      }
+   ]
+}
+
+//Action
+string resultModel = AvroConvert.GenerateModel(schema); //string
+
+OR
+
+string resultModel = AvroConvert.GenerateModel(avroFileContent); //byte[]
+
+//Produces following model:
+public class User
+{
+    public string name { get; set; }
+    public int? favorite_number { get; set; }
+    public string? favorite_color { get; set; }
+}
+
+
+```
+
 
 ### Generating Avro schema for C# classes
 
@@ -69,9 +151,8 @@ Using simple class
 //Model
 public class SimpleTestClass
 {
-	public string justSomeProperty { get; set; }
-
-	public long andLongProperty { get; set; }
+    public string justSomeProperty { get; set; }
+    public long andLongProperty { get; set; }
 }
 
 
@@ -80,7 +161,23 @@ string schemaInJsonFormat = AvroConvert.GenerateSchema(typeof(SimpleTestClass));
 
 
 //Produces following schema:
-"{"type":"record","name":"AvroConvert.SimpleTestClass","fields":[{"name":"justSomeProperty","type":["null","string"]},{"name":"andLongProperty","type":"long"}]}"
+{
+   "type":"record",
+   "name":"AvroConvert.SimpleTestClass",
+   "fields":[
+      {
+         "name":"justSomeProperty",
+         "type":[
+            "null",
+            "string"
+         ]
+      },
+      {
+         "name":"andLongProperty",
+         "type":"long"
+      }
+   ]
+}
 ```
 
 Using class decorated with attributes
@@ -163,10 +260,7 @@ string schemaInJsonFormat = AvroConvert.GenerateSchema(typeof(AttributeClass));
 
 
 
-### Reading Avro schema from Avro encoded object
-```csharp
-string schemaInJsonFormat = AvroConvert.GetSchema(byte[] avroObject)
-```
+
 
 ### Headless serialization and deserialization
 
@@ -206,52 +300,3 @@ var deserializedResult = AvroConvert.Deserialize<List<User>>(result);
 
 ```
 
-
-### Generate Model
-
-Generates C# .NET classes (models) from Avro file or schema.
-This action is inversed to GenerateSchema.
-
-```csharp
-//Given is schema
-var schema = AvroConvert.GenerateSchema(typeof(User));
-
-{
-   "type":"record",
-   "name":"AvroConvertComponentTests.User",
-   "fields":[
-      {
-         "name":"name",
-         "type":"string"
-      },
-      {
-         "name":"favorite_number",
-         "type":[
-            "null",
-            "int"
-         ]
-      },
-      {
-         "name":"favorite_color",
-         "type":"string"
-      }
-   ]
-}
-
-//Action
-string resultModel = AvroConvert.GenerateModel(schema); //string
-
-OR
-
-string resultModel = AvroConvert.GenerateModel(avroFileContent); //byte[]
-
-//Produces following schema:
-public class User
-{
-	public string name { get; set; }
-	public int? favorite_number { get; set; }
-	public string? favorite_color { get; set; }
-}
-
-
-```

@@ -1,5 +1,5 @@
 #region license
-/**Copyright (c) 2020 Adrian Struga³a
+/**Copyright (c) 2020 Adrian Strugaï¿½a
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 #endregion
 
 using System;
-using SolTechnology.Avro.AvroObjectServices.Schema;
-using SolTechnology.Avro.AvroObjectServices.Schema.Abstract;
+using SolTechnology.Avro.AvroObjectServices.Schemas;
+using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.AvroObjectServices.Skip;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
@@ -59,14 +59,14 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         {
             try
             {
-                if (readerSchema.Type == Schema.AvroType.Union && writerSchema.Type != Schema.AvroType.Union)
+                if (readerSchema.Type == AvroType.Union && writerSchema.Type != AvroType.Union)
                 {
                     readerSchema = FindBranch(readerSchema as UnionSchema, writerSchema);
                 }
 
                 switch (writerSchema.Type)
                 {
-                    case Schema.AvroType.Null:
+                    case AvroType.Null:
                         return null;
                     case Schema.AvroType.Boolean:
                         return reader.ReadBoolean();

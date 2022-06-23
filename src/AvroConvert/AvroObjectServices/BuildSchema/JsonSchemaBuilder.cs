@@ -21,8 +21,12 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.Serialization;
 using Newtonsoft.Json.Linq;
-using SolTechnology.Avro.AvroObjectServices.Schema;
-using SolTechnology.Avro.AvroObjectServices.Schema.Abstract;
+using SolTechnology.Avro.AvroObjectServices.FileHeader;
+using SolTechnology.Avro.AvroObjectServices.Schemas;
+using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
+using SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes;
+using SolTechnology.Avro.Infrastructure.Attributes;
+using SolTechnology.Avro.Infrastructure.Extensions;
 
 namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 {
@@ -130,13 +134,13 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         /// <exception cref="System.Runtime.Serialization.SerializationException">Thrown when JSON schema type is invalid.</exception>
         private TypeSchema ParseJsonObject(JObject token, NamedSchema parent, Dictionary<string, NamedSchema> namedSchemas)
         {
-            JToken tokenType = token[Token.Type];
+            JToken tokenType = token[AvroKeywords.Type];
             if (tokenType.Type == JTokenType.String)
             {
-                var typeString = token.RequiredProperty<string>(Token.Type);
+                var typeString = token.RequiredProperty<string>(AvroKeywords.Type);
                 Enum.TryParse(typeString, true, out AvroType type);
 
-                var logicalType = token.OptionalProperty<string>(Token.LogicalType);
+                var logicalType = token.OptionalProperty<string>(AvroKeywords.LogicalType);
                 if (logicalType != null)
                 {
                     return this.ParseLogicalType(token, parent, namedSchemas, logicalType);
@@ -199,13 +203,13 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                         string.Format(CultureInfo.InvariantCulture, "Union schemas cannot be nested:'{0}'.", unionToken));
                 }
 
-                if (types.Contains(schema.Type.ToString()))
+                if (types.Contains(schema.Name))
                 {
                     throw new SerializationException(
-                        string.Format(CultureInfo.InvariantCulture, "Unions cannot contains schemas of the same type: '{0}'.", schema.Type));
+                        string.Format(CultureInfo.InvariantCulture, "Unions cannot contains schemas of the same type: '{0}'.", schema.Name));
                 }
 
-                types.Add(schema.Type.ToString());
+                types.Add(schema.Name);
                 schemas.Add(schema);
             }
 
@@ -224,16 +228,16 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         /// <exception cref="System.Runtime.Serialization.SerializationException">Thrown when <paramref name="enumeration"/> contains invalid symbols.</exception>
         private TypeSchema ParseEnumType(JObject enumeration, NamedSchema parent, Dictionary<string, NamedSchema> namedSchemas)
         {
-            var name = enumeration.RequiredProperty<string>(Token.Name);
+            var name = enumeration.RequiredProperty<string>(AvroKeywords.Name);
             var nspace = this.GetNamespace(enumeration, parent, name);
             var enumName = new SchemaName(name, nspace);
 
-            var doc = enumeration.OptionalProperty<string>(Token.Doc);
+            var doc = enumeration.OptionalProperty<string>(AvroKeywords.Doc);
             var aliases = this.GetAliases(enumeration, enumName.Namespace);
             var attributes = new NamedEntityAttributes(enumName, aliases, doc);
 
             List<string> symbols = enumeration.OptionalArrayProperty(
-                Token.Symbols,
+                AvroKeywords.Symbols,
                 (symbol, index) =>
                 {
                     if (symbol.Type != JTokenType.String)
@@ -263,7 +267,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         /// <exception cref="System.Runtime.Serialization.SerializationException">Thrown when no 'items' property is found in <paramref name="array" />.</exception>
         private TypeSchema ParseArrayType(JObject array, NamedSchema parent, Dictionary<string, NamedSchema> namedSchemas)
         {
-            var itemType = array[Token.Items];
+            var itemType = array[AvroKeywords.Items];
             if (itemType == null)
             {
                 throw new SerializationException(
@@ -286,7 +290,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         /// <exception cref="System.Runtime.Serialization.SerializationException">Thrown when 'values' property is not found in <paramref name="map" />.</exception>
         private TypeSchema ParseMapType(JObject map, NamedSchema parent, Dictionary<string, NamedSchema> namedSchemas)
         {
-            var valueType = map[Token.Values];
+            var valueType = map[AvroKeywords.Values];
             if (valueType == null)
             {
                 throw new SerializationException(
@@ -348,11 +352,11 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         /// <exception cref="System.Runtime.Serialization.SerializationException">Thrown when <paramref name="record"/> can not be parsed properly.</exception>
         private TypeSchema ParseRecordType(JObject record, NamedSchema parent, Dictionary<string, NamedSchema> namedSchemas)
         {
-            var name = record.RequiredProperty<string>(Token.Name);
+            var name = record.RequiredProperty<string>(AvroKeywords.Name);
             var nspace = this.GetNamespace(record, parent, name);
             var recordName = new SchemaName(name, nspace);
 
-            var doc = record.OptionalProperty<string>(Token.Doc);
+            var doc = record.OptionalProperty<string>(AvroKeywords.Doc);
             var aliases = this.GetAliases(record, recordName.Namespace);
             var attributes = new NamedEntityAttributes(recordName, aliases, doc);
 
@@ -360,8 +364,8 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             var result = new RecordSchema(attributes, typeof(AvroRecord), customAttributes);
             namedSchemas.Add(result.FullName, result);
 
-            List<RecordField> fields = record.OptionalArrayProperty(
-                Token.Fields,
+            List<RecordFieldSchema> fields = record.OptionalArrayProperty(
+                AvroKeywords.Fields,
                 (field, index) =>
                 {
                     if (field.Type != JTokenType.Object)
@@ -387,13 +391,13 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         /// Schema internal representation.
         /// </returns>
         /// <exception cref="System.Runtime.Serialization.SerializationException">Thrown when <paramref name="field"/> is not valid or when sort order is not valid.</exception>
-        private RecordField ParseRecordField(JObject field, NamedSchema parent, Dictionary<string, NamedSchema> namedSchemas, int position)
+        private RecordFieldSchema ParseRecordField(JObject field, NamedSchema parent, Dictionary<string, NamedSchema> namedSchemas, int position)
         {
-            var name = field.RequiredProperty<string>(Token.Name);
-            var doc = field.OptionalProperty<string>(Token.Doc);
-            var order = field.OptionalProperty<string>(Token.Order);
+            var name = field.RequiredProperty<string>(AvroKeywords.Name);
+            var doc = field.OptionalProperty<string>(AvroKeywords.Doc);
+            var order = field.OptionalProperty<string>(AvroKeywords.Order);
             var aliases = this.GetAliases(field, parent.FullName);
-            var fieldType = field[Token.Type];
+            var fieldType = field[AvroKeywords.Type];
             if (fieldType == null)
             {
                 throw new SerializationException(
@@ -402,11 +406,11 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
             TypeSchema type = this.Parse(fieldType, parent, namedSchemas);
             object defaultValue = null;
-            bool hasDefaultValue = field[Token.Default] != null;
+            bool hasDefaultValue = field[AvroKeywords.Default] != null;
             if (hasDefaultValue)
             {
                 var objectParser = new JsonObjectParser();
-                defaultValue = objectParser.Parse(type, field[Token.Default].ToString());
+                defaultValue = objectParser.Parse(type, field[AvroKeywords.Default].ToString());
             }
 
             var orderValue = SortOrder.Ascending;
@@ -423,7 +427,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             var fieldName = new SchemaName(name);
             var attributes = new NamedEntityAttributes(fieldName, aliases, doc);
 
-            return new RecordField(attributes, type, orderValue, hasDefaultValue, defaultValue, null, position);
+            return new RecordFieldSchema(attributes, type, orderValue, hasDefaultValue, defaultValue, null, position);
         }
 
         /// <summary>
@@ -446,7 +450,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         {
             if (usingTypeName == null)
             {
-                usingTypeName = token.RequiredProperty<string>(Token.Type);
+                usingTypeName = token.RequiredProperty<string>(AvroKeywords.Type);
             }
 
             var customAttributes = token.GetAttributesNotIn(StandardProperties.Primitive);
@@ -471,11 +475,11 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
         private FixedSchema ParseFixedType(JObject type, NamedSchema parent)
         {
-            var name = type.RequiredProperty<string>(Token.Name);
+            var name = type.RequiredProperty<string>(AvroKeywords.Name);
             var nspace = this.GetNamespace(type, parent, name);
             var fixedName = new SchemaName(name, nspace);
 
-            var size = type.RequiredProperty<int>(Token.Size);
+            var size = type.RequiredProperty<int>(AvroKeywords.Size);
             if (size <= 0)
             {
                 throw new SerializationException(
@@ -492,7 +496,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
         private string GetNamespace(JObject type, NamedSchema parentSchema, string name)
         {
-            var nspace = type.OptionalProperty<string>(Token.Namespace);
+            var nspace = type.OptionalProperty<string>(AvroKeywords.Namespace);
             if (string.IsNullOrEmpty(nspace) && !name.Contains(".") && parentSchema != null)
             {
                 nspace = parentSchema.Namespace;
@@ -503,7 +507,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         private List<string> GetAliases(JObject type, string @namespace)
         {
             List<string> aliases = type.OptionalArrayProperty(
-                Token.Aliases,
+                AvroKeywords.Aliases,
                 (alias, index) =>
                 {
                     if (alias.Type != JTokenType.String)

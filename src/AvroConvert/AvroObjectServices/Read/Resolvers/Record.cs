@@ -21,8 +21,8 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using FastMember;
-using SolTechnology.Avro.AvroObjectServices.BuildSchema;
-using SolTechnology.Avro.AvroObjectServices.Schema;
+using SolTechnology.Avro.AvroObjectServices.Schemas;
+using SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes;
 
 namespace SolTechnology.Avro.AvroObjectServices.Read
 {
@@ -44,7 +44,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                 accessor = TypeAccessor.Create(type, true);
                 readSteps = new Dictionary<string, Func<object>>();
 
-                foreach (RecordField wf in writerSchema.Fields)
+                foreach (RecordFieldSchema wf in writerSchema.Fields)
                 {
                     if (readerSchema.TryGetField(wf.Name, out var rf))
                     {

@@ -24,8 +24,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using SolTechnology.Avro.AvroObjectServices.Schema;
-using SolTechnology.Avro.AvroObjectServices.Schema.Abstract;
+using SolTechnology.Avro.AvroObjectServices.Schemas;
+using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Infrastructure.Extensions;
 
 // ReSharper disable once CheckNamespace
@@ -37,7 +37,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 
         internal object ResolveArray(TypeSchema writerSchema, TypeSchema readerSchema, IReader d, Type type, long itemsCount = 0)
         {
-            if (writerSchema.Type == Schema.AvroType.Array)
+            if (writerSchema.Type == AvroType.Array)
             {
                 writerSchema = ((ArraySchema)writerSchema).ItemSchema;
             }

@@ -197,8 +197,11 @@ namespace AvroConvertComponentTests.JsonToAvro
 
 
             //Assert
-            var deserialized = AvroConvert.Deserialize<ExtendedBaseTestClass>(resultAvro);
-            deserialized.Should().BeEquivalentTo(testClass);
+            resultAvro.Should().NotBeNull();
+            var exception = Record.Exception(() => AvroConvert.Deserialize<ExtendedBaseTestClass>(resultAvro));
+            exception.Message.Should().Contain("Unable to deserialize [UnknownObject] of schema [Record] to the target type [AvroConvertComponentTests.ExtendedBaseTestClass].");
+            exception.InnerException.Message.Should().Contain("Unable to deserialize [AvroMap] of schema [Record] to the target type [System.Collections.Generic.Dictionary`2[System.String,System.Int32]]");
+            exception.InnerException.InnerException.Message.Should().Contain("Unable to cast object of type 'SolTechnology.Avro.AvroObjectServices.Schemas.MapSchema' to type 'SolTechnology.Avro.AvroObjectServices.Schemas.RecordSchema");
         }
     }
 }

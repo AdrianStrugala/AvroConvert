@@ -19,15 +19,9 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using SolTechnology.Avro.AvroObjectServices.BuildSchema;
-using SolTechnology.Avro.Features.JsonToAvro;
 using SolTechnology.Avro.Features.Serialize;
-using SolTechnology.Avro.Infrastructure.Extensions.JsonConvert;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 {

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using Newtonsoft.Json.Linq;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
@@ -17,7 +18,7 @@ namespace SolTechnology.Avro.Features.JsonToAvro
             _reflectionSchemaBuilder = new ReflectionSchemaBuilder();
         }
 
-        internal TypeSchema BuildSchema(JObject expandoObject, string name = null)
+        internal TypeSchema BuildSchema(JObject jObject, string name = null)
         {
             RecordSchema record = new RecordSchema(new NamedEntityAttributes(
                 new SchemaName(name ?? "UnknownObject"),
@@ -26,22 +27,41 @@ namespace SolTechnology.Avro.Features.JsonToAvro
                 typeof(JObject));
 
 
-            for (int i = 0; i < expandoObject.Properties().Count(); i++)
+            for (int i = 0; i < jObject.Properties().Count(); i++)
             {
-                var property = expandoObject.Properties().ElementAt(i);
+                var property = jObject.Properties().ElementAt(i);
 
                 TypeSchema fieldSchema = BuildSchemaInternal(property.Value, property.Name);
 
-                var recordField = new RecordFieldSchema(
-                    new NamedEntityAttributes(new SchemaName(property.Name), new List<string>(), string.Empty),
-                    fieldSchema,
-                    SortOrder.Ascending,
-                    false,
-                    null,
-                    null,
-                    i);
+                string warning = string.Empty;
+                RecordFieldSchema recordFieldSchema = null;
 
-                record.AddField(recordField);
+                try
+                {
+                    recordFieldSchema = new RecordFieldSchema(
+                                        new NamedEntityAttributes(new SchemaName(property.Name), new List<string>(), warning),
+                                        fieldSchema,
+                                        SortOrder.Ascending,
+                                        false,
+                                        null,
+                                        null,
+                                        i);
+                }
+                catch (SerializationException serializationException)
+                {
+                    warning = $"{warning} [{serializationException.Message}]";
+                    recordFieldSchema = new RecordFieldSchema(
+                                     new NamedEntityAttributes(new SchemaName(property.Name, true), new List<string> { property.Name }, warning),
+                                     fieldSchema,
+                                     SortOrder.Ascending,
+                                     false,
+                                     null,
+                                     null,
+                                     i);
+                }
+
+
+                record.AddField(recordFieldSchema);
             }
 
 
@@ -55,16 +75,16 @@ namespace SolTechnology.Avro.Features.JsonToAvro
             if (item is JObject objectProperty)
             {
 
-             //   if (IsDictionary(objectProperty, name))
+                //   if (IsDictionary(objectProperty, name))
                 // {
                 //     throw new NotSupportedException(
                 //         $"Property [{name}] recognized as Dictionary. Dictionaries are not supported for anonymous Json2Avro invocation. To resolve the problem, please invoke generic Json2Avro<T> method.");
                 // }
                 // else
                 // {
-                    // var innerExpandoObject = JsonConvertExtensions.DeserializeExpando<ExpandoObject>(objectProperty.ToString());
-                    fieldSchema = BuildSchema(objectProperty, name);
-        //        }
+                // var innerExpandoObject = JsonConvertExtensions.DeserializeExpando<ExpandoObject>(objectProperty.ToString());
+                fieldSchema = BuildSchema(objectProperty, name);
+                //        }
             }
             else if (item is JArray arrayProperty)
             {

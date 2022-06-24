@@ -362,6 +362,10 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
             Dictionary<string, string> customAttributes = record.GetAttributesNotIn(StandardProperties.Record);
             var result = new RecordSchema(attributes, typeof(AvroRecord), customAttributes);
+            if (namedSchemas.ContainsKey(result.FullName))
+            {
+                return namedSchemas[result.FullName];
+            }
             namedSchemas.Add(result.FullName, result);
 
             List<RecordFieldSchema> fields = record.OptionalArrayProperty(

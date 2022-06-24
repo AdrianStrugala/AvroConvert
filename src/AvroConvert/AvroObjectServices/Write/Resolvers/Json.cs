@@ -59,7 +59,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
             {
                 string name = writer.Field.Aliases.FirstOrDefault() ?? writer.Field.Name;
 
-                object value = jObject.Properties().FirstOrDefault(x => x.Name == name).Value;
+                object value = jObject.Properties().FirstOrDefault(x => x.Name == name)?.Value;
 
                 switch (value)
                 {

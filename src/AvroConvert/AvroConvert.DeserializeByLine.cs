@@ -24,7 +24,7 @@ namespace SolTechnology.Avro
     public static partial class AvroConvert
     {
         /// <summary>
-        /// Opens AVRO object deserializer which allows to read large collection of AVRO objects one by one
+        /// Opens Avro object deserializer which allows to read large collection of Avro objects one by one
         /// </summary>
         public static ILineReader<T> OpenDeserializer<T>(Stream stream)
         {

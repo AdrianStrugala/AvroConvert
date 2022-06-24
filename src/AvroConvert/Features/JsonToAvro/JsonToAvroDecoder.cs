@@ -10,13 +10,6 @@ namespace SolTechnology.Avro.Features.JsonToAvro
 {
     internal class JsonToAvroDecoder
     {
-        private readonly JsonSerializer jsonSerializer;
-
-        public JsonToAvroDecoder()
-        {
-            jsonSerializer = new JsonSerializer();
-        }
-
         internal byte[] DecodeJson(string json, CodecType codecType)
         {
             var token = JToken.Parse(json);
@@ -44,6 +37,8 @@ namespace SolTechnology.Avro.Features.JsonToAvro
         {
             var incomingObject = JsonConvert.DeserializeObject<object>(json);
 
+
+            //TODO Get type of child from JArray
             var enumerable = incomingObject.GetType().FindEnumerableType();
             if (enumerable != null)
             {
@@ -57,17 +52,17 @@ namespace SolTechnology.Avro.Features.JsonToAvro
             return null;
         }
 
-        internal byte[] SerializeJArray(List<JObject> expandoObjects, CodecType codecType)
+        internal byte[] SerializeJArray(List<JObject> jObjects, CodecType codecType)
         {
-            var expandoSchemaBuilder = new JsonSchemaBuilder();
+            var jsonSchemaBuilder = new JsonSchemaBuilder();
 
             using (MemoryStream resultStream = new MemoryStream())
             {
-                var schema = expandoSchemaBuilder.BuildSchema(expandoObjects.FirstOrDefault());
+                var schema = jsonSchemaBuilder.BuildSchema(jObjects.FirstOrDefault());
 
                 using (var writer = new Serialize.Encoder(schema, resultStream, codecType))
                 {
-                    foreach (var expandoObject in expandoObjects)
+                    foreach (var expandoObject in jObjects)
                     {
 
                         writer.Append(expandoObject);

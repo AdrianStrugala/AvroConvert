@@ -193,11 +193,12 @@ namespace AvroConvertComponentTests.JsonToAvro
 
 
             //Act
-            var exception = Record.Exception(() => AvroConvert.Json2Avro(serializedJson));
+            var resultAvro = AvroConvert.Json2Avro(serializedJson);
 
 
             //Assert
-            exception.Should().BeOfType<NotSupportedException>();
+            var deserialized = AvroConvert.Deserialize<ExtendedBaseTestClass>(resultAvro);
+            deserialized.Should().BeEquivalentTo(testClass);
         }
     }
 }

@@ -30,7 +30,7 @@ namespace SolTechnology.Avro
     public static partial class AvroConvert
     {
         /// <summary>
-        /// Deserializes AVRO object to .NET type
+        /// Deserializes Avro object to .NET type
         /// </summary>
         public static T Deserialize<T>(byte[] avroBytes)
         {
@@ -46,7 +46,7 @@ namespace SolTechnology.Avro
         }
 
         /// <summary>
-        /// Deserializes AVRO object to .NET type
+        /// Deserializes Avro object to .NET type
         /// </summary>
         public static dynamic Deserialize(byte[] avroBytes, Type targetType)
         {

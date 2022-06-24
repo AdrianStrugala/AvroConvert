@@ -13,10 +13,11 @@
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
 
-/** Modifications copyright(C) 2020 Adrian Struga³a **/
+/** Modifications copyright(C) 2020 Adrian Strugala **/
 
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 
@@ -41,6 +42,17 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         {
         }
 
+        internal SchemaName(string name, bool force)
+        {
+            if (force)
+            {
+                this.name = Regex.Replace(name, @"[^0-9a-zA-Z]+", "_"); //replace special characters
+                return;
+            }
+
+            new SchemaName(name, string.Empty);
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="SchemaName" /> class.
         /// </summary>
@@ -62,7 +74,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             if (lastDot == name.Length - 1)
             {
                 throw new SerializationException(
-                    string.Format(CultureInfo.InvariantCulture, "Invalid name specified '{0}'.", name));
+                    string.Format(CultureInfo.InvariantCulture, "Invalid name specified [{0}].", name));
             }
 
             if (lastDot != -1)
@@ -99,13 +111,13 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             if (!NamePattern.IsMatch(this.name))
             {
                 throw new SerializationException(
-                    string.Format(CultureInfo.InvariantCulture, "Name '{0}' contains invalid characters.", this.name));
+                    string.Format(CultureInfo.InvariantCulture, "Name [{0}] contains invalid characters.", this.name));
             }
 
             if (!NamespacePattern.IsMatch(this.@namespace))
             {
                 throw new SerializationException(
-                    string.Format(CultureInfo.InvariantCulture, "Namespace '{0}' contains invalid characters.", this.@namespace));
+                    string.Format(CultureInfo.InvariantCulture, "Namespace [{0}] contains invalid characters.", this.@namespace));
             }
         }
     }

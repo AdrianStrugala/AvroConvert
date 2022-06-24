@@ -33,8 +33,6 @@ namespace SolTechnology.Avro
         /// </summary>
         public static byte[] Json2Avro(string json)
         {
-
-            
             var decoder = new JsonToAvroDecoder();
             return decoder.DecodeJson(json, CodecType.Null);
 

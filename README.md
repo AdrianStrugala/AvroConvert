@@ -52,7 +52,7 @@ Introducing Avro to the projects brings three main benefits:
 | Built-in compression                                          |                      ✔️                     |      ✔️      |        ❌        |
 | Low memory allocation                                         |                      ✔️                     |      ✔️      |        ✔️        |
 | Support for C# data structures: Dictionary, List, DateTime... |                      ✔️                     |      ❌      |        ✔️        |
-| Support for compression codecs                                | * Deflate * Snappy * GZip * Brotli | * Deflate   |        ❌        |
+| Support for compression codecs                                | Deflate<br/>  Snappy<br/> GZip<br/> Brotli |   Deflate   |        ❌        |
 | Readable schema of data structure                                      |                      ✔️                     |      ✔️      |        ✔️        |
 | Data is encrypted                                       |                      ✔️                     |      ✔️      |        ❌        |
 

@@ -38,7 +38,7 @@
 
 ## Benefits
 
-Introducing Avro to the projects bringed three main benefits:
+Introducing Avro to the projects brought three main benefits:
 * Reduced data size and storage cost
 * Decreased the communication time and the network traffic between microservices
 * Increased security - the data was not visible in plain text format

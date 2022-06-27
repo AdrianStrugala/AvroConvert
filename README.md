@@ -38,10 +38,10 @@
 
 ## Benefits
 
-Introducing Avro to the projects brought three main benefits:
-* Reduced data size and storage cost
-* Decreased the communication time and the network traffic between microservices
-* Increased security - the data was not visible in plain text format
+Introducing Avro to the projects brings three main benefits:
+* Reduction of data size and storage cost
+* Decrease of the communication time and the network traffic between microservices
+* Increased security - the data is not visible in plain text format
 
 
 ## Features
@@ -52,7 +52,7 @@ Introducing Avro to the projects brought three main benefits:
 | Built-in compression                                          |                      ✔️                     |      ✔️      |        ❌        |
 | Low memory allocation                                         |                      ✔️                     |      ✔️      |        ✔️        |
 | Support for C# data structures: Dictionary, List, DateTime... |                      ✔️                     |      ❌      |        ✔️        |
-| Support for compression codecs                                | Deflate<br/>  Snappy<br/> GZip<br/> Brotli |   Deflate   |        ❌        |
+| Support for compression codecs                                | * Deflate * Snappy * GZip * Brotli | * Deflate   |        ❌        |
 | Readable schema of data structure                                      |                      ✔️                     |      ✔️      |        ✔️        |
 | Data is encrypted                                       |                      ✔️                     |      ✔️      |        ❌        |
 

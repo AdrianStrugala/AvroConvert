@@ -90,8 +90,8 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             {
                 return new TypeSerializationInfo
                 {
-                    Name = TypeExtensions.StripAvroNonCompatibleCharacters(type.Name),
-                    Namespace = TypeExtensions.StripAvroNonCompatibleCharacters(type.Namespace),
+                    Name = SolTechnology.Avro.Infrastructure.Extensions.TypeExtensions.StripAvroNonCompatibleCharacters(type.Name),
+                    Namespace = SolTechnology.Avro.Infrastructure.Extensions.TypeExtensions.StripAvroNonCompatibleCharacters(type.Namespace),
                     Nullable = isNullable
                 };
             }
@@ -108,8 +108,8 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
             var result = new TypeSerializationInfo
             {
-                Name = TypeExtensions.StripAvroNonCompatibleCharacters(dataContract?.Name ?? type.Name),
-                Namespace = TypeExtensions.StripAvroNonCompatibleCharacters(dataContract?.Namespace ?? type.Namespace),
+                Name = SolTechnology.Avro.Infrastructure.Extensions.TypeExtensions.StripAvroNonCompatibleCharacters(dataContract?.Name ?? type.Name),
+                Namespace = SolTechnology.Avro.Infrastructure.Extensions.TypeExtensions.StripAvroNonCompatibleCharacters(dataContract?.Namespace ?? type.Namespace),
                 Nullable = isNullable,
                 Doc = attributes.OfType<DescriptionAttribute>().SingleOrDefault()?.Description
             };

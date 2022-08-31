@@ -2,14 +2,15 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFramework>netcoreapp3.1</TargetFramework>
+		<TargetFramework>net6.0</TargetFramework>
 	</PropertyGroup>
 
 	<ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.13.0" />
 		<PackageReference Include="AutoFixture" Version="4.14.0" />
 		<PackageReference Include="Equals.Fody" Version="4.0.1" />
-		<PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+		<PackageReference Include="GroBuf" Version="1.8.1" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>

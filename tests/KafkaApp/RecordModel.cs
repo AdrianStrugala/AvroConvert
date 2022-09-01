@@ -1,4 +1,4 @@
-﻿using SolTechnology.Avro.Attributes;
+﻿using SolTechnology.Avro.Infrastructure.Attributes;
 
 namespace KafkaApp
 {

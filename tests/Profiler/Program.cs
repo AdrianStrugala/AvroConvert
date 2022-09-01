@@ -17,8 +17,8 @@ namespace Profiler
             var data = fixture
                 .Build<User>()
                 .With(u => u.Offerings,
-                fixture.CreateMany<Offering>(1).ToList)
-                .CreateMany(1).ToArray();
+                fixture.CreateMany<Offering>(21).ToList)
+                .CreateMany(37).ToArray();
 
             var serialized = AvroConvert.Serialize(data);
             var deserialized = AvroConvert.Deserialize<List<User>>(serialized);

@@ -15,6 +15,7 @@
 */
 #endregion
 
+using System.IO;
 using BrotliSharpLib;
 
 namespace SolTechnology.Avro.AvroObjectServices.FileHeader.Codec
@@ -27,9 +28,10 @@ namespace SolTechnology.Avro.AvroObjectServices.FileHeader.Codec
             return Brotli.DecompressBuffer(compressedData, 0, compressedData.Length);
         }
 
-        internal override byte[] Compress(byte[] uncompressedData)
+        internal override MemoryStream Compress(MemoryStream toCompress)
         {
-            return Brotli.CompressBuffer(uncompressedData, 0, uncompressedData.Length, 4);
+            var toCompressBytes = toCompress.ToArray();
+            return new MemoryStream(Brotli.CompressBuffer(toCompressBytes, 0, toCompressBytes.Length, 4));
         }
     }
 }

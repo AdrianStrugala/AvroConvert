@@ -117,9 +117,9 @@ namespace SolTechnology.Avro.Features.Serialize
         {
             if (_blockCount > 0)
             {
-                byte[] dataToWrite = _tempBuffer.ToArray();
+                // byte[] dataToWrite = _tempBuffer.ToArray();
 
-                _writer.WriteDataBlock(_codec.Compress(dataToWrite), _header.SyncData, _blockCount);
+                _writer.WriteDataBlock(_codec.Compress(_tempBuffer), _header.SyncData, _blockCount);
 
                 // reset block buffer
                 _blockCount = 0;
@@ -140,6 +140,8 @@ namespace SolTechnology.Avro.Features.Serialize
         {
             EnsureHeader();
             Sync();
+            _tempBuffer.Flush();
+            _tempBuffer.Dispose();
             _stream.Flush();
             _stream.Dispose();
             _isOpen = false;

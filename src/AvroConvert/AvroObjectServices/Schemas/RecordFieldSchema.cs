@@ -29,11 +29,17 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
 
     internal sealed class RecordFieldSchema : Schema
     {
-        private readonly NamedEntityAttributes namedEntityAttributes;
-        private readonly TypeSchema typeSchema;
-        private readonly bool hasDefaultValue;
-        private readonly object defaultValue;
-        private readonly int position;
+        internal string Name => NamedEntityAttributes.Name.Name;
+        internal string Namespace => NamedEntityAttributes.Name.Namespace;
+        internal ReadOnlyCollection<string> Aliases => NamedEntityAttributes.Aliases.AsReadOnly();
+        internal string Doc => NamedEntityAttributes.Doc;
+        internal TypeSchema TypeSchema { get; }
+        internal bool HasDefaultValue { get; }
+        internal object DefaultValue { get; }
+        internal int Position { get; }
+        internal MemberInfo MemberInfo { get; }
+        internal NamedEntityAttributes NamedEntityAttributes { get; }
+
 
         internal RecordFieldSchema(
             NamedEntityAttributes namedEntityAttributes,
@@ -46,7 +52,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         {
         }
 
- 
         internal RecordFieldSchema(
             NamedEntityAttributes namedEntityAttributes,
             TypeSchema typeSchema,
@@ -57,44 +62,25 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             Dictionary<string, string> attributes)
             : base(attributes)
         {
-            this.namedEntityAttributes = namedEntityAttributes;
-            this.typeSchema = typeSchema;
-            this.hasDefaultValue = hasDefaultValue;
-            this.defaultValue = defaultValue;
-            this.MemberInfo = info;
-            this.position = position;
+            NamedEntityAttributes = namedEntityAttributes;
+            TypeSchema = typeSchema;
+            HasDefaultValue = hasDefaultValue;
+            DefaultValue = defaultValue;
+            MemberInfo = info;
+            Position = position;
         }
-        
-        internal string Name => namedEntityAttributes.Name.Name;
-
-        internal string Namespace => namedEntityAttributes.Name.Namespace;
-
-        internal ReadOnlyCollection<string> Aliases => namedEntityAttributes.Aliases.AsReadOnly();
-
-        internal string Doc => namedEntityAttributes.Doc;
-
-        internal TypeSchema TypeSchema => typeSchema;
-
-        internal bool HasDefaultValue => hasDefaultValue;
-
-        internal object DefaultValue => defaultValue;
-
-        internal int Position => position;
-
-        internal MemberInfo MemberInfo { get; set; }
-
-        internal NamedEntityAttributes NamedEntityAttributes => namedEntityAttributes;
 
         internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
         {
             writer.WriteStartObject();
+
             writer.WriteProperty("name", Name);
             writer.WriteOptionalProperty("namespace", Namespace);
             writer.WriteOptionalProperty("doc", Doc);
             writer.WriteOptionalProperty("aliases", Aliases);
             writer.WritePropertyName("type");
             TypeSchema.ToJson(writer, seenSchemas);
-            writer.WriteOptionalProperty("default", defaultValue, hasDefaultValue);
+            writer.WriteOptionalProperty("default", DefaultValue, HasDefaultValue);
 
             writer.WriteEndObject();
         }

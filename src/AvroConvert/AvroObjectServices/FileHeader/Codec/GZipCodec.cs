@@ -34,15 +34,13 @@ namespace SolTechnology.Avro.AvroObjectServices.FileHeader.Codec
             }
         }
 
-        internal override byte[] Compress(byte[] uncompressedData)
+        internal override MemoryStream Compress(MemoryStream toCompress)
         {
-            using (var compressedStream = new MemoryStream())
-            using (var zipStream = new GZipStream(compressedStream, CompressionMode.Compress))
-            {
-                zipStream.Write(uncompressedData, 0, uncompressedData.Length);
-                zipStream.Close();
-                return compressedStream.ToArray();
-            }
+            var toCompressBytes = toCompress.ToArray();
+            var compressedStream = new MemoryStream();
+            using var zipStream = new GZipStream(compressedStream, CompressionMode.Compress, leaveOpen: true);
+            zipStream.Write(toCompressBytes, 0, toCompressBytes.Length);
+            return compressedStream;
         }
     }
 }

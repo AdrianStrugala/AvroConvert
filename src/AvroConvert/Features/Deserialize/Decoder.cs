@@ -60,7 +60,7 @@ namespace SolTechnology.Avro.Features.Deserialize
                 var header = reader.ReadHeader();
 
                 TypeSchema writeSchema = Schema.Create(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
-                readSchema = readSchema ?? writeSchema;
+                readSchema ??= writeSchema;
                 var resolver = new Resolver(writeSchema, readSchema);
 
                 // read in sync data 
@@ -81,21 +81,21 @@ namespace SolTechnology.Avro.Features.Deserialize
             }
 
             long itemsCount = 0;
-            byte[] dataBlock = Array.Empty<byte>();
+            byte[] data = Array.Empty<byte>();
 
             do
             {
                 itemsCount += reader.ReadLong();
-                var data = reader.ReadDataBlock(header.SyncData, codec);
+                var dataBlock = reader.ReadDataBlock(header.SyncData, codec);
 
-                int array1OriginalLength = dataBlock.Length;
-                Array.Resize(ref dataBlock, array1OriginalLength + data.Length);
-                Array.Copy(data, 0, dataBlock, array1OriginalLength, data.Length);
+                int dataBlockSize = data.Length;
+                Array.Resize(ref data, dataBlockSize + dataBlock.Length);
+                Array.Copy(dataBlock, 0, data, dataBlockSize, dataBlock.Length);
 
             } while (!reader.IsReadToEnd());
 
 
-            reader = new Reader(new MemoryStream(dataBlock));
+            reader = new Reader(new MemoryStream(data));
 
             return resolver.Resolve<T>(reader, itemsCount);
         }

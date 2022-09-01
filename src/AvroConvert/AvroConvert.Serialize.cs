@@ -45,7 +45,7 @@ namespace SolTechnology.Avro
                 {
                     writer.Append(obj);
                 }
-                var result = resultStream.ToArray();
+                byte[] result = resultStream.ToArray();
                 return result;
             }
         }

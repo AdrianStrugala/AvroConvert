@@ -118,6 +118,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
             WriteLong(value.Length);
             WriteBytesRaw(value);
         }
+        public void WriteStream(MemoryStream stream)
+        {
+            WriteLong(stream.Length);
+            stream.Seek(0, SeekOrigin.Begin);
+            stream.CopyTo(_stream);
+        }
 
         /// <summary>
         /// A string is encoded as a long followed by

@@ -16,6 +16,7 @@
 #endregion
 
 using System;
+using System.IO;
 using System.Linq;
 using IronSnappy;
 
@@ -25,14 +26,15 @@ namespace SolTechnology.Avro.AvroObjectServices.FileHeader.Codec
     {
         internal override string Name { get; } = CodecType.Snappy.ToString().ToLower();
 
-        internal override byte[] Compress(byte[] uncompressedData)
+        internal override MemoryStream Compress(MemoryStream toCompress)
         {
-            var compressedData = Snappy.Encode(uncompressedData);
+            var toCompressBytes = toCompress.ToArray();
+            var compressedData = Snappy.Encode(toCompressBytes);
             uint checksumUint = Crc32.Get(compressedData);
             byte[] checksumBytes = BitConverter.GetBytes(checksumUint);
 
             byte[] result = compressedData.Concat(checksumBytes).ToArray();
-            return result;
+            return new MemoryStream(result);
         }
 
         internal override byte[] Decompress(byte[] compressedData)

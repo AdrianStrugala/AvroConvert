@@ -16,6 +16,7 @@
 #endregion
 
 using System;
+using System.IO;
 
 namespace SolTechnology.Avro.AvroObjectServices.FileHeader.Codec
 {
@@ -25,7 +26,7 @@ namespace SolTechnology.Avro.AvroObjectServices.FileHeader.Codec
 
         internal abstract byte[] Decompress(byte[] compressedData);
 
-        internal abstract byte[] Compress(byte[] uncompressedData);
+        internal abstract MemoryStream Compress(MemoryStream toCompress);
 
         internal static AbstractCodec CreateCodec(CodecType codecType)
         {
@@ -39,7 +40,7 @@ namespace SolTechnology.Avro.AvroObjectServices.FileHeader.Codec
                     return new GZipCodec();
                 case CodecType.Brotli:
                     return new BrotliCodec();
-                default:
+                 default:
                     return new NullCodec();
             }
         }

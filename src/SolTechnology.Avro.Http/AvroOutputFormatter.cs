@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Net.Http.Headers;
-using SolTechnology.Avro.FileHeader.Codec;
 
 namespace SolTechnology.Avro.Http
 {

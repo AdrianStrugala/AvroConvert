@@ -19,7 +19,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using Newtonsoft.Json;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 
@@ -27,12 +26,6 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 {
     internal abstract class Schema
     {
-        private readonly Dictionary<string, string> attributes;
-
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="Schema" /> class.
-        /// </summary>
-        /// <param name="attributes">The attributes.</param>
         protected Schema(IDictionary<string, string> attributes)
         {
             if (attributes == null)
@@ -40,22 +33,11 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 throw new ArgumentNullException("attributes");
             }
 
-            this.attributes = new Dictionary<string, string>(attributes);
+            Attributes = new Dictionary<string, string>(attributes);
         }
 
-        /// <summary>
-        ///     Gets the attributes.
-        /// </summary>
-        internal IDictionary<string, string> Attributes
-        {
-            get { return this.attributes; }
-        }
+        internal Dictionary<string, string> Attributes { get; set; }
 
-        /// <summary>
-        ///     Adds the attribute.
-        /// </summary>
-        /// <param name="attribute">The attribute.</param>
-        /// <param name="value">The value.</param>
         internal void AddAttribute(string attribute, string value)
         {
             if (attribute == null)
@@ -66,15 +48,9 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             {
                 throw new ArgumentNullException("value");
             }
-            this.attributes.Add(attribute, value);
+            Attributes.Add(attribute, value);
         }
 
-        /// <summary>
-        ///     Returns a <see cref="System.String" /> that represents this instance in JSON format.
-        /// </summary>
-        /// <returns>
-        ///     A <see cref="System.String" /> that represents this instance.
-        /// </returns>
         public override string ToString()
         {
             using (var result = new StringWriter(CultureInfo.InvariantCulture))
@@ -85,21 +61,12 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             }
         }
 
-        /// <summary>
-        ///     Converts current node to JSON according to the avro specification.
-        /// </summary>
-        /// <param name="writer">The writer.</param>
-        /// <param name="seenSchemas">The seen schemas.</param>
         internal void ToJson(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
         {
             this.ToJsonSafe(writer, seenSchemas);
         }
 
-        /// <summary>
-        ///     Converts current node to JSON according to the avro specification.
-        /// </summary>
-        /// <param name="writer">The writer.</param>
-        /// <param name="seenSchemas">The seen schemas.</param>
+
         internal abstract void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas);
 
 

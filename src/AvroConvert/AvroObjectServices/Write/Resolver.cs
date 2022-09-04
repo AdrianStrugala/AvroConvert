@@ -100,7 +100,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
                     }
                     return String.Resolve;
                 case AvroType.Record:
-                    return Record.Resolve((RecordSchema)schema);
+                    //TODO: switch here
+                    // return Record.Resolve((RecordSchema)schema);
+                    return (v, e) => Record.Resolve2((RecordSchema)schema, v, e);
                 case AvroType.Enum:
                     return Enum.Resolve((EnumSchema)schema);
                 case AvroType.Fixed:

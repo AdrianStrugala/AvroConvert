@@ -37,7 +37,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
             RuntimeType = runtimeType;
         }
 
-        internal Type RuntimeType { get; }
+        internal Type RuntimeType { get; set; }
 
         internal abstract AvroType Type { get; }
 

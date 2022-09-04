@@ -410,7 +410,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             var fieldName = new SchemaName(name);
             var attributes = new NamedEntityAttributes(fieldName, aliases, doc);
 
-            return new RecordFieldSchema(attributes, type, hasDefaultValue, defaultValue, null, position);
+            return new RecordFieldSchema(attributes, type, hasDefaultValue, defaultValue, position);
         }
 
         /// <summary>

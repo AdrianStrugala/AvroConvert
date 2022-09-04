@@ -449,7 +449,6 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                     fieldSchema,
                     info.HasDefaultValue,
                     info.DefaultValue,
-                    info.MemberInfo,
                     index++);
                 record.AddField(recordField);
             }

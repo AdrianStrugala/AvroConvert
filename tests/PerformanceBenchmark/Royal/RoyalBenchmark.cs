@@ -49,6 +49,7 @@ public partial class RoyalBenchmark
             };
 
             AvroConvert_Serialize(dataset);
+            GroBuf_Serialize(dataset);
             yield return dataset;
         }
     }
@@ -70,5 +71,6 @@ public partial class RoyalBenchmark
     public class SerializedData
     {
         public byte[] AvroConvert { get; set; }
+        public byte[] GroBuf { get; set; }
     }
 }

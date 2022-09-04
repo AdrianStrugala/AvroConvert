@@ -21,6 +21,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.Features.Serialize;
 
@@ -28,83 +29,144 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 {
     internal class Record
     {
-        private readonly ConcurrentDictionary<int, Func<object, string, object>> gettersDictionary = new ConcurrentDictionary<int, Func<object, string, object>>();
+        // private readonly ConcurrentDictionary<int, Func<object, string, object>> gettersDictionary = new();
+        //
+        // internal Encoder.WriteItem Resolve(RecordSchema recordSchema)
+        // {
+        //     WriteStep[] writeSteps = new WriteStep[recordSchema.Fields.Count];
+        //
+        //     int index = 0;
+        //     foreach (RecordFieldSchema field in recordSchema.Fields)
+        //     {
+        //         writeSteps[index++] = new WriteStep
+        //         {
+        //             WriteField = Resolver.ResolveWriter(field.TypeSchema),
+        //             Field = field
+        //         };
+        //     }
+        //
+        //     void RecordResolver(object v, IWriter e)
+        //     {
+        //         WriteRecordFields(v, writeSteps, e, recordSchema.Id);
+        //     }
+        //     return RecordResolver;
+        // }
+        //
+        // private void WriteRecordFields(object recordObj, WriteStep[] writers, IWriter encoder, int id)
+        // {
+        //     var type = recordObj.GetType();
+        //
+        //     Func<object, string, object> getters;
+        //     if (gettersDictionary.ContainsKey(id))
+        //     {
+        //         getters = gettersDictionary[id];
+        //     }
+        //     else
+        //     {
+        //         getters = GenerateGetValue(type);
+        //         gettersDictionary.AddOrUpdate(id, getters, (key, existingVal) => existingVal);
+        //     }
+        //
+        //     foreach (var writer in writers)
+        //     {
+        //         string name = writer.Field.Aliases.FirstOrDefault() ?? writer.Field.Name;
+        //         var value = getters.Invoke(recordObj, name);
+        //         if (value == null)
+        //         {
+        //             value = type.GetField(name)?.GetValue(recordObj);
+        //         }
+        //
+        //         writer.WriteField(value, encoder);
+        //     }
+        // }
+        //
+        // private static Func<object, string, object> GenerateGetValue(Type type)
+        // {
+        //     var instance = Expression.Parameter(typeof(object), "instance");
+        //     var memberName = Expression.Parameter(typeof(string), "memberName");
+        //     var nameHash = Expression.Variable(typeof(int), "nameHash");
+        //     var calHash = Expression.Assign(nameHash,
+        //         Expression.Call(memberName, typeof(object).GetMethod("GetHashCode")));
+        //     var cases = new List<SwitchCase>();
+        //     foreach (var propertyInfo in type.GetProperties())
+        //     {
+        //         var property = Expression.Property(Expression.Convert(instance, type), propertyInfo.Name);
+        //         var propertyHash = Expression.Constant(propertyInfo.Name.GetHashCode(), typeof(int));
+        //
+        //         cases.Add(Expression.SwitchCase(Expression.Convert(property, typeof(object)), propertyHash));
+        //     }
+        //
+        //     var switchEx = Expression.Switch(nameHash, Expression.Constant(null), cases.ToArray());
+        //     var methodBody = Expression.Block(typeof(object), new[] { nameHash }, calHash, switchEx);
+        //
+        //     return Expression.Lambda<Func<object, string, object>>(methodBody, instance, memberName).Compile();
+        //
+        // }
 
-        internal Encoder.WriteItem Resolve(RecordSchema recordSchema)
+        private static Func<object, object> GenerateGetterLambda(PropertyInfo propertyInfo)
         {
-            WriteStep[] writeSteps = new WriteStep[recordSchema.Fields.Count];
-
-            int index = 0;
-            foreach (RecordFieldSchema field in recordSchema.Fields)
+            if (propertyInfo == null)
             {
-                var record = new WriteStep
-                {
-                    WriteField = Resolver.ResolveWriter(field.TypeSchema),
-                    Field = field
-                };
-                writeSteps[index++] = record;
+                return null;
             }
-
-            void RecordResolver(object v, IWriter e)
-            {
-                WriteRecordFields(v, writeSteps, e);
-            }
-
-
-            return RecordResolver;
+            // Define our instance parameter, which will be the input of the Func
+            var objParameterExpr = Expression.Parameter(typeof(object), "instance");
+            // 1. Cast the instance to the correct type
+            var instanceExpr = Expression.Convert(objParameterExpr, propertyInfo!.ReflectedType);
+            // 2. Call the getter and retrieve the value of the property
+            var propertyExpr = Expression.Property(instanceExpr, propertyInfo);
+            // 3. Convert the property's value to object
+            var propertyObjExpr = Expression.Convert(propertyExpr, typeof(object));
+            // Create a lambda expression of the latest call & compile it
+            return Expression.Lambda<Func<object, object>>(propertyObjExpr, objParameterExpr).Compile();
         }
 
-        private void WriteRecordFields(object recordObj, WriteStep[] writers, IWriter encoder)
-        {
-            var type = recordObj.GetType();
-            var typeHash = type.GetHashCode();
+        private readonly ConcurrentDictionary<int, WriteStep[]> writeStepDictionary = new();
 
-            Func<object, string, object> getters;
-            if (gettersDictionary.ContainsKey(typeHash))
+        public void Resolve2(RecordSchema recordSchema, object recordObj, IWriter encoder)
+        {
+            var type = recordSchema.RuntimeType;
+            // var type = recordObj.GetType();
+
+            WriteStep[] writeSteps = new WriteStep[recordSchema.Fields.Count];
+
+            if (writeStepDictionary.ContainsKey(recordSchema.Id))
             {
-                getters = gettersDictionary[typeHash];
+                writeSteps = writeStepDictionary[recordSchema.Id];
             }
             else
             {
-                getters = GenerateGetValue(type);
-                gettersDictionary.AddOrUpdate(typeHash, getters, (key, existingVal) => existingVal);
-            }
-
-            foreach (var writer in writers)
-            {
-                string name = writer.Field.Aliases.FirstOrDefault() ?? writer.Field.Name;
-
-                var value = getters.Invoke(recordObj, name);
-                if (value == null)
+                int index = 0;
+                foreach (RecordFieldSchema field in recordSchema.Fields)
                 {
-                    value = type.GetField(name)?.GetValue(recordObj);
-                }
+                    string name = field.Aliases.FirstOrDefault() ?? field.Name;
 
-                writer.WriteField(value, encoder);
+                    var writeStep = new WriteStep
+                    {
+                        WriteField = Resolver.ResolveWriter(field.TypeSchema),
+                        FiledName = name,
+                        Getter = GenerateGetterLambda(type.GetProperty(name))
+                    };
+                    writeSteps[index++] = writeStep;
+                }
+                writeStepDictionary.AddOrUpdate(recordSchema.Id, writeSteps, (key, existingVal) => existingVal);
             }
+
+            WriteRecordFields2(recordObj, writeSteps, encoder);
         }
 
-        private static Func<object, string, object> GenerateGetValue(Type type)
+        private void WriteRecordFields2(object recordObj, WriteStep[] writers, IWriter encoder)
         {
-            var instance = Expression.Parameter(typeof(object), "instance");
-            var memberName = Expression.Parameter(typeof(string), "memberName");
-            var nameHash = Expression.Variable(typeof(int), "nameHash");
-            var calHash = Expression.Assign(nameHash,
-                Expression.Call(memberName, typeof(object).GetMethod("GetHashCode")));
-            var cases = new List<SwitchCase>();
-            foreach (var propertyInfo in type.GetProperties())
+            foreach (var writer in writers)
             {
-                var property = Expression.Property(Expression.Convert(instance, type), propertyInfo.Name);
-                var propertyHash = Expression.Constant(propertyInfo.Name.GetHashCode(), typeof(int));
-
-                cases.Add(Expression.SwitchCase(Expression.Convert(property, typeof(object)), propertyHash));
+                var value = writer.Getter?.Invoke(recordObj);
+                if (value == null)
+                {
+                    var type = recordObj.GetType();
+                    value = type.GetField(writer.FiledName)?.GetValue(recordObj);
+                }
+                writer.WriteField(value, encoder);
             }
-
-            var switchEx = Expression.Switch(nameHash, Expression.Constant(null), cases.ToArray());
-            var methodBody = Expression.Block(typeof(object), new[] { nameHash }, calHash, switchEx);
-
-            return Expression.Lambda<Func<object, string, object>>(methodBody, instance, memberName).Compile();
-
         }
     }
 }

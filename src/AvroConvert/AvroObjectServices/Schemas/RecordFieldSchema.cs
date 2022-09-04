@@ -37,7 +37,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         internal bool HasDefaultValue { get; }
         internal object DefaultValue { get; }
         internal int Position { get; }
-        internal MemberInfo MemberInfo { get; }
         internal NamedEntityAttributes NamedEntityAttributes { get; }
 
 
@@ -46,9 +45,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             TypeSchema typeSchema,
             bool hasDefaultValue,
             object defaultValue,
-            MemberInfo info,
             int position)
-            : this(namedEntityAttributes, typeSchema, hasDefaultValue, defaultValue, info, position, new Dictionary<string, string>())
+            : this(namedEntityAttributes, typeSchema, hasDefaultValue, defaultValue, position, new Dictionary<string, string>())
         {
         }
 
@@ -57,7 +55,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             TypeSchema typeSchema,
             bool hasDefaultValue,
             object defaultValue,
-            MemberInfo info,
             int position,
             Dictionary<string, string> attributes)
             : base(attributes)
@@ -66,7 +63,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             TypeSchema = typeSchema;
             HasDefaultValue = hasDefaultValue;
             DefaultValue = defaultValue;
-            MemberInfo = info;
             Position = position;
         }
 

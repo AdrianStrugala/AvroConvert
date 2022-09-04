@@ -21,20 +21,11 @@ namespace AvroConvertUnitTests
             var schema = Schema.Create(toSerialize);
 
             // Change schema logical type from timestamp-millis to timestamp-micros (a bit hacky)
-            var schemaJson = schema.ToString().Replace(LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds, LogicalTypeSchema.LogicalTypeEnum.TimestampMicroseconds);
-            var microsecondsSchema = new JsonSchemaBuilder().BuildSchema(schemaJson);
-            
-            byte[] result;
-            using (MemoryStream resultStream = new MemoryStream())
-            {
-                using (var writer = new Encoder(microsecondsSchema, resultStream, CodecType.Null))
-                {
-                    writer.Append(toSerialize);
-                }
-                result = resultStream.ToArray();
-            }
+            var microsecondsSchema = schema.ToString().Replace(LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds, LogicalTypeSchema.LogicalTypeEnum.TimestampMicroseconds);
 
-            var avro2Json = AvroConvert.Avro2Json(result, microsecondsSchema.ToString());
+            var result = AvroConvert.SerializeHeadless(toSerialize, microsecondsSchema);
+
+            var avro2Json = AvroConvert.Avro2Json(result, microsecondsSchema);
             var deserialized = JsonConvert.DeserializeObject<ClassWithDateTime>(avro2Json);
 
             //Assert

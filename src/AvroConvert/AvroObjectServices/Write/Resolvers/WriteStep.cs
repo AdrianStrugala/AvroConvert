@@ -20,6 +20,7 @@
 /** Modifications copyright(C) 2020 Adrian Strugała **/
 #endregion
 
+using System;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes;
 using SolTechnology.Avro.Features.Serialize;
@@ -29,6 +30,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
     internal class WriteStep
     {
         internal Encoder.WriteItem WriteField { get; set; }
-        internal RecordFieldSchema Field { get; set; }
+        internal string FiledName { get; set; }
+        internal Func<object, object> Getter { get; set; }
+        // internal RecordFieldSchema Field { get; set; }
     }
 }

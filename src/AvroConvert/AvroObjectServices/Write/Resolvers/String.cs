@@ -22,26 +22,17 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 {
     internal class String
     {
-        internal void Resolve(object value, IWriter encoder)
+        internal void Resolve(object value, IWriter writer)
         {
             if (value == null)
             {
                 value = string.Empty;
             }
 
-            if (!(value is string))
-            {
-                try
-                {
-                    value = value.ToString();
-                }
-                catch (Exception)
-                {
-                    throw new AvroTypeMismatchException("[String] required to write against [String] schema but found " + value.GetType());
-                }
-            }
+            if (value is not string convertedValue)
+                throw new AvroTypeMismatchException("[String] required to write against [String] schema but found " + value.GetType());
 
-            encoder.WriteString((string)value);
+            writer.WriteString(convertedValue);
         }
     }
 }

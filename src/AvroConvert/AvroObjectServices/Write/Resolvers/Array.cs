@@ -16,6 +16,7 @@
 #endregion
 
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.Features.Serialize;
@@ -32,44 +33,34 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 
         private void WriteArray(Encoder.WriteItem itemWriter, object @object, IWriter encoder)
         {
-            var array = EnsureArrayObject(@object);
-            long l = GetArrayLength(array);
+            List<object> list = EnsureArrayObject(@object);
+
+            long l = list?.Count ?? 0;
             encoder.WriteArrayStart();
             encoder.SetItemCount(l);
-            WriteArrayValues(array, itemWriter, encoder);
+            WriteArrayValues(list, itemWriter, encoder, l);
             encoder.WriteArrayEnd();
         }
 
-        private System.Array EnsureArrayObject(object value)
+        private List<object> EnsureArrayObject(object value)
         {
             var enumerable = value as IEnumerable;
-            var list = enumerable.Cast<object>().ToList();
+            List<object> list = enumerable.Cast<object>().ToList();
 
-            int length = list.Count;
-            dynamic[] result = new dynamic[length];
-            list.CopyTo(result, 0);
-
-            return result;
+            return list;
         }
 
-        private long GetArrayLength(object value)
+        private void WriteArrayValues(List<object> list, Encoder.WriteItem itemWriter, IWriter encoder, long count)
         {
-            return ((System.Array)value)?.Length ?? 0;
-        }
-
-        private void WriteArrayValues(object array, Encoder.WriteItem valueWriter, IWriter encoder)
-        {
-            if (array == null)
+            if (list == null)
             {
-                valueWriter(null, encoder);
+                itemWriter(null, encoder);
             }
             else
             {
-                var arrayInstance = (System.Array)array;
-                for (int i = 0; i < arrayInstance.Length; i++)
+                for (int i = 0; i < count; i++)
                 {
-                    encoder.StartItem();
-                    valueWriter(arrayInstance.GetValue(i), encoder);
+                    itemWriter(list[i], encoder);
                 }
             }
         }

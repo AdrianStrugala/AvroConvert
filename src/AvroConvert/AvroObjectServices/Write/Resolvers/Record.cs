@@ -125,9 +125,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 
         public void Resolve2(RecordSchema recordSchema, object recordObj, IWriter encoder)
         {
-            var type = recordSchema.RuntimeType;
-            // var type = recordObj.GetType();
-
             WriteStep[] writeSteps = new WriteStep[recordSchema.Fields.Count];
 
             if (writeStepDictionary.ContainsKey(recordSchema.Id))
@@ -136,6 +133,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
             }
             else
             {
+                var type = recordSchema.RuntimeType;
                 int index = 0;
                 foreach (RecordFieldSchema field in recordSchema.Fields)
                 {
@@ -157,12 +155,14 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 
         private void WriteRecordFields2(object recordObj, WriteStep[] writers, IWriter encoder)
         {
+            var type = recordObj.GetType();
+
+            object value = null;
             foreach (var writer in writers)
             {
-                var value = writer.Getter?.Invoke(recordObj);
+                value = writer.Getter?.Invoke(recordObj);
                 if (value == null)
                 {
-                    var type = recordObj.GetType();
                     value = type.GetField(writer.FiledName)?.GetValue(recordObj);
                 }
                 writer.WriteField(value, encoder);

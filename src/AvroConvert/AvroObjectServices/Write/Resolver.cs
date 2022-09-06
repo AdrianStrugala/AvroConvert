@@ -134,11 +134,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
                 value = default(S);
             }
 
-            if (!(value is S))
+            if (value is not S convertedValue)
                 throw new AvroTypeMismatchException(
-                    $"[{typeof(S)}] required to write against [{tag}] schema but found " + value?.GetType());
+                    $"[{typeof(S)}] required to write against [{tag}] schema but found type: [{value?.GetType()}]");
 
-            writer((S)value);
+            writer(convertedValue);
         }
     }
 }

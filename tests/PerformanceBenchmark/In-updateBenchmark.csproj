@@ -8,9 +8,9 @@
 	<ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.13.0" />
 		<PackageReference Include="AutoFixture" Version="4.14.0" />
-		<PackageReference Include="Equals.Fody" Version="4.0.1" />
+		<PackageReference Include="Equals.Fody" Version="4.0.2" />
 		<PackageReference Include="GroBuf" Version="1.8.1" />
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.*" />
 	</ItemGroup>
 
 	<ItemGroup>

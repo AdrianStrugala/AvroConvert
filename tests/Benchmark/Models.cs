@@ -21,7 +21,7 @@ namespace GrandeBenchmark
         public bool Discount { get; set; }
     }
 
-    public class User
+    public class Pet
     {
         public int Id { get; set; }
         public bool IsActive { get; set; }

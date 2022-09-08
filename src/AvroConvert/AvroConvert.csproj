@@ -1,49 +1,59 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <Authors>Adrian Strugala</Authors>
-    <AssemblyVersion>3.2.9.0</AssemblyVersion>
-    <Version>3.2.9</Version>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Description>Rapid Apache Avro serializer for .NET.</Description>
-    <PackageLicenseUrl>https://creativecommons.org/licenses/by-nc-sa/3.0/</PackageLicenseUrl>
-    <PackageProjectUrl>https://xabe.net/product/avroconvert/</PackageProjectUrl>
-    <RepositoryType>Dependency</RepositoryType>
-    <PackageTags>avro serialization deserialization standard apache core microservice big data bigdata kafka apache.avro</PackageTags>
-    <ApplicationIcon />
-    <StartupObject />
-    <Product>AvroConvert</Product>
-    <PackageId>AvroConvert</PackageId>
-    <RepositoryUrl>https://github.com/AdrianStrugala/AvroConvert</RepositoryUrl>
-    <AssemblyName>SolTechnology.Avro</AssemblyName>
-    <RootNamespace>SolTechnology.Avro</RootNamespace>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>Library</OutputType>
+		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
+		<LangVersion>10.0</LangVersion>
+		<Authors>Adrian Strugala</Authors>
+		<AssemblyVersion>3.2.9.0</AssemblyVersion>
+		<Version>3.2.9</Version>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Description>Rapid Apache Avro serializer for .NET.</Description>
+		<PackageLicenseUrl>https://creativecommons.org/licenses/by-nc-sa/3.0/</PackageLicenseUrl>
+		<PackageProjectUrl>https://xabe.net/product/avroconvert/</PackageProjectUrl>
+		<RepositoryType>Dependency</RepositoryType>
+		<PackageTags>avro serialization deserialization standard apache core microservice big data bigdata kafka apache.avro</PackageTags>
+		<ApplicationIcon />
+		<StartupObject />
+		<Product>AvroConvert</Product>
+		<PackageId>AvroConvert</PackageId>
+		<RepositoryUrl>https://github.com/AdrianStrugala/AvroConvert</RepositoryUrl>
+		<AssemblyName>SolTechnology.Avro</AssemblyName>
+		<RootNamespace>SolTechnology.Avro</RootNamespace>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
-      <_Parameter1>AvroConvertUnitTests</_Parameter1>
-    </AssemblyAttribute>
-  </ItemGroup>
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+			<_Parameter1>AvroConvertUnitTests</_Parameter1>
+		</AssemblyAttribute>
+	</ItemGroup>
 
-  <PropertyGroup>
-    <PackageIcon>docs\mini-logo.png</PackageIcon>
-    <PackageIconUrl>https://raw.githubusercontent.com/AdrianStrugala/AvroConvert/master/docs/mini-logo.png</PackageIconUrl>
-  </PropertyGroup>
+	<PropertyGroup>
+		<PackageIcon>docs\mini-logo.png</PackageIcon>
+		<PackageIconUrl>https://raw.githubusercontent.com/AdrianStrugala/AvroConvert/master/docs/mini-logo.png</PackageIconUrl>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <None Include="..\..\docs\mini-logo.png" Pack="true" Visible="false" PackagePath="docs\mini-logo.png" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Include="..\..\docs\mini-logo.png" Pack="true" Visible="false" PackagePath="docs\mini-logo.png" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="BrotliSharpLib" Version="0.3.*" />
-    <PackageReference Include="FastMember" Version="1.5.0" />
-    <PackageReference Include="IronSnappy" Version="1.3.*" />
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.*" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.*" />
-  </ItemGroup>
+
+	<!--Conditionally obtain references for the .NET versions target-->
+	<ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
+		<PackageReference Include="Newtonsoft.Json" Version="12.0.*" />
+		<PackageReference Include="IronSnappy" Version="1.3.*" />
+		<PackageReference Include="BrotliSharpLib" Version="0.3.*" />
+		<PackageReference Include="FastMember" Version="1.5.0" />
+		<PackageReference Include="Microsoft.CSharp" Version="4.7.*" />
+	</ItemGroup>
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.*" />
+		<PackageReference Include="IronSnappy" Version="1.3.*" />
+		<PackageReference Include="BrotliSharpLib" Version="0.3.*" />
+		<PackageReference Include="FastMember" Version="1.5.0" />
+	</ItemGroup>
+
 
 </Project>

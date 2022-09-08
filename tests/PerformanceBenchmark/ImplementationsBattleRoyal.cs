@@ -8,6 +8,8 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BrotliSharpLib;
 using GrandeBenchmark;
+using GroBuf;
+using GroBuf.DataMembersExtracters;
 using Newtonsoft.Json;
 using SolTechnology.Avro;
 
@@ -27,6 +29,8 @@ namespace SolTechnology.PerformanceBenchmark
 
         private const int N = 200;
         private readonly User[] data;
+        private readonly Serializer _groSerializer = new Serializer(new PropertiesExtractor(), options: GroBufOptions.WriteEmptyObjects);
+
 
         public ImplementationsBattleRoyal()
         {
@@ -67,12 +71,12 @@ namespace SolTechnology.PerformanceBenchmark
         [Benchmark]
         public void Json_Brotli()
         {
-            var serialized = JsonConvert.SerializeObject(data);
+            var serialized = System.Text.Json.JsonSerializer.Serialize(data);
             var serializedBytes = Encoding.UTF8.GetBytes(serialized);
             var serializedGzip = BrotliJson(serializedBytes);
 
             var deserializedBytes = UnBrotliJson(serializedGzip);
-            JsonConvert.DeserializeObject<List<User>>(Encoding.UTF8.GetString(deserializedBytes));
+            System.Text.Json.JsonSerializer.Deserialize<List<User>>(Encoding.UTF8.GetString(deserializedBytes));
 
 
             var path = $"C:\\test\\disk-size.{nameof(Json_Brotli).ToLower()}.txt";
@@ -90,22 +94,22 @@ namespace SolTechnology.PerformanceBenchmark
         }
 
         [Benchmark]
-        public void Avro_Gzip()
-        {
-            var serialized = AvroConvert.Serialize(data, CodecType.GZip);
-            AvroConvert.Deserialize<List<User>>(serialized);
-
-            var path = $"C:\\test\\disk-size.{nameof(Avro_Gzip).ToLower()}.txt";
-            File.WriteAllText(path, ConstructSizeLog(serialized.Length));
-        }
-
-        [Benchmark]
         public void Avro_Brotli()
         {
             var serialized = AvroConvert.Serialize(data, CodecType.Brotli);
             AvroConvert.Deserialize<List<User>>(serialized);
 
             var path = $"C:\\test\\disk-size.{nameof(Avro_Brotli).ToLower()}.txt";
+            File.WriteAllText(path, ConstructSizeLog(serialized.Length));
+        }
+
+        [Benchmark]
+        public void GroBuf_Default()
+        {
+            var serialized = _groSerializer.Serialize(data);
+            _groSerializer.Deserialize<List<User>>(serialized);
+
+            var path = $"C:\\test\\disk-size.{nameof(GroBuf_Default).ToLower()}.txt";
             File.WriteAllText(path, ConstructSizeLog(serialized.Length));
         }
 

@@ -14,29 +14,32 @@
 <p align="center">
  <a href="https://www.nuget.org/packages/AvroConvert"><img src="https://img.shields.io/badge/Nuget-v3.2.9-blue?logo=nuget"></a>
  <a href="https://github.com/AdrianStrugala/AvroConvert"><img src="https://img.shields.io/badge/Downloads-180k-blue?logo=github"></a>
- <a href="https://ci.appveyor.com/project/AdrianStrugala/avroconvert"><img src="https://img.shields.io/appveyor/build/AdrianStrugala/AvroConvert?logo=azuredevops"></a>
+ <a href="https://github.com/AdrianStrugala/AvroConvert/actions/workflows/build&test.yml"><img src="https://github.com/AdrianStrugala/AvroConvert/actions/workflows/build&test.yml/badge.svg"></a>
 
 </p>
 
-
 ## Docs
 
-**Avro format combines readability of JSON and compression of binary data serialization.**
-
-[Introduction article](https://www.c-sharpcorner.com/blogs/avro-rest-api-as-the-evolution-of-json-based-communication-between-mic)
+**Avro format combines readability of JSON and data compression of binary serialization.**
 
 [Apache Wiki](https://cwiki.apache.org/confluence/display/AVRO/Index)
 
-[General information](http://avro.apache.org/)
+[Apache Avro format documentation](http://avro.apache.org/)
 
-[Documentation](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md)
+[AvroConvert Documentation](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md)
+
+[First steps with Avro in the .NET article](https://www.c-sharpcorner.com/blogs/avro-rest-api-as-the-evolution-of-json-based-communication-between-mic)
+
+[Benchmark and Avro API article](https://www.c-sharpcorner.com/blogs/avro-rest-api-as-the-evolution-of-json-based-communication-between-mic)
+
+
 
 ## Benefits
 
-The main purpose of the project was to enhance HTTP communication between microservices. Replacing JSON with Avro brought three main benefits:
-* Decreased the communication time between microservices
-* Reduced the network traffic by about 30%
-* Increased communication security - the data was not visible in plain JSON text
+Introducing Avro to the projects brings three main benefits:
+* Reduction of data size and storage cost
+* Decrease of the communication time and the network traffic between microservices
+* Increased security - the data is not visible in plain text format
 
 
 ## Features
@@ -72,7 +75,7 @@ Results of BenchmarkDotNet:
 Article describing Avro format specification and benchmark methodology: https://www.c-sharpcorner.com/blogs/avro-rest-api-as-the-evolution-of-json-based-communication-between-mic
 
 **Conclusion:** <br>
-Using Avro for communication between your services significantly reduces communication time and network traffic. Additionally choosing encoding (compression algorithm) can improve the results even further.
+Using Avro for communication between your services significantly reduces data size and network traffic. Additionally choosing encoding (compression algorithm) can improve the results even further.
 
 
 ## Code samples

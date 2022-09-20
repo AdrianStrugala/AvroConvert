@@ -17,7 +17,6 @@
 
 using System.IO;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
-using SolTechnology.Avro.AvroObjectServices.FileHeader.Codec;
 using SolTechnology.Avro.Features.Serialize;
 
 namespace SolTechnology.Avro
@@ -25,7 +24,7 @@ namespace SolTechnology.Avro
     public static partial class AvroConvert
     {
         /// <summary>
-        /// Serializes given object to AVRO format (including header with metadata)
+        /// Serializes given object to Avro format (including header with metadata)
         /// </summary>
         public static byte[] Serialize(object obj)
         {
@@ -33,7 +32,7 @@ namespace SolTechnology.Avro
         }
 
         /// <summary>
-        /// Serializes given object to AVRO format (including header with metadata)
+        /// Serializes given object to Avro format (including header with metadata)
         /// Choosing <paramref name="codecType"/> reduces output object size
         /// </summary>
         public static byte[] Serialize(object obj, CodecType codecType)

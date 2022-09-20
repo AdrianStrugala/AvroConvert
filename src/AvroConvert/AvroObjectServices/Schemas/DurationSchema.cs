@@ -79,7 +79,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             return bytes;
         }
 
-        internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type type)
+        internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type readType)
         {
             byte[] baseBytes = (byte[])baseValue;
             if (!BitConverter.IsLittleEndian)

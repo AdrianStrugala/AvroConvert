@@ -22,11 +22,20 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 {
     internal partial class Resolver
     {
-        private object ResolveLogical(LogicalTypeSchema writerSchema, LogicalTypeSchema readerSchema, IReader reader, Type type)
+        private object ResolveLogical(LogicalTypeSchema writeSchema, TypeSchema readSchema, IReader reader, Type type)
         {
-            var value = Resolve(writerSchema.BaseTypeSchema, readerSchema.BaseTypeSchema, reader, type);
+            var baseWriteSchema = writeSchema.BaseTypeSchema;
 
-            var result = writerSchema.ConvertToLogicalValue(value, writerSchema, type);
+            var baseReadSchema = readSchema;
+            if (readSchema is LogicalTypeSchema logicalReadSchema)
+            {
+                baseReadSchema = logicalReadSchema.BaseTypeSchema;
+            }
+
+            var value = Resolve(baseWriteSchema, baseReadSchema, reader, type);
+
+            var result = writeSchema.ConvertToLogicalValue(value, writeSchema, type);
+
             return result;
         }
     }

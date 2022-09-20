@@ -50,12 +50,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             return (long)(date - DateTimeExtensions.UnixEpochDateTime).TotalMilliseconds * 1000;
         }
 
-        internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type type)
+        internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type readType)
         {
             var noMicroseconds = (long)baseValue;
             var result = DateTimeExtensions.UnixEpochDateTime.AddMilliseconds(noMicroseconds / 1000);
 
-            if (type == typeof(DateTimeOffset) || type == typeof(DateTimeOffset?))
+            if (readType == typeof(DateTimeOffset) || readType == typeof(DateTimeOffset?))
             {
                 return DateTimeOffset.FromUnixTimeMilliseconds(noMicroseconds / 1000);
             }

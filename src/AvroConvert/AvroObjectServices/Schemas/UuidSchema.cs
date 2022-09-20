@@ -34,9 +34,14 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         internal override AvroType Type => AvroType.Logical;
         internal override TypeSchema BaseTypeSchema { get; set; }
         internal override string LogicalTypeName => LogicalTypeEnum.Uuid;
-        internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type type)
+        internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type readType)
         {
-            return Guid.Parse((string)baseValue);
+            if (baseValue is Guid)
+                return baseValue;
+            else
+            {
+                return Guid.Parse((string)baseValue);
+            }
         }
     }
 }

@@ -54,6 +54,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
             writer.WriteEndObject();
         }
 
-        internal abstract object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type type);
+        internal abstract object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type readType);
     }
 }

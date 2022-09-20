@@ -110,7 +110,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 throw new ArgumentNullException("schemaInJson");
             }
 
-            return new JsonSchemaBuilder().BuildSchema(schemaInJson);
+            return new TypeSchemaBuilder().BuildSchema(schemaInJson);
         }
 
         internal static TypeSchema Create(object obj)

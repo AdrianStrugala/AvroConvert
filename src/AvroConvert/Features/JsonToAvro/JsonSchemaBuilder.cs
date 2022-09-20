@@ -56,9 +56,7 @@ namespace SolTechnology.Avro.Features.JsonToAvro
                     recordFieldSchema = new RecordFieldSchema(
                                         new NamedEntityAttributes(new SchemaName(property.Name), new List<string>(), warning),
                                         fieldSchema,
-                                        SortOrder.Ascending,
                                         false,
-                                        null,
                                         null,
                                         i);
                 }
@@ -68,9 +66,7 @@ namespace SolTechnology.Avro.Features.JsonToAvro
                     recordFieldSchema = new RecordFieldSchema(
                                      new NamedEntityAttributes(new SchemaName(property.Name, true), new List<string> { property.Name }, warning),
                                      fieldSchema,
-                                     SortOrder.Ascending,
                                      false,
-                                     null,
                                      null,
                                      i);
                 }
@@ -82,9 +78,6 @@ namespace SolTechnology.Avro.Features.JsonToAvro
 
             return record;
         }
-
-
-
 
         internal TypeSchema BuildArraySchema(JArray incomingObject, string name = null)
         {

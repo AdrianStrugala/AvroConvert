@@ -15,9 +15,6 @@
 */
 #endregion
 
-using System;
-using SolTechnology.Avro.Infrastructure.Exceptions;
-
 namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 {
     internal class String
@@ -30,7 +27,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
             }
 
             if (value is not string convertedValue)
-                throw new AvroTypeMismatchException("[String] required to write against [String] schema but found " + value.GetType());
+                convertedValue = value.ToString();
 
             writer.WriteString(convertedValue);
         }

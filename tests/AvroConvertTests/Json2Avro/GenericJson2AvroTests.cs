@@ -4,13 +4,13 @@ using Newtonsoft.Json;
 using SolTechnology.Avro;
 using Xunit;
 
-namespace AvroConvertComponentTests.JsonToAvro
+namespace AvroConvertComponentTests.Json2Avro
 {
-    public class Json2AvroTests
+    public class GenericJson2AvroTests
     {
         private readonly Fixture _fixture;
 
-        public Json2AvroTests()
+        public GenericJson2AvroTests()
         {
             _fixture = new AutoFixture.Fixture();
         }

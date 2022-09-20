@@ -48,6 +48,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
                     return t == AvroType.Int;
                 case AvroType.String:
                     return t == AvroType.String || t == AvroType.Null;
+                case AvroType.Int:
+                    return t == AvroType.Long;
                 default:
                     return false;
             }

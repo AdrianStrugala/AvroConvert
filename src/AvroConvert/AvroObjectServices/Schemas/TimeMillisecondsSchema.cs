@@ -48,7 +48,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         }
 
 
-        internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type type)
+        internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type readType)
         {
             var noMs = (int)baseValue;
             return DateTimeExtensions.UnixEpochDateTime.TimeOfDay.Add(TimeSpan.FromMilliseconds(noMs));

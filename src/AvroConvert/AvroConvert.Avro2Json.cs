@@ -30,7 +30,7 @@ namespace SolTechnology.Avro
     public static partial class AvroConvert
     {
         /// <summary>
-        /// Converts AVRO object directly to JSON format
+        /// Converts Avro object directly to JSON format
         /// </summary>
         public static string Avro2Json(byte[] avro)
         {
@@ -46,7 +46,7 @@ namespace SolTechnology.Avro
 
 
         /// <summary>
-        /// Converts AVRO object compatible with given <paramref name="avroSchema"/> directly to JSON format
+        /// Converts Avro object compatible with given <paramref name="avroSchema"/> directly to JSON format
         /// </summary>
         public static string Avro2Json(byte[] avro, string avroSchema)
         {

@@ -1,7 +1,9 @@
+﻿using System.Dynamic;
 ﻿using System;
 using System.IO;
 using Newtonsoft.Json;
 using SolTechnology.Avro;
+using SolTechnology.Avro.Features.JsonToAvro;
 using Xunit;
 
 namespace AvroConvertComponentTests.AvroToJson
@@ -20,9 +22,7 @@ namespace AvroConvertComponentTests.AvroToJson
             user.name = "red";
 
             var expectedJson = JsonConvert.SerializeObject(user);
-
             var avroSerialized = AvroConvert.Serialize(user);
-
 
             //Act
             var resultJson = AvroConvert.Avro2Json(avroSerialized);

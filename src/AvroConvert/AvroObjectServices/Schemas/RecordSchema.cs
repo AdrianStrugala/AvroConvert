@@ -101,11 +101,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
 
             seenSchemas.Add(this);
             writer.WriteStartObject();
-            writer.WriteProperty("type", "record");
             writer.WriteProperty("name", Name);
             writer.WriteOptionalProperty("namespace", Namespace);
             writer.WriteOptionalProperty("doc", Doc);
             writer.WriteOptionalProperty("aliases", Aliases);
+            writer.WriteProperty("type", "record");
             writer.WritePropertyName("fields");
             writer.WriteStartArray();
             this.fields.ForEach(_ => _.ToJson(writer, seenSchemas));

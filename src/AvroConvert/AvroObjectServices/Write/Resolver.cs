@@ -15,11 +15,17 @@
 */
 #endregion
 
+using System;
+using Newtonsoft.Json.Linq;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.AvroObjectServices.Write.Resolvers;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Infrastructure.Exceptions;
+using Array = SolTechnology.Avro.AvroObjectServices.Write.Resolvers.Array;
+using Decimal = SolTechnology.Avro.AvroObjectServices.Write.Resolvers.Decimal;
+using Enum = SolTechnology.Avro.AvroObjectServices.Write.Resolvers.Enum;
+using String = SolTechnology.Avro.AvroObjectServices.Write.Resolvers.String;
 
 namespace SolTechnology.Avro.AvroObjectServices.Write
 {
@@ -41,6 +47,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
         private static readonly Duration Duration;
         private static readonly TimestampMilliseconds TimestampMilliseconds;
         private static readonly TimestampMicroseconds TimestampMicroseconds;
+        private static readonly Json Json;
 
         static Resolver()
         {
@@ -58,6 +65,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
             Duration = new Duration();
             TimestampMilliseconds = new TimestampMilliseconds();
             TimestampMicroseconds = new TimestampMicroseconds();
+            Json = new Json();
         }
 
         internal static Encoder.WriteItem ResolveWriter(TypeSchema schema)
@@ -100,7 +108,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
                     }
                     return String.Resolve;
                 case AvroType.Record:
-                    //TODO: switch here
+                    if (schema.RuntimeType == typeof(JObject))
+                    {
+                        return Json.Resolve((RecordSchema)schema);
+                    }
+                     //TODO: switch here
                     // return Record.Resolve((RecordSchema)schema);
                     return (v, e) => Record.Resolve2((RecordSchema)schema, v, e);
                 case AvroType.Enum:
@@ -134,10 +146,16 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
                 value = default(S);
             }
 
-            if (value is not S convertedValue)
+            if (value is not S convertedValue){
+                 //Resolve Short
+                if (typeof(S) == typeof(int) && value?.GetType() == typeof(short))
+                {
+                    writer((S)(object)Convert.ToInt32(value));
+                    return;
+                }
                 throw new AvroTypeMismatchException(
                     $"[{typeof(S)}] required to write against [{tag}] schema but found type: [{value?.GetType()}]");
-
+            }
             writer(convertedValue);
         }
     }

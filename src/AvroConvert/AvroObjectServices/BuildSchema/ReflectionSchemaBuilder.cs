@@ -252,9 +252,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             }
 
             // Enumerable
-            Type enumerableType = type
-                .GetAllInterfaces()
-                .SingleOrDefault(t => t.IsGenericType() && t.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+            Type enumerableType = type.FindEnumerableType();
             if (enumerableType != null)
             {
                 var itemType = enumerableType.GetGenericArguments()[0];
@@ -405,7 +403,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 memberType);
         }
 
-        private void AddRecordFields(
+        public void AddRecordFields(
             IEnumerable<MemberSerializationInfo> members,
             Dictionary<string, NamedSchema> schemas,
             uint currentDepth,

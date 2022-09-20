@@ -39,16 +39,17 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             return Resolve(ws, readerSchema, d, type);
         }
 
-        protected static TypeSchema FindBranch(UnionSchema us, TypeSchema schema)
+        protected static TypeSchema FindBranch(UnionSchema us, TypeSchema writerSchema)
         {
-            var resultSchema = us.Schemas.FirstOrDefault(s => s.Type == schema.Type);
-
-            if (resultSchema == null)
+            foreach (var readSchema in us.Schemas)
             {
-                throw new AvroException("No matching schema for " + schema + " in " + us);
+                if (readSchema.CanRead(writerSchema))
+                {
+                    return readSchema;
+                }
             }
 
-            return resultSchema;
+            throw new AvroException("Unable to find matching schema for " + writerSchema + " in " + us);
         }
     }
 }

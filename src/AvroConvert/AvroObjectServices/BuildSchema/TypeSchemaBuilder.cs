@@ -33,7 +33,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
     /// <summary>
     ///     Class responsible for building the internal representation of the schema given a JSON string.
     /// </summary>
-    internal sealed class JsonSchemaBuilder
+    internal sealed class TypeSchemaBuilder
     {
         private static readonly Dictionary<string, Func<PrimitiveTypeSchema>> PrimitiveRuntimeType
             = new Dictionary<string, Func<PrimitiveTypeSchema>>(comparer: StringComparer.InvariantCultureIgnoreCase)
@@ -356,6 +356,10 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
             Dictionary<string, string> customAttributes = record.GetAttributesNotIn(StandardProperties.Record);
             var result = new RecordSchema(attributes, typeof(AvroRecord), customAttributes);
+            if (namedSchemas.ContainsKey(result.FullName))
+            {
+                return namedSchemas[result.FullName];
+            }
             namedSchemas.Add(result.FullName, result);
 
             List<RecordFieldSchema> fields = record.OptionalArrayProperty(

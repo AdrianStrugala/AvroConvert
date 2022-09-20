@@ -24,7 +24,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.Features.Serialize;
-
+using SolTechnology.Avro.AvroObjectServices.Schemas;
 namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 {
     internal class Record

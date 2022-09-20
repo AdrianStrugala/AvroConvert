@@ -17,7 +17,7 @@ namespace AvroConvertComponentTests.GenerateSchema
 
 
             //Assert
-            Assert.Equal(@"{""type"":""record"",""name"":""ClassWithoutDefaultConstructor"",""namespace"":""AvroConvertComponentTests"",""fields"":[{""name"":""Name"",""type"":""string""}]}", schema);
+            Assert.Equal(@"{""name"":""ClassWithoutDefaultConstructor"",""namespace"":""AvroConvertComponentTests"",""type"":""record"",""fields"":[{""name"":""Name"",""type"":""string""}]}", schema);
         }
 
     }

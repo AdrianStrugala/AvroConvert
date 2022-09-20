@@ -1,5 +1,5 @@
 #region license
-/**Copyright (c) 2020 Adrian Struga³a
+/**Copyright (c) 2020 Adrian Strugala
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         internal object Resolve(
             TypeSchema writerSchema,
             TypeSchema readerSchema,
-            IReader d,
+            IReader reader,
             Type type)
         {
             try
@@ -69,41 +69,41 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                     case AvroType.Null:
                         return null;
                     case AvroType.Boolean:
-                        return d.ReadBoolean();
+                        return reader.ReadBoolean();
                     case AvroType.Int:
-                        return d.ReadInt();
+                        return ResolveInt(type, reader);
                     case AvroType.Long:
-                        return ResolveLong(type, d);
+                        return ResolveLong(type, reader);
                     case AvroType.Float:
-                        return d.ReadFloat();
+                        return ResolveFloat(type, reader);
                     case AvroType.Double:
-                        return d.ReadDouble();
+                        return ResolveDouble(type, reader);
                     case AvroType.String:
-                        return ResolveString(type, d);
+                        return ResolveString(type, reader);
                     case AvroType.Bytes:
-                        return d.ReadBytes();
+                        return reader.ReadBytes();
                     case AvroType.Logical:
-                        return ResolveLogical((LogicalTypeSchema)writerSchema, (LogicalTypeSchema)readerSchema, d, type);
+                        return ResolveLogical((LogicalTypeSchema)writerSchema, readerSchema, reader, type);
                     case AvroType.Error:
                     case AvroType.Record:
-                        return ResolveRecord((RecordSchema)writerSchema, (RecordSchema)readerSchema, d, type);
+                        return ResolveRecord((RecordSchema)writerSchema, (RecordSchema)readerSchema, reader, type);
                     case AvroType.Enum:
-                        return ResolveEnum((EnumSchema)writerSchema, readerSchema, d, type);
+                        return ResolveEnum((EnumSchema)writerSchema, readerSchema, reader, type);
                     case AvroType.Fixed:
-                        return ResolveFixed((FixedSchema)writerSchema, readerSchema, d, type);
+                        return ResolveFixed((FixedSchema)writerSchema, readerSchema, reader, type);
                     case AvroType.Array:
-                        return ResolveArray(writerSchema, readerSchema, d, type);
+                        return ResolveArray(writerSchema, readerSchema, reader, type);
                     case AvroType.Map:
-                        return ResolveMap((MapSchema)writerSchema, readerSchema, d, type);
+                        return ResolveMap((MapSchema)writerSchema, readerSchema, reader, type);
                     case AvroType.Union:
-                        return ResolveUnion((UnionSchema)writerSchema, readerSchema, d, type);
+                        return ResolveUnion((UnionSchema)writerSchema, readerSchema, reader, type);
                     default:
                         throw new AvroException("Unknown schema type: " + writerSchema);
                 }
             }
             catch (Exception e)
             {
-                throw new AvroTypeMismatchException($"Unable to deserialize [{writerSchema.Name}] of schema [{writerSchema.Type}] to the target type [{type}]", e);
+                throw new AvroTypeMismatchException($"Unable to deserialize [{writerSchema.Name}] of schema [{writerSchema.Type}] to the target type [{type}]. Inner exception:", e);
             }
         }
     }

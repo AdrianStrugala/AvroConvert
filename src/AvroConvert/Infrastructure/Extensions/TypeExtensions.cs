@@ -377,14 +377,9 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
         
         public static Type FindEnumerableType(this Type type)
         {
-            var xd = type?
-                .GetAllInterfaces()
-                .Where(t => t.IsGenericType() && t.GetGenericTypeDefinition() == typeof(IEnumerable<>));
-
             return type?
                 .GetAllInterfaces()
                 .SingleOrDefault(t => t.IsGenericType() && t.GetGenericTypeDefinition() == typeof(IEnumerable<>));
-
         }
 
         internal static bool IsValueType(this Type type)

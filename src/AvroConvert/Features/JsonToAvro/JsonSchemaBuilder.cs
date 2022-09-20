@@ -40,19 +40,7 @@ namespace SolTechnology.Avro.Features.JsonToAvro
                 typeof(JObject));
 
 
-            // if (IsDictionary(jObject))
-            // {
-            //     return BuildDictionarySchema(jObject, name);
-            // }
-
-            //   if (IsDictionary(objectProperty, name))
-            // {
-            //     throw new NotSupportedException(
-            //         $"Property [{name}] recognized as Dictionary. Dictionaries are not supported for anonymous Json2Avro invocation. To resolve the problem, please invoke generic Json2Avro<T> method.");
-            // }
-            // else
-            // {
-            // var innerExpandoObject = JsonConvertExtensions.DeserializeExpando<ExpandoObject>(objectProperty.ToString());
+            //TODO: In one day Dictionaries will be handled: it's here
 
             for (int i = 0; i < jObject.Properties().Count(); i++)
             {
@@ -95,56 +83,18 @@ namespace SolTechnology.Avro.Features.JsonToAvro
             return record;
         }
 
-   
+
 
 
         internal TypeSchema BuildArraySchema(JArray incomingObject, string name = null)
         {
-            var xd = incomingObject.FirstOrDefault();
+            var childObject = incomingObject.FirstOrDefault();
 
-            TypeSchema childSchema = BuildSchema(xd, name);
-
-            // var enumerable = incomingObject.GetType().FindEnumerableType();
-            // if (enumerable != null)
-            // {
-            //     var childItem = ((IList)incomingObject)[0];
-            //
-            //     var childExpando = JsonConvertExtensions.DeserializeExpando<ExpandoObject>(xd?.ToString());
-            //
-            //   
-            //     childSchema = BuildSchema(childExpando, name);
-            // }
+            TypeSchema childSchema = BuildSchema(childObject, name);
 
             ArraySchema array = new ArraySchema(childSchema, typeof(object));
 
             return array;
-        }
-
-
-        private bool IsDictionary(JObject objectProperty)
-        {
-            //No idea how to do this better
-            if (objectProperty.HasValues)
-            {
-                // objectProperty.First.
-
-                if (objectProperty.First != null && objectProperty.First<object>().GetType() != typeof(string))
-                {
-                    return true;
-                }
-
-                return false;
-            }
-
-            return false;
-        }
-
-
-        private TypeSchema BuildDictionarySchema(JObject jObject, string name)
-        {
-            var x = jObject.First;
-
-            throw new System.NotImplementedException();
         }
     }
 }

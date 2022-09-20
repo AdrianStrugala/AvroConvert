@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 using SolTechnology.Avro;
 using Xunit;
 
-namespace AvroConvertComponentTests.JsonToAvro
+namespace AvroConvertComponentTests.Json2Avro
 {
     public class GenericJson2AvroTests
     {

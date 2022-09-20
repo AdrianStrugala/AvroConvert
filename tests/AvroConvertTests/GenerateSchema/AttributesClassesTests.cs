@@ -91,7 +91,7 @@ namespace AvroConvertComponentTests.GenerateSchema
             string schema = AvroConvert.GenerateSchema(typeof(MixedDataMembers), includeOnlyDataContractMembers: true);
 
             //Assert
-            Assert.Contains("{\"type\":\"record\",\"name\":\"MixedDataMembers\",\"namespace\":\"AvroConvertComponentTests\",\"fields\":[{\"name\":\"savedValues\",\"type\":{\"type\":\"array\",\"items\":\"int\"}},{\"name\":\"andAnother\",\"type\":[\"null\",\"long\"]}]}", schema);
+            Assert.Contains("{\"name\":\"MixedDataMembers\",\"namespace\":\"AvroConvertComponentTests\",\"type\":\"record\",\"fields\":[{\"name\":\"savedValues\",\"type\":{\"type\":\"array\",\"items\":\"int\"}},{\"name\":\"andAnother\",\"type\":[\"null\",\"long\"]}]}", schema);
         }
 
         [Fact]

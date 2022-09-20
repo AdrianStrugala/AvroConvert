@@ -18,7 +18,7 @@ namespace AvroConvertComponentTests.GenerateSchema
 
 
             //Assert
-            Assert.Equal(@"{""type"":""record"",""name"":""Farm"",""namespace"":""AvroConvertComponentTests.GenerateSchema"",""fields"":[{""name"":""Name"",""type"":""string""},{""name"":""Animals"",""type"":{""type"":""array"",""items"":{""type"":""record"",""name"":""Animal"",""namespace"":""AvroConvertComponentTests.GenerateSchema"",""fields"":[{""name"":""IsOutside"",""type"":""boolean""}]}}},{""name"":""Plants"",""type"":{""type"":""array"",""items"":{""type"":""record"",""name"":""IPlant"",""namespace"":""AvroConvertComponentTests.GenerateSchema"",""fields"":[{""name"":""Color"",""type"":""string""}]}}}]}", schema);
+            Assert.Equal(@"{""name"":""Farm"",""namespace"":""AvroConvertComponentTests.GenerateSchema"",""type"":""record"",""fields"":[{""name"":""Name"",""type"":""string""},{""name"":""Animals"",""type"":{""type"":""array"",""items"":{""name"":""Animal"",""namespace"":""AvroConvertComponentTests.GenerateSchema"",""type"":""record"",""fields"":[{""name"":""IsOutside"",""type"":""boolean""}]}}},{""name"":""Plants"",""type"":{""type"":""array"",""items"":{""name"":""IPlant"",""namespace"":""AvroConvertComponentTests.GenerateSchema"",""type"":""record"",""fields"":[{""name"":""Color"",""type"":""string""}]}}}]}", schema);
         }
 
 

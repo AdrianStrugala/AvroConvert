@@ -300,3 +300,5 @@ START OF THE PROJECT
 **v. 3.3.0 (xxx)**
 - Added support for short (int16) C# type
 - Allowed conversion for non-matching read and write number C# types (ex: int -> long)
+- Added SchemaConvert.GenerateFromJson feature
+- Added dynamic Json2Avro feature

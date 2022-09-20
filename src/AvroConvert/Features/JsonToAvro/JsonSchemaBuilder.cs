@@ -9,16 +9,29 @@ using SolTechnology.Avro.Infrastructure.Attributes;
 
 namespace SolTechnology.Avro.Features.JsonToAvro
 {
-    public class JsonSchemaBuilder
+    internal class JsonSchemaBuilder
     {
         private readonly ReflectionSchemaBuilder _reflectionSchemaBuilder;
 
-        public JsonSchemaBuilder()
+        internal JsonSchemaBuilder()
         {
             _reflectionSchemaBuilder = new ReflectionSchemaBuilder();
         }
 
-        internal TypeSchema BuildSchema(JObject jObject, string name = null)
+        internal TypeSchema BuildSchema(object item, string name = null)
+        {
+            TypeSchema fieldSchema = item switch
+            {
+                JObject objectProperty => BuildRecordSchema(objectProperty, name),
+                JArray arrayProperty => BuildArraySchema(arrayProperty, name),
+                JValue jValue => _reflectionSchemaBuilder.BuildSchema(jValue.Value?.GetType()),
+                _ => _reflectionSchemaBuilder.BuildSchema(item.GetType())
+            };
+
+            return fieldSchema;
+        }
+
+        internal TypeSchema BuildRecordSchema(JObject jObject, string name = null)
         {
             RecordSchema record = new RecordSchema(new NamedEntityAttributes(
                 new SchemaName(name ?? "UnknownObject"),
@@ -27,11 +40,25 @@ namespace SolTechnology.Avro.Features.JsonToAvro
                 typeof(JObject));
 
 
+            // if (IsDictionary(jObject))
+            // {
+            //     return BuildDictionarySchema(jObject, name);
+            // }
+
+            //   if (IsDictionary(objectProperty, name))
+            // {
+            //     throw new NotSupportedException(
+            //         $"Property [{name}] recognized as Dictionary. Dictionaries are not supported for anonymous Json2Avro invocation. To resolve the problem, please invoke generic Json2Avro<T> method.");
+            // }
+            // else
+            // {
+            // var innerExpandoObject = JsonConvertExtensions.DeserializeExpando<ExpandoObject>(objectProperty.ToString());
+
             for (int i = 0; i < jObject.Properties().Count(); i++)
             {
                 var property = jObject.Properties().ElementAt(i);
 
-                TypeSchema fieldSchema = BuildSchemaInternal(property.Value, property.Name);
+                TypeSchema fieldSchema = BuildSchema(property.Value, property.Name);
 
                 string warning = string.Empty;
                 RecordFieldSchema recordFieldSchema = null;
@@ -68,46 +95,14 @@ namespace SolTechnology.Avro.Features.JsonToAvro
             return record;
         }
 
-        internal TypeSchema BuildSchemaInternal(object item, string name = null)
-        {
-            TypeSchema fieldSchema;
-
-            if (item is JObject objectProperty)
-            {
-
-                //   if (IsDictionary(objectProperty, name))
-                // {
-                //     throw new NotSupportedException(
-                //         $"Property [{name}] recognized as Dictionary. Dictionaries are not supported for anonymous Json2Avro invocation. To resolve the problem, please invoke generic Json2Avro<T> method.");
-                // }
-                // else
-                // {
-                // var innerExpandoObject = JsonConvertExtensions.DeserializeExpando<ExpandoObject>(objectProperty.ToString());
-                fieldSchema = BuildSchema(objectProperty, name);
-                //        }
-            }
-            else if (item is JArray arrayProperty)
-            {
-                fieldSchema = BuildArraySchema(arrayProperty, name);
-            }
-            else if (item is JValue jValue)
-            {
-                fieldSchema = _reflectionSchemaBuilder.BuildSchema(jValue.Value?.GetType());
-            }
-            else
-            {
-                fieldSchema = _reflectionSchemaBuilder.BuildSchema(item.GetType());
-            }
-
-            return fieldSchema;
-        }
+   
 
 
         internal TypeSchema BuildArraySchema(JArray incomingObject, string name = null)
         {
             var xd = incomingObject.FirstOrDefault();
 
-            TypeSchema childSchema = BuildSchemaInternal(xd, name);
+            TypeSchema childSchema = BuildSchema(xd, name);
 
             // var enumerable = incomingObject.GetType().FindEnumerableType();
             // if (enumerable != null)
@@ -126,23 +121,14 @@ namespace SolTechnology.Avro.Features.JsonToAvro
         }
 
 
-        private bool IsDictionary(JObject objectProperty, string name)
+        private bool IsDictionary(JObject objectProperty)
         {
             //No idea how to do this better
-
             if (objectProperty.HasValues)
             {
-                if (objectProperty.First != null && objectProperty.First<object>().GetType() != typeof(string))
-                {
-                    return true;
-                }
+                // objectProperty.First.
 
-                if (name.Contains("Dictionary") ||
-                    name.Contains("dictionary") ||
-                    name.Contains("dict") ||
-                    name.Contains("Dict") ||
-                    name.Contains("Map") ||
-                    name.Contains("map"))
+                if (objectProperty.First != null && objectProperty.First<object>().GetType() != typeof(string))
                 {
                     return true;
                 }
@@ -153,5 +139,12 @@ namespace SolTechnology.Avro.Features.JsonToAvro
             return false;
         }
 
+
+        private TypeSchema BuildDictionarySchema(JObject jObject, string name)
+        {
+            var x = jObject.First;
+
+            throw new System.NotImplementedException();
+        }
     }
 }

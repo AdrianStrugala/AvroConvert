@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using AutoFixture;
 using FluentAssertions;
 using Newtonsoft.Json;
 using SolTechnology.Avro;
 using Xunit;
 
-namespace AvroConvertComponentTests.JsonToAvro
+namespace AvroConvertComponentTests.Json2Avro
 {
     public class DynamicJson2AvroTests
     {

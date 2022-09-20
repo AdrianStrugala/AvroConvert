@@ -52,13 +52,13 @@ namespace SolTechnology.Avro.Features.JsonToAvro
             return null;
         }
 
-        internal byte[] SerializeJArray(List<JObject> jObjects, CodecType codecType)
+        private byte[] SerializeJArray(List<JObject> jObjects, CodecType codecType)
         {
             var jsonSchemaBuilder = new JsonSchemaBuilder();
 
             using (MemoryStream resultStream = new MemoryStream())
             {
-                var schema = jsonSchemaBuilder.BuildSchema(jObjects.FirstOrDefault());
+                var schema = jsonSchemaBuilder.BuildRecordSchema(jObjects.FirstOrDefault());
 
                 using (var writer = new Serialize.Encoder(schema, resultStream, codecType))
                 {

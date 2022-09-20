@@ -21,7 +21,6 @@
 #endregion
 
 using Newtonsoft.Json;
-using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.Features.JsonToAvro;
 
 namespace SolTechnology.Avro
@@ -29,7 +28,8 @@ namespace SolTechnology.Avro
     public static partial class AvroConvert
     {
         /// <summary>
-        /// Converts Json object directly to Avro format
+        /// Converts JSON object directly to Avro format
+        /// Warning! This is an experimental feature.
         /// </summary>
         public static byte[] Json2Avro(string json)
         {
@@ -39,20 +39,21 @@ namespace SolTechnology.Avro
         }
 
 
-        // /// <summary>
-        // /// Converts AVRO object compatible with given <paramref name="avroSchema"/> directly to JSON format
-        // /// </summary>
-        // public static string Avro2Json(byte[] avro, string avroSchema)
-        // {
-        //     using (var stream = new MemoryStream(avro))
-        //     {
-        //         var decoder = new Decoder();
-        //         var deserialized = decoder.Decode(stream, Schema.Create(avroSchema));
-        //         var json = JsonConvert.SerializeObject(deserialized);
-        //
-        //         return json;
-        //     }
-        // }
+        /// <summary>
+        ///  Converts JSON object directly to Avro format
+        /// Choosing <paramref name="codecType"/> reduces output object size
+        /// Warning! This is an experimental feature.
+        /// </summary>
+        public static byte[] Json2Avro(string json, CodecType codecType)
+        {
+            var decoder = new JsonToAvroDecoder();
+            return decoder.DecodeJson(json, codecType);
+        }
+
+
+        /// <summary>
+        ///  Converts JSON object directly to Avro format
+        /// </summary>
         public static byte[] Json2Avro<T>(string json)
         {
             var deserializedJson = JsonConvert.DeserializeObject<T>(json);
@@ -63,8 +64,8 @@ namespace SolTechnology.Avro
 
 
         /// <summary>
-        ///  Converts Json object directly to Avro format
-        /// Choosing <paramref name="codecType"/> reduces output object size
+        ///  Converts JSON object directly to Avro format
+        ///  Choosing <paramref name="codecType"/> reduces output object size
         /// </summary>
         public static byte[] Json2Avro<T>(string json, CodecType codecType)
         {

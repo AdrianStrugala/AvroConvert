@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-/** Modifications copyright(C) 2020 Adrian Strugała **/
+/** Modifications copyright(C) 2022 Adrian Strugala **/
 
 using System.IO;
 using System.IO.Compression;
@@ -27,17 +27,14 @@ namespace SolTechnology.Avro.AvroObjectServices.FileHeader.Codec
     {
         internal override string Name { get; } = CodecType.Deflate.ToString().ToLower();
 
-        internal override byte[] Compress(byte[] uncompressedData)
+        internal override MemoryStream Compress(MemoryStream toCompress)
         {
+            var toCompressBytes = toCompress.ToArray();
             MemoryStream outStream = new MemoryStream();
 
-            using (DeflateStream Compress =
-                        new DeflateStream(outStream,
-                        CompressionMode.Compress))
-            {
-                Compress.Write(uncompressedData, 0, uncompressedData.Length);
-            }
-            return outStream.ToArray();
+            using DeflateStream compress = new DeflateStream(outStream, CompressionMode.Compress, true);
+            compress.Write(toCompressBytes, 0, toCompressBytes.Length);
+            return outStream;
         }
 
         internal override byte[] Decompress(byte[] compressedData)
@@ -45,11 +42,11 @@ namespace SolTechnology.Avro.AvroObjectServices.FileHeader.Codec
             MemoryStream inStream = new MemoryStream(compressedData);
             MemoryStream outStream = new MemoryStream();
 
-            using (DeflateStream Decompress =
+            using (DeflateStream decompress =
                         new DeflateStream(inStream,
                         CompressionMode.Decompress))
             {
-                CopyTo(Decompress, outStream);
+                CopyTo(decompress, outStream);
             }
             return outStream.ToArray();
         }

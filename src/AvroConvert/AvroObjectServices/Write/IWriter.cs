@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace SolTechnology.Avro.AvroObjectServices.Write
 {
     internal interface IWriter
@@ -57,7 +59,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
 
         void WriteEnum(int value);
         void StartItem();
-        void SetItemCount(long value);
+        void WriteItemCount(long value);
         void WriteArrayStart();
         void WriteArrayEnd();
         void WriteMapStart();
@@ -66,5 +68,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
         void WriteFixed(byte[] data);
         void WriteFixed(byte[] data, int start, int len);
         void WriteBytesRaw(byte[] bytes);
+        void WriteStream(MemoryStream stream);
     }
 }

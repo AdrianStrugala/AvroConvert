@@ -26,7 +26,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
     {
         internal Encoder.WriteItem Resolve(MapSchema mapSchema)
         {
-            var itemWriter = Resolver.ResolveWriter(mapSchema.ValueSchema);
+            var itemWriter = WriteResolver.ResolveWriter(mapSchema.ValueSchema);
             return (v, e) => WriteMap(itemWriter, v, e);
         }
 
@@ -34,7 +34,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
         {
             EnsureMapObject(value);
             encoder.WriteMapStart();
-            encoder.SetItemCount(GetMapSize(value));
+            encoder.WriteItemCount(GetMapSize(value));
             WriteMapValues(value, itemWriter, encoder);
             encoder.WriteMapEnd();
         }

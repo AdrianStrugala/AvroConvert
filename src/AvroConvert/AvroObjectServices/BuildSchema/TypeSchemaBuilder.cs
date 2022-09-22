@@ -48,12 +48,6 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             { "string", () => new StringSchema() },
         };
 
-        private static readonly Dictionary<string, SortOrder> SortValue = new Dictionary<string, SortOrder>
-        {
-            { SortOrder.Ascending.ToString().ToUpperInvariant(), SortOrder.Ascending },
-            { SortOrder.Descending.ToString().ToUpperInvariant(), SortOrder.Descending },
-            { SortOrder.Ignore.ToString().ToUpperInvariant(), SortOrder.Ignore }
-        };
 
         /// <summary>
         ///     Parses the JSON schema.
@@ -417,21 +411,10 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 defaultValue = objectParser.Parse(type, field[AvroKeywords.Default].ToString());
             }
 
-            var orderValue = SortOrder.Ascending;
-            if (!string.IsNullOrEmpty(order))
-            {
-                if (!SortValue.ContainsKey(order.ToUpperInvariant()))
-                {
-                    throw new SerializationException(
-                        string.Format(CultureInfo.InvariantCulture, "Invalid sort order of the field '{0}'.", order));
-                }
-                orderValue = SortValue[order.ToUpperInvariant()];
-            }
-
             var fieldName = new SchemaName(name);
             var attributes = new NamedEntityAttributes(fieldName, aliases, doc);
 
-            return new RecordFieldSchema(attributes, type, orderValue, hasDefaultValue, defaultValue, null, position);
+            return new RecordFieldSchema(attributes, type, hasDefaultValue, defaultValue, position);
         }
 
         /// <summary>

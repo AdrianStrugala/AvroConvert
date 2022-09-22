@@ -33,8 +33,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
             {
                 var record = new WriteStep
                 {
-                    WriteField = Resolver.ResolveWriter(field.TypeSchema),
-                    Field = field
+                    WriteField = WriteResolver.ResolveWriter(field.TypeSchema),
+                    FiledName = field.Aliases.FirstOrDefault() ?? field.Name
                 };
                 writeSteps[index++] = record;
             }
@@ -57,9 +57,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
         {
             foreach (var writer in writers)
             {
-                string name = writer.Field.Aliases.FirstOrDefault() ?? writer.Field.Name;
-
-                object value = jObject.Properties().FirstOrDefault(x => x.Name == name)?.Value;
+                object value = jObject.Properties().FirstOrDefault(x => x.Name == writer.FiledName)?.Value;
 
                 switch (value)
                 {

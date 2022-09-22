@@ -75,7 +75,7 @@ namespace SolTechnology.Avro.Features.Merge
         internal void WriteData(List<DataBlock> dataBlocks)
         {
             _tempWriter.WriteArrayStart();
-            _tempWriter.SetItemCount(dataBlocks.Select(x => x.ItemsCount).Sum());
+            _tempWriter.WriteItemCount(dataBlocks.Select(x => x.ItemsCount).Sum());
 
             foreach (var dataBlock in dataBlocks)
             {
@@ -103,9 +103,9 @@ namespace SolTechnology.Avro.Features.Merge
         {
             if (_blockCount > 0)
             {
-                byte[] dataToWrite = _tempBuffer.ToArray();
+                // byte[] dataToWrite = _tempBuffer.ToArray();
 
-                _writer.WriteDataBlock(_codec.Compress(dataToWrite), _header.SyncData, _blockCount);
+                _writer.WriteDataBlock(_codec.Compress(_tempBuffer), _header.SyncData, _blockCount);
 
                 // reset block buffer
                 _blockCount = 0;

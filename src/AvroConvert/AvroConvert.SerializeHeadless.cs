@@ -17,7 +17,9 @@
 
 using System.IO;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
+using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Write;
+using SolTechnology.Avro.Features.Serialize;
 
 namespace SolTechnology.Avro
 {
@@ -30,7 +32,18 @@ namespace SolTechnology.Avro
         {
             MemoryStream resultStream = new MemoryStream();
             var encoder = new Writer(resultStream);
-            var writer = Resolver.ResolveWriter(Schema.Create(schema));
+            var schemaObject = Schema.Create(schema);
+            Encoder.WriteItem writer;
+            if (schemaObject is RecordSchema recordSchema)
+            {
+                recordSchema.AssignRuntimeType(obj.GetType());
+                writer = WriteResolver.ResolveWriter(recordSchema);
+            }
+            else
+            {
+                writer = WriteResolver.ResolveWriter(schemaObject);
+            }
+
             writer(obj, encoder);
 
             var result = resultStream.ToArray();

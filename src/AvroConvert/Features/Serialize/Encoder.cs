@@ -37,9 +37,9 @@ namespace SolTechnology.Avro.Features.Serialize
         private readonly TypeSchema _schema;
         private readonly AbstractCodec _codec;
         private readonly Stream _stream;
-        private MemoryStream _tempBuffer;
+        private MemoryStream _memoryChunk;
         private readonly Writer _writer;
-        private IWriter _tempWriter;
+        private Writer _chunkWriter;
         private readonly WriteItem _writeItem;
         private bool _isOpen;
         private bool _headerWritten;
@@ -58,14 +58,14 @@ namespace SolTechnology.Avro.Features.Serialize
 
             _blockCount = 0;
             _writer = new Writer(_stream);
-            _tempBuffer = new MemoryStream();
-            _tempWriter = new Writer(_tempBuffer);
+            _memoryChunk = new MemoryStream();
+            _chunkWriter = new Writer(_memoryChunk);
 
             GenerateSyncData();
             _header.AddMetadata(DataFileConstants.CodecMetadataKey, _codec.Name);
             _header.AddMetadata(DataFileConstants.SchemaMetadataKey, _schema.ToString());
 
-            _writeItem = Resolver.ResolveWriter(schema);
+            _writeItem = WriteResolver.ResolveWriter(schema);
 
             _isOpen = true;
         }
@@ -75,7 +75,7 @@ namespace SolTechnology.Avro.Features.Serialize
             AssertOpen();
             EnsureHeader();
 
-            _writeItem(datum, _tempWriter);
+            _writeItem(datum, _chunkWriter);
 
             _blockCount++;
             WriteIfBlockFull();
@@ -109,7 +109,7 @@ namespace SolTechnology.Avro.Features.Serialize
 
         private void WriteIfBlockFull()
         {
-            if (_tempBuffer.Position >= _syncInterval)
+            if (_memoryChunk.Position >= _syncInterval)
                 WriteBlock();
         }
 
@@ -117,14 +117,12 @@ namespace SolTechnology.Avro.Features.Serialize
         {
             if (_blockCount > 0)
             {
-                byte[] dataToWrite = _tempBuffer.ToArray();
-
-                _writer.WriteDataBlock(_codec.Compress(dataToWrite), _header.SyncData, _blockCount);
+                _writer.WriteDataBlock(_codec.Compress(_memoryChunk), _header.SyncData, _blockCount);
 
                 // reset block buffer
                 _blockCount = 0;
-                _tempBuffer = new MemoryStream();
-                _tempWriter = new Writer(_tempBuffer);
+                _memoryChunk = new MemoryStream();
+                _chunkWriter = new Writer(_memoryChunk);
             }
         }
 
@@ -140,6 +138,8 @@ namespace SolTechnology.Avro.Features.Serialize
         {
             EnsureHeader();
             Sync();
+            _memoryChunk.Flush();
+            _memoryChunk.Dispose();
             _stream.Flush();
             _stream.Dispose();
             _isOpen = false;

@@ -7,7 +7,6 @@
 		<Authors>Adrian Strugala</Authors>
 		<AssemblyVersion>3.2.9.0</AssemblyVersion>
 		<Version>3.2.9</Version>
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Description>Rapid Apache Avro serializer for .NET.</Description>
 		<PackageLicenseUrl>https://creativecommons.org/licenses/by-nc-sa/3.0/</PackageLicenseUrl>
 		<PackageProjectUrl>https://xabe.net/product/avroconvert/</PackageProjectUrl>
@@ -42,7 +41,7 @@
 
 	<!--Conditionally obtain references for the .NET versions target-->
 	<ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
-		<PackageReference Include="Newtonsoft.Json" Version="12.0.*" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.*" />
 		<PackageReference Include="IronSnappy" Version="1.3.*" />
 		<PackageReference Include="BrotliSharpLib" Version="0.3.*" />
 		<PackageReference Include="FastMember" Version="1.5.0" />

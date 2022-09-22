@@ -39,6 +39,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         private readonly List<RecordFieldSchema> fields;
         private readonly Dictionary<string, RecordFieldSchema> fieldsByName;
 
+        internal int Id { get; set; }
+
         internal RecordSchema(
             NamedEntityAttributes namedAttributes,
             Type runtimeType,
@@ -47,6 +49,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         {
             this.fields = new List<RecordFieldSchema>();
             this.fieldsByName = new Dictionary<string, RecordFieldSchema>(StringComparer.InvariantCultureIgnoreCase);
+            Id = runtimeType.GetHashCode() & FullName.GetHashCode();
         }
 
         internal RecordSchema(string name, string @namespace) : this(new NamedEntityAttributes(new SchemaName(name, @namespace), new List<string>(), String.Empty), typeof(AvroRecord))
@@ -80,6 +83,13 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         }
 
         internal ReadOnlyCollection<RecordFieldSchema> Fields => fields.AsReadOnly();
+
+        internal void AssignRuntimeType(Type runtimeType)
+        {
+            this.RuntimeType = runtimeType;
+            Id = runtimeType.GetHashCode() & FullName.GetHashCode();
+        }
+
 
         internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
         {

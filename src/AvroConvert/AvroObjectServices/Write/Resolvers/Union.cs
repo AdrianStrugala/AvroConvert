@@ -33,7 +33,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
             int branchIndex = 0;
             foreach (var branch in branchSchemas)
             {
-                branchWriters[branchIndex++] = Resolver.ResolveWriter(branch);
+                branchWriters[branchIndex++] = WriteResolver.ResolveWriter(branch);
             }
 
 

@@ -15,33 +15,21 @@
 */
 #endregion
 
-using System;
-using SolTechnology.Avro.Infrastructure.Exceptions;
-
 namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 {
     internal class String
     {
-        internal void Resolve(object value, IWriter encoder)
+        internal void Resolve(object value, IWriter writer)
         {
             if (value == null)
             {
                 value = string.Empty;
             }
 
-            if (!(value is string))
-            {
-                try
-                {
-                    value = value.ToString();
-                }
-                catch (Exception)
-                {
-                    throw new AvroTypeMismatchException("[String] required to write against [String] schema but found " + value.GetType());
-                }
-            }
+            if (value is not string convertedValue)
+                convertedValue = value.ToString();
 
-            encoder.WriteString((string)value);
+            writer.WriteString(convertedValue);
         }
     }
 }

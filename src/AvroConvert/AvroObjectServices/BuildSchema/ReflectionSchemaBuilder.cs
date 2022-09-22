@@ -445,10 +445,8 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 var recordField = new RecordFieldSchema(
                     new NamedEntityAttributes(new SchemaName(info.Name), aliases, info.Doc),
                     fieldSchema,
-                    SortOrder.Ascending,
                     info.HasDefaultValue,
                     info.DefaultValue,
-                    info.MemberInfo,
                     index++);
                 record.AddField(recordField);
             }

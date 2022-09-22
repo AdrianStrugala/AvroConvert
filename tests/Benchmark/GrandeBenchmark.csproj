@@ -9,7 +9,7 @@
   <ItemGroup>
     <PackageReference Include="AutoFixture" Version="4.17.0" />
     <PackageReference Include="AvroConvert" Version="3.2.9" />
-    <PackageReference Include="BenchmarkDotNet" Version="0.13.0" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.2" />
     <PackageReference Include="BrotliSharpLib" Version="0.3.3" />
     <PackageReference Include="GroBuf" Version="1.8.1" />
     <PackageReference Include="MongoDB.Bson" Version="2.17.1" />

@@ -33,7 +33,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
             {
                 var record = new WriteStep
                 {
-                    WriteField = Resolver.ResolveWriter(field.TypeSchema),
+                    WriteField = WriteResolver.ResolveWriter(field.TypeSchema),
                     FiledName = field.Aliases.FirstOrDefault() ?? field.Name
                 };
                 writeSteps[index++] = record;

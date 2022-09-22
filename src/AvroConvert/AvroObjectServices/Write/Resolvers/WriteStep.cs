@@ -17,12 +17,10 @@
  * limitations under the License.
  */
 
-/** Modifications copyright(C) 2020 Adrian Strugała **/
+/** Modifications copyright(C) 2022 Adrian Strugala **/
 #endregion
 
 using System;
-using SolTechnology.Avro.AvroObjectServices.Schemas;
-using SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes;
 using SolTechnology.Avro.Features.Serialize;
 
 namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
@@ -32,6 +30,5 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
         internal Encoder.WriteItem WriteField { get; set; }
         internal string FiledName { get; set; }
         internal Func<object, object> Getter { get; set; }
-        // internal RecordFieldSchema Field { get; set; }
     }
 }

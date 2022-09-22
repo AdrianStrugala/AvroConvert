@@ -59,7 +59,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
 
         void WriteEnum(int value);
         void StartItem();
-        void SetItemCount(long value);
+        void WriteItemCount(long value);
         void WriteArrayStart();
         void WriteArrayEnd();
         void WriteMapStart();

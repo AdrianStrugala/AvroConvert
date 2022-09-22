@@ -65,7 +65,7 @@ namespace SolTechnology.Avro.Features.Serialize
             _header.AddMetadata(DataFileConstants.CodecMetadataKey, _codec.Name);
             _header.AddMetadata(DataFileConstants.SchemaMetadataKey, _schema.ToString());
 
-            _writeItem = Resolver.ResolveWriter(schema);
+            _writeItem = WriteResolver.ResolveWriter(schema);
 
             _isOpen = true;
         }
@@ -117,8 +117,6 @@ namespace SolTechnology.Avro.Features.Serialize
         {
             if (_blockCount > 0)
             {
-                // byte[] dataToWrite = _tempBuffer.ToArray();
-
                 _writer.WriteDataBlock(_codec.Compress(_memoryChunk), _header.SyncData, _blockCount);
 
                 // reset block buffer

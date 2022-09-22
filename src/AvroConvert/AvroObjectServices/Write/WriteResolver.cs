@@ -29,7 +29,7 @@ using String = SolTechnology.Avro.AvroObjectServices.Write.Resolvers.String;
 
 namespace SolTechnology.Avro.AvroObjectServices.Write
 {
-    internal static class Resolver
+    internal static class WriteResolver
     {
         internal delegate void Writer<in T>(T t);
 
@@ -49,7 +49,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
         private static readonly TimestampMicroseconds TimestampMicroseconds;
         private static readonly Json Json;
 
-        static Resolver()
+        static WriteResolver()
         {
             Array = new Array();
             Null = new Null();
@@ -112,9 +112,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
                     {
                         return Json.Resolve((RecordSchema)schema);
                     }
-                     //TODO: switch here
-                    // return Record.Resolve((RecordSchema)schema);
-                    return (v, e) => Record.Resolve2((RecordSchema)schema, v, e);
+                    return (v, e) => Record.Resolve((RecordSchema)schema, v, e);
                 case AvroType.Enum:
                     return Enum.Resolve((EnumSchema)schema);
                 case AvroType.Fixed:
@@ -146,9 +144,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
                 value = default(S);
             }
 
-            if (value is not S convertedValue){
-                 //Resolve Short
-                if (typeof(S) == typeof(int) && value?.GetType() == typeof(short))
+            if (value is not S convertedValue)
+            {
+                if (value?.GetType() == typeof(short)) //Resolve Short
                 {
                     writer((S)(object)Convert.ToInt32(value));
                     return;

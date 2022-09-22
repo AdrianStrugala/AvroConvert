@@ -75,7 +75,7 @@ namespace SolTechnology.Avro.Features.Merge
         internal void WriteData(List<DataBlock> dataBlocks)
         {
             _tempWriter.WriteArrayStart();
-            _tempWriter.SetItemCount(dataBlocks.Select(x => x.ItemsCount).Sum());
+            _tempWriter.WriteItemCount(dataBlocks.Select(x => x.ItemsCount).Sum());
 
             foreach (var dataBlock in dataBlocks)
             {

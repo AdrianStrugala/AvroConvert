@@ -37,12 +37,11 @@ namespace SolTechnology.Avro
             if (schemaObject is RecordSchema recordSchema)
             {
                 recordSchema.AssignRuntimeType(obj.GetType());
-                writer = Resolver.ResolveWriter(recordSchema);
+                writer = WriteResolver.ResolveWriter(recordSchema);
             }
             else
             {
-
-                writer = Resolver.ResolveWriter(schemaObject);
+                writer = WriteResolver.ResolveWriter(schemaObject);
             }
 
             writer(obj, encoder);

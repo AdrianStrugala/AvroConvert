@@ -27,7 +27,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
     {
         internal Encoder.WriteItem Resolve(ArraySchema schema)
         {
-            var itemWriter = Resolver.ResolveWriter(schema.ItemSchema);
+            var itemWriter = WriteResolver.ResolveWriter(schema.ItemSchema);
             return (d, e) => WriteArray(itemWriter, d, e);
         }
 
@@ -37,7 +37,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 
             long l = list?.Count ?? 0;
             encoder.WriteArrayStart();
-            encoder.SetItemCount(l);
+            encoder.WriteItemCount(l);
             WriteArrayValues(list, itemWriter, encoder, l);
             encoder.WriteArrayEnd();
         }
@@ -45,7 +45,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
         private List<object> EnsureArrayObject(object value)
         {
             var enumerable = value as IEnumerable;
-            List<object> list = enumerable.Cast<object>().ToList();
+            List<object> list = enumerable?.Cast<object>().ToList();
 
             return list;
         }

@@ -144,7 +144,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
         {
         }
 
-        public void SetItemCount(long value)
+        public void WriteItemCount(long value)
         {
             if (value > 0) WriteLong(value);
         }

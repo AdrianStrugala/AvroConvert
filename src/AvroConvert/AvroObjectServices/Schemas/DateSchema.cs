@@ -17,6 +17,7 @@
 
 using System;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
+using SolTechnology.Avro.AvroObjectServices.Write;
 using SolTechnology.Avro.Infrastructure.Extensions;
 
 namespace SolTechnology.Avro.AvroObjectServices.Schemas
@@ -35,10 +36,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         internal override AvroType Type => AvroType.Logical;
         internal override TypeSchema BaseTypeSchema { get; set; }
         internal override string LogicalTypeName => LogicalTypeEnum.Date;
-        public object ConvertToBaseValue(object logicalValue, LogicalTypeSchema schema)
+        internal override void Serialize(object value, IWriter writer)
         {
-            var date = ((DateTime)logicalValue).Date;
-            return (date - DateTimeExtensions.UnixEpochDateTime).Days;
+            var date = ((DateTime)value).Date;
+            var result = (date - DateTimeExtensions.UnixEpochDateTime).Days;
+            writer.WriteInt(result);
         }
 
 

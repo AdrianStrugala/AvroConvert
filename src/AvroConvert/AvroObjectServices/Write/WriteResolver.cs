@@ -92,19 +92,21 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
                 case AvroType.Logical:
                     {
                         var logicalTypeSchema = (LogicalTypeSchema)schema;
-                        switch (logicalTypeSchema.LogicalTypeName)
-                        {
-                            case LogicalTypeSchema.LogicalTypeEnum.Uuid:
-                                return Uuid.Resolve((UuidSchema)logicalTypeSchema);
-                            case LogicalTypeSchema.LogicalTypeEnum.Decimal:
-                                return Decimal.Resolve((DecimalSchema)logicalTypeSchema);
-                            case LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds:
-                                return TimestampMilliseconds.Resolve((TimestampMillisecondsSchema)logicalTypeSchema);
-                            case LogicalTypeSchema.LogicalTypeEnum.TimestampMicroseconds:
-                                return TimestampMicroseconds.Resolve((TimestampMicrosecondsSchema)logicalTypeSchema);
-                            case LogicalTypeSchema.LogicalTypeEnum.Duration:
-                                return Duration.Resolve((DurationSchema)logicalTypeSchema);
-                        }
+                        return logicalTypeSchema.Serialize;
+
+                        // switch (logicalTypeSchema.LogicalTypeName)
+                        // {
+                        //     case LogicalTypeSchema.LogicalTypeEnum.Uuid:
+                        //         return Uuid.Resolve((UuidSchema)logicalTypeSchema);
+                        //     case LogicalTypeSchema.LogicalTypeEnum.Decimal:
+                        //         return Decimal.Resolve((DecimalSchema)logicalTypeSchema);
+                        //     case LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds:
+                        //         return TimestampMilliseconds.Resolve((TimestampMillisecondsSchema)logicalTypeSchema);
+                        //     case LogicalTypeSchema.LogicalTypeEnum.TimestampMicroseconds:
+                        //         return TimestampMicroseconds.Resolve((TimestampMicrosecondsSchema)logicalTypeSchema);
+                        //     case LogicalTypeSchema.LogicalTypeEnum.Duration:
+                        //         return Duration.Resolve((DurationSchema)logicalTypeSchema);
+                        // }
                     }
                     return String.Resolve;
                 case AvroType.Record:

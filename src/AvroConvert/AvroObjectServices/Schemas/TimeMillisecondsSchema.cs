@@ -17,6 +17,7 @@
 
 using System;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
+using SolTechnology.Avro.AvroObjectServices.Write;
 using SolTechnology.Avro.Infrastructure.Extensions;
 
 namespace SolTechnology.Avro.AvroObjectServices.Schemas
@@ -37,14 +38,14 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         internal override AvroType Type => AvroType.Logical;
         internal override TypeSchema BaseTypeSchema { get; set; }
         internal override string LogicalTypeName => LogicalTypeEnum.TimeMilliseconds;
-        public object ConvertToBaseValue(object logicalValue, LogicalTypeSchema schema)
+        internal override void Serialize(object logicalValue, IWriter writer)
         {
             var time = (TimeSpan)logicalValue;
 
             if (time > _maxTime)
                 throw new ArgumentOutOfRangeException(nameof(logicalValue), "A 'time-millis' value can only have the range '00:00:00' to '23:59:59'.");
 
-            return (int)(time - DateTimeExtensions.UnixEpochDateTime.TimeOfDay).TotalMilliseconds;
+            writer.WriteInt((int)(time - DateTimeExtensions.UnixEpochDateTime.TimeOfDay).TotalMilliseconds);
         }
 
 

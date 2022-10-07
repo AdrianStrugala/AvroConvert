@@ -17,6 +17,8 @@
 
 using System;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
+using SolTechnology.Avro.AvroObjectServices.Write;
+using SolTechnology.Avro.Infrastructure.Exceptions;
 using SolTechnology.Avro.Infrastructure.Extensions;
 
 namespace SolTechnology.Avro.AvroObjectServices.Schemas
@@ -36,29 +38,45 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         internal override TypeSchema BaseTypeSchema { get; set; }
         internal override string LogicalTypeName => LogicalTypeEnum.TimestampMilliseconds;
 
-        internal object ConvertToBaseValue(object logicalValue, TimestampMillisecondsSchema schema)
+        internal override void Serialize(object logicalValue, IWriter writer)
         {
-            DateTime date;
-            if (logicalValue is DateTimeOffset dateTimeOffset)
+            if (!(BaseTypeSchema is LongSchema))
             {
-                date = dateTimeOffset.DateTime;
-            }
-            else
-            {
-                date = ((DateTime)logicalValue);
+                throw new AvroTypeMismatchException($"[TimestampMilliseconds] required to write against [long] of [Long] schema but found [{BaseTypeSchema}]");
             }
 
-            return (long)(date - DateTimeExtensions.UnixEpochDateTime).TotalMilliseconds;
+            DateTime date;
+            switch (logicalValue)
+            {
+                case DateTimeOffset x:
+                    date = x.DateTime;
+                    break;
+
+                case DateOnly x:
+                    date = x.ToDateTime(new TimeOnly());
+                    break;
+
+                default:
+                    date = (DateTime)logicalValue;
+                    break;
+            }
+
+            writer.WriteLong((long)(date - DateTimeExtensions.UnixEpochDateTime).TotalMilliseconds);
         }
 
         internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type readType)
         {
             var noMs = (long)baseValue;
-            var result =  DateTimeExtensions.UnixEpochDateTime.AddMilliseconds(noMs);
+            var result = DateTimeExtensions.UnixEpochDateTime.AddMilliseconds(noMs);
+
 
             if (readType == typeof(DateTimeOffset) || readType == typeof(DateTimeOffset?))
             {
                 return DateTimeOffset.FromUnixTimeMilliseconds(noMs);
+            }
+            if (readType == typeof(DateOnly) || readType == typeof(DateOnly?))
+            {
+                return DateOnly.FromDateTime(result);
             }
             else
             {

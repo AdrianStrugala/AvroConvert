@@ -17,6 +17,8 @@
 
 using System;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
+using SolTechnology.Avro.AvroObjectServices.Write;
+using SolTechnology.Avro.Infrastructure.Exceptions;
 using SolTechnology.Avro.Infrastructure.Extensions;
 
 namespace SolTechnology.Avro.AvroObjectServices.Schemas
@@ -35,19 +37,30 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         internal override AvroType Type => AvroType.Logical;
         internal override TypeSchema BaseTypeSchema { get; set; }
         internal override string LogicalTypeName => LogicalTypeEnum.TimestampMicroseconds;
-        internal object ConvertToBaseValue(object logicalValue, TimestampMicrosecondsSchema schema)
+        internal override void Serialize(object logicalValue, IWriter writer)
         {
-            DateTime date;
-            if (logicalValue is DateTimeOffset dateTimeOffset)
+            if (!(BaseTypeSchema is LongSchema))
             {
-                date = dateTimeOffset.DateTime;
-            }
-            else
-            {
-                date = ((DateTime)logicalValue);
+                throw new AvroTypeMismatchException($"[TimestampMicroseconds] required to write against [long] of [Long] schema but found [{BaseTypeSchema}]");
             }
 
-            return (long)(date - DateTimeExtensions.UnixEpochDateTime).TotalMilliseconds * 1000;
+            DateTime date;
+            switch (logicalValue)
+            {
+                case DateTimeOffset x:
+                    date = x.DateTime;
+                    break;
+
+                case DateOnly x:
+                    date = x.ToDateTime(new TimeOnly());
+                    break;
+
+                default:
+                    date = (DateTime)logicalValue;
+                    break;
+            }
+
+            writer.WriteLong((long)(date - DateTimeExtensions.UnixEpochDateTime).TotalMilliseconds * 1000);
         }
 
         internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type readType)

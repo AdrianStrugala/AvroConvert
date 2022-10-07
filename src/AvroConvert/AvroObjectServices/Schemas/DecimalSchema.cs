@@ -22,6 +22,7 @@ using System.Numerics;
 using Newtonsoft.Json;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes;
+using SolTechnology.Avro.AvroObjectServices.Write;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 using SolTechnology.Avro.Infrastructure.Extensions;
 using NamedSchema = SolTechnology.Avro.AvroObjectServices.Schemas.Abstract.NamedSchema;
@@ -73,7 +74,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             writer.WriteEndObject();
         }
 
-        internal object ConvertToBaseValue(object logicalValue, DecimalSchema schema)
+        internal override void Serialize(object logicalValue, IWriter writer)
         {
             var avroDecimal = new AvroDecimal((decimal)logicalValue);
             var logicalScale = Scale;
@@ -84,9 +85,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             if (sizeDiff < 0)
             {
                 throw new AvroTypeException(
-$@"Decimal Scale for value [{logicalValue}] is equal to [{scale}]. This exceeds default setting [{logicalScale}].
+                    $@"Decimal Scale for value [{logicalValue}] is equal to [{scale}]. This exceeds default setting [{logicalScale}].
 Consider adding following attribute to your property:
-
 [AvroDecimal(Precision = 28, Scale = {scale})]
 ");
             }
@@ -109,12 +109,14 @@ Consider adding following attribute to your property:
             var buffer = avroDecimal.UnscaledValue.ToByteArray();
             Array.Reverse(buffer);
 
-            return AvroType.Bytes == schema.BaseTypeSchema.Type
+            var result = AvroType.Bytes == BaseTypeSchema.Type
                 ? (object)buffer
                 : (object)new AvroFixed(
-                    (FixedSchema)schema.BaseTypeSchema,
-                    GetDecimalFixedByteArray(buffer, ((FixedSchema)schema.BaseTypeSchema).Size,
-                    avroDecimal.Sign < 0 ? (byte)0xFF : (byte)0x00));
+                    (FixedSchema)BaseTypeSchema,
+                    GetDecimalFixedByteArray(buffer, ((FixedSchema)BaseTypeSchema).Size,
+                        avroDecimal.Sign < 0 ? (byte)0xFF : (byte)0x00));
+
+            writer.WriteBytes((byte[])result);
         }
 
         internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type readType)

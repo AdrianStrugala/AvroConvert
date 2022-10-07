@@ -24,19 +24,19 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 {
     internal class Duration
     {
-        internal Encoder.WriteItem Resolve(DurationSchema schema)
-        {
-            return (value, encoder) =>
-            {
-                if (!(value is TimeSpan))
-                {
-                    throw new AvroTypeMismatchException($"[Duration] required to write against [TimeSpan] of [fixed] schema but found [{value.GetType()}]");
-                }
-
-                byte[] bytes = (byte[])schema.ConvertToBaseValue(value, schema);
-
-                encoder.WriteFixed(bytes);
-            };
-        }
+        // internal Encoder.WriteItem Resolve(DurationSchema schema)
+        // {
+        //     return (value, encoder) =>
+        //     {
+        //         if (!(value is TimeSpan))
+        //         {
+        //             throw new AvroTypeMismatchException($"[Duration] required to write against [TimeSpan] of [fixed] schema but found [{value.GetType()}]");
+        //         }
+        //
+        //         byte[] bytes = (byte[])schema.ConvertToBaseValue(value, schema);
+        //
+        //         encoder.WriteFixed(bytes);
+        //     };
+        // }
     }
 }

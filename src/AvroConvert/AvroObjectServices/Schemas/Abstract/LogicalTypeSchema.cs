@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using SolTechnology.Avro.AvroObjectServices.Write;
 using SolTechnology.Avro.Infrastructure.Extensions;
 
 namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
@@ -53,6 +54,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
             writer.WriteProperty("logicalType", LogicalTypeName);
             writer.WriteEndObject();
         }
+
+        internal abstract void Serialize(object value, IWriter writer);
 
         internal abstract object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type readType);
     }

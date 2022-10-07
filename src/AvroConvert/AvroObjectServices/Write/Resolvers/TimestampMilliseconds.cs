@@ -23,18 +23,18 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 {
     internal class TimestampMilliseconds
     {
-        internal Encoder.WriteItem Resolve(TimestampMillisecondsSchema schema)
-        {
-            return (value, encoder) =>
-            {
-                if (!(schema.BaseTypeSchema is LongSchema))
-                {
-                    throw new AvroTypeMismatchException($"[TimestampMilliseconds] required to write against [long] of [Long] schema but found [{schema.BaseTypeSchema}]");
-                }
-
-                var bytesValue = (long)schema.ConvertToBaseValue(value, schema);
-                encoder.WriteLong(bytesValue);
-            };
-        }
+        // internal Encoder.WriteItem Resolve(TimestampMillisecondsSchema schema)
+        // {
+        //     return (value, encoder) =>
+        //     {
+        //         if (!(schema.BaseTypeSchema is LongSchema))
+        //         {
+        //             throw new AvroTypeMismatchException($"[TimestampMilliseconds] required to write against [long] of [Long] schema but found [{schema.BaseTypeSchema}]");
+        //         }
+        //
+        //         var bytesValue = (long)schema.ConvertToBaseValue(value, schema);
+        //         encoder.WriteLong(bytesValue);
+        //     };
+        // }
     }
 }

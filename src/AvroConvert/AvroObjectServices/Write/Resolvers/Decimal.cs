@@ -23,18 +23,18 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 {
     internal class Decimal
     {
-        internal Encoder.WriteItem Resolve(DecimalSchema schema)
-        {
-            return (value, encoder) =>
-            {
-                if (!(schema.BaseTypeSchema is BytesSchema))
-                {
-                    throw new AvroTypeMismatchException($"[Decimal] required to write against [decimal] of [Bytes] schema but found [{schema.BaseTypeSchema}]");
-                }
-
-                var bytesValue = (byte[])schema.ConvertToBaseValue(value, schema);
-                encoder.WriteBytes(bytesValue);
-            };
-        }
+        // internal Encoder.WriteItem Resolve(DecimalSchema schema)
+        // {
+        //     return (value, encoder) =>
+        //     {
+        //         if (!(schema.BaseTypeSchema is BytesSchema))
+        //         {
+        //             throw new AvroTypeMismatchException($"[Decimal] required to write against [decimal] of [Bytes] schema but found [{schema.BaseTypeSchema}]");
+        //         }
+        //
+        //         var bytesValue = (byte[])schema.ConvertToBaseValue(value, schema);
+        //         encoder.WriteBytes(bytesValue);
+        //     };
+        // }
     }
 }

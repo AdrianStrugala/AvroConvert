@@ -21,6 +21,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
+using SolTechnology.Avro.AvroObjectServices.Write;
 using SolTechnology.Avro.Infrastructure.Attributes;
 using SolTechnology.Avro.Infrastructure.Extensions;
 
@@ -55,11 +56,20 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             writer.WriteEndObject();
         }
 
-        internal object ConvertToBaseValue(object logicalValue, DurationSchema schema)
+        internal override void Serialize(object logicalValue, IWriter writer)
         {
-            var duration = (TimeSpan)logicalValue;
+            TimeSpan duration;
+            switch (logicalValue)
+            {
+                case TimeOnly t:
+                    duration = t.ToTimeSpan();
+                    break;
+                default:
+                    duration = (TimeSpan)logicalValue;
+                    break;
+            }
 
-            var baseSchema = (FixedSchema) schema.BaseTypeSchema;
+            var baseSchema = (FixedSchema)BaseTypeSchema;
             byte[] bytes = new byte[baseSchema.Size];
             var monthsBytes = BitConverter.GetBytes(0);
             var daysBytes = BitConverter.GetBytes(duration.Days);
@@ -76,7 +86,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             if (!BitConverter.IsLittleEndian)
                 Array.Reverse(bytes); //reverse it so we get little endian.
 
-            return bytes;
+            writer.WriteFixed(bytes);
         }
 
         internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type readType)
@@ -90,6 +100,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             int milliseconds = BitConverter.ToInt32(baseBytes.Skip(8).Take(4).ToArray(), 0);
 
             var result = new TimeSpan(months * 30 + days, 0, 0, 0, milliseconds);
+
+            if (readType == typeof(TimeOnly) || readType == typeof(TimeOnly?))
+            {
+                return TimeOnly.FromTimeSpan(result);
+            }
 
             return result;
         }

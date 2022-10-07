@@ -42,7 +42,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                     return Convert.ToDecimal(value);
                 }
 
-
                 if (readType == typeof(float) || readType == typeof(float?))
                 {
                     return Convert.ToSingle(value);

@@ -174,6 +174,8 @@ namespace AvroConvertComponentTests
 
         public int Count { get; set; }
         public DateTime ArriveBy { get; set; }
+        public DateOnly MyDate { get; set; }
+        public TimeOnly MyTime { get; set; }
     }
 
     [Equals(DoNotAddEqualityOperators = true)]

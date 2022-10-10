@@ -36,16 +36,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         internal override AvroType Type => AvroType.Logical;
         internal override TypeSchema BaseTypeSchema { get; set; }
         internal override string LogicalTypeName => LogicalTypeEnum.Uuid;
-
-        internal override void Serialize(object value, IWriter writer)
-        {
-            if (!(value is Guid guid))
-            {
-                throw new AvroTypeMismatchException($"[Uuid] required to write against [Guid] of [string] schema but found [{value.GetType()}]");
-            }
-
-            writer.WriteString(guid.ToString());
-        }
+        
         internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type readType)
         {
             if (baseValue is Guid)

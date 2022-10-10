@@ -56,39 +56,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             writer.WriteEndObject();
         }
 
-        internal override void Serialize(object logicalValue, IWriter writer)
-        {
-            TimeSpan duration;
-            switch (logicalValue)
-            {
-                case TimeOnly t:
-                    duration = t.ToTimeSpan();
-                    break;
-                default:
-                    duration = (TimeSpan)logicalValue;
-                    break;
-            }
-
-            var baseSchema = (FixedSchema)BaseTypeSchema;
-            byte[] bytes = new byte[baseSchema.Size];
-            var monthsBytes = BitConverter.GetBytes(0);
-            var daysBytes = BitConverter.GetBytes(duration.Days);
-
-            var milliseconds = ((duration.Hours * 60 + duration.Minutes) * 60 + duration.Seconds) * 1000 + duration.Milliseconds;
-            var millisecondsBytes = BitConverter.GetBytes(milliseconds);
-
-
-            Array.Copy(monthsBytes, 0, bytes, 0, 4);
-            Array.Copy(daysBytes, 0, bytes, 4, 4);
-            Array.Copy(millisecondsBytes, 0, bytes, 8, 4);
-
-
-            if (!BitConverter.IsLittleEndian)
-                Array.Reverse(bytes); //reverse it so we get little endian.
-
-            writer.WriteFixed(bytes);
-        }
-
         internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type readType)
         {
             byte[] baseBytes = (byte[])baseValue;

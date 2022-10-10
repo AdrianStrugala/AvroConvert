@@ -37,31 +37,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         internal override AvroType Type => AvroType.Logical;
         internal override TypeSchema BaseTypeSchema { get; set; }
         internal override string LogicalTypeName => LogicalTypeEnum.TimestampMicroseconds;
-        internal override void Serialize(object logicalValue, IWriter writer)
-        {
-            if (!(BaseTypeSchema is LongSchema))
-            {
-                throw new AvroTypeMismatchException($"[TimestampMicroseconds] required to write against [long] of [Long] schema but found [{BaseTypeSchema}]");
-            }
-
-            DateTime date;
-            switch (logicalValue)
-            {
-                case DateTimeOffset x:
-                    date = x.DateTime;
-                    break;
-
-                case DateOnly x:
-                    date = x.ToDateTime(new TimeOnly());
-                    break;
-
-                default:
-                    date = (DateTime)logicalValue;
-                    break;
-            }
-
-            writer.WriteLong((long)(date - DateTimeExtensions.UnixEpochDateTime).TotalMilliseconds * 1000);
-        }
 
         internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type readType)
         {

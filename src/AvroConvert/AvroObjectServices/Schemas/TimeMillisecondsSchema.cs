@@ -38,7 +38,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         internal override AvroType Type => AvroType.Logical;
         internal override TypeSchema BaseTypeSchema { get; set; }
         internal override string LogicalTypeName => LogicalTypeEnum.TimeMilliseconds;
-        internal override void Serialize(object logicalValue, IWriter writer)
+        internal void Serialize(object logicalValue, IWriter writer)
         {
             var time = (TimeSpan)logicalValue;
 

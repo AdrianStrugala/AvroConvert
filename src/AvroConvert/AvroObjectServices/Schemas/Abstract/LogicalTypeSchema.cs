@@ -55,8 +55,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
             writer.WriteEndObject();
         }
 
-        internal abstract void Serialize(object value, IWriter writer);
-
         internal abstract object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type readType);
     }
 }

@@ -48,6 +48,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
         private static readonly TimestampMilliseconds TimestampMilliseconds;
         private static readonly TimestampMicroseconds TimestampMicroseconds;
         private static readonly Json Json;
+        private static readonly Int Int;
 
         static WriteResolver()
         {
@@ -66,6 +67,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
             TimestampMilliseconds = new TimestampMilliseconds();
             TimestampMicroseconds = new TimestampMicroseconds();
             Json = new Json();
+            Int = new Int();
         }
 
         internal static Encoder.WriteItem ResolveWriter(TypeSchema schema)
@@ -77,7 +79,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
                 case AvroType.Boolean:
                     return (v, e) => Write<bool>(v, schema.Type, e.WriteBoolean);
                 case AvroType.Int:
-                    return (v, e) => Write<int>(v, schema.Type, e.WriteInt);
+                    return (v, e) => Int.Resolve(v, e);
                 case AvroType.Long:
                     return Long.Resolve;
                 case AvroType.Float:
@@ -92,21 +94,19 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
                 case AvroType.Logical:
                     {
                         var logicalTypeSchema = (LogicalTypeSchema)schema;
-                        return logicalTypeSchema.Serialize;
-
-                        // switch (logicalTypeSchema.LogicalTypeName)
-                        // {
-                        //     case LogicalTypeSchema.LogicalTypeEnum.Uuid:
-                        //         return Uuid.Resolve((UuidSchema)logicalTypeSchema);
-                        //     case LogicalTypeSchema.LogicalTypeEnum.Decimal:
-                        //         return Decimal.Resolve((DecimalSchema)logicalTypeSchema);
-                        //     case LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds:
-                        //         return TimestampMilliseconds.Resolve((TimestampMillisecondsSchema)logicalTypeSchema);
-                        //     case LogicalTypeSchema.LogicalTypeEnum.TimestampMicroseconds:
-                        //         return TimestampMicroseconds.Resolve((TimestampMicrosecondsSchema)logicalTypeSchema);
-                        //     case LogicalTypeSchema.LogicalTypeEnum.Duration:
-                        //         return Duration.Resolve((DurationSchema)logicalTypeSchema);
-                        // }
+                        switch (logicalTypeSchema.LogicalTypeName)
+                        {
+                            case LogicalTypeSchema.LogicalTypeEnum.Uuid:
+                                return Uuid.Resolve((UuidSchema)logicalTypeSchema);
+                            case LogicalTypeSchema.LogicalTypeEnum.Decimal:
+                                return (v, e) => Decimal.Resolve((DecimalSchema)logicalTypeSchema, v, e);
+                            case LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds:
+                                return (v, e) => TimestampMilliseconds.Resolve((TimestampMillisecondsSchema)logicalTypeSchema, v, e);
+                            case LogicalTypeSchema.LogicalTypeEnum.TimestampMicroseconds:
+                                return (v, e) => TimestampMicroseconds.Resolve((TimestampMicrosecondsSchema)logicalTypeSchema, v, e);
+                            case LogicalTypeSchema.LogicalTypeEnum.Duration:
+                                return (v, e) => Duration.Resolve((DurationSchema)logicalTypeSchema, v, e);
+                        }
                     }
                     return String.Resolve;
                 case AvroType.Record:
@@ -141,21 +141,14 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
         /// <param name="writer">The writer which should be used to write the given type.</param>
         private static void Write<S>(object value, AvroType tag, Writer<S> writer)
         {
-            if (value == null)
-            {
-                value = default(S);
-            }
+            value ??= default(S);
 
             if (value is not S convertedValue)
             {
-                if (value?.GetType() == typeof(short)) //Resolve Short
-                {
-                    writer((S)(object)Convert.ToInt32(value));
-                    return;
-                }
                 throw new AvroTypeMismatchException(
                     $"[{typeof(S)}] required to write against [{tag}] schema but found type: [{value?.GetType()}]");
             }
+
             writer(convertedValue);
         }
     }

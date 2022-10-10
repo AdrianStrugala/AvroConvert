@@ -19,21 +19,23 @@ using System;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Infrastructure.Exceptions;
+using SolTechnology.Avro.Infrastructure.Extensions;
 
 namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 {
-    internal class Uuid
+    internal class Date
     {
-        internal Encoder.WriteItem Resolve(UuidSchema schema)
+        internal Encoder.WriteItem Resolve()
         {
             return (value, encoder) =>
             {
-                if (value is not Guid guid)
+                if (value is not DateOnly dateOnly)
                 {
-                    throw new AvroTypeMismatchException($"[Guid] required to write against [string] of [Uuid] schema but found [{value.GetType()}]");
+                    throw new AvroTypeMismatchException($"[DateOnly] required to write against [Int] of [Date] schema but found [{value.GetType()}]");
                 }
 
-                encoder.WriteString(guid.ToString());
+                var result = dateOnly.DayNumber - DateTimeExtensions.UnixEpochDate.DayNumber;
+                encoder.WriteInt(result);
             };
         }
     }

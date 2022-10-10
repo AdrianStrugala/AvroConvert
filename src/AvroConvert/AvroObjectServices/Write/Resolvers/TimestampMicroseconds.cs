@@ -39,10 +39,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
                     date = x.DateTime;
                     break;
 
-                case DateOnly x:
-                    date = x.ToDateTime(new TimeOnly());
-                    break;
-
                 default:
                     date = (DateTime)logicalValue;
                     break;

@@ -26,16 +26,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
     {
         internal void Resolve(DurationSchema schema, object logicalValue, IWriter writer)
         {
-            TimeSpan duration;
-            switch (logicalValue)
-            {
-                case TimeOnly t:
-                    duration = t.ToTimeSpan();
-                    break;
-                default:
-                    duration = (TimeSpan)logicalValue;
-                    break;
-            }
+            var duration = (TimeSpan)logicalValue;
 
             var baseSchema = (FixedSchema)schema.BaseTypeSchema;
             byte[] bytes = new byte[baseSchema.Size];

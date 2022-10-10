@@ -49,6 +49,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
         private static readonly TimestampMicroseconds TimestampMicroseconds;
         private static readonly Json Json;
         private static readonly Int Int;
+        private static readonly Date Date;
+        private static readonly TimeMilliseconds TimeMilliseconds;
 
         static WriteResolver()
         {
@@ -68,6 +70,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
             TimestampMicroseconds = new TimestampMicroseconds();
             Json = new Json();
             Int = new Int();
+            Date = new Date();
+            TimeMilliseconds = new TimeMilliseconds();
         }
 
         internal static Encoder.WriteItem ResolveWriter(TypeSchema schema)
@@ -106,6 +110,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
                                 return (v, e) => TimestampMicroseconds.Resolve((TimestampMicrosecondsSchema)logicalTypeSchema, v, e);
                             case LogicalTypeSchema.LogicalTypeEnum.Duration:
                                 return (v, e) => Duration.Resolve((DurationSchema)logicalTypeSchema, v, e);
+                            case LogicalTypeSchema.LogicalTypeEnum.Date:
+                                return Date.Resolve();
+                            case LogicalTypeSchema.LogicalTypeEnum.TimeMilliseconds:
+                                return TimeMilliseconds.Resolve((TimeMillisecondsSchema)schema);
                         }
                     }
                     return String.Resolve;

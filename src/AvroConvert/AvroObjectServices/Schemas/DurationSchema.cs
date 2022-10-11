@@ -21,6 +21,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
+using SolTechnology.Avro.AvroObjectServices.Write;
 using SolTechnology.Avro.Infrastructure.Attributes;
 using SolTechnology.Avro.Infrastructure.Extensions;
 
@@ -55,30 +56,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             writer.WriteEndObject();
         }
 
-        internal object ConvertToBaseValue(object logicalValue, DurationSchema schema)
-        {
-            var duration = (TimeSpan)logicalValue;
-
-            var baseSchema = (FixedSchema) schema.BaseTypeSchema;
-            byte[] bytes = new byte[baseSchema.Size];
-            var monthsBytes = BitConverter.GetBytes(0);
-            var daysBytes = BitConverter.GetBytes(duration.Days);
-
-            var milliseconds = ((duration.Hours * 60 + duration.Minutes) * 60 + duration.Seconds) * 1000 + duration.Milliseconds;
-            var millisecondsBytes = BitConverter.GetBytes(milliseconds);
-
-
-            Array.Copy(monthsBytes, 0, bytes, 0, 4);
-            Array.Copy(daysBytes, 0, bytes, 4, 4);
-            Array.Copy(millisecondsBytes, 0, bytes, 8, 4);
-
-
-            if (!BitConverter.IsLittleEndian)
-                Array.Reverse(bytes); //reverse it so we get little endian.
-
-            return bytes;
-        }
-
         internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type readType)
         {
             byte[] baseBytes = (byte[])baseValue;
@@ -90,6 +67,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             int milliseconds = BitConverter.ToInt32(baseBytes.Skip(8).Take(4).ToArray(), 0);
 
             var result = new TimeSpan(months * 30 + days, 0, 0, 0, milliseconds);
+
+            if (readType == typeof(TimeOnly) || readType == typeof(TimeOnly?))
+            {
+                return TimeOnly.FromTimeSpan(result);
+            }
 
             return result;
         }

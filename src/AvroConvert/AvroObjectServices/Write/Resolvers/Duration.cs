@@ -1,5 +1,5 @@
 ﻿#region license
-/**Copyright (c) 2021 Adrian Strugała
+/**Copyright (c) 2021 Adrian Strugala
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -24,19 +24,29 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 {
     internal class Duration
     {
-        internal Encoder.WriteItem Resolve(DurationSchema schema)
+        internal void Resolve(DurationSchema schema, object logicalValue, IWriter writer)
         {
-            return (value, encoder) =>
-            {
-                if (!(value is TimeSpan))
-                {
-                    throw new AvroTypeMismatchException($"[Duration] required to write against [TimeSpan] of [fixed] schema but found [{value.GetType()}]");
-                }
+            var duration = (TimeSpan)logicalValue;
 
-                byte[] bytes = (byte[])schema.ConvertToBaseValue(value, schema);
+            var baseSchema = (FixedSchema)schema.BaseTypeSchema;
+            byte[] bytes = new byte[baseSchema.Size];
+            var monthsBytes = BitConverter.GetBytes(0);
+            var daysBytes = BitConverter.GetBytes(duration.Days);
 
-                encoder.WriteFixed(bytes);
-            };
+            var milliseconds = ((duration.Hours * 60 + duration.Minutes) * 60 + duration.Seconds) * 1000 +
+                               duration.Milliseconds;
+            var millisecondsBytes = BitConverter.GetBytes(milliseconds);
+
+
+            System.Array.Copy(monthsBytes, 0, bytes, 0, 4);
+            System.Array.Copy(daysBytes, 0, bytes, 4, 4);
+            System.Array.Copy(millisecondsBytes, 0, bytes, 8, 4);
+
+
+            if (!BitConverter.IsLittleEndian)
+                System.Array.Reverse(bytes); //reverse it so we get little endian.
+
+            writer.WriteFixed(bytes);
         }
     }
 }

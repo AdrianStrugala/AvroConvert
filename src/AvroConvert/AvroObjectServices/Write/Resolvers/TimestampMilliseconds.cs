@@ -15,26 +15,37 @@
 */
 #endregion
 
+using System;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Infrastructure.Exceptions;
+using SolTechnology.Avro.Infrastructure.Extensions;
 
 namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 {
     internal class TimestampMilliseconds
     {
-        internal Encoder.WriteItem Resolve(TimestampMillisecondsSchema schema)
+        internal void Resolve(TimestampMillisecondsSchema schema, object logicalValue, IWriter writer)
         {
-            return (value, encoder) =>
+            if (schema.BaseTypeSchema is not LongSchema)
             {
-                if (!(schema.BaseTypeSchema is LongSchema))
-                {
-                    throw new AvroTypeMismatchException($"[TimestampMilliseconds] required to write against [long] of [Long] schema but found [{schema.BaseTypeSchema}]");
-                }
+                throw new AvroTypeMismatchException(
+                    $"[TimestampMilliseconds] required to write against [long] of [Long] schema but found [{schema.BaseTypeSchema}]");
+            }
 
-                var bytesValue = (long)schema.ConvertToBaseValue(value, schema);
-                encoder.WriteLong(bytesValue);
-            };
+            DateTime date;
+            switch (logicalValue)
+            {
+                case DateTimeOffset x:
+                    date = x.DateTime;
+                    break;
+
+                default:
+                    date = (DateTime)logicalValue;
+                    break;
+            }
+
+            writer.WriteLong((long)(date - DateTimeExtensions.UnixEpochDateTime).TotalMilliseconds);
         }
     }
 }

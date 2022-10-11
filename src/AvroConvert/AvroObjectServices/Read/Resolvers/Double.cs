@@ -42,7 +42,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                     return Convert.ToDecimal(value);
                 }
 
-
                 if (readType == typeof(long) || readType == typeof(long?))
                 {
                     return Convert.ToInt64(value);

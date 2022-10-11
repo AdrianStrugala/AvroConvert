@@ -17,6 +17,8 @@
 
 using System;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
+using SolTechnology.Avro.AvroObjectServices.Write;
+using SolTechnology.Avro.Infrastructure.Exceptions;
 using SolTechnology.Avro.Infrastructure.Extensions;
 
 namespace SolTechnology.Avro.AvroObjectServices.Schemas
@@ -36,29 +38,19 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         internal override TypeSchema BaseTypeSchema { get; set; }
         internal override string LogicalTypeName => LogicalTypeEnum.TimestampMilliseconds;
 
-        internal object ConvertToBaseValue(object logicalValue, TimestampMillisecondsSchema schema)
-        {
-            DateTime date;
-            if (logicalValue is DateTimeOffset dateTimeOffset)
-            {
-                date = dateTimeOffset.DateTime;
-            }
-            else
-            {
-                date = ((DateTime)logicalValue);
-            }
-
-            return (long)(date - DateTimeExtensions.UnixEpochDateTime).TotalMilliseconds;
-        }
-
         internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type readType)
         {
             var noMs = (long)baseValue;
-            var result =  DateTimeExtensions.UnixEpochDateTime.AddMilliseconds(noMs);
+            var result = DateTimeExtensions.UnixEpochDateTime.AddMilliseconds(noMs);
+
 
             if (readType == typeof(DateTimeOffset) || readType == typeof(DateTimeOffset?))
             {
                 return DateTimeOffset.FromUnixTimeMilliseconds(noMs);
+            }
+            if (readType == typeof(DateOnly) || readType == typeof(DateOnly?))
+            {
+                return DateOnly.FromDateTime(result);
             }
             else
             {

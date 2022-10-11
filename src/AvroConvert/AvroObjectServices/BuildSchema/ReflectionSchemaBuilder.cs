@@ -41,6 +41,8 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 { typeof(Guid), type => new UuidSchema(type) },
                 { typeof(DateTime), type => new TimestampMillisecondsSchema(type) },
                 { typeof(DateTimeOffset), type => new TimestampMillisecondsSchema(type) },
+                { typeof(DateOnly), type => new DateSchema(type) },
+                { typeof(TimeOnly), type => new TimeMillisecondsSchema(type) },
                 { typeof(TimeSpan), type => new DurationSchema(type) },
             };
 

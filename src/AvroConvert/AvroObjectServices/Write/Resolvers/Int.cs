@@ -1,5 +1,5 @@
 ﻿#region license
-/**Copyright (c) 2021 Adrian Strugała
+/**Copyright (c) 2020 Adrian Strugała
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -16,25 +16,27 @@
 #endregion
 
 using System;
-using SolTechnology.Avro.AvroObjectServices.Schemas;
-using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
 namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 {
-    internal class Uuid
+    internal class Int
     {
-        internal Encoder.WriteItem Resolve(UuidSchema schema)
+        internal void Resolve(object value, IWriter encoder)
         {
-            return (value, encoder) =>
-            {
-                if (value is not Guid guid)
-                {
-                    throw new AvroTypeMismatchException($"[Guid] required to write against [string] of [Uuid] schema but found [{value.GetType()}]");
-                }
+            value ??= default(int);
 
-                encoder.WriteString(guid.ToString());
-            };
+            if (value is not int i)
+            {
+                if (value?.GetType() == typeof(short)) //Resolve Short
+                {
+                    encoder.WriteInt(Convert.ToInt32(value));
+                    return;
+                }
+                throw new AvroTypeMismatchException("[Int] required to write against [Int] schema but found " + value.GetType());
+            }
+
+            encoder.WriteInt(i);
         }
     }
 }

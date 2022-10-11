@@ -46,6 +46,7 @@
 		<PackageReference Include="BrotliSharpLib" Version="0.3.*" />
 		<PackageReference Include="FastMember" Version="1.5.0" />
 		<PackageReference Include="Microsoft.CSharp" Version="4.7.*" />
+		<PackageReference Include="Portable.System.DateTimeOnly" Version="6.0.2" />
 	</ItemGroup>
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.*" />

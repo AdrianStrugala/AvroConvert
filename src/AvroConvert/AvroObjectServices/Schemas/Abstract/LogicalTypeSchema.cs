@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using SolTechnology.Avro.AvroObjectServices.Write;
 using SolTechnology.Avro.Infrastructure.Extensions;
 
 namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract

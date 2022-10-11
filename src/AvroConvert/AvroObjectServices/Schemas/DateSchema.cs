@@ -36,14 +36,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         internal override AvroType Type => AvroType.Logical;
         internal override TypeSchema BaseTypeSchema { get; set; }
         internal override string LogicalTypeName => LogicalTypeEnum.Date;
-        internal void Serialize(object value, IWriter writer)
-        {
-            var date = ((DateTime)value).Date;
-            var result = (date - DateTimeExtensions.UnixEpochDateTime).Days;
-            writer.WriteInt(result);
-        }
-
-
+        
         internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type readType)
         {
             var noDays = (int)baseValue;

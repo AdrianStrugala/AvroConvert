@@ -297,9 +297,10 @@ START OF THE PROJECT
 - Added Generic Json2Avro feature as foundation for dynamic one
 
 \
-**v. 3.3.0 (xxx)**
+**v. 3.3.0 (11.10.22)**
 - Added support for short (int16) C# type
 - Allowed conversion for non-matching read and write number C# types (ex: [int] can be read as [long])
 - Added SchemaConvert.GenerateFromJson feature
 - Added dynamic Json2Avro feature
-- Decreased serialization time and memory allocation by about 10%
+- Decreased serialization time and memory allocation by about 20%
+- Added support for DateOnly (Date) and TimeOnly (Duration) C# types

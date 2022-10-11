@@ -5,8 +5,8 @@
 		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
 		<LangVersion>10.0</LangVersion>
 		<Authors>Adrian Strugala</Authors>
-		<AssemblyVersion>3.2.9.0</AssemblyVersion>
-		<Version>3.2.9</Version>
+		<AssemblyVersion>3.3.0.0</AssemblyVersion>
+		<Version>3.3.0</Version>
 		<Description>Rapid Apache Avro serializer for .NET.</Description>
 		<PackageLicenseUrl>https://creativecommons.org/licenses/by-nc-sa/3.0/</PackageLicenseUrl>
 		<PackageProjectUrl>https://xabe.net/product/avroconvert/</PackageProjectUrl>

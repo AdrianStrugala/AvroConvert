@@ -12,8 +12,8 @@
 </p>
 
 <p align="center">
- <a href="https://www.nuget.org/packages/AvroConvert"><img src="https://img.shields.io/badge/Nuget-v3.2.9-blue?logo=nuget"></a>
- <a href="https://github.com/AdrianStrugala/AvroConvert"><img src="https://img.shields.io/badge/Downloads-180k-blue?logo=github"></a>
+ <a href="https://www.nuget.org/packages/AvroConvert"><img src="https://img.shields.io/badge/Nuget-v3.3.0-blue?logo=nuget"></a>
+ <a href="https://github.com/AdrianStrugala/AvroConvert"><img src="https://img.shields.io/badge/Downloads-216k-blue?logo=github"></a>
  <a href="https://github.com/AdrianStrugala/AvroConvert/actions/workflows/build&test.yml"><img src="https://github.com/AdrianStrugala/AvroConvert/actions/workflows/build&test.yml/badge.svg"></a>
 
 </p>
@@ -52,7 +52,7 @@ Introducing Avro to the projects brings three main benefits:
 | Support for C# data structures: Dictionary, List, DateTime... |                      ✔️                     |      ❌      |        ✔️        |
 | Support for compression codecs                                | Deflate<br/>  Snappy<br/> GZip<br/> Brotli |   Deflate   |        ❌        |
 | Readable schema of data structure                                      |                      ✔️                     |      ✔️      |        ✔️        |
-| Data is encrypted                                       |                      ✔️                     |      ✔️      |        ❌        |
+| Data encryption                                       |                      ✔️                     |      ✔️      |        ❌        |
 
 [Full Changelog](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/CHANGELOG.md)
 
@@ -136,11 +136,11 @@ If you find my work useful, you can support it :)
 </p>
 
 
-## Related packages  
+## Related Work  
 
-[![Nuget](https://img.shields.io/badge/Soltechnology.Avro.Http-v3.0.0-blue?logo=nuget)](https://www.nuget.org/packages/SolTechnology.Avro.Http/) - Library containing functionalities, which enable communication between microservices via Http using Avro data format
+1) [AvroConvertOnline](https://avroconvertonline.azurewebsites.net) - online Avro Schema to C# model converter
 
-[![Nuget](https://img.shields.io/badge/Soltechnology.Avro.Kafka-v0.1.0-blue?logo=nuget)](https://www.nuget.org/packages/SolTechnology.Avro.Kafka/) - Library containing extensions for Confluent Kafka platform - used together with Kafka Consumer and Producer
+2) [![Nuget](https://img.shields.io/badge/Soltechnology.Avro.Http-v3.0.0-blue?logo=nuget)](https://www.nuget.org/packages/SolTechnology.Avro.Http/) - Library containing functionalities, which enable communication between microservices via Http using Avro data format
 
 
 

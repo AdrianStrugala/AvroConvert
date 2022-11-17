@@ -28,7 +28,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         {
             int index = d.ReadUnionIndex();
 
-            if (index < writerSchema.Schemas.Count)
+            if (index >= writerSchema.Schemas.Count)
             {
                 throw new ArgumentOutOfRangeException(nameof(writerSchema.Schemas),
                     $"Cannot get union member of index [{index}]. Union size: [{writerSchema.Schemas.Count}]");

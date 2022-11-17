@@ -16,7 +16,6 @@
 #endregion
 
 using System;
-using System.Linq;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Infrastructure.Exceptions;
@@ -28,6 +27,13 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         protected virtual object ResolveUnion(UnionSchema writerSchema, TypeSchema readerSchema, IReader d, Type type)
         {
             int index = d.ReadUnionIndex();
+
+            if (index < writerSchema.Schemas.Count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(writerSchema.Schemas),
+                    $"Cannot get union member of index [{index}]. Union size: [{writerSchema.Schemas.Count}]");
+            }
+
             TypeSchema ws = writerSchema.Schemas[index];
 
             if (readerSchema is UnionSchema unionSchema)

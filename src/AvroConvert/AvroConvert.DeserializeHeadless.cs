@@ -15,7 +15,6 @@
 */
 #endregion
 
-using System;
 using System.IO;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.AvroObjectServices.Read;
@@ -25,14 +24,24 @@ namespace SolTechnology.Avro
     public static partial class AvroConvert
     {
         /// <summary>
-        /// Deserializes AVRO object, which does not contain header, to .NET type
+        /// Deserializes Avro object, which does not contain header, to .NET type
         /// </summary>
         public static T DeserializeHeadless<T>(byte[] avroBytes, string schema)
         {
-            var avroSchema = Schema.Create(schema);
+            return DeserializeHeadless<T>(avroBytes, schema, 1);
+        }
+
+        /// <summary>
+        /// Deserializes Avro array object, which does not contain header, to .NET type
+        /// </summary>
+        public static T DeserializeHeadless<T>(byte[] avroBytes, string schema, int numberOfRows)
+        {
+            var schemaBuilder = new ReflectionSchemaBuilder(new AvroSerializerSettings());
+            var readSchema = schemaBuilder.BuildSchema(typeof(T));
+
             var reader = new Reader(new MemoryStream(avroBytes));
-            var resolver = new Resolver(avroSchema, avroSchema);
-            var result = resolver.Resolve<T>(reader, 1);
+            var resolver = new Resolver(Schema.Create(schema), readSchema);
+            var result = resolver.Resolve<T>(reader, numberOfRows);
 
             return result;
         }

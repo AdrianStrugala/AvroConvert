@@ -13,7 +13,7 @@
 
 <p align="center">
  <a href="https://www.nuget.org/packages/AvroConvert"><img src="https://img.shields.io/badge/Nuget-v3.3.0-blue?logo=nuget"></a>
- <a href="https://github.com/AdrianStrugala/AvroConvert"><img src="https://img.shields.io/badge/Downloads-216k-blue?logo=github"></a>
+ <a href="https://avroconvertonline.azurewebsites.net/"><img src="https://img.shields.io/badge/Downloads-238k-blue?logo=github"></a>
  <a href="https://github.com/AdrianStrugala/AvroConvert/actions/workflows/build&test.yml"><img src="https://github.com/AdrianStrugala/AvroConvert/actions/workflows/build&test.yml/badge.svg"></a>
 
 </p>
@@ -127,13 +127,6 @@ using (var reader = AvroConvert.OpenDeserializer<CustomClass>(new MemoryStream(a
 
 [Full Documentation](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md)
 
-## Support
-
-If you find my work useful, you can support it :)
-
-<p align="center">
-    <a href="https://www.buymeacoffee.com/adrianstrugala" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 31px !important;width: 130px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
-</p>
 
 
 ## Related Work  

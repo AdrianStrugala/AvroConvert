@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using Confluent.Kafka;
 using Confluent.SchemaRegistry;
@@ -10,7 +11,7 @@ namespace SolTechnology.Avro.Kafka.Deserialization
     public class AvroConvertSchemaRegistryDeserializer<T> : IAsyncDeserializer<T>
     {
         private ISchemaRegistryClient RegistryClient { get; }
-        private readonly ConcurrentDictionary<int, string> cache = new ConcurrentDictionary<int, string>();
+        private readonly ConcurrentDictionary<int, Schema> cache = new ConcurrentDictionary<int, Schema>();
 
         public AvroConvertSchemaRegistryDeserializer(ISchemaRegistryClient registryClient
         )
@@ -32,8 +33,9 @@ namespace SolTechnology.Avro.Kafka.Deserialization
                 stream.Read(bytes, 0, bytes.Length);
 
                 var id = BitConverter.ToInt32(bytes, 0);
+                id = IPAddress.NetworkToHostOrder(id);  //ensure correct order
 
-                string schema;
+                Schema schema;
 
                 if (cache.ContainsKey(id))
                 {
@@ -45,8 +47,7 @@ namespace SolTechnology.Avro.Kafka.Deserialization
                     cache.AddOrUpdate(id, schema, (key, oldValue) => schema);
                 }
 
-                var confluentSchema = new ConfluentSchema(schema);
-                var result = AvroConvert.DeserializeHeadless<T>(stream.ToArray(), confluentSchema.SchemaString);
+                var result = AvroConvert.DeserializeHeadless<T>(stream.ToArray(), schema.SchemaString);
                 return result;
             }
         }

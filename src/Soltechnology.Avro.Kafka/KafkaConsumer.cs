@@ -32,9 +32,9 @@ namespace SolTechnology.Avro.Kafka
 
             while (!_cancellationToken.IsCancellationRequested)
             {
-                ConsumeResult<TKey, TValue> consumeResult = await Task.Run(() => _consumer.Consume(_cancellationToken));
+                ConsumeResult<TKey, TValue> consumeResult = await Task.Run(() => _consumer.Consume(_cancellationToken), _cancellationToken);
 
-                _handler(consumeResult.Key, consumeResult.Value, consumeResult.Timestamp.UtcDateTime);
+                _handler(consumeResult.Message.Key, consumeResult.Message.Value, consumeResult.Message.Timestamp.UtcDateTime);
             }
 
             _consumer.Close();

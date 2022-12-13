@@ -18,10 +18,10 @@ namespace SolTechnology.Avro.Kafka
                 dctProp[property.Name] = property.Value;
 
 
-            SchemaString = dctProp.TryGetValue("schema", out object schemaOb) ? schemaOb.ToString() : null;
-            Subject = dctProp.TryGetValue("subject", out object subjectOb) ? subjectOb.ToString() : null;
-            Version = dctProp.TryGetValue("version", out object versionOb) ? (int)((dynamic)versionOb).Value : -1;
-            Id = dctProp.TryGetValue("id", out object idOb) ? (int)((dynamic)idOb).Value : -1;
+            SchemaString = dctProp.TryGetValue("schema", out var schemaOb) ? schemaOb.ToString() : null;
+            Subject = dctProp.TryGetValue("subject", out var subjectOb) ? subjectOb.ToString() : null;
+            Version = dctProp.TryGetValue("version", out var versionOb) ? (int)((dynamic)versionOb).Value : -1;
+            Id = dctProp.TryGetValue("id", out var idOb) ? (int)((dynamic)idOb).Value : -1;
         }
     }
 }

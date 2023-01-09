@@ -51,6 +51,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
         private static readonly Int Int;
         private static readonly Date Date;
         private static readonly TimeMilliseconds TimeMilliseconds;
+        private static readonly Bool Bool;
 
         static WriteResolver()
         {
@@ -72,6 +73,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
             Int = new Int();
             Date = new Date();
             TimeMilliseconds = new TimeMilliseconds();
+            Bool = new Bool();
         }
 
         internal static Encoder.WriteItem ResolveWriter(TypeSchema schema)
@@ -81,9 +83,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
                 case AvroType.Null:
                     return Null.Resolve;
                 case AvroType.Boolean:
-                    return (v, e) => Write<bool>(v, schema.Type, e.WriteBoolean);
+                    return Bool.Resolve;
                 case AvroType.Int:
-                    return (v, e) => Int.Resolve(v, e);
+                    return Int.Resolve;
                 case AvroType.Long:
                     return Long.Resolve;
                 case AvroType.Float:

@@ -76,36 +76,25 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
             WriteByte((byte)n);
         }
 
-        /// <summary>
-        /// A float is written as 4 bytes.
-        /// The float is converted into a 32-bit integer using a method equivalent to
-        /// Java's floatToIntBits and then encoded in little-endian format.
-        /// </summary>
-        /// <param name="value"></param>
+
         public void WriteFloat(float value)
         {
             byte[] buffer = BitConverter.GetBytes(value);
-            if (!BitConverter.IsLittleEndian) System.Array.Reverse(buffer);
+            if (!BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(buffer);
+            }
             WriteBytesRaw(buffer);
         }
-        /// <summary>
-        ///A double is written as 8 bytes.
-        ///The double is converted into a 64-bit integer using a method equivalent to
-        ///Java's doubleToLongBits and then encoded in little-endian format.
-        /// </summary>
-        /// <param name="value"></param>
+
         public void WriteDouble(double value)
         {
-            long bits = BitConverter.DoubleToInt64Bits(value);
-
-            WriteByte((byte)((bits) & 0xFF));
-            WriteByte((byte)((bits >> 8) & 0xFF));
-            WriteByte((byte)((bits >> 16) & 0xFF));
-            WriteByte((byte)((bits >> 24) & 0xFF));
-            WriteByte((byte)((bits >> 32) & 0xFF));
-            WriteByte((byte)((bits >> 40) & 0xFF));
-            WriteByte((byte)((bits >> 48) & 0xFF));
-            WriteByte((byte)((bits >> 56) & 0xFF));
+            var bytes = BitConverter.GetBytes(value);
+            if (!BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(bytes);
+            }
+            WriteBytesRaw(bytes);
         }
 
         /// <summary>
@@ -193,5 +182,5 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
         }
     }
 
-    
+
 }

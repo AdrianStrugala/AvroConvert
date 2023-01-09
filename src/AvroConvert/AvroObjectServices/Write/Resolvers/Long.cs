@@ -23,12 +23,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
     {
         internal void Resolve(object value, IWriter encoder)
         {
-            if (!(value is long))
+            if (value is not long converted)
             {
                 throw new AvroTypeMismatchException("[Long] required to write against [Long] schema but found " + value.GetType());
             }
 
-            encoder.WriteLong((long)value);
+            encoder.WriteLong(converted);
         }
     }
 }

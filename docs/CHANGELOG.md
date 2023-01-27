@@ -304,3 +304,7 @@ START OF THE PROJECT
 - Added dynamic Json2Avro feature
 - Decreased serialization time and memory allocation by about 20%
 - Added support for DateOnly (Date) and TimeOnly (Duration) C# types
+
+\
+**v. 3.3.1 (27.01.23)**
+- Fix of SerializeHeadless invocation

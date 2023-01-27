@@ -124,7 +124,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
                     {
                         return Json.Resolve((RecordSchema)schema);
                     }
-                    return (v, e) => Record.Resolve((RecordSchema)schema, v, e);
+                    return Record.Resolve((RecordSchema)schema);
                 case AvroType.Enum:
                     return Enum.Resolve((EnumSchema)schema);
                 case AvroType.Fixed:

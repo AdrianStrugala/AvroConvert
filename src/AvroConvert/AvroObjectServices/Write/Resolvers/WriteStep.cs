@@ -20,7 +20,6 @@
 /** Modifications copyright(C) 2022 Adrian Strugala **/
 #endregion
 
-using System;
 using SolTechnology.Avro.Features.Serialize;
 
 namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
@@ -29,6 +28,5 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
     {
         internal Encoder.WriteItem WriteField { get; set; }
         internal string FiledName { get; set; }
-        internal Func<object, object> Getter { get; set; }
     }
 }

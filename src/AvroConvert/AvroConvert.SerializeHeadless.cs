@@ -33,16 +33,7 @@ namespace SolTechnology.Avro
             MemoryStream resultStream = new MemoryStream();
             var encoder = new Writer(resultStream);
             var schemaObject = Schema.Create(schema);
-            Encoder.WriteItem writer;
-            if (schemaObject is RecordSchema recordSchema)
-            {
-                recordSchema.AssignRuntimeType(obj.GetType());
-                writer = WriteResolver.ResolveWriter(recordSchema);
-            }
-            else
-            {
-                writer = WriteResolver.ResolveWriter(schemaObject);
-            }
+            var writer = WriteResolver.ResolveWriter(schemaObject);
 
             writer(obj, encoder);
 

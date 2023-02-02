@@ -51,7 +51,7 @@ namespace SolTechnology.Avro
         public static dynamic Deserialize(byte[] avroBytes, Type targetType)
         {
             object result = typeof(AvroConvert)
-                            .GetMethod("Deserialize", new[] { typeof(byte[]) })
+                            .GetMethod(nameof(Deserialize), new[] { typeof(byte[]) })
                             ?.MakeGenericMethod(targetType)
                             .Invoke(null, new object[] { avroBytes });
 

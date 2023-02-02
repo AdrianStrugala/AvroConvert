@@ -15,11 +15,10 @@
 */
 #endregion
 
+using System;
 using System.IO;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
-using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Write;
-using SolTechnology.Avro.Features.Serialize;
 
 namespace SolTechnology.Avro
 {
@@ -33,6 +32,22 @@ namespace SolTechnology.Avro
             MemoryStream resultStream = new MemoryStream();
             var encoder = new Writer(resultStream);
             var schemaObject = Schema.Create(schema);
+            var writer = WriteResolver.ResolveWriter(schemaObject);
+
+            writer(obj, encoder);
+
+            var result = resultStream.ToArray();
+            return result;
+        }
+
+        /// <summary>
+        /// Serializes given object to Avro format - <c>excluding</c> header
+        /// </summary>
+        public static byte[] SerializeHeadless(object obj, Type objectType)
+        {
+            MemoryStream resultStream = new MemoryStream();
+            var encoder = new Writer(resultStream);
+            var schemaObject = BuildSchema(objectType);
             var writer = WriteResolver.ResolveWriter(schemaObject);
 
             writer(obj, encoder);

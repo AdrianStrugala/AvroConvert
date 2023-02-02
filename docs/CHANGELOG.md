@@ -308,3 +308,7 @@ START OF THE PROJECT
 \
 **v. 3.3.1 (27.01.23)**
 - Fix of SerializeHeadless invocation
+
+\
+**v. 3.3.2 (XX.XX.23)**
+- Extended interfaces of Headless methods (including non-generic and Type as parameter)

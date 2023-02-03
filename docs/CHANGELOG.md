@@ -312,3 +312,4 @@ START OF THE PROJECT
 \
 **v. 3.3.2 (XX.XX.23)**
 - Extended interfaces of Headless methods (including non-generic and Type as parameter)
+- Added support for serialization using anonymous object

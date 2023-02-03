@@ -46,10 +46,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
          * the data is byte[] and there are fixed and bytes schemas as branches, it choose the first one that matches.
          * Also it does not recognize the arrays of primitive types.
          */
-        private bool UnionBranchMatches(TypeSchema sc, object obj)
+        private bool UnionBranchMatches(TypeSchema typeSchema, object obj)
         {
-            if (obj == null && sc.Type != AvroType.Null) return false;
-            switch (sc.Type)
+            if (obj == null && typeSchema.Type != AvroType.Null) return false;
+            switch (typeSchema.Type)
             {
                 case AvroType.Null:
                     return obj == null;
@@ -70,7 +70,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
                 case AvroType.Error:
                     return true;
                 case AvroType.Record:
-                    return obj.GetType().FullName.Equals((sc as RecordSchema).FullName);
+                    {
+                        var type = obj?.GetType();
+                        if (type == null) return false;
+                        return type.FullName.Equals((typeSchema as RecordSchema).FullName)
+                               || (type.IsGenericType && type.Name.Contains("AnonymousType"));
+                    }
                 case AvroType.Enum:
                     return obj is System.Enum;
                 case AvroType.Array:
@@ -82,12 +87,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
                 case AvroType.Fixed:
                     //return obj is GenericFixed && (obj as GenericFixed)._schema.Equals(s);
                     return obj is AvroFixed &&
-                           (obj as AvroFixed).Schema.FullName.Equals((sc as FixedSchema).FullName);
+                           (obj as AvroFixed).Schema.FullName.Equals((typeSchema as FixedSchema).FullName);
                 case AvroType.Logical:
                     // return (sc as LogicalTypeSchema).IsInstanceOfLogicalType(obj);
                     return true;
                 default:
-                    throw new AvroException("Unknown schema type: " + sc.Type);
+                    throw new AvroException("Unknown schema type: " + typeSchema.Type);
             }
         }
 

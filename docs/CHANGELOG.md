@@ -310,6 +310,6 @@ START OF THE PROJECT
 - Fix of SerializeHeadless invocation
 
 \
-**v. 3.3.2 (XX.XX.23)**
+**v. 3.3.2 (06.02.23)**
 - Extended interfaces of Headless methods (including non-generic and Type as parameter)
 - Added support for serialization using anonymous object

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using AutoFixture;
+using AutoFixture.Kernel;
 using SolTechnology.Avro;
 using Xunit;
 
@@ -8,11 +9,44 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
 {
     public class PrimitiveTypesTests
     {
-        private readonly Fixture _fixture;
+        private readonly Fixture _fixture = new();
 
-        public PrimitiveTypesTests()
+
+        [Theory]
+        [InlineData(typeof(uint))]
+        [InlineData(typeof(ushort))]
+        [InlineData(typeof(int))]
+        [InlineData(typeof(long))]
+        [InlineData(typeof(Guid))]
+        [InlineData(typeof(string))]
+        [InlineData(typeof(uint?))]
+        [InlineData(typeof(ushort?))]
+        [InlineData(typeof(ulong?))]
+        [InlineData(typeof(ulong))]
+        [InlineData(typeof(char))]
+        [InlineData(typeof(byte))]
+        [InlineData(typeof(sbyte))]
+        [InlineData(typeof(bool))]
+        [InlineData(typeof(float))]
+        [InlineData(typeof(double))]
+        [InlineData(typeof(Uri))]
+        [InlineData(typeof(byte[]))]
+        [InlineData(typeof(decimal))]
+        public void Ensure_that_various_primitive_types_are_supported(Type type)
         {
-            _fixture = new Fixture();
+            //Arrange
+            var underTest = new SpecimenContext(_fixture).Resolve(type);
+
+
+            //Act
+            var serialized = AvroConvert.Serialize(underTest);
+            var deserialized = AvroConvert.Deserialize(serialized, type);
+
+
+            //Assert
+            Assert.NotNull(serialized);
+            Assert.NotNull(deserialized);
+            Assert.Equal(underTest, deserialized);
         }
 
         [Fact]
@@ -35,6 +69,7 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             Assert.True(Comparison.AreEqual(user.favorite_color, deserialized.favorite_color));
             Assert.Equal(user.favorite_number, deserialized.favorite_number);
         }
+
 
         [Theory]
         [InlineData(int.MaxValue)]

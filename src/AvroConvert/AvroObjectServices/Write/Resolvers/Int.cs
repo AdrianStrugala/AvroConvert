@@ -28,12 +28,15 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 
             if (value is not int i)
             {
-                if (value?.GetType() == typeof(short)) //Resolve Short
+                try //Resolve short and uint
                 {
                     encoder.WriteInt(Convert.ToInt32(value));
                     return;
                 }
-                throw new AvroTypeMismatchException("[Int] required to write against [Int] schema but found " + value.GetType());
+                catch
+                {
+                    throw new AvroTypeMismatchException("[Int] required to write against [Int] schema but found " + value.GetType());
+                }
             }
 
             encoder.WriteInt(i);

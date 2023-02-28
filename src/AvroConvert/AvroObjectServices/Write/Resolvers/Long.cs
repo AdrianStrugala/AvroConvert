@@ -15,6 +15,7 @@
 */
 #endregion
 
+using System;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
 namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
@@ -25,7 +26,15 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
         {
             if (value is not long converted)
             {
-                throw new AvroTypeMismatchException("[Long] required to write against [Long] schema but found " + value.GetType());
+                try //Resolve ulong
+                {
+                    encoder.WriteLong(Convert.ToInt64(value));
+                    return;
+                }
+                catch
+                {
+                    throw new AvroTypeMismatchException("[Long] required to write against [Long] schema but found " + value.GetType());
+                }
             }
 
             encoder.WriteLong(converted);

@@ -313,3 +313,8 @@ START OF THE PROJECT
 **v. 3.3.2 (06.02.23)**
 - Extended interfaces of Headless methods (including non-generic and Type as parameter)
 - Added support for serialization using anonymous object
+
+\
+**v. 3.3.3 (28.02.23)**
+- Added support for proto generated models
+- Added support for ushort, uint, ulong, byte, sbyte, char

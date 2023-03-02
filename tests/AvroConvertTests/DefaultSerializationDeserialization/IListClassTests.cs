@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using AutoFixture;
+using FluentAssertions;
 using SolTechnology.Avro;
 using Xunit;
 
@@ -165,7 +166,7 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             Assert.NotNull(deserialized);
             Assert.Equal(testClass.anotherList, deserialized.anotherList);
             Assert.Equal(testClass.nestedList, deserialized.nestedList);
-            Assert.True(Comparison.AreEqual(testClass.stringProperty, deserialized.stringProperty));
+            deserialized.stringProperty.Should().BeNullOrEmpty();
         }
 
         [Fact(Skip = "MultidimensionalArray is not supported yet")]

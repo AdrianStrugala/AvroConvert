@@ -15,6 +15,7 @@
 */
 #endregion
 
+using System.Dynamic;
 using System.Linq;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
@@ -74,7 +75,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
                         var type = obj?.GetType();
                         if (type == null) return false;
                         return type.FullName.Equals((typeSchema as RecordSchema).FullName)
-                               || (type.IsGenericType && type.Name.Contains("AnonymousType"));
+                               || (type.IsGenericType && type.Name.Contains("AnonymousType"))
+                               || type == typeof(ExpandoObject);
                     }
                 case AvroType.Enum:
                     return obj is System.Enum;

@@ -89,7 +89,7 @@ namespace AvroConvertComponentTests.Merge
         {
             var users = _fixture.CreateMany<User>();
 
-            var avroObjects = (users.Select(AvroConvert.Serialize)).ToArray();
+            var avroObjects = users.Select(AvroConvert.Serialize).ToArray();
 
             avroObjects[1] = AvroConvert.Serialize(_fixture.Create<string>());
 

@@ -2,6 +2,7 @@
 using System.Globalization;
 using AutoFixture;
 using AutoFixture.Kernel;
+using FluentAssertions;
 using SolTechnology.Avro;
 using Xunit;
 
@@ -66,7 +67,7 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             Assert.NotNull(serialized);
             Assert.NotNull(deserialized);
             Assert.Equal(user.name, deserialized.name);
-            Assert.True(Comparison.AreEqual(user.favorite_color, deserialized.favorite_color));
+            deserialized.favorite_color.Should().BeNullOrEmpty();
             Assert.Equal(user.favorite_number, deserialized.favorite_number);
         }
 

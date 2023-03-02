@@ -318,3 +318,9 @@ START OF THE PROJECT
 **v. 3.3.3 (28.02.23)**
 - Added support for proto generated models
 - Added support for ushort, uint, ulong, byte, sbyte, char
+
+\
+**v. 3.3.4 (xx.03.23)**
+- Allowed any item to be deserialized into object (it's for supporting map of multiple values)
+- Added support for serialization using ExpandoObject
+- //TODO generate schema for map and nullable record

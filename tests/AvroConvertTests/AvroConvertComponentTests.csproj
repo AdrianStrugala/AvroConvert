@@ -41,6 +41,9 @@
 		<Content Include="header_only.avro">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
+		<None Update="ComplexDeserialization\AzureEventHub.avro">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 		<None Update="userdata1.avro">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>

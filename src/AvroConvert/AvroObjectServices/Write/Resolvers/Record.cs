@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -54,6 +55,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 
         private void WriteRecordFields(object recordObj, WriteStep[] writers, IWriter encoder)
         {
+            if (recordObj is ExpandoObject expando)
+            {
+                HandleExpando(writers, encoder, expando);
+                return;
+            }
+
             var type = recordObj.GetType();
             var typeHash = type.GetHashCode();
 
@@ -76,6 +83,17 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
                     value = type.GetField(writer.FiledName)?.GetValue(recordObj);
                 }
 
+                writer.WriteField(value, encoder);
+            }
+        }
+
+        private static void HandleExpando(WriteStep[] writers, IWriter encoder, ExpandoObject expando)
+        {
+            var expandoDictionary = expando.ToDictionary(x => x.Key, y => y.Value, StringComparer.InvariantCultureIgnoreCase);
+
+            foreach (var writer in writers)
+            {
+                expandoDictionary.TryGetValue(writer.FiledName, out var value);
                 writer.WriteField(value, encoder);
             }
         }

@@ -45,8 +45,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             Dictionary<string, string> attributes)
             : base(namedAttributes, runtimeType, attributes)
         {
-            this.fields = new List<RecordFieldSchema>();
-            this.fieldsByName = new Dictionary<string, RecordFieldSchema>(StringComparer.InvariantCultureIgnoreCase);
+            fields = new List<RecordFieldSchema>();
+            fieldsByName = new Dictionary<string, RecordFieldSchema>(StringComparer.InvariantCultureIgnoreCase);
         }
 
         internal RecordSchema(string name, string @namespace) : this(new NamedEntityAttributes(new SchemaName(name, @namespace), new List<string>(), String.Empty), typeof(AvroRecord))
@@ -98,11 +98,17 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             writer.WriteProperty("type", "record");
             writer.WritePropertyName("fields");
             writer.WriteStartArray();
-            this.fields.ForEach(_ => _.ToJson(writer, seenSchemas));
+            fields.ForEach(_ => _.ToJson(writer, seenSchemas));
             writer.WriteEndArray();
             writer.WriteEndObject();
         }
 
         internal override AvroType Type => AvroType.Record;
+
+        internal override bool CanRead(TypeSchema writerSchema)
+        {
+            return Type == writerSchema.Type 
+                   || Fields.Count == 0; //hack to allow any item to be serialized to Object 
+        }
     }
 }

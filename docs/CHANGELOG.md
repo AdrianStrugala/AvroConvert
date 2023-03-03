@@ -320,7 +320,7 @@ START OF THE PROJECT
 - Added support for ushort, uint, ulong, byte, sbyte, char
 
 \
-**v. 3.3.4 (xx.03.23)**
+**v. 3.3.4 (03.03.23)**
 - Allowed any item to be deserialized into object (it's for supporting map of multiple values)
 - Added support for serialization using ExpandoObject
 - Extended GenerateModel to support map of union type

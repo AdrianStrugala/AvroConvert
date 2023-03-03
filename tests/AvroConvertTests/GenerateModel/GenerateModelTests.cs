@@ -577,6 +577,48 @@ resultClass);
         }
 
         [Fact]
+        public void GenerateClass_SchemaContainsMapOfUnionValues_ItIsTranslatedToDictionaryOfObjects()
+        {
+            //Arrange
+            string schema = @"
+         {
+    ""type"": ""record"",
+    ""name"": ""EventData"",
+    ""fields"": [
+        {
+            ""name"":""SystemProperties"",
+            ""type"":
+                {
+                    ""type"":""map"",
+                    ""values"":[""long"",""double"",""string"",""bytes""]
+                }
+        },
+        {
+            ""name"":""Properties"",
+            ""type"":
+                {
+                    ""type"":""map"",
+                    ""values"":[""null"",""double""]
+                }
+        }
+    ]
+}";
+
+            //Act
+            string resultClass = AvroConvert.GenerateModel(schema);
+
+            //Assert
+            Assert.Equal(
+                "public class EventData\r\n" +
+                "{\r\n" +
+                "\tpublic Dictionary<string,object> SystemProperties { get; set; }\r\n" +
+                "\tpublic Dictionary<string,double?> Properties { get; set; }\r\n" +
+                "}\r\n" +
+                "\r\n",
+                resultClass);
+        }
+
+        [Fact]
         public void GenerateClass_SchemaContainsFixed_ItIsTranslatedToByteArray()
         {
             //Arrange

@@ -142,6 +142,7 @@ namespace AvroConvertComponentTests.GenerateSchema
             // Assert
             Assert.Contains("{\"name\":\"NullableStringProperty\",\"type\":[\"null\",\"string\"]}", schema);
             Assert.Contains("{\"name\":\"NullableField\",\"type\":[\"null\",\"string\"]}", schema);
+            Assert.Contains("{\"name\":\"NullableRecord\",\"type\":[\"null\",{\"name\":\"UserNameClass\",\"namespace\":\"AvroConvertComponentTests\",\"type\":\"record\",\"fields\":[{\"name\":\"name\",\"type\":\"string\"}]}]}", schema);
         }
     }
 }

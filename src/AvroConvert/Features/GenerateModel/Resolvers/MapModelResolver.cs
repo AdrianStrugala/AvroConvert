@@ -20,6 +20,9 @@
 */
 #endregion
 
+using System;
+using System.Linq;
+using System.Security.Principal;
 using Newtonsoft.Json.Linq;
 
 namespace SolTechnology.Avro.Features.GenerateModel.Resolvers
@@ -28,9 +31,28 @@ namespace SolTechnology.Avro.Features.GenerateModel.Resolvers
     {
         internal string ResolveMap(JObject typeObj)
         {
-            string valueType = typeObj["values"].ToString();
+            string valueTypeString;
+            var valueType = typeObj["values"];
 
-            return $"Dictionary<string,{valueType}>";
+            if (valueType is JArray)
+            {
+                if (valueType.Count() == 2
+                    && string.Equals(valueType[0].ToString(), "Null", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    valueTypeString = valueType[1] + "?";
+                }
+                else
+                {
+                    valueTypeString = "object";
+                }
+            }
+            else
+            {
+                valueTypeString = valueType.ToString();
+            }
+
+
+            return $"Dictionary<string,{valueTypeString}>";
 
         }
     }

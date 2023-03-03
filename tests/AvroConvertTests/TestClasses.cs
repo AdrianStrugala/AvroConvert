@@ -305,6 +305,7 @@ namespace AvroConvertComponentTests
         public string? NullableStringProperty { get; set; }
 
         public string? NullableField;
+        public UserNameClass? NullableRecord { get; set; }
     }
 #nullable disable
 

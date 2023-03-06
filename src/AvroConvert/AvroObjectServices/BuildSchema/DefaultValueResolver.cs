@@ -33,12 +33,12 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
     /// This class is responsible for parsing a JSON string according to a given JSON 
     /// schema and returning the corresponding C# value as object.
     /// </summary>
-    internal sealed class JsonObjectParser
+    internal sealed class DefaultValueResolver
     {
         private readonly Dictionary<Type, Func<string, object>> parsersWithoutSchema;
         private readonly Dictionary<Type, Func<TypeSchema, string, object>> parsersWithSchema;
 
-        internal JsonObjectParser()
+        internal DefaultValueResolver()
         {
             this.parsersWithoutSchema = new Dictionary<Type, Func<string, object>>
             {
@@ -132,7 +132,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             return this.Parse(unionSchema.Schemas[0], jsonObject);
         }
 
-        private IDictionary<string, object> ParseMap(TypeSchema schema, string jsonObject)
+        private Dictionary<string, object> ParseMap(TypeSchema schema, string jsonObject)
         {
             var mapSchema = (MapSchema)schema;
             return JsonConvert
@@ -141,10 +141,11 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 .ToDictionary(o => o.Key, o => o.Value);
         }
 
-        private AvroRecord ParseRecord(TypeSchema schema, string jsonObject)
+        private Dictionary<string, object> ParseRecord(TypeSchema schema, string jsonObject)
         {
             var recordSchema = (RecordSchema)schema;
-            var result = new AvroRecord(recordSchema);
+            var result = new Dictionary<string, object>();
+
             var data = JsonConvert.DeserializeObject<Dictionary<string, JToken>>(jsonObject);
 
             foreach (var datum in data)

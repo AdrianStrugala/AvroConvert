@@ -111,6 +111,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                 return Enum.Parse(t, (string)defaultValue);
             }
 
+            //TODO: Map and Record default values are represented as Dictionary<string,object>
+            //https://avro.apache.org/docs/1.4.0/spec.html
+            //It might be not supported at the moment
+
             return Convert.ChangeType(defaultValue, t);
         }
     }

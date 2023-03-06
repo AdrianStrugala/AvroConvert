@@ -243,7 +243,9 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 });
 
             Dictionary<string, string> customAttributes = enumeration.GetAttributesNotIn(StandardProperties.Enumeration);
-            var result = new EnumSchema(attributes, typeof(AvroEnum), customAttributes);
+
+            //fixme: runtime type cannot be provided for json schema resolution. Providing general type
+            var result = new EnumSchema(attributes, typeof(Enum), customAttributes);
             namedSchemas.Add(result.FullName, result);
             symbols.ForEach(result.AddSymbol);
             return result;

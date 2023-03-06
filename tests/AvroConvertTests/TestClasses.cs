@@ -290,7 +290,11 @@ namespace AvroConvertComponentTests
     [Equals(DoNotAddEqualityOperators = true)]
     public class ClassWithEnum
     {
+        [DefaultValue(TestEnum.be)]
         public TestEnum? EnumProp { get; set; }
+
+        [DefaultValue("ca")]
+        public TestEnum? SecondEnumProp { get; set; }
     }
 
     public record TestRecord

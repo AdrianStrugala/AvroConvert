@@ -5,7 +5,7 @@ using Xunit;
 
 namespace AvroConvertComponentTests.ComplexDeserialization
 {
-    public class DeserializeAzureEventHub
+    public class DeserializeAzureEventHubTests
     {
         private readonly byte[] _azureEventHubBytes = File.ReadAllBytes("ComplexDeserialization/AzureEventHub.avro");
 

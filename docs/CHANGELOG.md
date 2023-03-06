@@ -324,3 +324,8 @@ START OF THE PROJECT
 - Allowed any item to be deserialized into object (it's for supporting map of multiple values)
 - Added support for serialization using ExpandoObject
 - Extended GenerateModel to support map of union type
+
+\
+**v. x.x.x (xx.xx.xx)**
+- Allowed default value for Enum fields
+- Changed GenerateClass default value representation

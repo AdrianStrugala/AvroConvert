@@ -104,5 +104,25 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             Assert.Equal(toSerialize, deserialized);
         }
 
+        [Fact]
+        public void Component_EnumPropertyWithDefaultValue_ResultIsDefaultValue()
+        {
+            //Arrange
+            ClassWithEnum toSerialize = _fixture.Create<ClassWithEnum>();
+            toSerialize.EnumProp = null;
+            toSerialize.SecondEnumProp = null;
+
+
+            //Act
+            var result = AvroConvert.Serialize(toSerialize);
+            var deserialized = AvroConvert.Deserialize<ClassWithEnum>(result);
+
+
+            //Assert
+            Assert.NotNull(result);
+            Assert.NotNull(deserialized);
+            Assert.Equal(TestEnum.be, deserialized.EnumProp);
+            Assert.Equal(TestEnum.ca, deserialized.SecondEnumProp);
+        }
     }
 }

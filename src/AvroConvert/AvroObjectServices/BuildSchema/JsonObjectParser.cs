@@ -95,16 +95,26 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             return null;
         }
 
-        private AvroEnum ParseEnum(TypeSchema schema, string jsonObject)
+        private object ParseEnum(TypeSchema schema, string jsonObject)
         {
             var enumSchema = (EnumSchema)schema;
-            if (!enumSchema.Symbols.Contains(jsonObject))
+            string enumValue;
+
+            if (int.TryParse(jsonObject, out var index))
+            {
+                enumValue = enumSchema.GetSymbolByValue(index);
+            }
+            else if (!enumSchema.Symbols.Contains(jsonObject))
             {
                 throw new SerializationException(
                     string.Format(CultureInfo.InvariantCulture, "'{0}' is not a valid enum value.", jsonObject));
             }
+            else
+            {
+                enumValue = jsonObject;
+            }
 
-            return new AvroEnum(schema) { Value = jsonObject };
+            return enumValue;
         }
 
         private object[] ParseArray(TypeSchema schema, string jsonObject)

@@ -103,7 +103,10 @@ resultClass);
             Assert.Equal(
                 "public class ClassWithEnum\r\n" +
                 "{\r\n" +
+                "\t[DefaultValue(1)]\r\n" +
                 "\tpublic TestEnum? EnumProp { get; set; }\r\n" +
+                "\t[DefaultValue(ca)]\r\n" +
+                "\tpublic TestEnum? SecondEnumProp { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
                 "public enum TestEnum\r\n" +
@@ -535,12 +538,18 @@ resultClass);
             Assert.Equal(
                 "public class Result\r\n" +
                 "{\r\n" +
-                "\tpublic string testString { get; set; } = \"Default String\";\r\n" +
-                "\tpublic bool testBoolean { get; set; } = true;\r\n" +
-                "\tpublic int testInt { get; set; } = 123;\r\n" +
-                "\tpublic long testLong { get; set; } = 123;\r\n" +
-                "\tpublic float testFloat { get; set; } = 1.23;\r\n" +
-                "\tpublic double testDouble { get; set; } = 1.23;\r\n" +
+                "\t[DefaultValue(\"Default String\")]\r\n" +
+                "\tpublic string testString { get; set; }\r\n" +
+                "\t[DefaultValue(true)]\r\n" +
+                "\tpublic bool testBoolean { get; set; }\r\n" +
+                "\t[DefaultValue(123)]\r\n" +
+                "\tpublic int testInt { get; set; }\r\n" +
+                "\t[DefaultValue(123)]\r\n" +
+                "\tpublic long testLong { get; set; }\r\n" +
+                "\t[DefaultValue(1.23)]\r\n" +
+                "\tpublic float testFloat { get; set; }\r\n" +
+                "\t[DefaultValue(1.23)]\r\n" +
+                "\tpublic double testDouble { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n",
                 resultClass);

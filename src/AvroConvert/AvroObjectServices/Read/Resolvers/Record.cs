@@ -55,7 +55,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                             continue;
                         }
 
-                        Func<object> func = () => Resolve(wf.TypeSchema, rf.TypeSchema, dec, memberInfo.Type) ?? wf.DefaultValue;
+                        Func<object> func = () =>
+                        {
+                            object value = Resolve(wf.TypeSchema, rf.TypeSchema, dec, memberInfo.Type);
+                            return value ?? FormatDefaultValue(wf.DefaultValue, memberInfo);
+                        };
+
                         accessor[result, memberInfo.Name] = func.Invoke();
 
                         readSteps.Add(memberInfo.Name, func);
@@ -80,6 +85,33 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             }
 
             return result;
+        }
+
+        private static object FormatDefaultValue(object defaultValue, Member memberInfo)
+        {
+            if (defaultValue == null)
+            {
+                return defaultValue;
+            }
+
+            var t = memberInfo.Type;
+
+            if (defaultValue.GetType() == memberInfo.Type)
+            {
+                return defaultValue;
+            }
+
+            if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                t = Nullable.GetUnderlyingType(t);
+            }
+
+            if (t.IsEnum)
+            {
+                return Enum.Parse(t, (string)defaultValue);
+            }
+
+            return Convert.ChangeType(defaultValue, t);
         }
     }
 }

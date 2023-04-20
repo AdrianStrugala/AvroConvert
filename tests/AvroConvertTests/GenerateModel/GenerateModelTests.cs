@@ -27,14 +27,14 @@ namespace AvroConvertComponentTests.GenerateModel
 
             //Assert
             Assert.Equal(
-"public class User\r\n" +
-"{\r\n" +
-"\tpublic string name { get; set; }\r\n" +
-"\tpublic int? favorite_number { get; set; }\r\n" +
-"\tpublic string? favorite_color { get; set; }\r\n" +
-"}\r\n" +
-"\r\n",
-resultClass);
+                "public class User\r\n" +
+                "{\r\n" +
+                "\tpublic string name { get; set; }\r\n" +
+                "\tpublic int? favorite_number { get; set; }\r\n" +
+                "\tpublic string? favorite_color { get; set; }\r\n" +
+                "}\r\n" +
+                "\r\n",
+                resultClass);
         }
 
         [Fact]
@@ -681,6 +681,119 @@ resultClass);
                 "public class exampleAvro\r\n" +
                 "{\r\n" +
                 "\tpublic byte[] bdata { get; set; }\r\n" +
+                "}\r\n" +
+                "\r\n",
+                resultClass);
+        }
+
+
+        [Fact]
+        public void GenerateClass_TypeIsArrayOfDifferentTypes_ItIsGeneralizedToObject()
+        {
+            //Arrange
+            string schema = @"
+                       {
+   ""type"":""record"",
+   ""name"":""ClassWithMultipleTypesProperties"",
+   ""fields"":[
+      {
+         ""name"":""Name"",
+         ""type"":[
+            ""null"",
+            ""string"",
+            {
+               ""type"":""record"",
+               ""name"":""Switchable_PersonName"",
+               ""fields"":[
+                  {
+                     ""name"":""Salutation"",
+                     ""type"":[
+                        ""null"",
+                        ""string""
+                     ],
+                     ""default"":null
+                  },
+                  {
+                     ""name"":""FirstName"",
+                     ""type"":[
+                        ""null"",
+                        ""string""
+                     ],
+                     ""default"":null
+                  },
+                  {
+                     ""name"":""LastName"",
+                     ""type"":[
+                        ""null"",
+                        ""string""
+                     ],
+                     ""default"":null
+                  },
+                  {
+                     ""name"":""MiddleName"",
+                     ""type"":[
+                        ""null"",
+                        ""string""
+                     ],
+                     ""default"":null
+                  },
+                  {
+                     ""name"":""InformalName"",
+                     ""type"":[
+                        ""null"",
+                        ""string""
+                     ],
+                     ""default"":null
+                  },
+                  {
+                     ""name"":""Suffix"",
+                     ""type"":[
+                        ""null"",
+                        ""string""
+                     ],
+                     ""default"":null
+                  }
+               ]
+            }
+         ],
+         ""doc"":""Data:Switchable_PersonName"",
+         ""default"":null
+      },
+   {
+         ""name"":""AgeOrSex"",
+         ""type"":[
+            ""int"",
+            ""string"",
+         ],
+      }
+   ]
+}";
+
+
+
+            //Act
+            string resultClass = AvroConvert.GenerateModel(schema);
+
+
+            //Assert
+            Assert.Equal(
+                "public class ClassWithMultipleTypesProperties\r\n" +
+                "{\r\n" +
+                "\t/// <summary>\r\n" +
+                "\t/// Data:Switchable_PersonName\r\n" +
+                "\t/// </summary>\r\n" +
+                "\tpublic object? Name { get; set; }\r\n" +
+                "\tpublic object AgeOrSex { get; set; }\r\n" +
+                "}\r\n" +
+                "\r\n" +
+                "public class Switchable_PersonName\r\n" +
+                "{\r\n" +
+                "\tpublic string? Salutation { get; set; }\r\n" +
+                "\tpublic string? FirstName { get; set; }\r\n" +
+                "\tpublic string? LastName { get; set; }\r\n" +
+                "\tpublic string? MiddleName { get; set; }\r\n" +
+                "\tpublic string? InformalName { get; set; }\r\n" +
+                "\tpublic string? Suffix { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n",
                 resultClass);

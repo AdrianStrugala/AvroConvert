@@ -152,7 +152,7 @@ namespace SolTechnology.Avro.Features.AvroToJson
                 readerSchema = ((ArraySchema)readerSchema).ItemSchema;
             }
 
-            object[] result = new object[0];
+            object[] result = Array.Empty<object>();
             int i = 0;
 
             for (int n = (int)d.ReadArrayStart(); n != 0; n = (int)d.ReadArrayNext())

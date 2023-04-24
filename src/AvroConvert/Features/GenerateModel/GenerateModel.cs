@@ -20,6 +20,7 @@
 */
 #endregion
 
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
@@ -189,9 +190,16 @@ namespace SolTechnology.Avro.Features.GenerateModel
 
                     fieldType.Name = field["name"].ToString();
 
-                    if (field["default"] is JValue)
+                    if (field["default"] is JValue _value)
                     {
-                        fieldType.Default = field["default"].ToString();
+                        if(_value.Type != JTokenType.Float)
+                        {
+                            fieldType.Default = field["default"].ToString();
+                        }
+                        else
+                        {
+                            fieldType.Default = _value.ToString(NumberFormatInfo.InvariantInfo);
+                        }                        
                     }
 
                     if (field["doc"] is JValue)

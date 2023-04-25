@@ -192,14 +192,7 @@ namespace SolTechnology.Avro.Features.GenerateModel
 
                     if (field["default"] is JValue _value)
                     {
-                        if(_value.Type != JTokenType.Float)
-                        {
-                            fieldType.Default = field["default"].ToString();
-                        }
-                        else
-                        {
-                            fieldType.Default = _value.ToString(NumberFormatInfo.InvariantInfo);
-                        }                        
+                        fieldType.Default = _value.ToString(NumberFormatInfo.InvariantInfo);                    
                     }
 
                     if (field["doc"] is JValue)

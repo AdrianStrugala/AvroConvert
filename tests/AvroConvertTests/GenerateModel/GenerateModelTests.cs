@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Threading;
 using SolTechnology.Avro;
 using Xunit;
 
@@ -550,6 +552,59 @@ namespace AvroConvertComponentTests.GenerateModel
                 "\tpublic float testFloat { get; set; }\r\n" +
                 "\t[DefaultValue(1.23)]\r\n" +
                 "\tpublic double testDouble { get; set; }\r\n" +
+                "}\r\n" +
+                "\r\n",
+                resultClass);
+        }
+
+
+        [Fact]
+        public void GenerateClass_CommaNumberDecimalSeparator()
+        {
+            //Arrange
+            string schema = @"
+                                {
+          ""type"": ""record"",
+          ""name"": ""Result"",
+          ""fields"": [
+            {
+              ""name"": ""testFloat"",
+              ""type"": ""float"",
+              ""default"": 1.23
+            },
+            {
+              ""name"": ""testDouble"",
+              ""type"": ""double"",
+              ""default"": 1.23
+            }
+          ]
+        }";
+
+            string resultClass = null;
+            var tempCulture = Thread.CurrentThread.CurrentCulture;
+
+            //Act
+
+            try
+            {
+                Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("de");
+                resultClass = AvroConvert.GenerateModel(schema);
+            }
+            catch (Exception ex)
+            {
+                Assert.Fail(ex.Message);
+            }
+            finally
+            {
+                Thread.CurrentThread.CurrentCulture = tempCulture;
+            }
+
+            //Assert
+            Assert.Equal(
+                "public class Result\r\n" +
+                "{\r\n" +
+                "\tpublic float testFloat { get; set; } = 1.23;\r\n" +
+                "\tpublic double testDouble { get; set; } = 1.23;\r\n" +
                 "}\r\n" +
                 "\r\n",
                 resultClass);

@@ -330,3 +330,4 @@ START OF THE PROJECT
 - Allowed default value for Enum fields
 - Changed GenerateClass default value representation
 - Extended GenerateModel to generalize complex type build of different types (ex. null, string, record) to object
+- Fix for GenerateModel to apply culture specific decimal separator

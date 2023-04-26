@@ -45,6 +45,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvroConvertUnitTests", "tes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Profiler", "tests\Profiler\Profiler.csproj", "{F2E89AF6-EFDD-4233-A15D-3AE4D5CFE48F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{CF2BD534-C667-41CA-A376-98CC79B1733D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -187,6 +189,18 @@ Global
 		{F2E89AF6-EFDD-4233-A15D-3AE4D5CFE48F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{F2E89AF6-EFDD-4233-A15D-3AE4D5CFE48F}.Release|x86.ActiveCfg = Release|Any CPU
 		{F2E89AF6-EFDD-4233-A15D-3AE4D5CFE48F}.Release|x86.Build.0 = Release|Any CPU
+		{CF2BD534-C667-41CA-A376-98CC79B1733D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF2BD534-C667-41CA-A376-98CC79B1733D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF2BD534-C667-41CA-A376-98CC79B1733D}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{CF2BD534-C667-41CA-A376-98CC79B1733D}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{CF2BD534-C667-41CA-A376-98CC79B1733D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CF2BD534-C667-41CA-A376-98CC79B1733D}.Debug|x86.Build.0 = Debug|Any CPU
+		{CF2BD534-C667-41CA-A376-98CC79B1733D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF2BD534-C667-41CA-A376-98CC79B1733D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF2BD534-C667-41CA-A376-98CC79B1733D}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{CF2BD534-C667-41CA-A376-98CC79B1733D}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{CF2BD534-C667-41CA-A376-98CC79B1733D}.Release|x86.ActiveCfg = Release|Any CPU
+		{CF2BD534-C667-41CA-A376-98CC79B1733D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

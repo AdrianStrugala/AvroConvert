@@ -36,7 +36,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<None Include="..\..\README.md" Pack="true" PackagePath="\"/>
+		<None Include="..\..\README.md" Pack="true" PackagePath="\" />
 		<None Include="..\..\docs\mini-logo.png" Pack="true" Visible="false" PackagePath="docs\mini-logo.png" />
 	</ItemGroup>
 
@@ -48,8 +48,9 @@
 		<PackageReference Include="BrotliSharpLib" Version="0.3.*" />
 		<PackageReference Include="FastMember" Version="1.5.0" />
 		<PackageReference Include="Microsoft.CSharp" Version="4.7.*" />
-		<PackageReference Include="Portable.System.DateTimeOnly" Version="6.0.2" />
+		<PackageReference Include="Portable.System.DateTimeOnly" Version="6.0.3" />
 	</ItemGroup>
+
 	<ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.*" />
 		<PackageReference Include="IronSnappy" Version="1.3.*" />

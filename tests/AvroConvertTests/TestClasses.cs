@@ -10,10 +10,19 @@ namespace AvroConvertComponentTests
     [Equals(DoNotAddEqualityOperators = true)]
     public class User
     {
-        public string name { get; set; }
+        public string? name { get; set; }
         public int? favorite_number { get; set; }
         public string favorite_color { get; set; }
     }
+
+    [Equals(DoNotAddEqualityOperators = true)]
+    public class UserWithNonNullableProperties
+    {
+        public string name { get; set; }
+        public int favorite_number { get; set; }
+        public string favorite_color { get; set; }
+    }
+
 
     [Equals(DoNotAddEqualityOperators = true)]
     public class UserNameClass
@@ -215,6 +224,7 @@ namespace AvroConvertComponentTests
     public class AttributeClassWithoutGetters
     {
         [DataMember(Name = "name")]
+        [NullableSchema]
         public string StringProperty;
 
         [DataMember(Name = "favorite_number")]
@@ -225,7 +235,6 @@ namespace AvroConvertComponentTests
         public string AndAnotherString;
     }
 
-    [Equals(DoNotAddEqualityOperators = true)]
     public struct ComplexStruct
     {
         [DataMember]

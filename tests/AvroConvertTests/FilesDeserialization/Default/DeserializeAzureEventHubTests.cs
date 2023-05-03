@@ -3,7 +3,7 @@ using System.IO;
 using SolTechnology.Avro;
 using Xunit;
 
-namespace AvroConvertComponentTests.ComplexDeserialization
+namespace AvroConvertComponentTests.FilesDeserialization.Default
 {
     public class DeserializeAzureEventHubTests
     {

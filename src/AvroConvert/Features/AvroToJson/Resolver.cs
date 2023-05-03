@@ -107,7 +107,7 @@ namespace SolTechnology.Avro.Features.AvroToJson
             foreach (var rf in readerSchema.Fields)
             {
                 string name = rf.Name;
-                object value = Resolve(rf.TypeSchema, dec);
+                object value = Resolve(rf.TypeSchema, dec) ?? rf.DefaultValue;
 
                 result.Add(name, value);
             }

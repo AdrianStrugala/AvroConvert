@@ -83,7 +83,7 @@ namespace AvroConvertComponentTests.GenerateModel
                 "\r\n" +
                 "public class User\r\n" +
                 "{\r\n" +
-                "\tpublic string name { get; set; }\r\n" +
+                "\tpublic string? name { get; set; }\r\n" +
                 "\tpublic int? favorite_number { get; set; }\r\n" +
                 "\tpublic string favorite_color { get; set; }\r\n" +
                 "}\r\n" +
@@ -172,7 +172,7 @@ namespace AvroConvertComponentTests.GenerateModel
                 "\r\n" +
                 "public class User\r\n" +
                 "{\r\n" +
-                "\tpublic string name { get; set; }\r\n" +
+                "\tpublic string? name { get; set; }\r\n" +
                 "\tpublic int? favorite_number { get; set; }\r\n" +
                 "\tpublic string favorite_color { get; set; }\r\n" +
                 "}\r\n" +
@@ -589,10 +589,6 @@ namespace AvroConvertComponentTests.GenerateModel
             {
                 Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("de");
                 resultClass = AvroConvert.GenerateModel(schema);
-            }
-            catch (Exception ex)
-            {
-                Assert.Fail(ex.Message);
             }
             finally
             {

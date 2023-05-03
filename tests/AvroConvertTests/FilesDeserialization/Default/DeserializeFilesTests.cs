@@ -5,14 +5,14 @@ using SolTechnology.Avro;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 using Xunit;
 
-namespace AvroConvertComponentTests.ComplexDeserialization
+namespace AvroConvertComponentTests.FilesDeserialization.Default
 {
     public class DeserializeFilesTests
     {
         private readonly byte[] _avroBytes = File.ReadAllBytes("example2.avro");
         private readonly byte[] _schemaOnlyAvroBytes = File.ReadAllBytes("header_only.avro");
 
-        
+
         [Fact]
         public void Deserialize_CustomSchema_OnlyValuesFromCustomSchemaAreReturned()
         {

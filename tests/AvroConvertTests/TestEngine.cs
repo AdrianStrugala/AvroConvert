@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using SolTechnology.Avro;
 
 namespace AvroConvertComponentTests;
@@ -12,27 +11,6 @@ public static class TestEngine
         yield return Default;
 
         yield return Headless;
-
-        yield return Json;
-
-        yield return Brotli;
-
-        yield return Snappy;
-
-        yield return Deflate;
-
-        yield return Gzip;
-    }
-
-    public static IEnumerable<object[]> AllForCollections()
-    {
-        yield return Default;
-
-        yield return Headless;
-
-        yield return DefaultByLine;
-
-        yield return HeadlessByLine;
 
         yield return Json;
 
@@ -89,55 +67,6 @@ public static class TestEngine
             });
 
             return new object[] { headless };
-        }
-    }
-
-    private static object[] DefaultByLine
-    {
-        get
-        {
-            var @defaultByLine = new Func<object, Type, dynamic>((input, type) =>
-            {
-                var result = new List<object>();
-                var serialized = AvroConvert.Serialize(input);
-
-                using var reader = AvroConvert.OpenDeserializer<User>(new MemoryStream(serialized));
-                while (reader.HasNext())
-                {
-                    var item = reader.ReadNext();
-
-                    result.Add(item);
-                }
-
-                return result;
-            });
-
-            return new object[] { @defaultByLine };
-        }
-    }
-
-    private static object[] HeadlessByLine
-    {
-        get
-        {
-            var @defaultByLine = new Func<object, Type, dynamic>((input, type) =>
-            {
-                var result = new List<object>();
-                var schema = AvroConvert.GenerateSchema(input.GetType());
-                var serialized = AvroConvert.SerializeHeadless(input, schema);
-
-                using var reader = AvroConvert.OpenDeserializer<User>(new MemoryStream(serialized));
-                while (reader.HasNext())
-                {
-                    var item = reader.ReadNext();
-
-                    result.Add(item);
-                }
-
-                return result;
-            });
-
-            return new object[] { @defaultByLine };
         }
     }
 

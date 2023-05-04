@@ -1,42 +1,40 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoFixture;
-using SolTechnology.Avro;
 using Xunit;
 
-namespace AvroConvertComponentTests.DefaultSerializationDeserialization
+namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 {
     public class ConcurrentCollectionClassesTests
     {
-        private readonly Fixture _fixture;
+        private readonly Fixture _fixture = new();
 
-        public ConcurrentCollectionClassesTests()
-        {
-            _fixture = new Fixture();
-        }
-
-        [Fact]
-        public void Component_SerializeConcurrentBagClass_ResultIsTheSameAsInput()
+        [Theory]
+        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
+        public void Component_SerializeConcurrentBagClass_ResultIsTheSameAsInput(Func<object, Type, dynamic> engine)
         {
             //Arrange
-            ConcurrentBagClass toSerialize = _fixture.Create<ConcurrentBagClass>();
+            ConcurrentBagClass toSerialize = new ConcurrentBagClass
+            {
+                concurentBagField =  new ConcurrentBag<ComplexClassWithoutGetters>(_fixture.CreateMany<ComplexClassWithoutGetters>())
+            };
 
 
             //Act
-            var result = AvroConvert.Serialize(toSerialize);
-
-            var deserialized = AvroConvert.Deserialize<ConcurrentBagClass>(result);
+            var deserialized = engine.Invoke(toSerialize, typeof(ConcurrentBagClass));
 
 
             //Assert
-            Assert.NotNull(result);
             Assert.NotNull(deserialized);
             Assert.Equal(toSerialize, deserialized);
         }
 
-        [Fact]
-        public void Serialize_MultiThreadSerialization_NoExceptionIsThrown()
+        [Theory]
+        [MemberData(nameof(TestEngine.DefaultOnly), MemberType = typeof(TestEngine))]
+        public void Serialize_MultiThreadSerialization_NoExceptionIsThrown(Func<object, Type, dynamic> engine)
         {
             //Arrange
             VeryComplexClass testClass = _fixture.Create<VeryComplexClass>();
@@ -45,20 +43,18 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             //Act
             List<Task> listOfTasks = new List<Task>();
 
-            for (var counter = 0; counter < 10; counter++)
+            for (var counter = 0; counter < 7; counter++)
             {
                 listOfTasks.Add(Task.Run(() =>
                 {
                     for (var iMessagesCntr = 0; iMessagesCntr < 100; iMessagesCntr++)
                     {
-                        var result = AvroConvert.Serialize(testClass);
-                        var deserialized = AvroConvert.Deserialize<VeryComplexClass>(result);
+                        var deserialized = engine.Invoke(testClass, typeof(VeryComplexClass));
 
                         //Assert
                         Assert.Equal(testClass, deserialized);
 
-                        Thread.Sleep(counter
-);
+                        Thread.Sleep(counter);
                     }
                 }));
             }

@@ -3,7 +3,7 @@ using AutoFixture;
 using FluentAssertions;
 using Xunit;
 
-namespace AvroConvertComponentTests.SerializationAndDeserialization
+namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 {
     public class ClassesWithoutDefaultConstructorTests
     {
@@ -29,7 +29,7 @@ namespace AvroConvertComponentTests.SerializationAndDeserialization
 
         [Theory]
         [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Complex_class_without_constructor(Func<object, Type, dynamic> engine)
+        public void Nested_class_without_constructor(Func<object, Type, dynamic> engine)
         {
             //Arrange
             VeryComplexClassWithoutDefaultConstructor testClass =

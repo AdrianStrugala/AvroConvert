@@ -7,7 +7,7 @@ namespace AvroConvertComponentTests.FilesDeserialization.Default
 {
     public class DeserializeAzureEventHubTests
     {
-        private readonly byte[] _azureEventHubBytes = File.ReadAllBytes("ComplexDeserialization/AzureEventHub.avro");
+        private readonly byte[] _azureEventHubBytes = File.ReadAllBytes("FilesDeserialization/Default/AzureEventHub.avro");
 
 
         [Fact]

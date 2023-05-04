@@ -1,10 +1,9 @@
 ﻿using System;
 using AutoFixture;
 using FluentAssertions;
-using SolTechnology.Avro;
 using Xunit;
 
-namespace AvroConvertComponentTests.DefaultSerializationDeserialization
+namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 {
     public class DateTimeTests
     {
@@ -17,20 +16,18 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             _fixture.Customize<TimeOnly>(composer => composer.FromFactory<DateTime>(TimeOnly.FromDateTime));
         }
 
-        [Fact]
-        public void Component_ClassWithDateTime_ResultIsTheSameAsInput()
+        [Theory]
+        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
+        public void Class_containing_date_time_and_dateTime_properties(Func<object, Type, dynamic> engine)
         {
             //Arrange
             ClassWithDateTime toSerialize = _fixture.Create<ClassWithDateTime>();
 
 
             //Act
-            var result = AvroConvert.Serialize(toSerialize);
-
-            var deserialized = AvroConvert.Deserialize<ClassWithDateTime>(result);
+            var deserialized = engine.Invoke(toSerialize, typeof(ClassWithDateTime));
 
             //Assert
-            Assert.NotNull(result);
             Assert.NotNull(deserialized);
             Assert.Equal(toSerialize.ArriveBy.Millisecond, deserialized.ArriveBy.Millisecond);
             Assert.Equal(toSerialize.ArriveBy.Second, deserialized.ArriveBy.Second);
@@ -45,8 +42,9 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             toSerialize.MyTime.ToString().Should().Be(deserialized.MyTime.ToString());
         }
 
-        [Fact]
-        public void Component_ClassWithDefaultDateTime_ResultIsTheSameAsInput()
+        [Theory]
+        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
+        public void Class_containing_dateTime_which_has_default_value(Func<object, Type, dynamic> engine)
         {
             //Arrange
             ClassWithDateTime toSerialize = _fixture.Create<ClassWithDateTime>();
@@ -54,13 +52,10 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
 
 
             //Act
-            var result = AvroConvert.Serialize(toSerialize);
-
-            var deserialized = AvroConvert.Deserialize<ClassWithDateTime>(result);
+            var deserialized = engine.Invoke(toSerialize, typeof(ClassWithDateTime));
 
 
             //Assert
-            Assert.NotNull(result);
             Assert.NotNull(deserialized);
             Assert.Equal(toSerialize.ArriveBy.Millisecond, deserialized.ArriveBy.Millisecond);
             Assert.Equal(toSerialize.ArriveBy.Second, deserialized.ArriveBy.Second);
@@ -71,21 +66,19 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             Assert.Equal(toSerialize.ArriveBy.Year, deserialized.ArriveBy.Year);
         }
 
-        [Fact]
-        public void Component_ClassWithDateTimeOffset_ResultIsTheSameAsInput()
+        [Theory]
+        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
+        public void Class_containing_dateTimeOffset(Func<object, Type, dynamic> engine)
         {
             //Arrange
             ClassWithDateTimeOffset toSerialize = _fixture.Create<ClassWithDateTimeOffset>();
 
 
             //Act
-            var result = AvroConvert.Serialize(toSerialize);
-
-            var deserialized = AvroConvert.Deserialize<ClassWithDateTimeOffset>(result);
+            var deserialized = engine.Invoke(toSerialize, typeof(ClassWithDateTimeOffset));
 
 
             //Assert
-            Assert.NotNull(result);
             Assert.NotNull(deserialized);
             Assert.Equal(toSerialize.yeah.Millisecond, deserialized.yeah.Millisecond);
             Assert.Equal(toSerialize.yeah.Second, deserialized.yeah.Second);
@@ -96,39 +89,36 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             Assert.Equal(toSerialize.yeah.Year, deserialized.yeah.Year);
         }
 
-        [Fact]
-        public void Component_NullableDateTime_ResultIsTheSameAsInput()
+        [Theory]
+        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
+        public void Nullable_DateTime(Func<object, Type, dynamic> engine)
         {
             //Arrange
             DateTime? toSerialize = _fixture.Create<DateTime?>();
 
 
             //Act
-            var result = AvroConvert.Serialize(toSerialize);
+            var deserialized = (DateTime?)engine.Invoke(toSerialize, typeof(DateTime?));
 
-            var deserialized = AvroConvert.Deserialize<DateTime?>(result);
 
             //Assert
-            Assert.NotNull(result);
             Assert.NotNull(deserialized);
             toSerialize!.Value.Should().BeCloseTo(deserialized.Value, TimeSpan.FromMilliseconds(1));
         }
 
-        [Fact]
-        public void Component_NullableDateTimeOffset_ResultIsTheSameAsInput()
+        [Theory]
+        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
+        public void Nullable_DateTimeOffset(Func<object, Type, dynamic> engine)
         {
             //Arrange
             DateTimeOffset? toSerialize = _fixture.Create<DateTimeOffset?>();
 
 
             //Act
-            var result = AvroConvert.Serialize(toSerialize);
-
-            var deserialized = AvroConvert.Deserialize<DateTimeOffset?>(result);
+            var deserialized = (DateTimeOffset?)engine.Invoke(toSerialize, typeof(DateTimeOffset?));
 
 
             //Assert
-            Assert.NotNull(result);
             Assert.NotNull(deserialized);
             Assert.Equal(toSerialize.Value.Millisecond, deserialized.Value.Millisecond);
             Assert.Equal(toSerialize.Value.Second, deserialized.Value.Second);
@@ -139,74 +129,71 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             Assert.Equal(toSerialize.Value.Year, deserialized.Value.Year);
         }
 
-        [Fact]
-        public void Component_TimeSpan_ResultIsTheSameAsInput()
+        [Theory]
+        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
+        public void TimeSpan_object(Func<object, Type, dynamic> engine)
         {
             //Arrange
             TimeSpan toSerialize = DateTime.UtcNow.TimeOfDay;
 
-            //Act
-            var result = AvroConvert.Serialize(toSerialize);
 
-            var deserialized = AvroConvert.Deserialize<TimeSpan>(result);
+            //Act
+            var deserialized = engine.Invoke(toSerialize, typeof(TimeSpan));
+
 
             //Assert
-            Assert.NotNull(result);
             toSerialize.Should().BeCloseTo(deserialized, TimeSpan.FromMilliseconds(1),
                 "Avro Duration supports at lowest milliseconds precision");
         }
 
-        [Fact]
-        public void Component_NullableTimeSpan_ResultIsTheSameAsInput()
+        [Theory]
+        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
+        public void Nullable_TimeSpan(Func<object, Type, dynamic> engine)
         {
             //Arrange
             TimeSpan? toSerialize = _fixture.Create<TimeSpan?>();
 
 
             //Act
-            var result = AvroConvert.Serialize(toSerialize);
+            var deserialized = (TimeSpan?)engine.Invoke(toSerialize, typeof(TimeSpan?));
 
-            var deserialized = AvroConvert.Deserialize<TimeSpan?>(result);
 
             //Assert
-            Assert.NotNull(result);
             Assert.NotNull(deserialized);
             toSerialize!.Value.Should().BeCloseTo(deserialized.Value, TimeSpan.FromMilliseconds(1),
                 "Avro Duration supports at lowest milliseconds precision");
         }
 
-        [Fact]
-        public void Component_NullableDateOnly_ResultIsTheSameAsInput()
+        [Theory]
+        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
+        public void Nullable_DateOnly(Func<object, Type, dynamic> engine)
         {
             //Arrange
             DateOnly? toSerialize = _fixture.Create<DateOnly?>();
 
 
             //Act
-            var result = AvroConvert.Serialize(toSerialize);
+            var deserialized = (DateOnly?)engine.Invoke(toSerialize, typeof(DateOnly?));
 
-            var deserialized = AvroConvert.Deserialize<DateOnly?>(result);
 
             //Assert
-            Assert.NotNull(result);
             Assert.NotNull(deserialized);
             toSerialize!.Value.Should().Be(deserialized.Value);
         }
 
-        [Fact]
-        public void Component_NullableTimeOnly_ResultIsTheSameAsInput()
+        [Theory]
+        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
+        public void Nullable_TimeOnly(Func<object, Type, dynamic> engine)
         {
             //Arrange
             TimeOnly? toSerialize = _fixture.Create<TimeOnly?>();
 
 
             //Act
-            var result = AvroConvert.Serialize(toSerialize);
+            var deserialized = (TimeOnly?)engine.Invoke(toSerialize, typeof(TimeOnly?));
 
-            var deserialized = AvroConvert.Deserialize<TimeOnly?>(result);
 
             //Assert
-            Assert.NotNull(result);
             Assert.NotNull(deserialized);
             toSerialize!.Value.ToString().Should().Be(deserialized.Value.ToString());
         }

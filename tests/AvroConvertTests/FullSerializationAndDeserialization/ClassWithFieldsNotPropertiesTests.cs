@@ -1,68 +1,61 @@
-﻿using AutoFixture;
-using SolTechnology.Avro;
+﻿using System;
+using AutoFixture;
 using Xunit;
 
-namespace AvroConvertComponentTests.DefaultSerializationDeserialization
+namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 {
     public class ClassWithFieldsNotPropertiesTests
     {
-        private readonly Fixture _fixture;
+        private readonly Fixture _fixture = new();
 
-        public ClassWithFieldsNotPropertiesTests()
-        {
-            _fixture = new Fixture();
-        }
-
-        [Fact]
-        public void Component_ClassWithoutGetters_ResultIsTheSameAsInput()
+        [Theory]
+        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
+        public void Simple_class_with_fields(Func<object, Type, dynamic> engine)
         {
             //Arrange
             ClassWithoutGetters toSerialize = _fixture.Create<ClassWithoutGetters>();
 
+
             //Act
+            var deserialized = engine.Invoke(toSerialize, typeof(ClassWithoutGetters));
 
-            var result = AvroConvert.Serialize(toSerialize);
-
-            var deserialized = AvroConvert.Deserialize<ClassWithoutGetters>(result);
 
             //Assert
-            Assert.NotNull(result);
             Assert.NotNull(deserialized);
             Assert.Equal(toSerialize.Count, deserialized.Count);
             Assert.Equal(toSerialize.SomeString, deserialized.SomeString);
         }
 
-        [Fact]
-        public void Component_ComplexClassWithoutGetters_ResultIsTheSameAsInput()
+        [Theory]
+        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
+        public void Nested_class_with_fields(Func<object, Type, dynamic> engine)
         {
             //Arrange
             ComplexClassWithoutGetters toSerialize = _fixture.Create<ComplexClassWithoutGetters>();
 
+
             //Act
+            var deserialized = engine.Invoke(toSerialize, typeof(ComplexClassWithoutGetters));
 
-            var result = AvroConvert.Serialize(toSerialize);
-
-            var deserialized = AvroConvert.Deserialize<ComplexClassWithoutGetters>(result);
 
             //Assert
-            Assert.NotNull(result);
             Assert.NotNull(deserialized);
             Assert.Equal(toSerialize, deserialized);
         }
 
-        [Fact]
-        public void Component_ClassWithAttributesAndWithoutGetters_ResultIsTheSameAsInput()
+        [Theory]
+        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
+        public void Nested_class_with_fields_and_attributes(Func<object, Type, dynamic> engine)
         {
             //Arrange
             AttributeClassWithoutGetters toSerialize = _fixture.Create<AttributeClassWithoutGetters>();
 
-            //Act
-            var result = AvroConvert.Serialize(toSerialize);
 
-            var deserialized = AvroConvert.Deserialize<AttributeClassWithoutGetters>(result);
+            //Act
+            var deserialized = engine.Invoke(toSerialize, typeof(AttributeClassWithoutGetters));
+
 
             //Assert
-            Assert.NotNull(result);
             Assert.NotNull(deserialized);
             Assert.Equal(toSerialize, deserialized);
         }

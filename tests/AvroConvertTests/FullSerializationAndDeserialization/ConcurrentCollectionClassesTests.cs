@@ -14,7 +14,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
         [Theory]
         [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Component_SerializeConcurrentBagClass_ResultIsTheSameAsInput(Func<object, Type, dynamic> engine)
+        public void Class_with_ConcurrentBag(Func<object, Type, dynamic> engine)
         {
             //Arrange
             ConcurrentBagClass toSerialize = new ConcurrentBagClass
@@ -34,7 +34,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
         [Theory]
         [MemberData(nameof(TestEngine.DefaultOnly), MemberType = typeof(TestEngine))]
-        public void Serialize_MultiThreadSerialization_NoExceptionIsThrown(Func<object, Type, dynamic> engine)
+        public void MultiThread_serialization(Func<object, Type, dynamic> engine)
         {
             //Arrange
             VeryComplexClass testClass = _fixture.Create<VeryComplexClass>();

@@ -1,4 +1,5 @@
-﻿using AutoFixture;
+﻿using System.Runtime.Serialization;
+using AutoFixture;
 using SolTechnology.Avro;
 using Xunit;
 

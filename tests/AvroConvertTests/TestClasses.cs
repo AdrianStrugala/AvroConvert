@@ -137,6 +137,7 @@ namespace AvroConvertComponentTests
         public List<bool> bools { get; set; }
         public double doubleProperty { get; set; }
         public float floatProperty { get; set; }
+        public short? Size { get; set; }
     }
 
 

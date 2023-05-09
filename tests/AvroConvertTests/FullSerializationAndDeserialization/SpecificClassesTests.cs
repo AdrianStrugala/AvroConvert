@@ -1,50 +1,41 @@
-﻿using System.Runtime.Serialization;
+﻿using System;
 using AutoFixture;
-using SolTechnology.Avro;
+using FluentAssertions;
 using Xunit;
 
-namespace AvroConvertComponentTests.DefaultSerializationDeserialization
+namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 {
     public class SpecificClassesTests
     {
-        private readonly Fixture _fixture;
+        private readonly Fixture _fixture = new();
 
-        public SpecificClassesTests()
-        {
-            _fixture = new Fixture();
-        }
-
-        [Fact]
-        public void Component_NetRecord_ResultIsTheSameAsInput()
+        [Theory]
+        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
+        public void NetRecord(Func<object, Type, dynamic> engine)
         {
             //Arrange
             TestRecord testRecord = new TestRecord();
             testRecord.Name = _fixture.Create<string>();
 
             //Act
-            var serialized = AvroConvert.Serialize(testRecord);
-
-            var deserialized = AvroConvert.Deserialize<TestRecord>(serialized);
+            var deserialized = engine.Invoke(testRecord, typeof(TestRecord));
 
             //Assert
-            Assert.NotNull(serialized);
             Assert.NotNull(deserialized);
             Assert.Equal(testRecord.Name, deserialized.Name);
         }
 
-        [Fact]
-        public void Component_AvroLogicalType_ResultIsTheSameAsInput()
+        [Theory]
+        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
+        public void AvroLogicalTypes(Func<object, Type, dynamic> engine)
         {
             //Arrange
             var testObject = _fixture.Create<LogicalTypesClass>();
 
             //Act
-            var serialized = AvroConvert.Serialize(testObject);
-
-            var deserialized = AvroConvert.Deserialize<LogicalTypesClass>(serialized);
+            var deserialized = (LogicalTypesClass)engine.Invoke(testObject, typeof(LogicalTypesClass));
 
             //Assert
-            Assert.NotNull(serialized);
             Assert.NotNull(deserialized);
             Assert.Equal(testObject.One, deserialized.One);
             Assert.Equal(testObject.Two, deserialized.Two);
@@ -74,36 +65,32 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             Assert.Equal(testObject.Five.Year, deserialized.Five.Year);
         }
 
-        [Fact]
-        public void Component_InheritingClass_ResultIsTheSameAsInput()
+        [Theory]
+        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
+        public void ClassInheritingFromBaseClass(Func<object, Type, dynamic> engine)
         {
             //Arrange
             InheritingClass testObject = _fixture.Create<InheritingClass>();
 
             //Act
-            var serialized = AvroConvert.Serialize(testObject);
-
-            var deserialized = AvroConvert.Deserialize<InheritingClass>(serialized);
+            var deserialized = (InheritingClass)engine.Invoke(testObject, typeof(InheritingClass));
 
             //Assert
-            Assert.NotNull(serialized);
-            Assert.NotNull(deserialized);
+            deserialized.Should().BeEquivalentTo(testObject);
         }
 
-        [Fact]
-        public void Component_InheritingClassFromInterface_ResultIsTheSameAsInput()
+        [Theory]
+        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
+        public void ClassInheritingFromInterface(Func<object, Type, dynamic> engine)
         {
             //Arrange
             InheritingClassFromInterface testObject = _fixture.Create<InheritingClassFromInterface>();
 
             //Act
-            var serialized = AvroConvert.Serialize(testObject);
-
-            var deserialized = AvroConvert.Deserialize<InheritingClassFromInterface>(serialized);
+            var deserialized = (InheritingClassFromInterface)engine.Invoke(testObject, typeof(InheritingClassFromInterface));
 
             //Assert
-            Assert.NotNull(serialized);
-            Assert.NotNull(deserialized);
+            deserialized.Should().BeEquivalentTo(testObject);
         }
     }
 }

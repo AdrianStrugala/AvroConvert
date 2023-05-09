@@ -2,7 +2,7 @@
 using SolTechnology.Avro;
 using Xunit;
 
-namespace AvroConvertComponentTests.DefaultSerializationDeserialization
+namespace AvroConvertComponentTests.DefaultOnly
 {
     public class PartiallyMatchingClassesTests
     {

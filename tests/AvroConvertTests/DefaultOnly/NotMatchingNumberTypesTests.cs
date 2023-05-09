@@ -2,7 +2,7 @@
 using System;
 using Xunit;
 
-namespace AvroConvertComponentTests.DefaultSerializationDeserialization
+namespace AvroConvertComponentTests.DefaultOnly
 {
     public class DifferentReadAndWriteNumberTypesTests
     {

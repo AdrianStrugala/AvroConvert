@@ -1,12 +1,10 @@
-﻿using System.Dynamic;
 ﻿using System;
 using System.IO;
 using Newtonsoft.Json;
 using SolTechnology.Avro;
-using SolTechnology.Avro.Features.JsonToAvro;
 using Xunit;
 
-namespace AvroConvertComponentTests.AvroToJson
+namespace AvroConvertComponentTests.Avro2Json
 {
     public class Avro2JsonTests
     {

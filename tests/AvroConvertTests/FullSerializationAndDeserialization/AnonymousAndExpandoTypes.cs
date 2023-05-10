@@ -1,15 +1,16 @@
-﻿using System.Dynamic;
+﻿using System;
+using System.Dynamic;
 using FluentAssertions;
-using SolTechnology.Avro;
 using Xunit;
 
-namespace AvroConvertComponentTests.Headless
+namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 {
     //from issue: https://github.com/AdrianStrugala/AvroConvert/issues/94
     public class HeadlessRecordsTests
     {
-        [Fact]
-        public void Anonymous_type_is_properly_headless_serialized()
+        [Theory]
+        [MemberData(nameof(TestEngine.CoreUsingSchema), MemberType = typeof(TestEngine))]
+        public void Anonymous_type_is_properly_headless_serialized(Func<object, Type, string, dynamic> engine)
         {
             //Arrange
             var valschema = @"
@@ -44,17 +45,16 @@ namespace AvroConvertComponentTests.Headless
             var item = new { Value = new { KeyNested = "key1", ValueNested = "val1" } };
 
             //Act
-            byte[] value = AvroConvert.SerializeHeadless(item, valschema);
-            var deserialized = AvroConvert.DeserializeHeadless<AnonymousLikeClass>(value, valschema);
+            var deserialized = (AnonymousLikeClass)engine.Invoke(item, typeof(AnonymousLikeClass), valschema);
 
             //Assert
-            value.Should().NotBeNullOrEmpty();
             deserialized.Should().BeEquivalentTo(item);
 
         }
 
-        [Fact]
-        public void Expando_object_is_properly_headless_serialized()
+        [Theory]
+        [MemberData(nameof(TestEngine.CoreUsingSchema), MemberType = typeof(TestEngine))]
+        public void Expando_object_is_properly_headless_serialized(Func<object, Type, string, dynamic> engine)
         {
             //Arrange
             var valschema = @"
@@ -90,12 +90,12 @@ namespace AvroConvertComponentTests.Headless
             item.value.KeyNested = "key1";
             item.value.ValueNested = "val1";
 
+
             //Act
-            byte[] value = AvroConvert.SerializeHeadless(item, valschema);
-            var deserialized = AvroConvert.DeserializeHeadless<AnonymousLikeClass?>(value, valschema);
+            var deserialized = (AnonymousLikeClass)engine.Invoke(item, typeof(AnonymousLikeClass), valschema);
+
 
             //Assert
-            value.Should().NotBeNullOrEmpty();
             deserialized.Should().BeEquivalentTo(new { Value = new { KeyNested = "key1", ValueNested = "val1" } });
 
         }
@@ -103,7 +103,7 @@ namespace AvroConvertComponentTests.Headless
 
     public class AnonymousLikeClass
     {
-        public NestedClass? Value { get; set; }
+        public NestedClass Value { get; set; }
     }
 
     public class NestedClass

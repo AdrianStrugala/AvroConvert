@@ -7,7 +7,7 @@ using FluentAssertions;
 using SolTechnology.Avro;
 using Xunit;
 
-namespace AvroConvertComponentTests.SerializationAndDeserialization
+namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 {
     public class AvroAttributeClassTests
     {

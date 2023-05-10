@@ -2,7 +2,7 @@
 using SolTechnology.Avro;
 using Xunit;
 
-namespace AvroConvertComponentTests.CodecTests
+namespace AvroConvertComponentTests.FilesDeserialization.Snappy.Twitter
 {
     public class TwitterExampleTests
     {
@@ -11,8 +11,8 @@ namespace AvroConvertComponentTests.CodecTests
 
         public TwitterExampleTests()
         {
-            _notCompressed = System.IO.File.ReadAllBytes("CodecTests/twitter.avro");
-            _snappy = System.IO.File.ReadAllBytes("CodecTests/twitter.snappy.avro");
+            _notCompressed = System.IO.File.ReadAllBytes("FilesDeserialization/Snappy/Twitter/twitter.avro");
+            _snappy = System.IO.File.ReadAllBytes("FilesDeserialization/Snappy/Twitter/twitter.snappy.avro");
         }
 
         [Fact]

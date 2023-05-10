@@ -1,16 +1,17 @@
 ﻿using System.Collections.Generic;
+using AvroConvertComponentTests.CodecTests.Snappy;
 using SolTechnology.Avro;
 using Xunit;
 
-namespace AvroConvertComponentTests.CodecTests.Snappy
+namespace AvroConvertComponentTests.FilesDeserialization.Snappy.UserData
 {
     public class Tests
     {
-        private readonly string userData1 = "CodecTests/Snappy/userdata1.avro";
-        private readonly string userData2 = "CodecTests/Snappy/userdata2.avro";
-        private readonly string userData3 = "CodecTests/Snappy/userdata3.avro";
-        private readonly string userData4 = "CodecTests/Snappy/userdata4.avro";
-        private readonly string userData5 = "CodecTests/Snappy/userdata5.avro";
+        private readonly string userData1 = "FilesDeserialization/Snappy/UserData/userdata1.avro";
+        private readonly string userData2 = "FilesDeserialization/Snappy/UserData/userdata2.avro";
+        private readonly string userData3 = "FilesDeserialization/Snappy/UserData/userdata3.avro";
+        private readonly string userData4 = "FilesDeserialization/Snappy/UserData/userdata4.avro";
+        private readonly string userData5 = "FilesDeserialization/Snappy/UserData/userdata5.avro";
 
         [Fact]
         public void Deserialize_SnappyFile1_NoExceptionIsThrown()

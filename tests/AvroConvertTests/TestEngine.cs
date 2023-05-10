@@ -14,6 +14,8 @@ public static class TestEngine
 
         yield return Json;
 
+        yield return GenericJson;
+
         yield return Brotli;
 
         yield return Snappy;
@@ -29,9 +31,22 @@ public static class TestEngine
 
         yield return Headless;
 
+        yield return GenericJson;
+
         yield return Brotli;
 
         yield return Snappy;
+    }
+
+    public static IEnumerable<object[]> CoreUsingSchema()
+    {
+        yield return DefaultWithSchema;
+
+        yield return HeadlessWithSchema;
+
+        yield return GenericJsonWithSchema;
+
+        yield return BrotliWithSchema;
     }
 
     public static IEnumerable<object[]> DefaultOnly()
@@ -67,6 +82,28 @@ public static class TestEngine
             });
 
             return new object[] { headless };
+        }
+    }
+
+    private static object[] GenericJson
+    {
+        get
+        {
+            var @default = new Func<object, Type, dynamic>((input, type) =>
+            {
+                var serialized = AvroConvert.Serialize(input);
+                var json = AvroConvert.Avro2Json(serialized);
+
+                var avro = (byte[])typeof(AvroConvert)
+                    .GetMethod(nameof(AvroConvert.Json2Avro), 1, new[] { typeof(string) })
+                    ?.MakeGenericMethod(type)
+                    .Invoke(null, new object[] { json });
+
+                // var avro = AvroConvert.Json2Avro(json);
+                return AvroConvert.Deserialize(avro, type);
+            });
+
+            return new object[] { @default };
         }
     }
 
@@ -128,7 +165,6 @@ public static class TestEngine
         }
     }
 
-
     private static object[] Gzip
     {
         get
@@ -143,4 +179,68 @@ public static class TestEngine
         }
     }
 
+    private static object[] DefaultWithSchema
+    {
+        get
+        {
+            var @default = new Func<object, Type, string, dynamic>((input, type, schema) =>
+            {
+                var x = schema; //not used, but the cases are important to cover
+                var serialized = AvroConvert.Serialize(input);
+                return AvroConvert.Deserialize(serialized, type);
+            });
+
+            return new object[] { @default };
+        }
+    }
+
+    private static object[] HeadlessWithSchema
+    {
+        get
+        {
+            var headless = new Func<object, Type, string, dynamic>((input, type, schema) =>
+            {
+                var serialized = AvroConvert.SerializeHeadless(input, schema);
+                return AvroConvert.DeserializeHeadless(serialized, schema, type);
+            });
+
+            return new object[] { headless };
+        }
+    }
+
+    private static object[] GenericJsonWithSchema
+    {
+        get
+        {
+            var @default = new Func<object, Type, string, dynamic>((input, type, schema) =>
+            {
+                var serialized = AvroConvert.Serialize(input);
+                var json = AvroConvert.Avro2Json(serialized, schema);
+
+                var avro = (byte[])typeof(AvroConvert)
+                    .GetMethod(nameof(AvroConvert.Json2Avro), 1, new[] { typeof(string) })
+                    ?.MakeGenericMethod(type)
+                    .Invoke(null, new object[] { json });
+
+                // var avro = AvroConvert.Json2Avro(json);
+                return AvroConvert.Deserialize(avro, type);
+            });
+
+            return new object[] { @default };
+        }
+    }
+    private static object[] BrotliWithSchema
+    {
+        get
+        {
+            var @default = new Func<object, Type, string, dynamic>((input, type, schema) =>
+            {
+                var x = schema; //not used, but the cases are important to cover
+                var serialized = AvroConvert.Serialize(input, CodecType.Brotli);
+                return AvroConvert.Deserialize(serialized, type);
+            });
+
+            return new object[] { @default };
+        }
+    }
 }

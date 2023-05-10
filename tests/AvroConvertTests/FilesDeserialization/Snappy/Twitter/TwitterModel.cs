@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace AvroConvertComponentTests.CodecTests
+namespace AvroConvertComponentTests.FilesDeserialization.Snappy.Twitter
 {
     [Equals(DoNotAddEqualityOperators = true)]
     public class TwitterModel

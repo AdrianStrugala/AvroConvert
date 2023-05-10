@@ -57,7 +57,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
                 case AvroType.Boolean:
                     return obj is bool;
                 case AvroType.Int:
-                    return obj is int;
+                    return (obj is short) || (obj is ushort) || (obj is int);
                 case AvroType.Long:
                     return obj is long;
                 case AvroType.Float:

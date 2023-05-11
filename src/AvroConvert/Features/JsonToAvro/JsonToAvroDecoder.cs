@@ -33,7 +33,7 @@ namespace SolTechnology.Avro.Features.JsonToAvro
             //Class
             if (token.Type == JTokenType.Object)
             {
-                return AvroConvert.Serialize(token, codecType);
+                return SerializeJArray(new JArray(token), codecType);
             }
 
             //Assume Primitive

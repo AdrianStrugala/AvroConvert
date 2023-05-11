@@ -12,7 +12,10 @@ namespace SolTechnology.Avro.Features.JsonToAvro
     {
         internal byte[] DecodeJson(string json, CodecType codecType)
         {
-            var token = JToken.Parse(json);
+            JsonReader jsonReader = new JsonTextReader(new StringReader(json));
+            jsonReader.FloatParseHandling = FloatParseHandling.Decimal;
+
+            var token = JToken.Load(jsonReader);
 
             //Array
             if (token.Type == JTokenType.Array)
@@ -29,7 +32,10 @@ namespace SolTechnology.Avro.Features.JsonToAvro
             }
 
             //Assume Primitive
-            return AvroConvert.Serialize(token.ToObject<object>(), codecType);
+            return AvroConvert.Serialize(token.ToObject<object>(new JsonSerializer
+            {
+                FloatParseHandling = FloatParseHandling.Decimal
+            }), codecType);
 
         }
 

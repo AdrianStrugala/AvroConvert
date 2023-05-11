@@ -1,8 +1,6 @@
 ﻿using SolTechnology.Avro;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
-using SolTechnology.Avro.Features.Serialize;
 using System;
-using System.IO;
 using Xunit;
 using Newtonsoft.Json;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;

@@ -324,3 +324,8 @@ START OF THE PROJECT
 - Allowed any item to be deserialized into object (it's for supporting map of multiple values)
 - Added support for serialization using ExpandoObject
 - Extended GenerateModel to support map of union type
+
+\
+**v. 3.3.5 (11.05.23)**
+- Fix for GenerateModel to apply culture specific decimal separator
+- Short and ushort int16 are supported for serialization

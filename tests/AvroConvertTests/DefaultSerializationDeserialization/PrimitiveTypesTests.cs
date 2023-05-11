@@ -38,16 +38,40 @@ namespace AvroConvertComponentTests.DefaultSerializationDeserialization
             //Arrange
             var underTest = new SpecimenContext(_fixture).Resolve(type);
 
-
             //Act
             var serialized = AvroConvert.Serialize(underTest);
             var deserialized = AvroConvert.Deserialize(serialized, type);
-
 
             //Assert
             Assert.NotNull(serialized);
             Assert.NotNull(deserialized);
             Assert.Equal(underTest, deserialized);
+        }
+
+        [Fact]
+        public void Ensure_that_short_int16_primitive_type_is_supported()
+        {
+            // Arrange
+            var model = new ClassWithShortInt16();
+            model.ShortValue = 1;
+            model.ShortValueNullable = 1;
+            model.UShortValue = 1;
+            model.UShortValueNullable = 1;
+
+            // Act
+            var serializedModel = AvroConvert.Serialize(model);
+            var deserializedModel = AvroConvert.Deserialize<ClassWithShortInt16>(serializedModel);
+
+            // Assert
+            Assert.Equivalent(model, deserializedModel);
+        }
+
+        public class ClassWithShortInt16
+        {
+            public short ShortValue { get; set; }
+            public short? ShortValueNullable { get; set; }
+            public ushort UShortValue { get; set; }
+            public ushort? UShortValueNullable { get; set; }
         }
 
         [Fact]

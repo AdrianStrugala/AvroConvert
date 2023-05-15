@@ -95,15 +95,14 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             }
 
             var t = memberInfo.Type;
-
-            if (defaultValue.GetType() == memberInfo.Type)
-            {
-                return defaultValue;
-            }
-
             if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>))
             {
                 t = Nullable.GetUnderlyingType(t);
+            }
+
+            if (defaultValue.GetType() == t)
+            {
+                return defaultValue;
             }
 
             if (t.IsEnum)

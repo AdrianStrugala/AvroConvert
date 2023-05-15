@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using AutoFixture;
 using AutoFixture.Kernel;
+using FluentAssertions;
 using Xunit;
 
 namespace AvroConvertComponentTests.FullSerializationAndDeserialization
@@ -80,7 +81,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             user.favorite_number = null;
 
             //Act
-            var deserialized = engine.Invoke(user, typeof(User));
+            var deserialized = (User)engine.Invoke(user, typeof(User));
 
             //Assert
             Assert.NotNull(deserialized);

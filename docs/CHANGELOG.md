@@ -335,4 +335,6 @@ START OF THE PROJECT
 - Allowed default value for Enum fields
 - Changed GenerateClass default value representation
 - Extended GenerateModel to generalize complex type build of different types (ex. null, string, record) to object
-- Avro2Json now supports: DefaultValue attribute, array of primitive values
+- Avro2Json now supports: DefaultValue attribute and array of primitive values
+- Fix for reading default value for nullable enums
+- Extended Avro2Json to support dictionary with object keys 

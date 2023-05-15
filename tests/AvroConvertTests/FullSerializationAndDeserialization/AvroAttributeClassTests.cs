@@ -22,7 +22,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             
 
             //Act
-            var deserialized = engine.Invoke(toSerialize, typeof(User));
+            var deserialized = (User)engine.Invoke(toSerialize, typeof(User));
 
 
             //Assert

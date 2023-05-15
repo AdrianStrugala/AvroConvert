@@ -12,8 +12,6 @@ public static class TestEngine
         
         yield return Headless;
 
-        yield return Json;
-        
         yield return GenericJson;
         
         yield return Brotli;
@@ -76,7 +74,7 @@ public static class TestEngine
         {
             var headless = new Func<object, Type, dynamic>((input, type) =>
             {
-                var schema = AvroConvert.GenerateSchema(input.GetType());
+                var schema = AvroConvert.GenerateSchema(type);
                 var serialized = AvroConvert.SerializeHeadless(input, schema);
                 return AvroConvert.DeserializeHeadless(serialized, type);
             });

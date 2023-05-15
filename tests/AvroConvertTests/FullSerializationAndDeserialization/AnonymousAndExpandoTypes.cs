@@ -6,11 +6,11 @@ using Xunit;
 namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 {
     //from issue: https://github.com/AdrianStrugala/AvroConvert/issues/94
-    public class HeadlessRecordsTests
+    public class AnonymousAndExpandoTypes
     {
         [Theory]
         [MemberData(nameof(TestEngine.CoreUsingSchema), MemberType = typeof(TestEngine))]
-        public void Anonymous_type_is_properly_headless_serialized(Func<object, Type, string, dynamic> engine)
+        public void Anonymous_type(Func<object, Type, string, dynamic> engine)
         {
             //Arrange
             var valschema = @"
@@ -54,7 +54,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
         [Theory]
         [MemberData(nameof(TestEngine.CoreUsingSchema), MemberType = typeof(TestEngine))]
-        public void Expando_object_is_properly_headless_serialized(Func<object, Type, string, dynamic> engine)
+        public void Expando_object(Func<object, Type, string, dynamic> engine)
         {
             //Arrange
             var valschema = @"

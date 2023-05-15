@@ -22,7 +22,7 @@ namespace SolTechnology.Avro.Features.JsonToAvro
         internal byte[] DecodeJson(string json, CodecType codecType)
         {
             JsonReader jsonReader = new JsonTextReader(new StringReader(json));
-            jsonReader.FloatParseHandling = FloatParseHandling.Decimal;
+            // jsonReader.FloatParseHandling = FloatParseHandling.Decimal;
 
             var token = JToken.Load(jsonReader);
 

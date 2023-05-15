@@ -33,6 +33,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                 case Type _ when type == typeof(decimal):
                     return decimal.Parse(value);
                 case Type _ when type == typeof(Guid):
+                case Type _ when type == typeof(Guid?):
                     return Guid.Parse(value);
                 case Type _ when type == typeof(DateTimeOffset):
                 case Type _ when type == typeof(DateTimeOffset?):

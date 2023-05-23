@@ -9,17 +9,17 @@ public static class TestEngine
     public static IEnumerable<object[]> All()
     {
         yield return Default;
-        
+
         yield return Headless;
 
         yield return GenericJson;
-        
+
         yield return Brotli;
-        
+
         yield return Snappy;
-        
+
         yield return Deflate;
-        
+
         yield return Gzip;
     }
 
@@ -181,9 +181,9 @@ public static class TestEngine
     {
         get
         {
-            var @default = new Func<object, Type, string, dynamic>((input, type, schema) =>
+            var @default = new Func<object, Type, string, string, dynamic>((input, type, writeSchema, readSchema) =>
             {
-                var x = schema; //not used, but the cases are important to cover
+                var x = readSchema; //not used, but the cases are important to cover
                 var serialized = AvroConvert.Serialize(input);
                 return AvroConvert.Deserialize(serialized, type);
             });
@@ -196,10 +196,10 @@ public static class TestEngine
     {
         get
         {
-            var headless = new Func<object, Type, string, dynamic>((input, type, schema) =>
+            var headless = new Func<object, Type, string, string, dynamic>((input, type, writeSchema, readSchema) =>
             {
-                var serialized = AvroConvert.SerializeHeadless(input, schema);
-                return AvroConvert.DeserializeHeadless(serialized, schema, type);
+                var serialized = AvroConvert.SerializeHeadless(input, writeSchema);
+                return AvroConvert.DeserializeHeadless(serialized, readSchema, type);
             });
 
             return new object[] { headless };
@@ -210,10 +210,10 @@ public static class TestEngine
     {
         get
         {
-            var @default = new Func<object, Type, string, dynamic>((input, type, schema) =>
+            var @default = new Func<object, Type, string, string, dynamic>((input, type, writeSchema, readSchema) =>
             {
                 var serialized = AvroConvert.Serialize(input);
-                var json = AvroConvert.Avro2Json(serialized, schema);
+                var json = AvroConvert.Avro2Json(serialized, writeSchema);
 
                 var avro = (byte[])typeof(AvroConvert)
                     .GetMethod(nameof(AvroConvert.Json2Avro), 1, new[] { typeof(string) })
@@ -231,9 +231,9 @@ public static class TestEngine
     {
         get
         {
-            var @default = new Func<object, Type, string, dynamic>((input, type, schema) =>
+            var @default = new Func<object, Type, string, string, dynamic>((input, type, writeSchema, readSchema) =>
             {
-                var x = schema; //not used, but the cases are important to cover
+                var x = writeSchema; //not used, but the cases are important to cover
                 var serialized = AvroConvert.Serialize(input, CodecType.Brotli);
                 return AvroConvert.Deserialize(serialized, type);
             });

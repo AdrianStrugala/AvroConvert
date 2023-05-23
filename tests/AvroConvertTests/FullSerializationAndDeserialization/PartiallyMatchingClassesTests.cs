@@ -11,7 +11,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
         [Theory]
         [MemberData(nameof(TestEngine.CoreUsingSchema), MemberType = typeof(TestEngine))]
-        public void SerializeBiggerObjectAndReadSmaller(Func<object, Type, string, dynamic> engine)
+        public void SerializeBiggerObjectAndReadSmaller(Func<object, Type, string, string, dynamic> engine)
         {
             //Arrange
             ExtendedBaseTestClass toSerialize = _fixture.Create<ExtendedBaseTestClass>();
@@ -19,7 +19,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
             //Act
             var schema = AvroConvert.GenerateSchema(typeof(ExtendedBaseTestClass));
-            var deserialized = engine.Invoke(toSerialize, typeof(BaseTestClass), schema);
+            var deserialized = engine.Invoke(toSerialize, typeof(BaseTestClass), schema, schema);
 
 
             //Assert
@@ -31,7 +31,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
         [Theory]
         [MemberData(nameof(TestEngine.CoreUsingSchema), MemberType = typeof(TestEngine))]
-        public void SerializeSmallerClassAndReadBigger(Func<object, Type, string, dynamic> engine)
+        public void SerializeSmallerClassAndReadBigger(Func<object, Type, string, string, dynamic> engine)
         {
             //Arrange
             ReducedBaseTestClass toSerialize = _fixture.Create<ReducedBaseTestClass>();
@@ -39,7 +39,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
             //Act
             var schema = AvroConvert.GenerateSchema(typeof(ReducedBaseTestClass));
-            var deserialized = engine.Invoke(toSerialize, typeof(BaseTestClass), schema);
+            var deserialized = engine.Invoke(toSerialize, typeof(BaseTestClass), schema, schema);
 
 
             //Assert
@@ -50,14 +50,14 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
         [Theory]
         [MemberData(nameof(TestEngine.CoreUsingSchema), MemberType = typeof(TestEngine))]
-        public void SerializeHeadlessBiggerObjectUsingReducedSchemaAndReadSmaller(Func<object, Type, string, dynamic> engine)
+        public void SerializeHeadlessBiggerObjectUsingReducedSchemaAndReadSmaller(Func<object, Type, string, string, dynamic> engine)
         {
             //Arrange
             ExtendedBaseTestClass toSerialize = _fixture.Create<ExtendedBaseTestClass>();
             string schema = AvroConvert.GenerateSchema(typeof(BaseTestClass));
 
             //Act
-            var deserialized = engine.Invoke(toSerialize, typeof(BaseTestClass), schema);
+            var deserialized = engine.Invoke(toSerialize, typeof(BaseTestClass), schema, schema);
 
             //Assert
             Assert.NotNull(deserialized);
@@ -68,7 +68,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
         [Theory]
         [MemberData(nameof(TestEngine.CoreUsingSchema), MemberType = typeof(TestEngine))]
-        public void SerializeBiggerAvroObjectAndReadSmaller(Func<object, Type, string, dynamic> engine)
+        public void SerializeBiggerAvroObjectAndReadSmaller(Func<object, Type, string, string, dynamic> engine)
         {
             //Arrange
             AttributeClass toSerialize = _fixture.Create<AttributeClass>();
@@ -76,7 +76,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
             //Act
             var schema = AvroConvert.GenerateSchema(typeof(AttributeClass));
-            var deserialized = engine.Invoke(toSerialize, typeof(SmallerAttributeClass), schema);
+            var deserialized = engine.Invoke(toSerialize, typeof(SmallerAttributeClass), schema, schema);
 
 
             //Assert
@@ -88,7 +88,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
         [Theory]
         [MemberData(nameof(TestEngine.CoreUsingSchema), MemberType = typeof(TestEngine))]
-        public void SerializeAndDeserializeClassesWithDifferentPropertyCases(Func<object, Type, string, dynamic> engine)
+        public void SerializeAndDeserializeClassesWithDifferentPropertyCases(Func<object, Type, string, string, dynamic> engine)
         {
             //Arrange
             BaseTestClass toSerialize = _fixture.Create<BaseTestClass>();
@@ -96,7 +96,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
             //Act
             var schema = AvroConvert.GenerateSchema(typeof(BaseTestClass));
-            var deserialized = engine.Invoke(toSerialize, typeof(DifferentCaseBaseTestClass), schema);
+            var deserialized = engine.Invoke(toSerialize, typeof(DifferentCaseBaseTestClass), schema, schema);
 
 
             //Assert

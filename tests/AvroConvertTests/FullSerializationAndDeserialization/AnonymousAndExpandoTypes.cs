@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Dynamic;
 using FluentAssertions;
+using SolTechnology.Avro;
 using Xunit;
 
 namespace AvroConvertComponentTests.FullSerializationAndDeserialization
@@ -10,7 +11,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
     {
         [Theory]
         [MemberData(nameof(TestEngine.CoreUsingSchema), MemberType = typeof(TestEngine))]
-        public void Anonymous_type(Func<object, Type, string, dynamic> engine)
+        public void Anonymous_type(Func<object, Type, string, string, dynamic> engine)
         {
             //Arrange
             var valschema = @"
@@ -45,7 +46,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             var item = new { Value = new { KeyNested = "key1", ValueNested = "val1" } };
 
             //Act
-            var deserialized = (AnonymousLikeClass)engine.Invoke(item, typeof(AnonymousLikeClass), valschema);
+            var deserialized = (AnonymousLikeClass)engine.Invoke(item, typeof(AnonymousLikeClass), valschema, valschema);
 
             //Assert
             deserialized.Should().BeEquivalentTo(item);
@@ -54,10 +55,10 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
         [Theory]
         [MemberData(nameof(TestEngine.CoreUsingSchema), MemberType = typeof(TestEngine))]
-        public void Expando_object(Func<object, Type, string, dynamic> engine)
+        public void Expando_object(Func<object, Type, string, string, dynamic> engine)
         {
             //Arrange
-            var valschema = @"
+            var valSchema = @"
     {
       ""type"": ""record"",
       ""name"": ""TestObject"",
@@ -92,7 +93,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
 
             //Act
-            var deserialized = (AnonymousLikeClass)engine.Invoke(item, typeof(AnonymousLikeClass), valschema);
+            var deserialized = (AnonymousLikeClass)engine.Invoke(item, typeof(AnonymousLikeClass), valSchema, valSchema);
 
 
             //Assert

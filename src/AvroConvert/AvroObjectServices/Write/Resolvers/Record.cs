@@ -55,6 +55,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 
         private void WriteRecordFields(object recordObj, WriteStep[] writers, IWriter encoder)
         {
+            if (recordObj is null)
+            {
+                encoder.WriteNull();
+                return;
+            }
+
             if (recordObj is ExpandoObject expando)
             {
                 HandleExpando(writers, encoder, expando);

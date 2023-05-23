@@ -14,40 +14,45 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
         private readonly Fixture _fixture = new();
 
         [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Attribute_values_are_used_instead_of_property_names(Func<object, Type, dynamic> engine)
+        [MemberData(nameof(TestEngine.CoreUsingSchema), MemberType = typeof(TestEngine))]
+        public void Attribute_class_used_for_deserialization_overrides_property_names(Func<object, Type, string, string, dynamic> engine)
         {
             //Arrange
-            AttributeClass toSerialize = _fixture.Create<AttributeClass>();
+            User toSerialize = _fixture.Create<User>();
             
 
             //Act
-            var deserialized = (User)engine.Invoke(toSerialize, typeof(User));
+            var writeSchema = AvroConvert.GenerateSchema(typeof(User));
+            var readSchema = AvroConvert.GenerateSchema(typeof(AttributeClass));
+            var deserialized = (AttributeClass)engine.Invoke(toSerialize, typeof(AttributeClass), writeSchema, readSchema);
 
 
             //Assert
             Assert.NotNull(deserialized);
-            Assert.Equal(toSerialize.NullableIntProperty, deserialized.favorite_number);
-            Assert.Equal(toSerialize.NullableStringProperty, deserialized.name);
-            Assert.Equal(toSerialize.AndAnotherString, deserialized.favorite_color);
+            Assert.Equal(deserialized.NullableIntProperty, toSerialize.favorite_number);
+            Assert.Equal(deserialized.NullableStringProperty, toSerialize.name);
+            Assert.Equal(deserialized.AndAnotherString, toSerialize.favorite_color);
         }
 
         [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Attributes_are_used_instead_of_field_names(Func<object, Type, dynamic> engine)
+        [MemberData(nameof(TestEngine.CoreUsingSchema), MemberType = typeof(TestEngine))]
+        public void Attribute_class_used_for_deserialization_overrides_fields_names(Func<object, Type, string, string, dynamic> engine)
         {
             //Arrange
-            AttributeClassWithoutGetters toSerialize = _fixture.Create<AttributeClassWithoutGetters>();
+            User toSerialize = _fixture.Create<User>();
 
 
             //Act
-            var deserialized = engine.Invoke(toSerialize, typeof(User));
+            var writeSchema = AvroConvert.GenerateSchema(typeof(User));
+            var readSchema = AvroConvert.GenerateSchema(typeof(AttributeClassWithoutGetters));
+            var deserialized = engine.Invoke(toSerialize, typeof(AttributeClassWithoutGetters), writeSchema, readSchema);
+
 
             //Assert
             Assert.NotNull(deserialized);
-            Assert.Equal(toSerialize.NullableIntProperty, deserialized.favorite_number);
-            Assert.Equal(toSerialize.StringProperty, deserialized.name);
-            Assert.Equal(toSerialize.AndAnotherString, deserialized.favorite_color);
+            Assert.Equal(deserialized.NullableIntProperty, toSerialize.favorite_number);
+            Assert.Equal(deserialized.StringProperty, toSerialize.name);
+            Assert.Equal(deserialized.AndAnotherString, toSerialize.favorite_color);
         }
 
         [Theory]

@@ -199,7 +199,7 @@ public static class TestEngine
             var headless = new Func<object, Type, string, string, dynamic>((input, type, writeSchema, readSchema) =>
             {
                 var serialized = AvroConvert.SerializeHeadless(input, writeSchema);
-                return AvroConvert.DeserializeHeadless(serialized, readSchema, type);
+                return AvroConvert.DeserializeHeadless(serialized, writeSchema, readSchema, type);
             });
 
             return new object[] { headless };

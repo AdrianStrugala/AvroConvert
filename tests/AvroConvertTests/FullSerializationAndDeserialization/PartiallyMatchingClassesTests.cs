@@ -18,8 +18,9 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
 
             //Act
-            var schema = AvroConvert.GenerateSchema(typeof(ExtendedBaseTestClass));
-            var deserialized = engine.Invoke(toSerialize, typeof(BaseTestClass), schema, schema);
+            var writeSchema = AvroConvert.GenerateSchema(typeof(ExtendedBaseTestClass));
+            var readSchema = AvroConvert.GenerateSchema(typeof(BaseTestClass));
+            var deserialized = engine.Invoke(toSerialize, typeof(BaseTestClass), writeSchema, readSchema);
 
 
             //Assert

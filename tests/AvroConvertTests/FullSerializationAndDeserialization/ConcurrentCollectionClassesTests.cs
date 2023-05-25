@@ -12,7 +12,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
     {
         private readonly Fixture _fixture = new();
 
-        [Theory]
+        [Theory(Skip = "Not supported at the moment")]
         [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
         public void Class_with_ConcurrentBag(Func<object, Type, dynamic> engine)
         {

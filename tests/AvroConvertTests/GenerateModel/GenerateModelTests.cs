@@ -144,6 +144,7 @@ namespace AvroConvertComponentTests.GenerateModel
                 "\tpublic bool[] bools { get; set; }\r\n" +
                 "\tpublic double doubleProperty { get; set; }\r\n" +
                 "\tpublic float floatProperty { get; set; }\r\n" +
+                "\tpublic int? Size { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
                 "public class ClassWithArray\r\n" +
@@ -599,8 +600,10 @@ namespace AvroConvertComponentTests.GenerateModel
             Assert.Equal(
                 "public class Result\r\n" +
                 "{\r\n" +
-                "\tpublic float testFloat { get; set; } = 1.23;\r\n" +
-                "\tpublic double testDouble { get; set; } = 1.23;\r\n" +
+                "\t[DefaultValue(1.23)]\r\n" +
+                "\tpublic float testFloat { get; set; }\r\n" +
+                "\t[DefaultValue(1.23)]\r\n" +
+                "\tpublic double testDouble { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n",
                 resultClass);

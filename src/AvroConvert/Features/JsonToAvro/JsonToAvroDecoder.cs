@@ -1,31 +1,41 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Infrastructure.Extensions;
 
 namespace SolTechnology.Avro.Features.JsonToAvro
 {
     internal class JsonToAvroDecoder
     {
+        private readonly JsonSchemaBuilder _jsonSchemaBuilder;
+
+        public JsonToAvroDecoder()
+        {
+            _jsonSchemaBuilder = new JsonSchemaBuilder();
+        }
+
         internal byte[] DecodeJson(string json, CodecType codecType)
         {
-            var token = JToken.Parse(json);
+            JsonReader jsonReader = new JsonTextReader(new StringReader(json));
+            // jsonReader.FloatParseHandling = FloatParseHandling.Decimal;
+
+            var token = JToken.Load(jsonReader);
 
             //Array
             if (token.Type == JTokenType.Array)
             {
-                return SerializeJArray(DecodeArray(json), codecType);
+                return SerializeJArray((JArray)token, codecType);
             }
-
 
             //Class
             if (token.Type == JTokenType.Object)
             {
-                var jObject = (JObject)token;
-                return SerializeJArray(new List<JObject> { jObject }, codecType);
+                return SerializeJArray(new JArray(token), codecType);
             }
 
             //Assume Primitive
@@ -33,46 +43,21 @@ namespace SolTechnology.Avro.Features.JsonToAvro
 
         }
 
-        private List<JObject> DecodeArray(string json)
+        private byte[] SerializeJArray(JArray jArray, CodecType codecType)
         {
-            var incomingObject = JsonConvert.DeserializeObject<object>(json);
+            using MemoryStream resultStream = new MemoryStream();
+            var schema = _jsonSchemaBuilder.BuildSchema(jArray.FirstOrDefault());
 
-
-            //TODO Get type of child from JArray
-            var enumerable = incomingObject.GetType().FindEnumerableType();
-            if (enumerable != null)
+            using (var writer = new Serialize.Encoder(schema, resultStream, codecType))
             {
-                var childItem = ((IList)incomingObject)[0];
-
-                var xd = JsonConvert.DeserializeObject<List<JObject>>(json);
-
-                return xd;
-            }
-
-            return null;
-        }
-
-        private byte[] SerializeJArray(List<JObject> jObjects, CodecType codecType)
-        {
-            var jsonSchemaBuilder = new JsonSchemaBuilder();
-
-            using (MemoryStream resultStream = new MemoryStream())
-            {
-                var schema = jsonSchemaBuilder.BuildRecordSchema(jObjects.FirstOrDefault());
-
-                using (var writer = new Serialize.Encoder(schema, resultStream, codecType))
+                foreach (var child in jArray)
                 {
-                    foreach (var expandoObject in jObjects)
-                    {
-
-                        writer.Append(expandoObject);
-                    }
+                    writer.Append(child);
                 }
-
-                var result = resultStream.ToArray();
-                return result;
             }
-        }
 
+            var result = resultStream.ToArray();
+            return result;
+        }
     }
 }

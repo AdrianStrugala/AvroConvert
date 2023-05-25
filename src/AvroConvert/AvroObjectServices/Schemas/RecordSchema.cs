@@ -49,7 +49,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             fieldsByName = new Dictionary<string, RecordFieldSchema>(StringComparer.InvariantCultureIgnoreCase);
         }
 
-        internal RecordSchema(string name, string @namespace) : this(new NamedEntityAttributes(new SchemaName(name, @namespace), new List<string>(), String.Empty), typeof(AvroRecord))
+        internal RecordSchema(string name, string @namespace) : this(new NamedEntityAttributes(new SchemaName(name, @namespace), new List<string>(), string.Empty), typeof(object))
         {
         }
 

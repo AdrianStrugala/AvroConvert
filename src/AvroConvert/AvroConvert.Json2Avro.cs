@@ -29,7 +29,7 @@ namespace SolTechnology.Avro
     {
         /// <summary>
         /// Converts JSON object directly to Avro format
-        /// Warning! This is an experimental feature.
+        /// Warning! The dynamic implementations is an experimental feature. Use generic overload if possible.
         /// </summary>
         public static byte[] Json2Avro(string json)
         {
@@ -42,7 +42,7 @@ namespace SolTechnology.Avro
         /// <summary>
         ///  Converts JSON object directly to Avro format
         /// Choosing <paramref name="codecType"/> reduces output object size
-        /// Warning! This is an experimental feature.
+        /// Warning! The dynamic implementations is an experimental feature. Use generic overload if possible.
         /// </summary>
         public static byte[] Json2Avro(string json, CodecType codecType)
         {

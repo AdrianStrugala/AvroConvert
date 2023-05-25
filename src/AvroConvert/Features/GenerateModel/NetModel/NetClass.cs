@@ -22,24 +22,25 @@ namespace SolTechnology.Avro.Features.GenerateModel.NetModel
                     sb.AppendLine("\t/// </summary>");
                 }
 
-                string defaultVal = string.Empty;
                 if (!string.IsNullOrWhiteSpace(field.Default))
                 {
+                    string defaultVal;
                     switch (field.FieldType)
                     {
                         case "string":
-                            defaultVal = $" = \"{field.Default}\";";
+                            defaultVal = $"\"{field.Default}\"";
                             break;
                         case "bool":
                             bool.TryParse(field.Default, out bool parsedVal);
-                            defaultVal = $" = {parsedVal.ToString().ToLower()};";
+                            defaultVal = $"{parsedVal.ToString().ToLower()}";
                             break;
                         default:
-                            defaultVal = $" = {field.Default};";
+                            defaultVal = $"{field.Default}";
                             break;
                     }
+                    sb.AppendLine($"	[DefaultValue({defaultVal})]");
                 }
-                sb.AppendLine($"	public {field.FieldType} {field.Name} {{ get; set; }}{defaultVal}");
+                sb.AppendLine($"	public {field.FieldType} {field.Name} {{ get; set; }}");
             }
             sb.AppendLine("}");
             sb.AppendLine();

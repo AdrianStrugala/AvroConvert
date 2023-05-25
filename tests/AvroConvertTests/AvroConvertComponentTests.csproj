@@ -41,7 +41,7 @@
 		<Content Include="header_only.avro">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
-		<None Update="ComplexDeserialization\AzureEventHub.avro">
+		<None Update="FilesDeserialization\Default\AzureEventHub.avro">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="userdata1.avro">
@@ -50,25 +50,25 @@
 		<None Update="FodyWeavers.xml">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="CodecTests\twitter.avro">
+		<None Update="FilesDeserialization\Snappy\Twitter\twitter.avro">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="CodecTests\twitter.snappy.avro">
+		<None Update="FilesDeserialization\Snappy\Twitter\twitter.snappy.avro">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="CodecTests\Snappy\userdata1.avro">
+		<None Update="FilesDeserialization\Snappy\UserData\userdata1.avro">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="CodecTests\Snappy\userdata2.avro">
+		<None Update="FilesDeserialization\Snappy\UserData\userdata2.avro">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="CodecTests\Snappy\userdata3.avro">
+		<None Update="FilesDeserialization\Snappy\UserData\userdata3.avro">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="CodecTests\Snappy\userdata4.avro">
+		<None Update="FilesDeserialization\Snappy\UserData\userdata4.avro">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="CodecTests\Snappy\userdata5.avro">
+		<None Update="FilesDeserialization\Snappy\UserData\userdata5.avro">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>

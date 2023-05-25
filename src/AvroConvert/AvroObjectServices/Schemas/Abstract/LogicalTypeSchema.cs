@@ -41,9 +41,14 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
         internal abstract TypeSchema BaseTypeSchema { get; set; }
         internal abstract string LogicalTypeName { get; }
 
-     
+
         protected LogicalTypeSchema(Type runtimeType) : base(runtimeType, new Dictionary<string, string>())
         {
+        }
+
+        internal override bool CanRead(TypeSchema writerSchema)
+        {
+            return writerSchema.Type == Type || writerSchema.Type == BaseTypeSchema.Type;
         }
 
         internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)

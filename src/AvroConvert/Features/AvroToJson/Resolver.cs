@@ -21,8 +21,10 @@
 #endregion
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using SolTechnology.Avro.AvroObjectServices.Read;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
@@ -107,7 +109,7 @@ namespace SolTechnology.Avro.Features.AvroToJson
             foreach (var rf in readerSchema.Fields)
             {
                 string name = rf.Name;
-                object value = Resolve(rf.TypeSchema, dec);
+                object value = Resolve(rf.TypeSchema, dec) ?? rf.DefaultValue;
 
                 result.Add(name, value);
             }
@@ -152,7 +154,12 @@ namespace SolTechnology.Avro.Features.AvroToJson
                 readerSchema = ((ArraySchema)readerSchema).ItemSchema;
             }
 
-            object[] result = new object[0];
+            if (readerSchema.Name == "KeyValuePair2")
+            {
+                return ResolveDictionary((RecordSchema)readerSchema, d);
+            }
+
+            object[] result = Array.Empty<object>();
             int i = 0;
 
             for (int n = (int)d.ReadArrayStart(); n != 0; n = (int)d.ReadArrayNext())
@@ -169,6 +176,22 @@ namespace SolTechnology.Avro.Features.AvroToJson
             }
 
             return result;
+        }
+
+        protected object ResolveDictionary(RecordSchema readerSchema, IReader d)
+        {
+            dynamic resultDictionary = new Dictionary<object, object>();
+
+            for (int n = (int)d.ReadArrayStart(); n != 0; n = (int)d.ReadArrayNext())
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    dynamic key = Resolve(readerSchema.GetField("Key").TypeSchema, d);
+                    dynamic value = Resolve(readerSchema.GetField("Value").TypeSchema, d);
+                    resultDictionary.Add(key, value);
+                }
+            }
+            return resultDictionary;
         }
 
         protected virtual object ResolveUnion(UnionSchema readerSchema, IReader d)

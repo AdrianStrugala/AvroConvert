@@ -55,7 +55,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                             continue;
                         }
 
-                        Func<object> func = () => Resolve(wf.TypeSchema, rf.TypeSchema, dec, memberInfo.Type) ?? wf.DefaultValue;
+                        Func<object> func = () =>
+                        {
+                            object value = Resolve(wf.TypeSchema, rf.TypeSchema, dec, memberInfo.Type);
+                            return value ?? FormatDefaultValue(wf.DefaultValue, memberInfo);
+                        };
+
                         accessor[result, memberInfo.Name] = func.Invoke();
 
                         readSteps.Add(memberInfo.Name, func);
@@ -80,6 +85,36 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             }
 
             return result;
+        }
+
+        private static object FormatDefaultValue(object defaultValue, Member memberInfo)
+        {
+            if (defaultValue == null)
+            {
+                return defaultValue;
+            }
+
+            var t = memberInfo.Type;
+            if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                t = Nullable.GetUnderlyingType(t);
+            }
+
+            if (defaultValue.GetType() == t)
+            {
+                return defaultValue;
+            }
+
+            if (t.IsEnum)
+            {
+                return Enum.Parse(t, (string)defaultValue);
+            }
+
+            //TODO: Map and Record default values are represented as Dictionary<string,object>
+            //https://avro.apache.org/docs/1.4.0/spec.html
+            //It might be not supported at the moment
+
+            return Convert.ChangeType(defaultValue, t);
         }
     }
 }

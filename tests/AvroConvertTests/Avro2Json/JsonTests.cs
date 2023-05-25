@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using Xunit;
 
-namespace AvroConvertComponentTests.AvroToJson
+namespace AvroConvertComponentTests.Avro2Json
 {
     public class JsonTests
     {

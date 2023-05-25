@@ -10,10 +10,19 @@ namespace AvroConvertComponentTests
     [Equals(DoNotAddEqualityOperators = true)]
     public class User
     {
-        public string name { get; set; }
+        public string? name { get; set; }
         public int? favorite_number { get; set; }
         public string favorite_color { get; set; }
     }
+
+    [Equals(DoNotAddEqualityOperators = true)]
+    public class UserWithNonNullableProperties
+    {
+        public string name { get; set; }
+        public int favorite_number { get; set; }
+        public string favorite_color { get; set; }
+    }
+
 
     [Equals(DoNotAddEqualityOperators = true)]
     public class UserNameClass
@@ -128,6 +137,7 @@ namespace AvroConvertComponentTests
         public List<bool> bools { get; set; }
         public double doubleProperty { get; set; }
         public float floatProperty { get; set; }
+        public short? Size { get; set; }
     }
 
 
@@ -215,6 +225,7 @@ namespace AvroConvertComponentTests
     public class AttributeClassWithoutGetters
     {
         [DataMember(Name = "name")]
+        [NullableSchema]
         public string StringProperty;
 
         [DataMember(Name = "favorite_number")]
@@ -225,7 +236,6 @@ namespace AvroConvertComponentTests
         public string AndAnotherString;
     }
 
-    [Equals(DoNotAddEqualityOperators = true)]
     public struct ComplexStruct
     {
         [DataMember]
@@ -290,7 +300,11 @@ namespace AvroConvertComponentTests
     [Equals(DoNotAddEqualityOperators = true)]
     public class ClassWithEnum
     {
+        [DefaultValue(TestEnum.be)]
         public TestEnum? EnumProp { get; set; }
+
+        [DefaultValue("ca")]
+        public TestEnum? SecondEnumProp { get; set; }
     }
 
     public record TestRecord

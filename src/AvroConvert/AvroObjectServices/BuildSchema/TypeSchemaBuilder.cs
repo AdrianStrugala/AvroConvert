@@ -243,7 +243,9 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 });
 
             Dictionary<string, string> customAttributes = enumeration.GetAttributesNotIn(StandardProperties.Enumeration);
-            var result = new EnumSchema(attributes, typeof(AvroEnum), customAttributes);
+
+            //fixme: runtime type cannot be provided for json schema resolution. Providing general type
+            var result = new EnumSchema(attributes, typeof(Enum), customAttributes);
             namedSchemas.Add(result.FullName, result);
             symbols.ForEach(result.AddSymbol);
             return result;
@@ -355,7 +357,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             var attributes = new NamedEntityAttributes(recordName, aliases, doc);
 
             Dictionary<string, string> customAttributes = record.GetAttributesNotIn(StandardProperties.Record);
-            var result = new RecordSchema(attributes, typeof(AvroRecord), customAttributes);
+            var result = new RecordSchema(attributes, typeof(object), customAttributes);
             if (namedSchemas.ContainsKey(result.FullName))
             {
                 return namedSchemas[result.FullName];
@@ -407,7 +409,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             bool hasDefaultValue = field[AvroKeywords.Default] != null;
             if (hasDefaultValue)
             {
-                var objectParser = new JsonObjectParser();
+                var objectParser = new DefaultValueResolver();
                 defaultValue = objectParser.Parse(type, field[AvroKeywords.Default].ToString());
             }
 

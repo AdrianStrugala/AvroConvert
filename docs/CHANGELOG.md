@@ -324,8 +324,17 @@ START OF THE PROJECT
 - Allowed any item to be deserialized into object (it's for supporting map of multiple values)
 - Added support for serialization using ExpandoObject
 - Extended GenerateModel to support map of union type
-
+ 
 \
 **v. 3.3.5 (11.05.23)**
 - Fix for GenerateModel to apply culture specific decimal separator
 - Short and ushort int16 are supported for serialization
+
+\
+**v. x.x.x (xx.xx.xx)**
+- Created new Tests engine which discover few not supported cases :)
+- Allowed default value for Enum fields
+- Changed GenerateClass default value representation
+- Extended GenerateModel to generalize complex type build of different types (ex. null, string, record) to object
+- Avro2Json now supports: DefaultValue attribute and array of primitive values, dictionary with object keys 
+- Fix for reading default value for nullable enums

@@ -20,6 +20,11 @@ namespace SolTechnology.Avro.Features.JsonToAvro
 
         internal TypeSchema BuildSchema(object item, string name = null)
         {
+            if (item == null)
+            {
+                return Schema.Create((object)null);
+            }
+
             TypeSchema fieldSchema = item switch
             {
                 JObject objectProperty => BuildRecordSchema(objectProperty, name),

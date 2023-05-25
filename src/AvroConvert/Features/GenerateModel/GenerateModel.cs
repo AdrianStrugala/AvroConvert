@@ -157,9 +157,11 @@ namespace SolTechnology.Avro.Features.GenerateModel
                                     isNullable = true;
                                 }
 
-                                if (types.Count > 2)
-                                    throw new InvalidAvroObjectException(
-                                        $"Unable to determine acceptable data type for {field["type"]}");
+                                if (types.Count > 2 || (types.Count > 1 && !isNullable))
+                                {
+                                    fieldType.FieldType = "object";
+                                    break;
+                                }
 
                                 // Is the field type an object that's defined in this spot
                                 JToken arrayFieldType = types.FirstOrDefault(x => x.ToString() != "null");

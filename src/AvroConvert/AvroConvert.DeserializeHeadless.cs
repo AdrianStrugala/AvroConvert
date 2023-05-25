@@ -34,7 +34,7 @@ namespace SolTechnology.Avro
         }
 
         /// <summary>
-        /// Deserializes Avro array object, which does not contain header, to .NET type
+        /// Deserializes Avro object, which does not contain header, to .NET type
         /// </summary>
         public static T DeserializeHeadless<T>(byte[] avroBytes, string schema, int numberOfRows)
         {
@@ -42,7 +42,7 @@ namespace SolTechnology.Avro
         }
 
         /// <summary>
-        /// Deserializes Avro array object, which does not contain header, to .NET type
+        /// Deserializes Avro object, which does not contain header, to .NET type
         /// </summary>
         public static T DeserializeHeadless<T>(byte[] avroBytes)
         {
@@ -50,7 +50,7 @@ namespace SolTechnology.Avro
         }
 
         /// <summary>
-        /// Deserializes Avro array object, which does not contain header, to .NET type
+        /// Deserializes Avro object, which does not contain header, to .NET type
         /// </summary>
         public static dynamic DeserializeHeadless(byte[] avroBytes, Type targetType)
         {
@@ -63,7 +63,7 @@ namespace SolTechnology.Avro
         }
 
         /// <summary>
-        /// Deserializes Avro array object, which does not contain header, to .NET type
+        /// Deserializes Avro object, which does not contain header, to .NET type
         /// </summary>
         public static dynamic DeserializeHeadless(byte[] avroBytes, string schema, Type targetType)
         {
@@ -71,6 +71,29 @@ namespace SolTechnology.Avro
                 .GetMethod(nameof(DeserializeHeadless), new[] { typeof(byte[]), typeof(string) })
                 ?.MakeGenericMethod(targetType)
                 .Invoke(null, new object[] { avroBytes, schema });
+
+            return result;
+        }
+
+
+        /// <summary>
+        /// Deserializes Avro object, which does not contain header, to .NET type
+        /// </summary>
+        public static T DeserializeHeadless<T>(byte[] avroBytes, string writeSchema, string readSchema, int numberOfRows)
+        {
+            return DeserializeHeadless<T>(avroBytes, Schema.Create(writeSchema), Schema.Create(readSchema), numberOfRows);
+        }
+
+
+        /// <summary>
+        /// Deserializes Avro object, which does not contain header, to .NET type
+        /// </summary>
+        public static dynamic DeserializeHeadless(byte[] avroBytes, string writeSchema, string readSchema, Type targetType)
+        {
+            var result = typeof(AvroConvert)
+                .GetMethod(nameof(DeserializeHeadless), new[] { typeof(byte[]), typeof(string), typeof(string), typeof(int) })
+                ?.MakeGenericMethod(targetType)
+                .Invoke(null, new object[] { avroBytes, writeSchema, readSchema, 1 });
 
             return result;
         }

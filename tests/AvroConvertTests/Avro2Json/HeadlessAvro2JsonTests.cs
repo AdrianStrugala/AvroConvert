@@ -2,7 +2,7 @@
 using SolTechnology.Avro;
 using Xunit;
 
-namespace AvroConvertComponentTests.AvroToJson
+namespace AvroConvertComponentTests.Avro2Json
 {
     public class HeadlessAvro2JsonTests
     {

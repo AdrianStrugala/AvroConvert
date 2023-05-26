@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using AutoFixture;
+using AutoFixture.Kernel;
 using SolTechnology.Avro;
 using Xunit;
 
@@ -104,6 +107,49 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             Assert.NotNull(deserialized);
             Assert.Equal(toSerialize.justSomeProperty, deserialized.JustSomeProperty);
             Assert.Equal(toSerialize.andLongProperty, deserialized.AndLongProperty);
+        }
+
+        public static IEnumerable<object[]> PrimitivesAndNullables
+        {
+            get
+            {
+                foreach (var c in TestEngine.All().ToList())
+                {
+                    yield return new[] { typeof(short), typeof(short?), c.FirstOrDefault() };
+                    yield return new[] { typeof(uint), typeof(uint?), c.FirstOrDefault() };
+                    yield return new[] { typeof(ushort), typeof(ushort?), c.FirstOrDefault() };
+                    yield return new[] { typeof(int), typeof(int?), c.FirstOrDefault() };
+                    yield return new[] { typeof(long), typeof(long?), c.FirstOrDefault() };
+                    yield return new[] { typeof(Guid), typeof(Guid?), c.FirstOrDefault() };
+                    yield return new[] { typeof(ulong), typeof(ulong?), c.FirstOrDefault() };
+                    yield return new[] { typeof(char), typeof(char?), c.FirstOrDefault() };
+                    yield return new[] { typeof(byte), typeof(byte?), c.FirstOrDefault() };
+                    yield return new[] { typeof(sbyte), typeof(sbyte?), c.FirstOrDefault() };
+                    yield return new[] { typeof(bool), typeof(bool?), c.FirstOrDefault() };
+                    yield return new[] { typeof(float), typeof(float?), c.FirstOrDefault() };
+                    yield return new[] { typeof(double), typeof(double?), c.FirstOrDefault() };
+                    yield return new[] { typeof(decimal), typeof(decimal?), c.FirstOrDefault() };
+                }
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(PrimitivesAndNullables))]
+        public void Serialize_primitives_read_nullable_correspondings(
+            Type serializationType, Type deserializationType,
+            Func<object, Type, dynamic> engine)
+        {
+            //Arrange
+            var underTest = new SpecimenContext(_fixture).Resolve(serializationType);
+
+
+            //Act
+            var deserialized = engine.Invoke(underTest, deserializationType);
+
+
+            //Assert
+            Assert.NotNull(deserialized);
+            Assert.Equal(underTest, deserialized);
         }
     }
 }

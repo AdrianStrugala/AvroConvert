@@ -13,13 +13,13 @@ public static class TestEngine
         yield return Headless;
 
         yield return GenericJson;
-
+        
         yield return Brotli;
-
+        
         yield return Snappy;
-
+        
         yield return Deflate;
-
+        
         yield return Gzip;
     }
 

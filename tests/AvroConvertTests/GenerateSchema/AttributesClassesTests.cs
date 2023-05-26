@@ -20,7 +20,6 @@ namespace AvroConvertComponentTests.GenerateSchema
             Assert.Contains("\"default\":null", schema);
         }
 
-
         [Fact]
         public void GenerateSchema_PropertiesAreDecoratedWithDefaultValueAttributes_SchemaPositionsNullTypeBeforeOtherInTheTypeArrayWhenDefaultIsNull()
         {

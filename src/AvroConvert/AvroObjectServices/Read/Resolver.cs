@@ -59,11 +59,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         {
             try
             {
-                if (readerSchema.Type == AvroType.Union && writerSchema.Type != AvroType.Union)
-                {
-                    readerSchema = FindBranch(readerSchema as UnionSchema, writerSchema);
-                }
-
                 switch (writerSchema.Type)
                 {
                     case AvroType.Null:
@@ -83,19 +78,26 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                     case AvroType.Bytes:
                         return reader.ReadBytes();
                     case AvroType.Logical:
+                        readerSchema = FindBranchReaderSchema(writerSchema, readerSchema);
                         return ResolveLogical((LogicalTypeSchema)writerSchema, readerSchema, reader, type);
                     case AvroType.Error:
                     case AvroType.Record:
+                        readerSchema = FindBranchReaderSchema(writerSchema, readerSchema);
                         return ResolveRecord((RecordSchema)writerSchema, (RecordSchema)readerSchema, reader, type);
                     case AvroType.Enum:
+                        readerSchema = FindBranchReaderSchema(writerSchema, readerSchema);
                         return ResolveEnum((EnumSchema)writerSchema, readerSchema, reader, type);
                     case AvroType.Fixed:
+                        readerSchema = FindBranchReaderSchema(writerSchema, readerSchema);
                         return ResolveFixed((FixedSchema)writerSchema, readerSchema, reader, type);
                     case AvroType.Array:
+                        readerSchema = FindBranchReaderSchema(writerSchema, readerSchema);
                         return ResolveArray(writerSchema, readerSchema, reader, type);
                     case AvroType.Map:
+                        readerSchema = FindBranchReaderSchema(writerSchema, readerSchema);
                         return ResolveMap((MapSchema)writerSchema, readerSchema, reader, type);
                     case AvroType.Union:
+                        readerSchema = FindBranchReaderSchema(writerSchema, readerSchema);
                         return ResolveUnion((UnionSchema)writerSchema, readerSchema, reader, type);
                     default:
                         throw new AvroException("Unknown schema type: " + writerSchema);
@@ -105,6 +107,16 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             {
                 throw new AvroTypeMismatchException($"Unable to deserialize [{writerSchema.Name}] of schema [{writerSchema.Type}] to the target type [{type}]. Inner exception:", e);
             }
+        }
+        
+        private TypeSchema FindBranchReaderSchema(TypeSchema writerSchema, TypeSchema readerSchema)
+        {
+            if (readerSchema.Type == AvroType.Union && writerSchema.Type != AvroType.Union)
+            {
+                readerSchema = FindBranch(readerSchema as UnionSchema, writerSchema);
+            }
+
+            return readerSchema;
         }
     }
 }

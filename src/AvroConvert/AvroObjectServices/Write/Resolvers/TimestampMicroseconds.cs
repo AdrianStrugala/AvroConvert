@@ -44,7 +44,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
                     break;
             }
 
-            writer.WriteLong((long)(date - DateTimeExtensions.UnixEpochDateTime).TotalMilliseconds * 1000);
+            writer.WriteLong((long)(date - DateTimeExtensions.UnixEpochDateTime).Ticks / 10);
         }
     }
 }

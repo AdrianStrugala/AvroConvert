@@ -51,6 +51,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
         private static readonly Int Int;
         private static readonly Date Date;
         private static readonly TimeMilliseconds TimeMilliseconds;
+        private static readonly TimeMicroseconds TimeMicroseconds;
         private static readonly Bool Bool;
 
         static WriteResolver()
@@ -73,6 +74,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
             Int = new Int();
             Date = new Date();
             TimeMilliseconds = new TimeMilliseconds();
+            TimeMicroseconds = new TimeMicroseconds();
             Bool = new Bool();
         }
 
@@ -116,6 +118,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
                                 return Date.Resolve();
                             case LogicalTypeSchema.LogicalTypeEnum.TimeMilliseconds:
                                 return TimeMilliseconds.Resolve((TimeMillisecondsSchema)schema);
+                            case LogicalTypeSchema.LogicalTypeEnum.TimeMicrosecond:
+                                return TimeMicroseconds.Resolve((TimeMicrosecondsSchema)schema);
                         }
                     }
                     return String.Resolve;

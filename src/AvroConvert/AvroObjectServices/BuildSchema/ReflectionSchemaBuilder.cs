@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -34,43 +35,9 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
     internal sealed class ReflectionSchemaBuilder
     {
-        private static readonly Dictionary<Type, Func<Type, LogicalTypeSchema>> TypeToAvroLogicalSchemaMap =
-            new Dictionary<Type, Func<Type, LogicalTypeSchema>>
-            {
-                { typeof(decimal), type => new DecimalSchema(type) },
-                { typeof(Guid), type => new UuidSchema(type) },
-                { typeof(DateTime), type => new TimestampMillisecondsSchema(type) },
-                { typeof(DateTimeOffset), type => new TimestampMillisecondsSchema(type) },
-                { typeof(DateOnly), type => new DateSchema(type) },
-                { typeof(TimeOnly), type => new TimeMillisecondsSchema(type) },
-                { typeof(TimeSpan), type => new DurationSchema(type) },
-            };
 
-
-        private static readonly Dictionary<Type, Func<Type, PrimitiveTypeSchema>> TypeToAvroPrimitiveSchemaMap =
-            new Dictionary<Type, Func<Type, PrimitiveTypeSchema>>
-            {
-                { typeof(AvroNull), type => new NullSchema(type) },
-                { typeof(char), type => new IntSchema(type) },
-                { typeof(byte), type => new IntSchema(type) },
-                { typeof(sbyte), type => new IntSchema(type) },
-                { typeof(short), type => new IntSchema(type) },
-                { typeof(ushort), type => new IntSchema(type) },
-                { typeof(uint), type => new IntSchema(type) },
-                { typeof(int), type => new IntSchema(type) },
-                { typeof(bool), type => new BooleanSchema() },
-                { typeof(long), type => new LongSchema(type) },
-                { typeof(ulong), type => new LongSchema(type) },
-                { typeof(float), type => new FloatSchema() },
-                { typeof(double), type => new DoubleSchema() },
-                { typeof(string), type => new StringSchema(type) },
-                { typeof(Uri), type => new StringSchema(type) },
-                { typeof(byte[]), type => new BytesSchema() },
-                { typeof(decimal), type => new StringSchema(type) },
-                { typeof(DateTime), type => new LongSchema(type) }
-            };
-
-        private readonly AvroSerializerSettings settings;
+        private readonly Dictionary<Type, Func<Type, MemberInfo, TypeSchema>> _knownSchemas;
+        private readonly AvroSerializerSettings _settings;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="ReflectionSchemaBuilder" /> class.
@@ -78,12 +45,40 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         /// <param name="settings">The settings.</param>
         internal ReflectionSchemaBuilder(AvroSerializerSettings settings = null)
         {
-            if (settings == null)
-            {
-                settings = new AvroSerializerSettings();
-            }
+            _settings = settings ?? new AvroSerializerSettings();
 
-            this.settings = settings;
+            _knownSchemas = new Dictionary<Type, Func<Type, MemberInfo, TypeSchema>>
+            {
+                //Primitive
+                { typeof(AvroNull), (type, info) => new NullSchema(type) },
+                { typeof(char), (type, info) => new IntSchema(type) },
+                { typeof(byte), (type, info) => new IntSchema(type) },
+                { typeof(sbyte), (type, info) => new IntSchema(type) },
+                { typeof(short), (type, info) => new IntSchema(type) },
+                { typeof(ushort), (type, info) => new IntSchema(type) },
+                { typeof(uint), (type, info) => new IntSchema(type) },
+                { typeof(int), (type, info) => new IntSchema(type) },
+                { typeof(bool), (type, info) => new BooleanSchema() },
+                { typeof(long), (type, info) => new LongSchema(type) },
+                { typeof(ulong), (type, info) => new LongSchema(type) },
+                { typeof(float), (type, info) => new FloatSchema() },
+                { typeof(double), (type, info) => new DoubleSchema() },
+                { typeof(string), (type, info) => new StringSchema(type) },
+                { typeof(Uri), (type, info) => new StringSchema(type) },
+                { typeof(byte[]), (type, info) => new BytesSchema() },
+                
+                //Logical
+                { typeof(decimal), (type, info) => BuildDecimalTypeSchema(type, info)},
+                { typeof(Guid), (type, info) => new UuidSchema(type) },
+                { typeof(DateTime), (type, info) => new TimestampMillisecondsSchema(type) },
+                { typeof(DateTimeOffset), (type, info) => new TimestampMillisecondsSchema(type) },
+                { typeof(DateOnly), (type, info) => new DateSchema(type) },
+                { typeof(TimeOnly), (type, info) => new TimeMillisecondsSchema(type) },
+                { typeof(TimeSpan), (type, info) => new DurationSchema(type) },
+
+                //Others
+                { typeof(ExpandoObject), (type, info) => BuildExpandoTypeSchema(type, info) },
+            };
         }
 
         /// <summary>
@@ -106,12 +101,12 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             Type prioritizedType = null,
             MemberInfo memberInfo = null)
         {
-            if (currentDepth == this.settings.MaxItemsInSchemaTree)
+            if (currentDepth == this._settings.MaxItemsInSchemaTree)
             {
                 throw new SerializationException(string.Format(CultureInfo.InvariantCulture, "Maximum depth of object graph reached."));
             }
 
-            var typeInfo = this.settings.Resolver.ResolveType(type, memberInfo);
+            var typeInfo = this._settings.Resolver.ResolveType(type, memberInfo);
             if (typeInfo == null)
             {
                 throw new SerializationException(
@@ -163,46 +158,14 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         /// <exception cref="System.Runtime.Serialization.SerializationException">Thrown when maximum depth of object graph is reached.</exception>
         private TypeSchema CreateNotNullableSchema(Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth, MemberInfo info)
         {
-            //Logical
-            TypeSchema schema = TryBuildLogicalTypeSchema(type, info);
-            if (schema != null)
+            //Primitive & Logical
+            if (_knownSchemas.ContainsKey(type))
             {
-                return schema;
-            }
-
-            //Primitive
-            schema = TryBuildPrimitiveTypeSchema(type);
-            if (schema != null)
-            {
-                return schema;
+                return _knownSchemas[type](type, info);
             }
 
             //Others
             return BuildComplexTypeSchema(type, schemas, currentDepth, info);
-        }
-
-        private static TypeSchema TryBuildPrimitiveTypeSchema(Type type)
-        {
-            if (!TypeToAvroPrimitiveSchemaMap.ContainsKey(type))
-            {
-                return null;
-            }
-            return TypeToAvroPrimitiveSchemaMap[type](type);
-        }
-
-        private static TypeSchema TryBuildLogicalTypeSchema(Type type, MemberInfo info = null)
-        {
-            if (type == typeof(decimal))
-            {
-                return BuildDecimalTypeSchema(type, info);
-            }
-
-            if (!TypeToAvroLogicalSchemaMap.ContainsKey(type))
-            {
-                return null;
-            }
-
-            return TypeToAvroLogicalSchemaMap[type](type);
         }
 
         private static TypeSchema BuildDecimalTypeSchema(Type type, MemberInfo info)
@@ -308,7 +271,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
         private NamedEntityAttributes GetNamedEntityAttributesFrom(Type type)
         {
-            AvroContractResolver resolver = this.settings.Resolver;
+            AvroContractResolver resolver = _settings.Resolver;
             TypeSerializationInfo typeInfo = resolver.ResolveType(type);
             var name = new SchemaName(typeInfo.Name, typeInfo.Namespace);
             var aliases = typeInfo
@@ -334,6 +297,20 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             return new ArraySchema(elementSchema, type);
         }
 
+        private TypeSchema BuildExpandoTypeSchema(Type type, MemberInfo info)
+        {
+            var attr = GetNamedEntityAttributesFrom(type);
+            AvroContractResolver resolver = _settings.Resolver;
+            var record = new RecordSchema(
+                attr,
+                type);
+
+            var members = resolver.ResolveMembers(type);
+            AddRecordFields(members, null, 1, record);
+
+            return record;
+        }
+
         /// <summary>
         /// Generates the record type schema.
         /// </summary>
@@ -351,14 +328,15 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             }
 
             var attr = GetNamedEntityAttributesFrom(type);
-            AvroContractResolver resolver = this.settings.Resolver;
+            AvroContractResolver resolver = this._settings.Resolver;
             var record = new RecordSchema(
                 attr,
                 type);
-            schemas.Add(type.ToString(), record);
 
             var members = resolver.ResolveMembers(type);
             this.AddRecordFields(members, schemas, currentDepth, record);
+
+            schemas.Add(type.ToString(), record);
             return record;
         }
 

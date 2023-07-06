@@ -53,7 +53,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
         }
 
-        [Theory(Skip = "Not working for Default flow for now")]
+        [Theory]
         [MemberData(nameof(TestEngine.CoreUsingSchema), MemberType = typeof(TestEngine))]
         public void Expando_object(Func<object, Type, string, string, dynamic> engine)
         {

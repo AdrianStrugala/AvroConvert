@@ -1,6 +1,7 @@
 ﻿using System;
 using AutoFixture;
 using FluentAssertions;
+using FluentAssertions.Extensions;
 using Xunit;
 
 namespace AvroConvertComponentTests.FullSerializationAndDeserialization
@@ -46,16 +47,10 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             Assert.Equal(testObject.Three.Hours, deserialized.Three.Hours);
             Assert.Equal(testObject.Three.Days, deserialized.Three.Days);
 
-            Assert.NotNull(testObject.Four);
-            Assert.NotNull(deserialized.Four);
-            Assert.Equal(testObject.Four.Value.Millisecond, deserialized.Four.Value.Millisecond);
-            Assert.Equal(testObject.Four.Value.Second, deserialized.Four.Value.Second);
-            Assert.Equal(testObject.Four.Value.Minute, deserialized.Four.Value.Minute);
-            Assert.Equal(testObject.Four.Value.Hour, deserialized.Four.Value.Hour);
-            Assert.Equal(testObject.Four.Value.Day, deserialized.Four.Value.Day);
-            Assert.Equal(testObject.Four.Value.Month, deserialized.Four.Value.Month);
-            Assert.Equal(testObject.Four.Value.Year, deserialized.Four.Value.Year);
+            deserialized.Four!.Value.Should().BeCloseTo(testObject.Four!.Value, precision: TimeSpan.FromTicks(10),
+                "According to the Avro documentation, the most accurate precision is microseconds");
 
+            Assert.Equal(testObject.Five.Microsecond(), deserialized.Five.Microsecond());
             Assert.Equal(testObject.Five.Millisecond, deserialized.Five.Millisecond);
             Assert.Equal(testObject.Five.Second, deserialized.Five.Second);
             Assert.Equal(testObject.Five.Minute, deserialized.Five.Minute);
@@ -63,6 +58,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             Assert.Equal(testObject.Five.Day, deserialized.Five.Day);
             Assert.Equal(testObject.Five.Month, deserialized.Five.Month);
             Assert.Equal(testObject.Five.Year, deserialized.Five.Year);
+
         }
 
         [Theory]

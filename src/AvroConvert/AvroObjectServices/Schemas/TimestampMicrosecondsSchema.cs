@@ -41,16 +41,28 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type readType)
         {
             var noMicroseconds = (long)baseValue;
-            var result = DateTimeExtensions.UnixEpochDateTime.AddMilliseconds(noMicroseconds / 1000);
+            var noTicks = noMicroseconds * 10;
+            var result = DateTimeExtensions.UnixEpochDateTime.AddTicks(noTicks);
 
             if (readType == typeof(DateTimeOffset) || readType == typeof(DateTimeOffset?))
             {
-                return DateTimeOffset.FromUnixTimeMilliseconds(noMicroseconds / 1000);
+                return FromUnixTimeMicroseconds(noMicroseconds);
+            }
+            if (readType == typeof(DateOnly) || readType == typeof(DateOnly?))
+            {
+                return DateOnly.FromDateTime(result);
             }
             else
             {
                 return result;
             }
+        }
+
+        public static DateTimeOffset FromUnixTimeMicroseconds(long microseconds)
+        {
+            long unixEpochTicks = new DateTime(1970, 1, 1).Ticks; //9990000
+            long ticks = microseconds * 10 + unixEpochTicks;
+            return new DateTimeOffset(ticks, TimeSpan.Zero);
         }
     }
 }

@@ -97,8 +97,8 @@ namespace AvroConvertUnitTests.BuildSchemaTests
 
 
             //Assert
-            Assert.IsType<TimestampMillisecondsSchema>(schema);
-            var resolvedSchema = (TimestampMillisecondsSchema)schema;
+            Assert.IsType<TimestampMicrosecondsSchema>(schema);
+            var resolvedSchema = (TimestampMicrosecondsSchema)schema;
 
             Assert.NotNull(resolvedSchema);
         }
@@ -118,9 +118,9 @@ namespace AvroConvertUnitTests.BuildSchemaTests
             var unionSchema = (UnionSchema)schema;
 
             Assert.IsType<NullSchema>(unionSchema.Schemas[0]);
-            Assert.IsType<TimestampMillisecondsSchema>(unionSchema.Schemas[1]);
+            Assert.IsType<TimestampMicrosecondsSchema>(unionSchema.Schemas[1]);
 
-            var resolvedSchema = (TimestampMillisecondsSchema)unionSchema.Schemas[1];
+            var resolvedSchema = (TimestampMicrosecondsSchema)unionSchema.Schemas[1];
 
             Assert.NotNull(resolvedSchema);
         }

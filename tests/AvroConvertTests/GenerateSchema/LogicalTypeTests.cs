@@ -9,8 +9,8 @@ namespace AvroConvertComponentTests.GenerateSchema
         [Theory]
         [InlineData(typeof(Guid?), @"[""null"",{""type"":""string"",""logicalType"":""uuid""}]")]
         [InlineData(typeof(Guid), @"{""type"":""string"",""logicalType"":""uuid""}")]
-        [InlineData(typeof(DateTime?), @"[""null"",{""type"":""long"",""logicalType"":""timestamp-millis""}]")]
-        [InlineData(typeof(DateTime), @"{""type"":""long"",""logicalType"":""timestamp-millis""}")]
+        [InlineData(typeof(DateTime?), @"[""null"",{""type"":""long"",""logicalType"":""timestamp-micros""}]")]
+        [InlineData(typeof(DateTime), @"{""type"":""long"",""logicalType"":""timestamp-micros""}")]
         [InlineData(typeof(TimeSpan?), @"[""null"",{""type"":""fixed"",""size"":12,""name"":""duration"",""logicalType"":""duration""}]")]
         [InlineData(typeof(TimeSpan), @"{""type"":""fixed"",""size"":12,""name"":""duration"",""logicalType"":""duration""}")]
 

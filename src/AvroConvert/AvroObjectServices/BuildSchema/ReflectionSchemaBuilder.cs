@@ -39,10 +39,10 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             {
                 { typeof(decimal), type => new DecimalSchema(type) },
                 { typeof(Guid), type => new UuidSchema(type) },
-                { typeof(DateTime), type => new TimestampMillisecondsSchema(type) },
-                { typeof(DateTimeOffset), type => new TimestampMillisecondsSchema(type) },
+                { typeof(DateTime), type => new TimestampMicrosecondsSchema(type) },
+                { typeof(DateTimeOffset), type => new TimestampMicrosecondsSchema(type) },
                 { typeof(DateOnly), type => new DateSchema(type) },
-                { typeof(TimeOnly), type => new TimeMillisecondsSchema(type) },
+                { typeof(TimeOnly), type => new TimeMicrosecondsSchema(type) },
                 { typeof(TimeSpan), type => new DurationSchema(type) },
             };
 

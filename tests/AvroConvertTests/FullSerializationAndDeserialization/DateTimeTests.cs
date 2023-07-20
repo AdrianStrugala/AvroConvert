@@ -1,6 +1,7 @@
 ﻿using System;
 using AutoFixture;
 using FluentAssertions;
+using FluentAssertions.Extensions;
 using Xunit;
 
 namespace AvroConvertComponentTests.FullSerializationAndDeserialization
@@ -25,21 +26,13 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
 
             //Act
-            var deserialized = engine.Invoke(toSerialize, typeof(ClassWithDateTime));
+            var deserialized = (ClassWithDateTime)engine.Invoke(toSerialize, typeof(ClassWithDateTime));
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(toSerialize.ArriveBy.Millisecond, deserialized.ArriveBy.Millisecond);
-            Assert.Equal(toSerialize.ArriveBy.Second, deserialized.ArriveBy.Second);
-            Assert.Equal(toSerialize.ArriveBy.Minute, deserialized.ArriveBy.Minute);
-            Assert.Equal(toSerialize.ArriveBy.Hour, deserialized.ArriveBy.Hour);
-            Assert.Equal(toSerialize.ArriveBy.Day, deserialized.ArriveBy.Day);
-            Assert.Equal(toSerialize.ArriveBy.Month, deserialized.ArriveBy.Month);
-            Assert.Equal(toSerialize.ArriveBy.Year, deserialized.ArriveBy.Year);
-
-
-            toSerialize.MyDate.Should().Be(deserialized.MyDate);
-            toSerialize.MyTime.ToString().Should().Be(deserialized.MyTime.ToString());
+            deserialized.MyDate.Should().Be(toSerialize.MyDate);
+            deserialized.MyTime.ToString().Should().Be(toSerialize.MyTime.ToString());
+            deserialized.ArriveBy.Should().BeCloseTo(toSerialize.ArriveBy, precision: TimeSpan.FromTicks(10),
+                "According to the Avro documentation, the most accurate precision is microseconds");
         }
 
         [Theory]
@@ -52,18 +45,14 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
 
             //Act
-            var deserialized = engine.Invoke(toSerialize, typeof(ClassWithDateTime));
+            var deserialized = (ClassWithDateTime)engine.Invoke(toSerialize, typeof(ClassWithDateTime));
 
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(toSerialize.ArriveBy.Millisecond, deserialized.ArriveBy.Millisecond);
-            Assert.Equal(toSerialize.ArriveBy.Second, deserialized.ArriveBy.Second);
-            Assert.Equal(toSerialize.ArriveBy.Minute, deserialized.ArriveBy.Minute);
-            Assert.Equal(toSerialize.ArriveBy.Hour, deserialized.ArriveBy.Hour);
-            Assert.Equal(toSerialize.ArriveBy.Day, deserialized.ArriveBy.Day);
-            Assert.Equal(toSerialize.ArriveBy.Month, deserialized.ArriveBy.Month);
-            Assert.Equal(toSerialize.ArriveBy.Year, deserialized.ArriveBy.Year);
+            deserialized.MyDate.Should().Be(toSerialize.MyDate);
+            deserialized.MyTime.ToString().Should().Be(toSerialize.MyTime.ToString());
+            deserialized.ArriveBy.Should().BeCloseTo(toSerialize.ArriveBy, precision: TimeSpan.FromTicks(10),
+                "According to the Avro documentation, the most accurate precision is microseconds");
         }
 
         [Theory]
@@ -75,11 +64,13 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
 
             //Act
-            var deserialized = engine.Invoke(toSerialize, typeof(ClassWithDateTimeOffset));
+            var deserialized = (ClassWithDateTimeOffset)engine.Invoke(toSerialize, typeof(ClassWithDateTimeOffset));
 
 
             //Assert
             Assert.NotNull(deserialized);
+            //the timezone is dropped
+            Assert.Equal(toSerialize.yeah.Microsecond(), deserialized.yeah.Microsecond());
             Assert.Equal(toSerialize.yeah.Millisecond, deserialized.yeah.Millisecond);
             Assert.Equal(toSerialize.yeah.Second, deserialized.yeah.Second);
             Assert.Equal(toSerialize.yeah.Minute, deserialized.yeah.Minute);
@@ -103,7 +94,8 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
             //Assert
             Assert.NotNull(deserialized);
-            toSerialize!.Value.Should().BeCloseTo(deserialized.Value, TimeSpan.FromMilliseconds(1));
+            deserialized.Value.Should().BeCloseTo(toSerialize!.Value, precision: TimeSpan.FromTicks(10),
+                "According to the Avro documentation, the most accurate precision is microseconds");
         }
 
         [Theory]
@@ -120,6 +112,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
             //Assert
             Assert.NotNull(deserialized);
+            Assert.Equal(toSerialize.Value.Microsecond(), deserialized.Value.Microsecond());
             Assert.Equal(toSerialize.Value.Millisecond, deserialized.Value.Millisecond);
             Assert.Equal(toSerialize.Value.Second, deserialized.Value.Second);
             Assert.Equal(toSerialize.Value.Minute, deserialized.Value.Minute);

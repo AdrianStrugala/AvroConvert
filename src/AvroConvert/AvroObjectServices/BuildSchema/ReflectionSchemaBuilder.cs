@@ -35,18 +35,6 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
     internal sealed class ReflectionSchemaBuilder
     {
-        private static readonly Dictionary<Type, Func<Type, LogicalTypeSchema>> TypeToAvroLogicalSchemaMap =
-            new Dictionary<Type, Func<Type, LogicalTypeSchema>>
-            {
-                { typeof(decimal), type => new DecimalSchema(type) },
-                { typeof(Guid), type => new UuidSchema(type) },
-                { typeof(DateTime), type => new TimestampMillisecondsSchema(type) },
-                { typeof(DateTimeOffset), type => new TimestampMillisecondsSchema(type) },
-                { typeof(DateOnly), type => new DateSchema(type) },
-                { typeof(TimeOnly), type => new TimeMillisecondsSchema(type) },
-                { typeof(TimeSpan), type => new DurationSchema(type) },
-            };
-
         private readonly Dictionary<Type, Func<Type, MemberInfo, TypeSchema>> _knownSchemas;
         private readonly AvroSerializerSettings _settings;
 
@@ -170,9 +158,9 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         private TypeSchema CreateNotNullableSchema(Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth, MemberInfo info)
         {
             //Primitive & Logical
-            if (_knownSchemas.ContainsKey(type))
+            if (_knownSchemas.TryGetValue(type, out var schema))
             {
-                return _knownSchemas[type](type, info);
+                return schema(type, info);
             }
 
             //Others
@@ -315,6 +303,8 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             var record = new RecordSchema(
                 attr,
                 type);
+
+            //TODO: work from here
 
             var members = resolver.ResolveMembers(type);
             AddRecordFields(members, null, 1, record);

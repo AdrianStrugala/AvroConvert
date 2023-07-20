@@ -17,7 +17,6 @@
 
 using System;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
-using SolTechnology.Avro.AvroObjectServices.Write;
 using SolTechnology.Avro.Infrastructure.Extensions;
 
 namespace SolTechnology.Avro.AvroObjectServices.Schemas
@@ -25,7 +24,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
 
     internal sealed class TimeMicrosecondsSchema : LogicalTypeSchema
     {
-        private static readonly TimeSpan _maxTime = new TimeSpan(23, 59, 59);
+        internal static readonly TimeOnly MaxTime = new TimeOnly(23, 59, 59);
 
         public TimeMicrosecondsSchema() : this(typeof(TimeSpan))
         {
@@ -38,20 +37,18 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         internal override AvroType Type => AvroType.Logical;
         internal override TypeSchema BaseTypeSchema { get; set; }
         internal override string LogicalTypeName => LogicalTypeEnum.TimeMicrosecond;
-        internal void Serialize(object logicalValue, IWriter writer)
-        {
-            var time = (TimeSpan)logicalValue;
-
-            if (time > _maxTime)
-                throw new ArgumentOutOfRangeException(nameof(logicalValue), "A 'time-micros' value can only have the range '00:00:00' to '23:59:59'.");
-
-            writer.WriteLong((long)(time - DateTimeExtensions.UnixEpochDateTime.TimeOfDay).TotalMilliseconds * 1000);
-        }
 
         internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type readType)
         {
-            var noMs = (long)baseValue / 1000;
-            return DateTimeExtensions.UnixEpochDateTime.TimeOfDay.Add(TimeSpan.FromMilliseconds(noMs));
+            var noTicks = (long)baseValue * 10;
+            var result = DateTimeExtensions.UnixEpochDateTime.TimeOfDay.Add(TimeSpan.FromTicks(noTicks));
+
+            if (readType == typeof(TimeOnly) || readType == typeof(TimeOnly?))
+            {
+                return TimeOnly.FromTimeSpan(result);
+            }
+
+            return result;
         }
     }
 }

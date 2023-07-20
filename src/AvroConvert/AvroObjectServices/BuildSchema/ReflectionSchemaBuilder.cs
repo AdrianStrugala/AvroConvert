@@ -35,6 +35,17 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
     internal sealed class ReflectionSchemaBuilder
     {
+        private static readonly Dictionary<Type, Func<Type, LogicalTypeSchema>> TypeToAvroLogicalSchemaMap =
+            new Dictionary<Type, Func<Type, LogicalTypeSchema>>
+            {
+                { typeof(decimal), type => new DecimalSchema(type) },
+                { typeof(Guid), type => new UuidSchema(type) },
+                { typeof(DateTime), type => new TimestampMillisecondsSchema(type) },
+                { typeof(DateTimeOffset), type => new TimestampMillisecondsSchema(type) },
+                { typeof(DateOnly), type => new DateSchema(type) },
+                { typeof(TimeOnly), type => new TimeMillisecondsSchema(type) },
+                { typeof(TimeSpan), type => new DurationSchema(type) },
+            };
 
         private readonly Dictionary<Type, Func<Type, MemberInfo, TypeSchema>> _knownSchemas;
         private readonly AvroSerializerSettings _settings;
@@ -70,10 +81,10 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 //Logical
                 { typeof(decimal), (type, info) => BuildDecimalTypeSchema(type, info)},
                 { typeof(Guid), (type, info) => new UuidSchema(type) },
-                { typeof(DateTime), (type, info) => new TimestampMillisecondsSchema(type) },
-                { typeof(DateTimeOffset), (type, info) => new TimestampMillisecondsSchema(type) },
+                { typeof(DateTime), (type, info) => new TimestampMicrosecondsSchema(type) },
+                { typeof(DateTimeOffset), (type, info) => new TimestampMicrosecondsSchema(type) },
                 { typeof(DateOnly), (type, info) => new DateSchema(type) },
-                { typeof(TimeOnly), (type, info) => new TimeMillisecondsSchema(type) },
+                { typeof(TimeOnly), (type, info) => new TimeMicrosecondsSchema(type) },
                 { typeof(TimeSpan), (type, info) => new DurationSchema(type) },
 
                 //Others

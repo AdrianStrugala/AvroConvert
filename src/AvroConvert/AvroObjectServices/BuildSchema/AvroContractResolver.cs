@@ -116,16 +116,97 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             return result;
         }
 
-        /// <summary>
-        /// Gets the serialization information about the type members.
-        /// This information is used for creation of the corresponding schema nodes.
-        /// </summary>
-        /// <param name="type">The type, members of which should be serialized.</param>
-        /// <returns>
-        /// Serialization information about the fields/properties.
-        /// </returns>
-        /// <exception cref="System.ArgumentNullException">The type argument is null.</exception>
         internal MemberSerializationInfo[] ResolveMembers(Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException("type");
+            }
+
+            if (type.IsKeyValuePair())
+            {
+                var keyValueProperties = type.GetAllProperties();
+
+                return keyValueProperties.Select(p => new MemberSerializationInfo
+                {
+                    Name = p.Name,
+                    MemberInfo = p,
+                    Nullable = false
+                }).ToArray();
+            }
+
+            var allMembers = type.GetFieldsAndProperties(
+                BindingFlags.Public |
+                BindingFlags.NonPublic |
+                BindingFlags.Instance |
+                BindingFlags.DeclaredOnly);
+
+            var membersToSerialize = type.GetFieldsAndProperties(
+                BindingFlags.Public |
+                BindingFlags.Instance |
+                BindingFlags.DeclaredOnly);
+
+            var attributes = allMembers
+                .ToDictionary(x => x, x => x.GetCustomAttributes(false));
+
+            // add members that are explicitly marked with DataMember attribute
+            foreach (var memberInfo in allMembers)
+            {
+                if (membersToSerialize.Contains(memberInfo))
+                {
+                    continue;
+                }
+
+                if (attributes[memberInfo].OfType<DataMemberAttribute>().Any())
+                {
+                    membersToSerialize.Add(memberInfo);
+                }
+            }
+
+            var members = membersToSerialize
+                .Where(x => !attributes[x].OfType<IgnoreDataMemberAttribute>().Any())
+                .Select(m =>
+                {
+                    var customAttributes = attributes[m];
+
+                    return new
+                    {
+                        Member = m,
+                        Attribute = customAttributes.OfType<DataMemberAttribute>().SingleOrDefault(),
+                        Nullable = customAttributes.OfType<NullableSchemaAttribute>().Any(), // m.GetType().CanContainNull() ||
+                        DefaultValue = customAttributes.OfType<DefaultValueAttribute>().FirstOrDefault()?.Value,
+                        HasDefaultValue = customAttributes.OfType<DefaultValueAttribute>().Any(),
+                        Doc = customAttributes.OfType<DescriptionAttribute>().FirstOrDefault()?.Description
+                    };
+                });
+
+
+            if (_includeOnlyDataContractMembers)
+            {
+                members = members.Where(m => m.Attribute != null);
+            }
+
+            var result = members.Select(m => new MemberSerializationInfo
+            {
+                Name = m.Attribute?.Name ?? m.Member.Name,
+                MemberInfo = m.Member,
+                Nullable = m.Nullable,
+                Aliases = m.Attribute?.Name != null ? new List<string> { m.Member.Name } : new List<string>(),
+                HasDefaultValue = m.HasDefaultValue,
+                DefaultValue = m.DefaultValue,
+                Doc = m.Doc
+            });
+
+
+            if (this._useAlphabeticalOrder)
+            {
+                result = result.OrderBy(p => p.Name);
+            }
+
+            return result.ToArray();
+        }
+
+        internal MemberSerializationInfo[] ResolveExpandoObjectMembers(Type type)
         {
             if (type == null)
             {

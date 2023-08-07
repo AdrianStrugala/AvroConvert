@@ -339,3 +339,8 @@ START OF THE PROJECT
 - Avro2Json now supports: DefaultValue attribute and array of primitive values, dictionary with object keys 
 - Fix for reading default value for nullable enums
 - Improved deserialization time by skipping union matching for primitives
+
+\
+**v. 3.3.7 (07.08.23)**
+- Increased default precision of time types to microseconds (tick * 10)
+- Added Deserialize overload taking ReadOnlySpan<byte> as an argument

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using FluentAssertions;
 using SolTechnology.Avro;
@@ -103,6 +104,35 @@ namespace AvroConvertComponentTests.FilesDeserialization.Default
 
             //Assert
             result.Should().HaveCount(1000);
+        }
+
+        [Fact]
+        public void Deserialization_with_ReadOnlySpan_Works()
+        {
+            //Arrange
+            var expectedResult = new List<User>();
+            expectedResult.Add(new User
+            {
+                name = "Alyssa",
+                favorite_number = 256,
+                favorite_color = null
+            });
+
+            expectedResult.Add(new User
+            {
+                name = "Ben",
+                favorite_number = 7,
+                favorite_color = "red"
+            });
+
+            var readOnlySpan = new ReadOnlySpan<byte>(_avroBytes);
+
+            //Act
+            var result = AvroConvert.Deserialize<List<User>>(readOnlySpan);
+
+
+            //Assert
+            Assert.Equal(expectedResult, result);
         }
     }
 }

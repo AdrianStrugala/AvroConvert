@@ -57,5 +57,24 @@ namespace SolTechnology.Avro
 
             return result;
         }
+
+
+        /// <summary>
+        /// Deserializes Avro object to .NET type
+        /// </summary>
+        public static unsafe T Deserialize<T>(ReadOnlySpan<byte> avroBytes)
+        {
+            fixed (byte* ptr = avroBytes)
+            {
+                using UnmanagedMemoryStream stream = new(ptr, avroBytes.Length);
+                var decoder = new Decoder();
+                var obj = decoder.Decode<T>(
+                    stream,
+                    Schema.Create(typeof(T))
+                );
+
+                return obj;
+            }
+        }
     }
 }

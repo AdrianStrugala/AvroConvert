@@ -23,7 +23,7 @@ namespace SolTechnology.Avro
     public static partial class AvroConvert
     {
         /// <summary>
-        /// Extracts data schema from given AVRO object
+        /// Extracts data schema from given Avro object
         /// </summary>
         public static string GetSchema(byte[] avroBytes)
         {
@@ -38,7 +38,7 @@ namespace SolTechnology.Avro
 
 
         /// <summary>
-        /// Extracts data schema from AVRO file under given path
+        /// Extracts data schema from Avro file under given path
         /// </summary>
         public static string GetSchema(string filePath)
         {
@@ -53,7 +53,7 @@ namespace SolTechnology.Avro
 
 
         /// <summary>
-        /// Extracts data schema from given AVRO stream
+        /// Extracts data schema from given Avro stream
         /// </summary>
         public static string GetSchema(Stream avroStream)
         {

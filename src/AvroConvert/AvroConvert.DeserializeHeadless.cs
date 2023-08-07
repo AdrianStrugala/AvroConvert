@@ -98,6 +98,25 @@ namespace SolTechnology.Avro
             return result;
         }
 
+        /// <summary>
+        /// Deserializes Avro object, which does not contain header, to .NET type
+        /// </summary>
+        public static unsafe T DeserializeHeadless<T>(ReadOnlySpan<byte> avroBytes, string schema)
+        {
+            fixed (byte* ptr = avroBytes)
+            {
+                using UnmanagedMemoryStream stream = new(ptr, avroBytes.Length);
+                var reader = new Reader(stream);
+                var writeSchema = Schema.Create(schema);
+                var readSchema = BuildSchema(typeof(T));
+                var resolver = new Resolver(writeSchema, readSchema);
+                var result = resolver.Resolve<T>(reader, 1);
+
+                return result;
+            }
+        }
+
+
         private static T DeserializeHeadless<T>(byte[] avroBytes, TypeSchema writeSchema, TypeSchema readSchema, int numberOfRows)
         {
             var reader = new Reader(new MemoryStream(avroBytes));

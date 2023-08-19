@@ -22,13 +22,13 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 {
     internal class Long
     {
-        internal void Resolve(object value, IWriter encoder)
+        internal void Resolve(object value, IWriter writer)
         {
             if (value is not long converted)
             {
                 try //Resolve ulong
                 {
-                    encoder.WriteLong(Convert.ToInt64(value));
+                    writer.WriteLong(Convert.ToInt64(value));
                     return;
                 }
                 catch
@@ -37,7 +37,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
                 }
             }
 
-            encoder.WriteLong(converted);
+            writer.WriteLong(converted);
         }
     }
 }

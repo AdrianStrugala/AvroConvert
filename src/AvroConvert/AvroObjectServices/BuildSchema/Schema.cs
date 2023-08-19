@@ -24,7 +24,7 @@ using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 
 namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 {
-    internal abstract class Schema
+    public abstract class Schema
     {
         protected Schema(IDictionary<string, string> attributes)
         {

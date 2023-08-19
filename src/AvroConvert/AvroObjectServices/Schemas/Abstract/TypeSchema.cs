@@ -15,6 +15,7 @@
 
 /** Modifications copyright(C) 2020 Adrian Strugała **/
 
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -25,7 +26,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
     ///     Base class for all type schemas.
     ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html">the specification</a>.
     /// </summary>
-    internal abstract class TypeSchema : BuildSchema.Schema
+    public abstract class TypeSchema : BuildSchema.Schema
     {
         protected TypeSchema(Type runtimeType, IDictionary<string, string> attributes) : base(attributes)
         {
@@ -37,9 +38,14 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
             RuntimeType = runtimeType;
         }
 
+        internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
+        {
+            writer.WriteValue(CultureInfo.InvariantCulture.TextInfo.ToLower(this.Type.ToString()));
+        }
+
         internal Type RuntimeType { get; set; }
 
-        internal abstract AvroType Type { get; }
+        internal virtual AvroType Type { get; }
 
         internal virtual bool CanRead(TypeSchema writerSchema) { return Type == writerSchema.Type; }
 

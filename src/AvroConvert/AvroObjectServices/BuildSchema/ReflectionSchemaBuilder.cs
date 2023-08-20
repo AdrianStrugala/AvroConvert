@@ -71,12 +71,14 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             };
 
         private readonly AvroSerializerSettings settings;
+        private readonly bool hasCustomConverters;
+        private readonly Dictionary<Type, TypeSchema> customSchemaMapping;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="ReflectionSchemaBuilder" /> class.
         /// </summary>
         /// <param name="settings">The settings.</param>
-        internal ReflectionSchemaBuilder(AvroSerializerSettings settings = null)
+        internal ReflectionSchemaBuilder(AvroSerializerSettings settings = null, AvroConvertOptions options = null)
         {
             if (settings == null)
             {
@@ -84,6 +86,8 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             }
 
             this.settings = settings;
+            hasCustomConverters = (options?.AvroConverters.Any()).GetValueOrDefault();
+            customSchemaMapping = options?.AvroConverters.ToDictionary(x => x.RuntimeType, y => y.TypeSchema);
         }
 
         /// <summary>
@@ -109,6 +113,14 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             if (currentDepth == this.settings.MaxItemsInSchemaTree)
             {
                 throw new SerializationException(string.Format(CultureInfo.InvariantCulture, "Maximum depth of object graph reached."));
+            }
+
+            if (hasCustomConverters)
+            {
+                if (customSchemaMapping.TryGetValue(type, out var schema))
+                {
+                    return schema;
+                }
             }
 
             var typeInfo = this.settings.Resolver.ResolveType(type, memberInfo);

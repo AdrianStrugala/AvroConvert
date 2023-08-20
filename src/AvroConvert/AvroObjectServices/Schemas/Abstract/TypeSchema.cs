@@ -49,6 +49,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
 
         internal virtual bool CanRead(TypeSchema writerSchema) { return Type == writerSchema.Type; }
 
-        internal virtual string Name => Type.ToString().ToLower(CultureInfo.InvariantCulture);
+
+        private string _name;
+        public virtual string Name
+        {
+            get => string.IsNullOrEmpty(_name) ? Type.ToString().ToLower(CultureInfo.InvariantCulture) : _name;
+            set => _name = value;
+        }
     }
 }

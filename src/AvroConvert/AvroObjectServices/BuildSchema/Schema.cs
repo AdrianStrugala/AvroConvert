@@ -80,9 +80,9 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             return new TypeSchemaBuilder().BuildSchema(schemaInJson);
         }
 
-        internal static TypeSchema Create(object obj)
+        internal static TypeSchema Create(object obj, AvroConvertOptions options = null)
         {
-            var builder = new ReflectionSchemaBuilder();
+            var builder = new ReflectionSchemaBuilder(null, options);
             var schema = builder.BuildSchema(obj?.GetType());
 
             return schema;

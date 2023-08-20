@@ -46,7 +46,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
 
         internal string FullName => this.attributes.Name.FullName;
 
-        internal override string Name => this.attributes.Name.Name;
+        public override string Name => this.attributes.Name.Name;
 
         internal string Namespace => this.attributes.Name.Namespace;
 

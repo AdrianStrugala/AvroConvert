@@ -48,5 +48,24 @@ namespace SolTechnology.Avro
                 return result;
             }
         }
+
+        //TODO change summary
+        /// <summary>
+        /// Serializes given object to Avro format (including header with metadata)
+        /// Choosing <paramref name="codecType"/> reduces output object size
+        /// </summary>
+        public static byte[] Serialize(object obj, AvroConvertOptions options)
+        {
+            using (MemoryStream resultStream = new MemoryStream())
+            {
+                var schema = Schema.Create(obj, options);
+                using (var writer = new Encoder(schema, resultStream, options.Codec))
+                {
+                    writer.Append(obj);
+                }
+                byte[] result = resultStream.ToArray();
+                return result;
+            }
+        }
     }
 }

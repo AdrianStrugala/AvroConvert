@@ -13,14 +13,24 @@ namespace AvroConvertComponentTests.Converters
     public class ConvertersTests
     {
         [Fact]
-        public void Custom_converter_is_used_for_schema_generation_serialization_and_deserialization()
+        public void Custom_converter_is_used_for_schema_generation_and_serialization_and_deserialization()
         {
             //Arrange
             string underTest = "someRandomString";
 
+
             //Act
-            var result = AvroConvert.Serialize(underTest);
+            var avroConvertOptions = new AvroConvertOptions
+            {
+                AvroConverters = new List<IAvroConverter>
+                {
+                    new RandomStringConverter()
+                }
+            };
+
+            var result = AvroConvert.Serialize(underTest, avroConvertOptions);
             var deserialized = AvroConvert.Deserialize<string>(result);
+
 
             //Assert
             Assert.NotNull(result);
@@ -44,10 +54,11 @@ namespace AvroConvertComponentTests.Converters
         }
     }
 
-    public class RandomStringSchema : TypeSchema
+    public sealed class RandomStringSchema : TypeSchema
     {
         public RandomStringSchema(Type runtimeType) : base(runtimeType, new Dictionary<string, string>())
         {
+            Name = "RandomSchema";
         }
     }
 }

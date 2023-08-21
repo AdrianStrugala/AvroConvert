@@ -16,6 +16,8 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json.Linq;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
@@ -54,6 +56,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
         private static readonly TimeMicroseconds TimeMicroseconds;
         private static readonly Bool Bool;
 
+        private static bool _hasCustomConverters;
+        private static Dictionary<Type, TypeSchema> _customSchemaMapping;
+
+
+        //TODO: it would have to not be static
+
         static WriteResolver()
         {
             Array = new Array();
@@ -78,8 +86,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
             Bool = new Bool();
         }
 
-        internal static Encoder.WriteItem ResolveWriter(TypeSchema schema)
+        internal static Encoder.WriteItem ResolveWriter(TypeSchema schema, AvroConvertOptions options = null)
         {
+            _hasCustomConverters = (options?.AvroConverters.Any()).GetValueOrDefault();
+            _customSchemaMapping = options?.AvroConverters.ToDictionary(x => x.TypeSchema.RuntimeType, y => y.TypeSchema);
+
             switch (schema.Type)
             {
                 case AvroType.Null:

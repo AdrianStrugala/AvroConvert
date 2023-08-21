@@ -87,7 +87,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
             this.settings = settings;
             hasCustomConverters = (options?.AvroConverters.Any()).GetValueOrDefault();
-            customSchemaMapping = options?.AvroConverters.ToDictionary(x => x.RuntimeType, y => y.TypeSchema);
+            customSchemaMapping = options?.AvroConverters.ToDictionary(x => x.TypeSchema.RuntimeType, y => y.TypeSchema);
         }
 
         /// <summary>

@@ -7,8 +7,6 @@ namespace SolTechnology.Avro.Converters
 {
     public interface IAvroConverter
     {
-        public Type RuntimeType { get; }
-
         public TypeSchema TypeSchema { get; }
 
         public void Serialize(object data, IWriter writer);

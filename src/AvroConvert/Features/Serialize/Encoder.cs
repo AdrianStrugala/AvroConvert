@@ -47,7 +47,7 @@ namespace SolTechnology.Avro.Features.Serialize
         private readonly Header _header;
 
 
-        internal Encoder(TypeSchema schema, Stream outOutStream, CodecType codecType)
+        internal Encoder(TypeSchema schema, Stream outOutStream, CodecType codecType, AvroConvertOptions options = null)
         {
             _codec = AbstractCodec.CreateCodec(codecType);
             _outStream = outOutStream;
@@ -63,7 +63,7 @@ namespace SolTechnology.Avro.Features.Serialize
             _header.AddMetadata(DataFileConstants.CodecMetadataKey, _codec.Name);
             _header.AddMetadata(DataFileConstants.SchemaMetadataKey, schema.ToString());
 
-            _writeItem = WriteResolver.ResolveWriter(schema);
+            _writeItem = WriteResolver.ResolveWriter(schema, options);
 
             _writer.WriteHeader(_header);
         }

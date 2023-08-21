@@ -28,12 +28,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
     {
         protected Schema(IDictionary<string, string> attributes)
         {
-            if (attributes == null)
-            {
-                throw new ArgumentNullException("attributes");
-            }
-
-            Attributes = new Dictionary<string, string>(attributes);
+            Attributes = (Dictionary<string, string>)(attributes ?? new Dictionary<string, string>());
         }
 
         internal Dictionary<string, string> Attributes { get; set; }

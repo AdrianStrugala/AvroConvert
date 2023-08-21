@@ -45,13 +45,13 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
 
         internal Type RuntimeType { get; set; }
 
-        internal virtual AvroType Type { get; }
+        internal virtual AvroType Type { get; set; }
 
         internal virtual bool CanRead(TypeSchema writerSchema) { return Type == writerSchema.Type; }
 
 
         private string _name;
-        public virtual string Name
+        internal virtual string Name
         {
             get => string.IsNullOrEmpty(_name) ? Type.ToString().ToLower(CultureInfo.InvariantCulture) : _name;
             set => _name = value;

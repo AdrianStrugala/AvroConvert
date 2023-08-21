@@ -41,8 +41,8 @@ namespace AvroConvertComponentTests.Converters
 
     public class RandomStringConverter : IAvroConverter
     {
-        public Type RuntimeType => typeof(string);
-        public TypeSchema TypeSchema => new RandomStringSchema(RuntimeType);
+        public TypeSchema TypeSchema => new RandomStringSchema(typeof(string), AvroType.String, nameof(RandomStringSchema));
+
         public void Serialize(object data, IWriter writer)
         {
             writer.WriteString("DUPA");
@@ -54,11 +54,11 @@ namespace AvroConvertComponentTests.Converters
         }
     }
 
-    public sealed class RandomStringSchema : TypeSchema
+    public sealed class RandomStringSchema : BaseConverterSchema
     {
-        public RandomStringSchema(Type runtimeType) : base(runtimeType, new Dictionary<string, string>())
+        public RandomStringSchema(Type runtimeType, AvroType avroType, string name, IDictionary<string, string> attributes = null)
+            : base(runtimeType, avroType, name, attributes)
         {
-            Name = "RandomSchema";
         }
     }
 }

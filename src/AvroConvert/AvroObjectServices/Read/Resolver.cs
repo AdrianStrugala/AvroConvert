@@ -33,7 +33,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         private readonly AvroConvertOptions _options;
         private readonly TypeSchema _writerSchema;
         private readonly bool _hasCustomConverters;
-        private readonly Dictionary<Type, Func<Type, IReader, object>> _customDeserializerMapping;
+        private readonly Dictionary<Type, Func<IReader, object>> _customDeserializerMapping;
 
         internal Resolver(TypeSchema writerSchema, TypeSchema readerSchema, AvroConvertOptions options = null)
         {
@@ -45,7 +45,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             _hasCustomConverters = (options?.AvroConverters.Any()).GetValueOrDefault();
             _customDeserializerMapping = options?.AvroConverters.ToDictionary(
                 x => x.TypeSchema.RuntimeType,
-                y => (Func<Type, IReader, object>)y.Deserialize);
+                y => (Func<IReader, object>)y.Deserialize);
         }
 
         internal T Resolve<T>(IReader reader, long itemsCount = 0)
@@ -74,7 +74,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                 {
                     if (_customDeserializerMapping.TryGetValue(type, out var deserializer))
                     {
-                        return deserializer(type, reader);
+                        return deserializer(reader);
                     }
                 }
 

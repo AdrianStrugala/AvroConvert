@@ -48,7 +48,7 @@ namespace AvroConvertComponentTests.Converters
             writer.WriteString("DUPA");
         }
 
-        public object Deserialize(Type readType, IReader reader)
+        public object Deserialize(IReader reader)
         {
             return reader.ReadString();
         }

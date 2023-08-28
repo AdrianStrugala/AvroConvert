@@ -11,6 +11,6 @@ namespace SolTechnology.Avro.Converters
 
         public void Serialize(object data, IWriter writer);
 
-        object Deserialize(Type readType, IReader reader);
+        object Deserialize(IReader reader);
     }
 }

@@ -15,11 +15,12 @@
 */
 #endregion
 
-namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
+// ReSharper disable once CheckNamespace
+namespace SolTechnology.Avro.AvroObjectServices.Write
 {
-    internal class String
+    internal partial class WriteResolver
     {
-        internal void Resolve(object value, IWriter writer)
+        internal void ResolveString(object value, IWriter writer)
         {
             if (value == null)
             {

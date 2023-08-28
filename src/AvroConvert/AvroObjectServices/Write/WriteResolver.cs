@@ -21,92 +21,53 @@ using System.Linq;
 using Newtonsoft.Json.Linq;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
-using SolTechnology.Avro.AvroObjectServices.Write.Resolvers;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Infrastructure.Exceptions;
-using Array = SolTechnology.Avro.AvroObjectServices.Write.Resolvers.Array;
-using Decimal = SolTechnology.Avro.AvroObjectServices.Write.Resolvers.Decimal;
-using Enum = SolTechnology.Avro.AvroObjectServices.Write.Resolvers.Enum;
-using String = SolTechnology.Avro.AvroObjectServices.Write.Resolvers.String;
+
 
 namespace SolTechnology.Avro.AvroObjectServices.Write
 {
-    internal static class WriteResolver
+    internal partial class WriteResolver
     {
         internal delegate void Writer<in T>(T t);
 
-        private static readonly Array Array;
-        private static readonly Map Map;
-        private static readonly Null Null;
-        private static readonly String String;
-        private static readonly Record Record;
-        private static readonly Enum Enum;
-        private static readonly Fixed Fixed;
-        private static readonly Union Union;
-        private static readonly Long Long;
-        private static readonly Uuid Uuid;
-        private static readonly Decimal Decimal;
-        private static readonly Duration Duration;
-        private static readonly TimestampMilliseconds TimestampMilliseconds;
-        private static readonly TimestampMicroseconds TimestampMicroseconds;
-        private static readonly Json Json;
-        private static readonly Int Int;
-        private static readonly Date Date;
-        private static readonly TimeMilliseconds TimeMilliseconds;
-        private static readonly TimeMicroseconds TimeMicroseconds;
-        private static readonly Bool Bool;
-
         private static bool _hasCustomConverters;
-        private static Dictionary<Type, TypeSchema> _customSchemaMapping;
+        private readonly Dictionary<Type, Action<object, IWriter>> _customSerializerMapping;
 
-
-        //TODO: it would have to not be static
-
-        static WriteResolver()
-        {
-            Array = new Array();
-            Null = new Null();
-            Map = new Map();
-            String = new String();
-            Record = new Record();
-            Enum = new Enum();
-            Fixed = new Fixed();
-            Union = new Union();
-            Long = new Long();
-            Uuid = new Uuid();
-            Decimal = new Decimal();
-            Duration = new Duration();
-            TimestampMilliseconds = new TimestampMilliseconds();
-            TimestampMicroseconds = new TimestampMicroseconds();
-            Json = new Json();
-            Int = new Int();
-            Date = new Date();
-            TimeMilliseconds = new TimeMilliseconds();
-            TimeMicroseconds = new TimeMicroseconds();
-            Bool = new Bool();
-        }
-
-        internal static Encoder.WriteItem ResolveWriter(TypeSchema schema, AvroConvertOptions options = null)
+        internal WriteResolver(AvroConvertOptions options = null)
         {
             _hasCustomConverters = (options?.AvroConverters.Any()).GetValueOrDefault();
-            _customSchemaMapping = options?.AvroConverters.ToDictionary(x => x.TypeSchema.RuntimeType, y => y.TypeSchema);
+            _customSerializerMapping = options?.AvroConverters.ToDictionary(
+                x => x.TypeSchema.RuntimeType,
+                y => (Action<object, IWriter>)y.Serialize);
+        }
+
+        internal Encoder.WriteItem ResolveWriter(TypeSchema schema)
+        {
+            if (_hasCustomConverters)
+            {
+                if (_customSerializerMapping.TryGetValue(schema.RuntimeType, out var serializer))
+                {
+                    return (v, e) => serializer(v, e);
+                }
+            }
 
             switch (schema.Type)
             {
                 case AvroType.Null:
-                    return Null.Resolve;
+                    return ResolveNull;
                 case AvroType.Boolean:
-                    return Bool.Resolve;
+                    return ResolveBool;
                 case AvroType.Int:
-                    return Int.Resolve;
+                    return ResolveInt;
                 case AvroType.Long:
-                    return Long.Resolve;
+                    return ResolveLong;
                 case AvroType.Float:
                     return (v, e) => Write<float>(v, schema.Type, e.WriteFloat);
                 case AvroType.Double:
                     return (v, e) => Write<double>(v, schema.Type, e.WriteDouble);
                 case AvroType.String:
-                    return String.Resolve;
+                    return ResolveString;
                 case AvroType.Bytes:
                     return (v, e) => Write<byte[]>(v, schema.Type, e.WriteBytes);
                 case AvroType.Error:
@@ -116,40 +77,40 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
                         switch (logicalTypeSchema.LogicalTypeName)
                         {
                             case LogicalTypeSchema.LogicalTypeEnum.Uuid:
-                                return Uuid.Resolve((UuidSchema)logicalTypeSchema);
+                                return ResolveUuid((UuidSchema)logicalTypeSchema);
                             case LogicalTypeSchema.LogicalTypeEnum.Decimal:
-                                return (v, e) => Decimal.Resolve((DecimalSchema)logicalTypeSchema, v, e);
+                                return (v, e) => ResolveDecimal((DecimalSchema)logicalTypeSchema, v, e);
                             case LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds:
-                                return (v, e) => TimestampMilliseconds.Resolve((TimestampMillisecondsSchema)logicalTypeSchema, v, e);
+                                return (v, e) => ResolveTimestampMilliseconds((TimestampMillisecondsSchema)logicalTypeSchema, v, e);
                             case LogicalTypeSchema.LogicalTypeEnum.TimestampMicroseconds:
-                                return (v, e) => TimestampMicroseconds.Resolve((TimestampMicrosecondsSchema)logicalTypeSchema, v, e);
+                                return (v, e) => ResolveTimestampMicroseconds((TimestampMicrosecondsSchema)logicalTypeSchema, v, e);
                             case LogicalTypeSchema.LogicalTypeEnum.Duration:
-                                return (v, e) => Duration.Resolve((DurationSchema)logicalTypeSchema, v, e);
+                                return (v, e) => ResolveDuration((DurationSchema)logicalTypeSchema, v, e);
                             case LogicalTypeSchema.LogicalTypeEnum.Date:
-                                return Date.Resolve();
+                                return ResolveDate();
                             case LogicalTypeSchema.LogicalTypeEnum.TimeMilliseconds:
-                                return TimeMilliseconds.Resolve((TimeMillisecondsSchema)schema);
+                                return ResolveTimeMilliseconds((TimeMillisecondsSchema)schema);
                             case LogicalTypeSchema.LogicalTypeEnum.TimeMicrosecond:
-                                return TimeMicroseconds.Resolve((TimeMicrosecondsSchema)schema);
+                                return ResolveTimeMicroseconds((TimeMicrosecondsSchema)schema);
                         }
                     }
-                    return String.Resolve;
+                    return ResolveString;
                 case AvroType.Record:
                     if (schema.RuntimeType == typeof(JObject))
                     {
-                        return Json.Resolve((RecordSchema)schema);
+                        return ResolveJson((RecordSchema)schema);
                     }
-                    return Record.Resolve((RecordSchema)schema);
+                    return ResolveRecord((RecordSchema)schema);
                 case AvroType.Enum:
-                    return Enum.Resolve((EnumSchema)schema);
+                    return ResolveEnum((EnumSchema)schema);
                 case AvroType.Fixed:
-                    return Fixed.Resolve((FixedSchema)schema);
+                    return ResolveFixed((FixedSchema)schema);
                 case AvroType.Array:
-                    return Array.Resolve((ArraySchema)schema);
+                    return ResolveArray((ArraySchema)schema);
                 case AvroType.Map:
-                    return Map.Resolve((MapSchema)schema);
+                    return ResolveMap((MapSchema)schema);
                 case AvroType.Union:
-                    return Union.Resolve((UnionSchema)schema);
+                    return ResolveUnion((UnionSchema)schema);
                 default:
                     return (v, e) =>
                         throw new AvroTypeMismatchException(

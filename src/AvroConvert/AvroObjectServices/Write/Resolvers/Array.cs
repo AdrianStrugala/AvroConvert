@@ -21,13 +21,14 @@ using System.Linq;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.Features.Serialize;
 
-namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
+// ReSharper disable once CheckNamespace
+namespace SolTechnology.Avro.AvroObjectServices.Write
 {
-    internal class Array
+    internal partial class WriteResolver
     {
-        internal Encoder.WriteItem Resolve(ArraySchema schema)
+        internal Encoder.WriteItem ResolveArray(ArraySchema schema)
         {
-            var itemWriter = WriteResolver.ResolveWriter(schema.ItemSchema);
+            var itemWriter = ResolveWriter(schema.ItemSchema);
             return (d, e) => WriteArray(itemWriter, d, e);
         }
 

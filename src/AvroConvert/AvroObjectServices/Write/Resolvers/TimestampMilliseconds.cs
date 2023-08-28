@@ -21,11 +21,12 @@ using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 using SolTechnology.Avro.Infrastructure.Extensions;
 
-namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
+// ReSharper disable once CheckNamespace
+namespace SolTechnology.Avro.AvroObjectServices.Write
 {
-    internal class TimestampMilliseconds
+    internal partial class WriteResolver
     {
-        internal void Resolve(TimestampMillisecondsSchema schema, object logicalValue, IWriter writer)
+        internal void ResolveTimestampMilliseconds(TimestampMillisecondsSchema schema, object logicalValue, IWriter writer)
         {
             if (schema.BaseTypeSchema is not LongSchema)
             {

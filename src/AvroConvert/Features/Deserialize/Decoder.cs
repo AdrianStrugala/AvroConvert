@@ -34,6 +34,13 @@ namespace SolTechnology.Avro.Features.Deserialize
 {
     internal class Decoder
     {
+        private readonly AvroConvertOptions _options;
+
+        public Decoder(AvroConvertOptions options = null)
+        {
+            _options = options;
+        }
+
         internal T Decode<T>(Stream stream, TypeSchema readSchema)
         {
             var reader = new Reader(stream);
@@ -61,7 +68,7 @@ namespace SolTechnology.Avro.Features.Deserialize
 
                 TypeSchema writeSchema = Schema.Create(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
                 readSchema ??= writeSchema;
-                var resolver = new Resolver(writeSchema, readSchema);
+                var resolver = new Resolver(writeSchema, readSchema, _options);
 
                 // read in sync data 
                 reader.ReadFixed(header.SyncData);

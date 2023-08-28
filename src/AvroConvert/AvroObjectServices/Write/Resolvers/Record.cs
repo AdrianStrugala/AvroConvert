@@ -24,13 +24,16 @@ using System.Linq.Expressions;
 using System.Reflection;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
-namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
+using SolTechnology.Avro.AvroObjectServices.Write.Resolvers;
+
+// ReSharper disable once CheckNamespace
+namespace SolTechnology.Avro.AvroObjectServices.Write
 {
-    internal class Record
+    internal partial class WriteResolver
     {
         private readonly ConcurrentDictionary<int, Func<object, string, object>> gettersDictionary = new ConcurrentDictionary<int, Func<object, string, object>>();
 
-        internal Encoder.WriteItem Resolve(RecordSchema recordSchema)
+        internal Encoder.WriteItem ResolveRecord(RecordSchema recordSchema)
         {
             WriteStep[] writeSteps = new WriteStep[recordSchema.Fields.Count];
 
@@ -39,7 +42,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
             {
                 var record = new WriteStep
                 {
-                    WriteField = WriteResolver.ResolveWriter(field.TypeSchema),
+                    WriteField = ResolveWriter(field.TypeSchema),
                     FiledName = field.Aliases.FirstOrDefault() ?? field.Name,
                 };
                 writeSteps[index++] = record;

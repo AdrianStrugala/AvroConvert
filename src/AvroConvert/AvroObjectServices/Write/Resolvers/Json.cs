@@ -20,11 +20,14 @@ using System.Linq;
 using Newtonsoft.Json.Linq;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
-namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
+using SolTechnology.Avro.AvroObjectServices.Write.Resolvers;
+
+// ReSharper disable once CheckNamespace
+namespace SolTechnology.Avro.AvroObjectServices.Write
 {
-    internal class Json
+    internal partial class WriteResolver
     {
-        internal Encoder.WriteItem Resolve(RecordSchema recordSchema)
+        internal Encoder.WriteItem ResolveJson(RecordSchema recordSchema)
         {
             WriteStep[] writeSteps = new WriteStep[recordSchema.Fields.Count];
 
@@ -33,7 +36,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
             {
                 var record = new WriteStep
                 {
-                    WriteField = WriteResolver.ResolveWriter(field.TypeSchema),
+                    WriteField = ResolveWriter(field.TypeSchema),
                     FiledName = field.Aliases.FirstOrDefault() ?? field.Name
                 };
                 writeSteps[index++] = record;
@@ -41,14 +44,14 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
 
             void RecordResolver(object v, IWriter e)
             {
-                WriteRecordFields(v, writeSteps, e);
+                WriteJsonRecordFields(v, writeSteps, e);
             }
 
 
             return RecordResolver;
         }
 
-        private void WriteRecordFields(object recordObj, WriteStep[] writers, IWriter encoder)
+        private void WriteJsonRecordFields(object recordObj, WriteStep[] writers, IWriter encoder)
         {
             HandleJObject((JObject)recordObj, writers, encoder);
         }

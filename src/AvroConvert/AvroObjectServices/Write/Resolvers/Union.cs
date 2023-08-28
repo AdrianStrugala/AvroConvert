@@ -23,18 +23,19 @@ using SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
-namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
+// ReSharper disable once CheckNamespace
+namespace SolTechnology.Avro.AvroObjectServices.Write
 {
-    internal class Union
+    internal partial class WriteResolver
     {
-        internal Encoder.WriteItem Resolve(UnionSchema unionSchema)
+        internal Encoder.WriteItem ResolveUnion(UnionSchema unionSchema)
         {
             var branchSchemas = unionSchema.Schemas.ToArray();
             var branchWriters = new Encoder.WriteItem[branchSchemas.Length];
             int branchIndex = 0;
             foreach (var branch in branchSchemas)
             {
-                branchWriters[branchIndex++] = WriteResolver.ResolveWriter(branch);
+                branchWriters[branchIndex++] = ResolveWriter(branch);
             }
 
 

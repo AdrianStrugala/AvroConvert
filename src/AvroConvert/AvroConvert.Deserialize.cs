@@ -45,6 +45,23 @@ namespace SolTechnology.Avro
             }
         }
 
+        //TODO: change summary
+        /// <summary>
+        /// Deserializes Avro object to .NET type
+        /// </summary>
+        public static T Deserialize<T>(byte[] avroBytes, AvroConvertOptions options)
+        {
+            using (var stream = new MemoryStream(avroBytes))
+            {
+                var decoder = new Decoder(options);
+                var deserialized = decoder.Decode<T>(
+                    stream,
+                    Schema.Create(typeof(T))
+                );
+                return deserialized;
+            }
+        }
+
         /// <summary>
         /// Deserializes Avro object to .NET type
         /// </summary>

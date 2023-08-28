@@ -29,7 +29,7 @@ namespace AvroConvertComponentTests.Converters
             };
 
             var result = AvroConvert.Serialize(underTest, avroConvertOptions);
-            var deserialized = AvroConvert.Deserialize<string>(result);
+            var deserialized = AvroConvert.Deserialize<string>(result, avroConvertOptions);
 
 
             //Assert

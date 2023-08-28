@@ -26,7 +26,6 @@ using SolTechnology.Avro.AvroObjectServices.FileHeader;
 using SolTechnology.Avro.AvroObjectServices.FileHeader.Codec;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.AvroObjectServices.Write;
-using SolTechnology.Avro.Infrastructure.Exceptions;
 
 namespace SolTechnology.Avro.Features.Serialize
 {
@@ -63,7 +62,8 @@ namespace SolTechnology.Avro.Features.Serialize
             _header.AddMetadata(DataFileConstants.CodecMetadataKey, _codec.Name);
             _header.AddMetadata(DataFileConstants.SchemaMetadataKey, schema.ToString());
 
-            _writeItem = WriteResolver.ResolveWriter(schema, options);
+            var resolver = new WriteResolver(options);
+            _writeItem = resolver.ResolveWriter(schema);
 
             _writer.WriteHeader(_header);
         }

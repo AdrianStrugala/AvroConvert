@@ -59,7 +59,7 @@ namespace SolTechnology.Avro
             using (MemoryStream resultStream = new MemoryStream())
             {
                 var schema = Schema.Create(obj, options);
-                using (var writer = new Encoder(schema, resultStream, options.Codec))
+                using (var writer = new Encoder(schema, resultStream, options.Codec, options))
                 {
                     writer.Append(obj);
                 }

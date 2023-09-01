@@ -30,8 +30,14 @@ namespace SolTechnology.Avro
     public static partial class AvroConvert
     {
         /// <summary>
-        /// Deserializes Avro object to .NET type
+        /// Deserializes Avro data from a byte array into a specified .NET type.
         /// </summary>
+        /// <typeparam name="T">The type of object to deserialize into.</typeparam>
+        /// <param name="avroBytes">The byte array containing the Avro data to be deserialized.</param>
+        /// <returns>The deserialized object of the specified type.</returns>
+        /// <remarks>
+        /// This method takes a byte array containing Avro data and deserializes it into an object of the specified type (generic parameter T).
+        /// </remarks>
         public static T Deserialize<T>(byte[] avroBytes)
         {
             using (var stream = new MemoryStream(avroBytes))
@@ -45,10 +51,17 @@ namespace SolTechnology.Avro
             }
         }
 
-        //TODO: change summary
         /// <summary>
-        /// Deserializes Avro object to .NET type
+        /// Deserializes Avro data from a byte array into a specified .NET type using the provided Avro conversion options.
         /// </summary>
+        /// <typeparam name="T">The type of object to deserialize into.</typeparam>
+        /// <param name="avroBytes">The byte array containing the Avro data to be deserialized.</param>
+        /// <param name="options">The Avro conversion options that control the deserialization process.</param>
+        /// <returns>The deserialized object of the specified type.</returns>
+        /// <remarks>
+        /// This method takes a byte array containing Avro data and deserializes it into an object of the specified type (generic parameter T).
+        /// The deserialization process is controlled by the provided Avro conversion options.
+        /// </remarks>
         public static T Deserialize<T>(byte[] avroBytes, AvroConvertOptions options)
         {
             using (var stream = new MemoryStream(avroBytes))
@@ -63,8 +76,15 @@ namespace SolTechnology.Avro
         }
 
         /// <summary>
-        /// Deserializes Avro object to .NET type
+        /// Deserializes Avro data from a byte array into an object of the specified target type using reflection.
         /// </summary>
+        /// <param name="avroBytes">The byte array containing the Avro data to be deserialized.</param>
+        /// <param name="targetType">The target type into which the Avro data should be deserialized.</param>
+        /// <returns>The deserialized object of the specified target type.</returns>
+        /// <remarks>
+        /// This method uses reflection to dynamically invoke the generic <see cref="Deserialize{T}"/> method
+        /// to deserialize Avro data from a byte array into an object of the specified target type.
+        /// </remarks>
         public static dynamic Deserialize(byte[] avroBytes, Type targetType)
         {
             object result = typeof(AvroConvert)
@@ -77,8 +97,15 @@ namespace SolTechnology.Avro
 
 
         /// <summary>
-        /// Deserializes Avro object to .NET type
+        /// Deserializes Avro data from a <see cref="ReadOnlySpan{T}"/> of bytes into an object of the specified type.
         /// </summary>
+        /// <typeparam name="T">The type of object to deserialize into.</typeparam>
+        /// <param name="avroBytes">The <see cref="ReadOnlySpan{T}"/> of bytes containing the Avro data to be deserialized.</param>
+        /// <returns>The deserialized object of the specified type.</returns>
+        /// <remarks>
+        /// This method performs Avro data deserialization from a <see cref="ReadOnlySpan{T}"/> of bytes into an object of the specified type.
+        /// It is suitable for scenarios where minimizing memory allocation is crucial.
+        /// </remarks>
         public static unsafe T Deserialize<T>(ReadOnlySpan<byte> avroBytes)
         {
             fixed (byte* ptr = avroBytes)

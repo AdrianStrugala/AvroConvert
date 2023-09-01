@@ -27,7 +27,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
         {
             if (value is not long converted)
             {
-                try //ResolveMap ulong
+                try //Resolve ulong
                 {
                     writer.WriteLong(Convert.ToInt64(value));
                     return;

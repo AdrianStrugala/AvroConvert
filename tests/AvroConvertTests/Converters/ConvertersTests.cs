@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using AutoFixture;
 using SolTechnology.Avro;
 using SolTechnology.Avro.AvroObjectServices.Read;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
@@ -12,11 +13,13 @@ namespace AvroConvertComponentTests.Converters
 {
     public class ConvertersTests
     {
+
+
         [Fact]
         public void Custom_converter_is_used_for_schema_generation_and_serialization_and_deserialization()
         {
             //Arrange
-            string underTest = "someRandomString";
+            string underTest = "stringThatShouldBeOverriden";
 
 
             //Act
@@ -34,18 +37,20 @@ namespace AvroConvertComponentTests.Converters
 
             //Assert
             Assert.NotNull(result);
-            Assert.Equal("DUPA", deserialized);
+            Assert.NotEqual(underTest, deserialized);
         }
     }
 
 
     public class RandomStringConverter : IAvroConverter
     {
+        Fixture fixture = new Fixture();
+
         public TypeSchema TypeSchema => new RandomStringSchema(typeof(string), AvroType.String, nameof(RandomStringSchema));
 
         public void Serialize(object data, IWriter writer)
         {
-            writer.WriteString("DUPA");
+            writer.WriteString(fixture.Create<string>());
         }
 
         public object Deserialize(IReader reader)

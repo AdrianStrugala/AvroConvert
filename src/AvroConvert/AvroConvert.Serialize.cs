@@ -24,7 +24,7 @@ namespace SolTechnology.Avro
     public static partial class AvroConvert
     {
         /// <summary>
-        /// Serializes given object to Avro format (including header with metadata)
+        /// Serializes given object into Avro format (including header with metadata)
         /// </summary>
         public static byte[] Serialize(object obj)
         {
@@ -32,7 +32,7 @@ namespace SolTechnology.Avro
         }
 
         /// <summary>
-        /// Serializes given object to Avro format (including header with metadata)
+        /// Serializes given object into Avro format (including header with metadata)
         /// Choosing <paramref name="codecType"/> reduces output object size
         /// </summary>
         public static byte[] Serialize(object obj, CodecType codecType)
@@ -41,6 +41,30 @@ namespace SolTechnology.Avro
             {
                 var schema = Schema.Create(obj);
                 using (var writer = new Encoder(schema, resultStream, codecType))
+                {
+                    writer.Append(obj);
+                }
+                byte[] result = resultStream.ToArray();
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// Serializes given object into Avro format (including header with metadata) and returns the serialized data as a byte array.
+        /// </summary>
+        /// <param name="obj">The object to be serialized into Avro format.</param>
+        /// <param name="options">The Avro conversion options that control the serialization process.</param>
+        /// <returns>A byte array containing the serialized Avro data.</returns>
+        /// <remarks>
+        /// This method takes an object and serializes it into Avro format based on the provided Avro conversion options.
+        /// The resulting serialized data is returned as a byte array.
+        /// </remarks>
+        public static byte[] Serialize(object obj, AvroConvertOptions options)
+        {
+            using (MemoryStream resultStream = new MemoryStream())
+            {
+                var schema = Schema.Create(obj, options);
+                using (var writer = new Encoder(schema, resultStream, options.Codec, options))
                 {
                     writer.Append(obj);
                 }

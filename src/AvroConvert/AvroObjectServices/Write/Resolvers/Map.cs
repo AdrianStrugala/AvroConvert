@@ -20,13 +20,14 @@ using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
-namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
+// ReSharper disable once CheckNamespace
+namespace SolTechnology.Avro.AvroObjectServices.Write
 {
-    internal class Map
+    internal partial class WriteResolver
     {
-        internal Encoder.WriteItem Resolve(MapSchema mapSchema)
+        internal Encoder.WriteItem ResolveMap(MapSchema mapSchema)
         {
-            var itemWriter = WriteResolver.ResolveWriter(mapSchema.ValueSchema);
+            var itemWriter = ResolveWriter(mapSchema.ValueSchema);
             return (v, e) => WriteMap(itemWriter, v, e);
         }
 

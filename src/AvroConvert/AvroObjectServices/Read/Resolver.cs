@@ -16,9 +16,12 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.AvroObjectServices.Skip;
+using SolTechnology.Avro.AvroObjectServices.Write;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
 namespace SolTechnology.Avro.AvroObjectServices.Read
@@ -27,14 +30,22 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
     {
         private readonly Skipper _skipper;
         private readonly TypeSchema _readerSchema;
+        private readonly AvroConvertOptions _options;
         private readonly TypeSchema _writerSchema;
+        private readonly bool _hasCustomConverters;
+        private readonly Dictionary<Type, Func<IReader, object>> _customDeserializerMapping;
 
-        internal Resolver(TypeSchema writerSchema, TypeSchema readerSchema)
+        internal Resolver(TypeSchema writerSchema, TypeSchema readerSchema, AvroConvertOptions options = null)
         {
             _readerSchema = readerSchema;
             _writerSchema = writerSchema;
 
             _skipper = new Skipper();
+
+            _hasCustomConverters = (options?.AvroConverters.Any()).GetValueOrDefault();
+            _customDeserializerMapping = options?.AvroConverters.ToDictionary(
+                x => x.TypeSchema.RuntimeType,
+                y => (Func<IReader, object>)y.Deserialize);
         }
 
         internal T Resolve<T>(IReader reader, long itemsCount = 0)
@@ -59,6 +70,14 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         {
             try
             {
+                if (_hasCustomConverters)
+                {
+                    if (_customDeserializerMapping.TryGetValue(type, out var deserializer))
+                    {
+                        return deserializer(reader);
+                    }
+                }
+
                 switch (writerSchema.Type)
                 {
                     case AvroType.Null:
@@ -108,7 +127,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                 throw new AvroTypeMismatchException($"Unable to deserialize [{writerSchema.Name}] of schema [{writerSchema.Type}] to the target type [{type}]. Inner exception:", e);
             }
         }
-        
+
         private TypeSchema FindBranchReaderSchema(TypeSchema writerSchema, TypeSchema readerSchema)
         {
             if (readerSchema.Type == AvroType.Union && writerSchema.Type != AvroType.Union)

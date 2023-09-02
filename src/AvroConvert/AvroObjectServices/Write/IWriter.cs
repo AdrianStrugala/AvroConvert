@@ -2,7 +2,7 @@ using System.IO;
 
 namespace SolTechnology.Avro.AvroObjectServices.Write
 {
-    internal interface IWriter
+    public interface IWriter
     {
         /// <summary>
         /// null is written as zero bytes

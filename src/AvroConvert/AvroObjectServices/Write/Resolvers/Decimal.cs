@@ -20,11 +20,12 @@ using SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
-namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
+// ReSharper disable once CheckNamespace
+namespace SolTechnology.Avro.AvroObjectServices.Write
 {
-    internal class Decimal
+    internal partial class WriteResolver
     {
-        internal void Resolve(DecimalSchema schema, object logicalValue, IWriter writer)
+        internal void ResolveDecimal(DecimalSchema schema, object logicalValue, IWriter writer)
         {
             var avroDecimal = new AvroDecimal((decimal)logicalValue);
             var logicalScale = schema.Scale;

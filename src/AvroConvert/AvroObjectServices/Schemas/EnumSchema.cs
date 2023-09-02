@@ -140,6 +140,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             }
         }
 
-        internal override AvroType Type { get; } = AvroType.Enum;
+        internal override AvroType Type { get; set; } = AvroType.Enum;
     }
 }

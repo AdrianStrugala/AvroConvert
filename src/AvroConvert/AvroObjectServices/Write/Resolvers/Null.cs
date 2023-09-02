@@ -17,11 +17,12 @@
 
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
-namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
+// ReSharper disable once CheckNamespace
+namespace SolTechnology.Avro.AvroObjectServices.Write
 {
-    internal class Null
+    internal partial class WriteResolver
     {
-        internal void Resolve(object value, IWriter encoder)
+        internal void ResolveNull(object value, IWriter encoder)
         {
             if (value != null)
             {

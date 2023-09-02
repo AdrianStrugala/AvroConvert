@@ -20,11 +20,12 @@ using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
-namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
+// ReSharper disable once CheckNamespace
+namespace SolTechnology.Avro.AvroObjectServices.Write
 {
-    internal class Duration
+    internal partial class WriteResolver
     {
-        internal void Resolve(DurationSchema schema, object logicalValue, IWriter writer)
+        internal void ResolveDuration(DurationSchema schema, object logicalValue, IWriter writer)
         {
             var duration = (TimeSpan)logicalValue;
 

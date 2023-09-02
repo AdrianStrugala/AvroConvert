@@ -24,16 +24,11 @@ using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 
 namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 {
-    internal abstract class Schema
+    public abstract class Schema
     {
         protected Schema(IDictionary<string, string> attributes)
         {
-            if (attributes == null)
-            {
-                throw new ArgumentNullException("attributes");
-            }
-
-            Attributes = new Dictionary<string, string>(attributes);
+            Attributes = (Dictionary<string, string>)(attributes ?? new Dictionary<string, string>());
         }
 
         internal Dictionary<string, string> Attributes { get; set; }
@@ -80,9 +75,9 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             return new TypeSchemaBuilder().BuildSchema(schemaInJson);
         }
 
-        internal static TypeSchema Create(object obj)
+        internal static TypeSchema Create(object obj, AvroConvertOptions options = null)
         {
-            var builder = new ReflectionSchemaBuilder();
+            var builder = new ReflectionSchemaBuilder(null, options);
             var schema = builder.BuildSchema(obj?.GetType());
 
             return schema;

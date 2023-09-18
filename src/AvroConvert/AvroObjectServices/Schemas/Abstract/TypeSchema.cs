@@ -13,7 +13,7 @@
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
 
-/** Modifications copyright(C) 2020 Adrian Strugała **/
+/** Modifications copyright(C) 2023 Adrian Strugała **/
 
 using Newtonsoft.Json;
 using System;
@@ -38,6 +38,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
             RuntimeType = runtimeType;
         }
 
+        private string emptySchema = "{\"name\":\"Object\",\"namespace\":\"System\",\"type\":\"record\",\"fields\":[]}";
+
         internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
         {
             writer.WriteValue(CultureInfo.InvariantCulture.TextInfo.ToLower(this.Type.ToString()));
@@ -55,6 +57,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
         {
             get => string.IsNullOrEmpty(_name) ? Type.ToString().ToLower(CultureInfo.InvariantCulture) : _name;
             set => _name = value;
+        }
+
+        public bool IsEmpty()
+        {
+            return ToString().Equals(emptySchema);
         }
     }
 }

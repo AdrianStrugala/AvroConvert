@@ -1,5 +1,5 @@
 ﻿#region license
-/**Copyright (c) 2020 Adrian Strugała
+/**Copyright (c) 2023 Adrian Strugała
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.Serialization;
 using FastMember;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
@@ -26,21 +28,75 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 {
     internal partial class Resolver
     {
-        private readonly Dictionary<int, Dictionary<string, Func<object>>> readStepsDictionary = new Dictionary<int, Dictionary<string, Func<object>>>();
-        private readonly Dictionary<int, TypeAccessor> accessorDictionary = new Dictionary<int, TypeAccessor>();
+        private readonly Dictionary<int, Dictionary<string, Func<object>>> _readStepsDictionary = new Dictionary<int, Dictionary<string, Func<object>>>();
+        private readonly Dictionary<int, TypeAccessor> _accessorDictionary = new Dictionary<int, TypeAccessor>();
 
-        protected virtual object ResolveRecord(RecordSchema writerSchema, RecordSchema readerSchema, IReader dec, Type type)
+        protected virtual object ResolveRecord(RecordSchema writerSchema, RecordSchema readerSchema, IReader dec,
+            Type type)
         {
-            object result = FormatterServices.GetUninitializedObject(type);
-            var typeHash = type.GetHashCode();
-
-            TypeAccessor accessor;
-            Dictionary<string, Func<object>> readSteps;
-
-            if (!accessorDictionary.ContainsKey(typeHash))
+            if (type != typeof(object))
             {
-                accessor = TypeAccessor.Create(type, true);
-                readSteps = new Dictionary<string, Func<object>>();
+                object result = FormatterServices.GetUninitializedObject(type);
+                var typeHash = type.GetHashCode();
+
+                TypeAccessor accessor;
+                Dictionary<string, Func<object>> readSteps;
+
+                if (!_accessorDictionary.ContainsKey(typeHash))
+                {
+                    accessor = TypeAccessor.Create(type, true);
+                    readSteps = new Dictionary<string, Func<object>>();
+
+                    foreach (RecordFieldSchema wf in writerSchema.Fields)
+                    {
+                        if (readerSchema.TryGetField(wf.Name, out var rf))
+                        {
+                            string name = rf.Aliases.FirstOrDefault() ?? wf.Name;
+
+                            var members = accessor.GetMembers();
+                            var memberInfo = members.FirstOrDefault(n =>
+                                n.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+                            if (memberInfo == null)
+                            {
+                                continue;
+                            }
+
+                            Func<object> func = () =>
+                            {
+                                object value = Resolve(wf.TypeSchema, rf.TypeSchema, dec, memberInfo.Type);
+                                return value ?? FormatDefaultValue(wf.DefaultValue, memberInfo);
+                            };
+
+                            accessor[result, memberInfo.Name] = func.Invoke();
+
+                            readSteps.Add(memberInfo.Name, func);
+
+                        }
+                        else
+                            _skipper.Skip(wf.TypeSchema, dec);
+                    }
+
+                    _readStepsDictionary.Add(typeHash, readSteps);
+                    _accessorDictionary.Add(typeHash, accessor);
+                }
+                else
+                {
+                    accessor = _accessorDictionary[typeHash];
+                    readSteps = _readStepsDictionary[typeHash];
+
+                    foreach (var readStep in readSteps)
+                    {
+                        accessor[result, readStep.Key] = readStep.Value.Invoke();
+                    }
+                }
+
+                return result;
+            }
+            else
+            {
+                //for reading dynamics
+
+                var result = new ExpandoObject() as IDictionary<string, object>;
 
                 foreach (RecordFieldSchema wf in writerSchema.Fields)
                 {
@@ -48,43 +104,23 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                     {
                         string name = rf.Aliases.FirstOrDefault() ?? wf.Name;
 
-                        var members = accessor.GetMembers();
-                        var memberInfo = members.FirstOrDefault(n => n.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
-                        if (memberInfo == null)
+                        dynamic value;
+                        if (wf.TypeSchema.Type == AvroType.Array)
                         {
-                            continue;
+                            value = Resolve(wf.TypeSchema, rf.TypeSchema, dec, typeof(List<object>)) ?? wf.DefaultValue;
+                        }
+                        else
+                        {
+                            value = Resolve(wf.TypeSchema, rf.TypeSchema, dec, typeof(object)) ?? wf.DefaultValue;
                         }
 
-                        Func<object> func = () =>
-                        {
-                            object value = Resolve(wf.TypeSchema, rf.TypeSchema, dec, memberInfo.Type);
-                            return value ?? FormatDefaultValue(wf.DefaultValue, memberInfo);
-                        };
-
-                        accessor[result, memberInfo.Name] = func.Invoke();
-
-                        readSteps.Add(memberInfo.Name, func);
-
+                        result.Add(name, value);
                     }
                     else
                         _skipper.Skip(wf.TypeSchema, dec);
                 }
-
-                readStepsDictionary.Add(typeHash, readSteps);
-                accessorDictionary.Add(typeHash, accessor);
+                return result;
             }
-            else
-            {
-                accessor = accessorDictionary[typeHash];
-                readSteps = readStepsDictionary[typeHash];
-
-                foreach (var readStep in readSteps)
-                {
-                    accessor[result, readStep.Key] = readStep.Value.Invoke();
-                }
-            }
-
-            return result;
         }
 
         private static object FormatDefaultValue(object defaultValue, Member memberInfo)

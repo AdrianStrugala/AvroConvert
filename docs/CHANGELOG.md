@@ -1,5 +1,6 @@
 **v. 3.4.0 (??.??.23)**
 - Added support for custom IAvroConverter - allows applying custom implementation of serialization/deserialization for chosen type
+- Added support for deserialization to dynamic type (default flow only)
 
 \
 **v. 3.3.7 (07.08.23)**

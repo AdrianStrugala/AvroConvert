@@ -23,6 +23,9 @@ CustomClass deserializedObject = AvroConvert.Deserialize<CustomClass>(byte[] avr
 
 //Using dynamic method
 CustomClass deserializedObject = AvroConvert.Deserialize(byte[] avroObject, typeof(CustomClass));
+
+//Deserialization to dynamic result
+dynamic deserializedObject = AvroConvert.Deserialize<dynamic>(byte[] avroObject);
 ```
 
 Deserialization when a property value is null, but schema contains information about default value

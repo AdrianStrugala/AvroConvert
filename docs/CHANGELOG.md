@@ -1,4 +1,4 @@
-**v. 3.4.0 (??.??.23)**
+**v. 3.4.0 (18.09.23)**
 - Added support for custom IAvroConverter - allows applying custom implementation of serialization/deserialization for chosen type
 - Added support for deserialization to dynamic type (default flow only)
 
@@ -9,7 +9,7 @@
 
 \
 **v. 3.3.6 (29.05.23)**
-- Created new Tests engine which discover few not supported cases :)
+- Created new Tests engine which discovered few not supported cases :)
 - Allowed default value for Enum fields
 - Changed GenerateClass default value representation
 - Extended GenerateModel to generalize complex type build of different types (ex. null, string, record) to object

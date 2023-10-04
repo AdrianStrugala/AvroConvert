@@ -417,6 +417,11 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
             return typeof(IList).IsAssignableFrom(type);
         }
 
+        internal static bool IsEnumerable(this Type type)
+        {
+            return typeof(IEnumerable).IsAssignableFrom(type);
+        }
+
         internal static bool IsGuid(this Type type)
         {
             return type == typeof(Guid);

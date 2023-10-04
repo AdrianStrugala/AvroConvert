@@ -41,7 +41,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             {
                 writerSchema = ((ArraySchema)writerSchema).ItemSchema;
             }
-            readerSchema = ((ArraySchema)readerSchema).ItemSchema;
+
+            if (readerSchema is ArraySchema arraySchema)
+            {
+                readerSchema = arraySchema.ItemSchema;
+            }
 
             if (type.IsDictionary())
             {

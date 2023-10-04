@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using SolTechnology.Avro;
 
 namespace AvroConvertComponentTests;
@@ -34,6 +35,11 @@ public static class TestEngine
         yield return Brotli;
 
         yield return Snappy;
+    }
+
+    public static IEnumerable<object[]> ContainerOnly()
+    {
+        yield return Container;
     }
 
     public static IEnumerable<object[]> CoreUsingSchema()
@@ -81,6 +87,26 @@ public static class TestEngine
             });
 
             return new object[] { headless };
+        }
+    }
+    
+    private static object[] Container
+    {
+        get
+        {
+            var @default = new Func<object, Type, dynamic>((input, type) =>
+            {
+                var actualType = input.GetType().IsArray ? input.GetType().GetElementType() : input.GetType().GetGenericArguments().First();
+                
+                var serializeContainerMethod = typeof(AvroConvert).GetMethods()
+                    .Where(x => x.Name == nameof(AvroConvert.SerializeContainer))
+                    .First(x => x.IsGenericMethod)!.MakeGenericMethod(actualType!);
+
+                var serialized = (byte[])serializeContainerMethod.Invoke(null, new [] { input });
+                return AvroConvert.DeserializeContainer(serialized, type);
+            });
+
+            return new object[] { @default };
         }
     }
 

@@ -21,6 +21,7 @@
 #endregion
 
 using System;
+using System.Collections;
 using System.IO;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.Features.Deserialize;
@@ -41,6 +42,7 @@ namespace SolTechnology.Avro
         /// This method takes a byte array containing Avro data and deserializes it into an object of the specified type (generic parameter T).
         /// </remarks>
         public static T DeserializeContainer<T>(byte[] avroBytes)
+            where T: IEnumerable
         {
             var type = GetEnumerableType<T>();
             
@@ -67,6 +69,7 @@ namespace SolTechnology.Avro
         /// The deserialization process is controlled by the provided Avro conversion options.
         /// </remarks>
         public static T DeserializeContainer<T>(byte[] avroBytes, AvroConvertOptions options)
+            where T: IEnumerable
         {
             var type = GetEnumerableType<T>();
             
@@ -88,16 +91,14 @@ namespace SolTechnology.Avro
         /// <param name="targetType">The target type into which the Avro data should be deserialized.</param>
         /// <returns>The deserialized object of the specified target type.</returns>
         /// <remarks>
-        /// This method uses reflection to dynamically invoke the generic <see cref="Deserialize{T}"/> method
+        /// This method uses reflection to dynamically invoke the generic <see cref="DeserializeContainer{T}(byte[])"/> method
         /// to deserialize Avro data from a byte array into an object of the specified target type.
         /// </remarks>
         public static dynamic DeserializeContainer(byte[] avroBytes, Type targetType)
         {
-            var type = GetEnumerableType(targetType);
-            
             object result = typeof(AvroConvert)
                             .GetMethod(nameof(DeserializeContainer), new[] { typeof(byte[]) })
-                            ?.MakeGenericMethod(type)
+                            ?.MakeGenericMethod(targetType)
                             .Invoke(null, new object[] { avroBytes });
 
             return result;
@@ -115,6 +116,7 @@ namespace SolTechnology.Avro
         /// It is suitable for scenarios where minimizing memory allocation is crucial.
         /// </remarks>
         public static unsafe T DeserializeContainer<T>(ReadOnlySpan<byte> avroBytes)
+            where T: IEnumerable
         {
             var type = GetEnumerableType<T>();
             
@@ -133,11 +135,8 @@ namespace SolTechnology.Avro
 
         private static Type GetEnumerableType<T>()
         {
-            return GetEnumerableType(typeof(T));
-        }
-
-        private static Type GetEnumerableType(Type type)
-        {
+            var type = typeof(T);
+            
             if (!type.IsEnumerable())
                 throw new AvroException("[IEnumerable] required to deserialize container but found " + type);
 

@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 
 namespace SolTechnology.Avro.AvroObjectServices.Write
@@ -47,8 +48,13 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
         /// Bytes are encoded as a long followed by that many bytes of data.
         /// </summary>
         /// <param name="value"></param>
-        /// 
         void WriteBytes(byte[] value);
+
+        /// <summary>
+        /// Bytes are encoded as a long followed by that many bytes of data.
+        /// </summary>
+        /// <param name="buffer"></param>
+        void WriteBytes(ReadOnlySpan<byte> buffer);
 
         /// <summary>
         /// A string is encoded as a long followed by

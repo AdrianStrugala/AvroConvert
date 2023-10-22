@@ -76,7 +76,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
             WriteByte((byte)n);
         }
 
-
         public void WriteFloat(float value)
         {
             byte[] buffer = BitConverter.GetBytes(value);
@@ -107,6 +106,13 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
             WriteLong(value.Length);
             WriteBytesRaw(value);
         }
+
+        public void WriteBytes(ReadOnlySpan<byte> buffer)
+        {
+            WriteLong(buffer.Length);
+            WriteBytesRaw(buffer);
+        }
+
         public void WriteStream(MemoryStream stream)
         {
             WriteLong(stream.Length);
@@ -174,6 +180,15 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
         public void WriteBytesRaw(byte[] bytes)
         {
             _stream.Write(bytes, 0, bytes.Length);
+        }
+
+        public void WriteBytesRaw(ReadOnlySpan<byte> bytes)
+        {
+#if NET6_0_OR_GREATER
+            _stream.Write(bytes);
+#else
+            throw new NotImplementedException();
+#endif
         }
 
         private void WriteByte(byte b)

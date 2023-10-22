@@ -21,6 +21,7 @@
 #endregion
 
 using System;
+using System.Buffers.Binary;
 using System.IO;
 
 namespace SolTechnology.Avro.AvroObjectServices.Write
@@ -78,22 +79,46 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
 
         public void WriteFloat(float value)
         {
+#if NET6_0_OR_GREATER
+            Span<byte> buffer = stackalloc byte[4];
+            BinaryPrimitives.WriteSingleLittleEndian(buffer, value);
+
+            if (!BitConverter.IsLittleEndian)
+            {
+                buffer.Reverse();
+            }
+
+            WriteBytesRaw(buffer);
+#else
             byte[] buffer = BitConverter.GetBytes(value);
             if (!BitConverter.IsLittleEndian)
             {
                 Array.Reverse(buffer);
             }
             WriteBytesRaw(buffer);
+#endif
         }
 
         public void WriteDouble(double value)
         {
+#if NET6_0_OR_GREATER
+            Span<byte> buffer = stackalloc byte[8];
+            BinaryPrimitives.WriteDoubleLittleEndian(buffer, value);
+
+            if (!BitConverter.IsLittleEndian)
+            {
+                buffer.Reverse();
+            }
+
+            WriteBytesRaw(buffer);
+#else
             var bytes = BitConverter.GetBytes(value);
             if (!BitConverter.IsLittleEndian)
             {
                 Array.Reverse(bytes);
             }
             WriteBytesRaw(bytes);
+#endif
         }
 
         /// <summary>

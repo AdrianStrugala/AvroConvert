@@ -21,6 +21,7 @@
 #endregion
 
 using System;
+using System.Buffers;
 using System.IO;
 
 namespace SolTechnology.Avro.AvroObjectServices.Write
@@ -127,7 +128,30 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
         /// <param name="value"></param>
         public void WriteString(string value)
         {
+#if NET6_0_OR_GREATER
+            int maxByteCount = System.Text.Encoding.UTF8.GetMaxByteCount(value.Length);
+
+            if (maxByteCount <= 512)
+            {
+                Span<byte> buffer = stackalloc byte[maxByteCount];
+                int actualByteCount = System.Text.Encoding.UTF8.GetBytes(value, buffer);
+                buffer = buffer.Slice(0, actualByteCount);
+
+                WriteBytes(buffer);
+            }
+            else
+            {
+                var rentedBuffer = ArrayPool<byte>.Shared.Rent(maxByteCount);
+                int actualByteCount = System.Text.Encoding.UTF8.GetBytes(value, rentedBuffer);
+                Span<byte> buffer = rentedBuffer.AsSpan(0, actualByteCount);
+
+                WriteBytes(buffer);
+
+                ArrayPool<byte>.Shared.Return(rentedBuffer);
+            }
+#else
             WriteBytes(System.Text.Encoding.UTF8.GetBytes(value));
+#endif
         }
 
         public void WriteEnum(int value)

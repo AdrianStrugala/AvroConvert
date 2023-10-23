@@ -74,7 +74,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
             var type = recordObj.GetType();
             var typeHash = type.GetHashCode();
 
-            var lazyGetters = gettersDictionary.GetOrAdd(typeHash, new Lazy<Func<object, string, object>>(() => GenerateGetValue(type), LazyThreadSafetyMode.PublicationOnly));
+            var lazyGetters = gettersDictionary.GetOrAdd(typeHash, new Lazy<Func<object, string, object>>(() => GenerateGetValue(type), LazyThreadSafetyMode.ExecutionAndPublication));
             Func<object, string, object> getters = lazyGetters.Value;
 
             foreach (var writer in writers)

@@ -28,7 +28,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         }
         public UuidSchema(Type runtimeType) : base(runtimeType)
         {
-            BaseTypeSchema = new BytesSchema();
+            BaseTypeSchema = new StringSchema();
         }
 
         internal override AvroType Type => AvroType.Logical;
@@ -41,7 +41,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
                 return baseValue;
             else
             {
-                return new Guid((byte[])baseValue);
+                return Guid.Parse((string)baseValue);
             }
         }
     }

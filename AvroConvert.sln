@@ -45,7 +45,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvroConvertUnitTests", "tes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Profiler", "tests\Profiler\Profiler.csproj", "{F2E89AF6-EFDD-4233-A15D-3AE4D5CFE48F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreBenchmarks", "tests\CoreBenchmarks\CoreBenchmarks\CoreBenchmarks.csproj", "{ADAE7FF2-F659-43D8-B826-D6D2C477E596}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreBenchmarks", "tests\CoreBenchmarks\CoreBenchmarks.csproj", "{ADAE7FF2-F659-43D8-B826-D6D2C477E596}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

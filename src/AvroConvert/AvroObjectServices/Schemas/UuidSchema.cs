@@ -28,20 +28,20 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         }
         public UuidSchema(Type runtimeType) : base(runtimeType)
         {
-            BaseTypeSchema = new BytesSchema();
+            BaseTypeSchema = new StringSchema();
         }
 
         internal override AvroType Type => AvroType.Logical;
         internal override TypeSchema BaseTypeSchema { get; set; }
         internal override string LogicalTypeName => LogicalTypeEnum.Uuid;
-        
+
         internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type readType)
         {
             if (baseValue is Guid)
                 return baseValue;
             else
             {
-                return new Guid((byte[])baseValue);
+                return Guid.Parse((string)baseValue);
             }
         }
     }

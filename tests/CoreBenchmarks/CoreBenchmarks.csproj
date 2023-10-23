@@ -12,7 +12,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\..\src\AvroConvert\AvroConvert.csproj" />
+	  <ProjectReference Include="..\..\src\AvroConvert\AvroConvert.csproj" />
 	</ItemGroup>
 
 </Project>

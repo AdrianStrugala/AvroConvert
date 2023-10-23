@@ -7,8 +7,8 @@ namespace AvroConvertComponentTests.GenerateSchema
     public class LogicalTypeTests
     {
         [Theory]
-        [InlineData(typeof(Guid?), @"[""null"",{""type"":""bytes"",""logicalType"":""uuid""}]")]
-        [InlineData(typeof(Guid), @"{""type"":""bytes"",""logicalType"":""uuid""}")]
+        [InlineData(typeof(Guid?), @"[""null"",{""type"":""string"",""logicalType"":""uuid""}]")]
+        [InlineData(typeof(Guid), @"{""type"":""string"",""logicalType"":""uuid""}")]
         [InlineData(typeof(DateTime?), @"[""null"",{""type"":""long"",""logicalType"":""timestamp-micros""}]")]
         [InlineData(typeof(DateTime), @"{""type"":""long"",""logicalType"":""timestamp-micros""}")]
         [InlineData(typeof(TimeSpan?), @"[""null"",{""type"":""fixed"",""size"":12,""name"":""duration"",""logicalType"":""duration""}]")]

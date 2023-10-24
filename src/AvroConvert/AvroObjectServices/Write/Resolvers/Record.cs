@@ -22,6 +22,7 @@ using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Write.Resolvers;
@@ -31,7 +32,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
 {
     internal partial class WriteResolver
     {
-        private readonly ConcurrentDictionary<int, Func<object, string, object>> gettersDictionary = new ConcurrentDictionary<int, Func<object, string, object>>();
+        private static readonly ConcurrentDictionary<int, Lazy<Func<object, string, object>>> gettersDictionary = new ConcurrentDictionary<int, Lazy<Func<object, string, object>>>();
 
         internal Encoder.WriteItem ResolveRecord(RecordSchema recordSchema)
         {
@@ -73,16 +74,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
             var type = recordObj.GetType();
             var typeHash = type.GetHashCode();
 
-            Func<object, string, object> getters;
-            if (gettersDictionary.ContainsKey(typeHash))
-            {
-                getters = gettersDictionary[typeHash];
-            }
-            else
-            {
-                getters = GenerateGetValue(type);
-                gettersDictionary.AddOrUpdate(typeHash, getters, (key, existingVal) => existingVal);
-            }
+            var lazyGetters = gettersDictionary.GetOrAdd(typeHash, new Lazy<Func<object, string, object>>(() => GenerateGetValue(type), LazyThreadSafetyMode.ExecutionAndPublication));
+            Func<object, string, object> getters = lazyGetters.Value;
 
             foreach (var writer in writers)
             {

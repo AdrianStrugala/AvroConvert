@@ -21,7 +21,6 @@ using System.Linq;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.AvroObjectServices.Skip;
-using SolTechnology.Avro.AvroObjectServices.Write;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
 namespace SolTechnology.Avro.AvroObjectServices.Read
@@ -30,7 +29,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
     {
         private readonly Skipper _skipper;
         private readonly TypeSchema _readerSchema;
-        private readonly AvroConvertOptions _options;
         private readonly TypeSchema _writerSchema;
         private readonly bool _hasCustomConverters;
         private readonly Dictionary<Type, Func<IReader, object>> _customDeserializerMapping;

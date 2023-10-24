@@ -27,7 +27,7 @@ namespace SolTechnology.Avro
         /// </summary>
         public static string GenerateSchema(Type type)
         {
-            var schemaBuilder = new ReflectionSchemaBuilder(new AvroSerializerSettings());
+            var schemaBuilder = new ReflectionSchemaBuilder();
             var schema = schemaBuilder.BuildSchema(type);
 
             return schema.ToString();
@@ -40,7 +40,10 @@ namespace SolTechnology.Avro
         /// </summary>
         public static string GenerateSchema(Type type, bool includeOnlyDataContractMembers)
         {
-            var builder = new ReflectionSchemaBuilder(new AvroSerializerSettings(includeOnlyDataContractMembers));
+            var builder = new ReflectionSchemaBuilder(new AvroConvertOptions
+            {
+                IncludeOnlyDataContractMembers = includeOnlyDataContractMembers
+            });
             var schema = builder.BuildSchema(type);
 
             return schema.ToString();

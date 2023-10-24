@@ -23,32 +23,44 @@
 using System.Collections.Generic;
 using SolTechnology.Avro.Converters;
 
-namespace SolTechnology.Avro
+namespace SolTechnology.Avro;
+
+/// <summary>
+/// Represents options for configuring Avro conversion and serialization settings.
+/// </summary>
+/// <remarks>
+/// Use this class to configure Avro conversion options, including a collection of custom Avro converters
+/// and the preferred codec type for serialization.
+/// </remarks>
+public class AvroConvertOptions
 {
     /// <summary>
-    /// Represents options for configuring Avro conversion and serialization settings.
+    /// Gets or sets a collection of custom Avro converters used for custom serialization and deserialization.
     /// </summary>
     /// <remarks>
-    /// Use this class to configure Avro conversion options, including a collection of custom Avro converters
-    /// and the preferred codec type for serialization.
+    /// Avro converters implement the <see cref="IAvroConverter"/> interface to provide specialized
+    /// serialization and deserialization behavior for specific runtime types.
     /// </remarks>
-    public class AvroConvertOptions
-    {
-        /// <summary>
-        /// Gets or sets a collection of custom Avro converters used for custom serialization and deserialization.
-        /// </summary>
-        /// <remarks>
-        /// Avro converters implement the <see cref="IAvroConverter"/> interface to provide specialized
-        /// serialization and deserialization behavior for specific runtime types.
-        /// </remarks>
-        public IEnumerable<IAvroConverter> AvroConverters { get; set; }
+    public List<IAvroConverter> AvroConverters { get; set; } = new();
 
-        /// <summary>
-        /// Gets or sets the preferred codec type for Avro serialization.
-        /// </summary>
-        /// <remarks>
-        /// The codec type determines the compression algorithm used during serialization.
-        /// </remarks>
-        public CodecType Codec { get; set; }
-    }
+    /// <summary>
+    /// Gets or sets the preferred codec type for Avro serialization.
+    /// </summary>
+    /// <remarks>
+    /// The codec type determines the compression algorithm used during serialization.
+    /// </remarks>
+    public CodecType Codec { get; set; }
+
+    /// <summary>
+    ///     Gets or sets the maximum number of items in the schema tree.
+    /// </summary>
+    /// <value>
+    ///     The maximum number of items in the schema tree.
+    /// </value>
+    public int MaxItemsInSchemaTree { get; set; } = 1024;
+
+    /// <summary>
+    /// If set to <c>true</c> members without DataMemberAttribute won't be taken into consideration in serialization/deserialization
+    /// </summary>
+    public bool IncludeOnlyDataContractMembers { get; set; }
 }

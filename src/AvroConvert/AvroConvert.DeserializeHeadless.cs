@@ -128,7 +128,7 @@ namespace SolTechnology.Avro
 
         private static TypeSchema BuildSchema(Type type)
         {
-            var schemaBuilder = new ReflectionSchemaBuilder(new AvroSerializerSettings());
+            var schemaBuilder = new ReflectionSchemaBuilder();
             return schemaBuilder.BuildSchema(type);
         }
     }

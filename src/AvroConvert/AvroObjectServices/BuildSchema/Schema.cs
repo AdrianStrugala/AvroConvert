@@ -77,7 +77,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
         internal static TypeSchema Create(object obj, AvroConvertOptions options = null)
         {
-            var builder = new ReflectionSchemaBuilder(null, options);
+            var builder = new ReflectionSchemaBuilder(options);
             var schema = builder.BuildSchema(obj?.GetType());
 
             return schema;

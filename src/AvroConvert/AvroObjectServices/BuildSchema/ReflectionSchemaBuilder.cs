@@ -70,24 +70,23 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 { typeof(DateTime), type => new LongSchema(type) }
             };
 
-        private readonly AvroSerializerSettings settings;
-        private readonly bool hasCustomConverters;
-        private readonly Dictionary<Type, TypeSchema> customSchemaMapping;
+        private readonly AvroConvertOptions _options;
+        private readonly bool _hasCustomConverters;
+        private readonly Dictionary<Type, TypeSchema> _customSchemaMapping;
+        private readonly AvroContractResolver _resolver;
 
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="ReflectionSchemaBuilder" /> class.
-        /// </summary>
-        /// <param name="settings">The settings.</param>
-        internal ReflectionSchemaBuilder(AvroSerializerSettings settings = null, AvroConvertOptions options = null)
+
+        internal ReflectionSchemaBuilder(AvroConvertOptions options = null)
         {
-            if (settings == null)
+            if (options == null)
             {
-                settings = new AvroSerializerSettings();
+                options = new AvroConvertOptions();
             }
-
-            this.settings = settings;
-            hasCustomConverters = (options?.AvroConverters.Any()).GetValueOrDefault();
-            customSchemaMapping = options?.AvroConverters.ToDictionary(x => x.TypeSchema.RuntimeType, y => y.TypeSchema);
+            _options = options;
+            _hasCustomConverters = options.AvroConverters.Any();
+            _customSchemaMapping = options.AvroConverters.ToDictionary(x => x.TypeSchema.RuntimeType, y => y.TypeSchema);
+            _resolver = new AvroContractResolver(
+                includeOnlyDataContractMembers: options.IncludeOnlyDataContractMembers);
         }
 
         /// <summary>
@@ -110,20 +109,20 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             Type prioritizedType = null,
             MemberInfo memberInfo = null)
         {
-            if (currentDepth == this.settings.MaxItemsInSchemaTree)
+            if (currentDepth == _options.MaxItemsInSchemaTree)
             {
                 throw new SerializationException(string.Format(CultureInfo.InvariantCulture, "Maximum depth of object graph reached."));
             }
 
-            if (hasCustomConverters)
+            if (_hasCustomConverters)
             {
-                if (customSchemaMapping.TryGetValue(type, out var schema))
+                if (_customSchemaMapping.TryGetValue(type, out var schema))
                 {
                     return schema;
                 }
             }
 
-            var typeInfo = this.settings.Resolver.ResolveType(type, memberInfo);
+            var typeInfo = _resolver.ResolveType(type, memberInfo);
             if (typeInfo == null)
             {
                 throw new SerializationException(
@@ -320,8 +319,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
         private NamedEntityAttributes GetNamedEntityAttributesFrom(Type type)
         {
-            AvroContractResolver resolver = this.settings.Resolver;
-            TypeSerializationInfo typeInfo = resolver.ResolveType(type);
+            TypeSerializationInfo typeInfo = _resolver.ResolveType(type);
             var name = new SchemaName(typeInfo.Name, typeInfo.Namespace);
             var aliases = typeInfo
                 .Aliases
@@ -363,14 +361,13 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             }
 
             var attr = GetNamedEntityAttributesFrom(type);
-            AvroContractResolver resolver = this.settings.Resolver;
             var record = new RecordSchema(
                 attr,
                 type);
             schemas.Add(type.ToString(), record);
 
-            var members = resolver.ResolveMembers(type);
-            this.AddRecordFields(members, schemas, currentDepth, record);
+            var members = _resolver.ResolveMembers(type);
+            AddRecordFields(members, schemas, currentDepth, record);
             return record;
         }
 

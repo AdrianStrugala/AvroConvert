@@ -29,11 +29,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
     /// </summary>
     internal partial class Reader : IReader
     {
-        private readonly Stream stream;
+        private readonly Stream _stream;
 
         internal Reader(Stream stream)
         {
-            this.stream = stream;
+            this._stream = stream;
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 
         public bool IsReadToEnd()
         {
-            return this.stream.Position == this.stream.Length;
+            return this._stream.Position == this._stream.Length;
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         /// <returns></returns>
         public bool ReadBoolean()
         {
-            byte b = read();
+            byte b = Read();
             if (b == 0) return false;
             if (b == 1) return true;
             throw new AvroException("Not a boolean value in the stream: " + b);
@@ -77,12 +77,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         /// <returns></returns>
         public long ReadLong()
         {
-            byte b = read();
+            byte b = Read();
             ulong n = b & 0x7FUL;
             int shift = 7;
             while ((b & 0x80) != 0)
             {
-                b = read();
+                b = Read();
                 n |= (b & 0x7FUL) << shift;
                 shift += 7;
             }
@@ -98,7 +98,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         /// <returns></returns>
         public float ReadFloat()
         {
-            byte[] buffer = read(4);
+            byte[] buffer = Read(4);
 
             if (!BitConverter.IsLittleEndian)
                 Array.Reverse(buffer);
@@ -121,14 +121,14 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         /// <returns></returns>
         public double ReadDouble()
         {
-            long bits = (stream.ReadByte() & 0xffL) |
-              (stream.ReadByte() & 0xffL) << 8 |
-              (stream.ReadByte() & 0xffL) << 16 |
-              (stream.ReadByte() & 0xffL) << 24 |
-              (stream.ReadByte() & 0xffL) << 32 |
-              (stream.ReadByte() & 0xffL) << 40 |
-              (stream.ReadByte() & 0xffL) << 48 |
-              (stream.ReadByte() & 0xffL) << 56;
+            long bits = (_stream.ReadByte() & 0xffL) |
+              (_stream.ReadByte() & 0xffL) << 8 |
+              (_stream.ReadByte() & 0xffL) << 16 |
+              (_stream.ReadByte() & 0xffL) << 24 |
+              (_stream.ReadByte() & 0xffL) << 32 |
+              (_stream.ReadByte() & 0xffL) << 40 |
+              (_stream.ReadByte() & 0xffL) << 48 |
+              (_stream.ReadByte() & 0xffL) << 56;
             return BitConverter.Int64BitsToDouble(bits);
         }
 
@@ -138,7 +138,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         /// <returns></returns>
         public byte[] ReadBytes()
         {
-            return read(ReadLong());
+            return Read(ReadLong());
         }
 
         public string ReadString()
@@ -156,22 +156,22 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 
         public long ReadArrayStart()
         {
-            return doReadItemCount();
+            return DoReadItemCount();
         }
 
         public long ReadArrayNext()
         {
-            return doReadItemCount();
+            return DoReadItemCount();
         }
 
         public long ReadMapStart()
         {
-            return doReadItemCount();
+            return DoReadItemCount();
         }
 
         public long ReadMapNext()
         {
-            return doReadItemCount();
+            return DoReadItemCount();
         }
 
         public int ReadUnionIndex()
@@ -246,21 +246,21 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         }
 
         // Read p bytes into a new byte buffer
-        private byte[] read(long p)
+        private byte[] Read(long p)
         {
             byte[] buffer = new byte[p];
             Read(buffer, 0, buffer.Length);
             return buffer;
         }
 
-        private static float intBitsToFloat(int value)
+        private static float IntBitsToFloat(int value)
         {
             return BitConverter.ToSingle(BitConverter.GetBytes(value), 0);
         }
 
-        private byte read()
+        private byte Read()
         {
-            int n = stream.ReadByte();
+            int n = _stream.ReadByte();
             if (n >= 0) return (byte)n;
             throw new EndOfStreamException();
         }
@@ -269,14 +269,14 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         {
             while (len > 0)
             {
-                int n = stream.Read(buffer, start, len);
+                int n = _stream.Read(buffer, start, len);
                 if (n <= 0) throw new EndOfStreamException();
                 start += n;
                 len -= n;
             }
         }
 
-        private long doReadItemCount()
+        private long DoReadItemCount()
         {
             long result = ReadLong();
             if (result < 0)
@@ -289,19 +289,19 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 
         private void Skip(int p)
         {
-            stream.Seek(p, SeekOrigin.Current);
+            _stream.Seek(p, SeekOrigin.Current);
         }
 
         private void Skip(long p)
         {
-            stream.Seek(p, SeekOrigin.Current);
+            _stream.Seek(p, SeekOrigin.Current);
         }
 
         internal byte[] ReadToEnd()
         {
             using (MemoryStream ms = new MemoryStream())
             {
-                stream.CopyTo(ms);
+                _stream.CopyTo(ms);
                 return ms.ToArray();
             }
         }

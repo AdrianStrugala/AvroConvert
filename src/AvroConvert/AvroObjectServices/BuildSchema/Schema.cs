@@ -16,6 +16,7 @@
 /** Modifications copyright(C) 2020 Adrian Strugała **/
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -26,6 +27,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 {
     public abstract class Schema
     {
+        private static ConcurrentDictionary<Type, TypeSchema> _schemaCache = new();
         protected Schema(IDictionary<string, string> attributes)
         {
             Attributes = (Dictionary<string, string>)(attributes ?? new Dictionary<string, string>());
@@ -37,11 +39,11 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         {
             if (attribute == null)
             {
-                throw new ArgumentNullException("attribute");
+                throw new ArgumentNullException(nameof(attribute));
             }
             if (value == null)
             {
-                throw new ArgumentNullException("value");
+                throw new ArgumentNullException(nameof(value));
             }
             Attributes.Add(attribute, value);
         }
@@ -69,7 +71,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         {
             if (string.IsNullOrEmpty(schemaInJson))
             {
-                throw new ArgumentNullException("schemaInJson");
+                throw new ArgumentNullException(nameof(schemaInJson));
             }
 
             return new TypeSchemaBuilder().BuildSchema(schemaInJson);
@@ -77,18 +79,36 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
         internal static TypeSchema Create(object obj, AvroConvertOptions options = null)
         {
-            var builder = new ReflectionSchemaBuilder(options);
-            var schema = builder.BuildSchema(obj?.GetType());
+            var type = obj?.GetType();
+            
+            if (options is null && type is not null)
+            {
+                return _schemaCache.GetOrAdd(type,
+                    t =>
+                    {
+                        var builder = new ReflectionSchemaBuilder(null);
+                        var schema = builder.BuildSchema(t);
 
-            return schema;
+                        return schema;
+                    });
+            }
+            else
+            {
+                var builder = new ReflectionSchemaBuilder(options);
+                var schema = builder.BuildSchema(type);
+
+                return schema;
+            }
         }
 
-        internal static TypeSchema Create(Type type)
-        {
-            var builder = new ReflectionSchemaBuilder();
-            var schema = builder.BuildSchema(type);
+        internal static TypeSchema Create(Type type) =>
+            _schemaCache.GetOrAdd(type,
+                t =>
+                {
+                    var builder = new ReflectionSchemaBuilder();
+                    var schema = builder.BuildSchema(t);
 
-            return schema;
-        }
+                    return schema;
+                });
     }
 }

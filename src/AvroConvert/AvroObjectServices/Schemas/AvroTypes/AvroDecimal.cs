@@ -92,7 +92,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes
                 
                 value.AsSpan(0, indexOfSeparator).CopyTo(buffer);
                 
-                value.AsSpan(indexOfSeparator + 1).CopyTo(buffer.Slice(2));
+                value.AsSpan(indexOfSeparator + 1).CopyTo(buffer.Slice(indexOfSeparator));
             }
         }
 

@@ -15,6 +15,7 @@
 */
 #endregion
 
+using System;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes;
 using SolTechnology.Avro.Features.Serialize;
@@ -46,40 +47,53 @@ Consider adding following attribute to your property:
             var logicalValueString = logicalValue.ToString();
 
             string valueWithTrailingZeros;
+#if NET6_0_OR_GREATER
+            if (logicalValueString.Contains(avroDecimal.SeparatorCharacter))
+#else
             if (logicalValueString.Contains(avroDecimal.SeparatorCharacter.ToString()))
+#endif
             {
-                valueWithTrailingZeros = $"{logicalValue}{trailingZeros}";
+                valueWithTrailingZeros = $"{logicalValueString}{trailingZeros}";
             }
             else
             {
-                valueWithTrailingZeros = $"{logicalValue}{avroDecimal.SeparatorCharacter}{trailingZeros}";
+                valueWithTrailingZeros = $"{logicalValueString}{avroDecimal.SeparatorCharacter}{trailingZeros}";
             }
 
             avroDecimal = new AvroDecimal(valueWithTrailingZeros);
 
-            var buffer = avroDecimal.UnscaledValue.ToByteArray();
-            System.Array.Reverse(buffer);
-
+#if NET6_0_OR_GREATER
+            Span<byte> buffer = stackalloc byte[avroDecimal.UnscaledValue.GetByteCount(isUnsigned: false)];
+            avroDecimal.UnscaledValue.TryWriteBytes(buffer, out var _);
+            buffer.Reverse();
+#else            
+            var buffer = new Span<byte>(avroDecimal.UnscaledValue.ToByteArray());
+            buffer.Reverse();
+#endif
             var result = AvroType.Bytes == schema.BaseTypeSchema.Type
-                ? (object)buffer
-                : (object)new AvroFixed(
+                ? buffer
+                : new AvroFixed(
                     (FixedSchema)schema.BaseTypeSchema,
-                    GetDecimalFixedByteArray(buffer, ((FixedSchema)schema.BaseTypeSchema).Size,
-                        avroDecimal.Sign < 0 ? (byte)0xFF : (byte)0x00));
+                    GetDecimalFixedByteArray(ref buffer, ((FixedSchema)schema.BaseTypeSchema).Size,
+                        avroDecimal.Sign < 0 ? (byte)0xFF : (byte)0x00))
+                    .Value.AsSpan();
 
-            writer.WriteBytes((byte[])result);
+            writer.WriteBytes(result);
         }
 
-
-        private static byte[] GetDecimalFixedByteArray(byte[] sourceBuffer, int size, byte fillValue)
+        private static byte[] GetDecimalFixedByteArray(
+            ref Span<byte> sourceBuffer,
+            int size,
+            byte fillValue)
         {
-            var paddedBuffer = new byte[size];
-
             var offset = size - sourceBuffer.Length;
 
-            for (var idx = 0; idx < size; idx++)
+            var paddedBuffer = new byte[size];
+            paddedBuffer.AsSpan(0, offset).Fill(fillValue);
+
+            for (var idx = offset; idx < size; idx++)
             {
-                paddedBuffer[idx] = idx < offset ? fillValue : sourceBuffer[idx - offset];
+                paddedBuffer[idx] = sourceBuffer[idx - offset];
             }
 
             return paddedBuffer;

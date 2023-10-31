@@ -29,6 +29,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes
     internal struct AvroDecimal : IConvertible, IFormattable, IComparable, IComparable<AvroDecimal>,
         IEquatable<AvroDecimal>
     {
+        private static readonly char Separator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator[0];
+
         /// <summary>
         /// Initializes a new instance of the <see cref="AvroDecimal"/> class from a given double.
         /// </summary>
@@ -66,12 +68,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes
 
             UnscaledValue = unscaledValue;
             Scale = scale;
-            SeparatorCharacter = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator.ToCharArray()[0];
+            SeparatorCharacter = Separator;
         }
 
         internal AvroDecimal(string value)
         {
-            SeparatorCharacter = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator.ToCharArray()[0];
+            SeparatorCharacter = Separator;
 
             var unscaledValue = string.Join("", value.Split(SeparatorCharacter));
             UnscaledValue = BigInteger.Parse(unscaledValue);
@@ -127,7 +129,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes
         {
             UnscaledValue = unscaledValue;
             Scale = scale;
-            SeparatorCharacter = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator.ToCharArray()[0];
+            SeparatorCharacter = Separator;
         }
 
         /// <summary>
@@ -541,7 +543,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes
         /// </returns>
         public override bool Equals(object obj)
         {
-            return obj is AvroDecimal && Equals((AvroDecimal)obj);
+            return obj is AvroDecimal value && Equals(value);
         }
 
         /// <summary>
@@ -733,10 +735,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes
             if (obj == null)
                 return 1;
 
-            if (!(obj is AvroDecimal))
+            if (obj is not AvroDecimal value)
                 throw new ArgumentException("Compare to object must be a BigDecimal", nameof(obj));
 
-            return CompareTo((AvroDecimal)obj);
+            return CompareTo(value);
         }
 
         /// <summary>

@@ -72,6 +72,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
         void WriteMapEnd();
         void WriteUnionIndex(int value);
         void WriteFixed(byte[] data);
+        void WriteFixed(ReadOnlySpan<byte> data);
         void WriteFixed(byte[] data, int start, int len);
         void WriteBytesRaw(byte[] bytes);
         void WriteStream(MemoryStream stream);

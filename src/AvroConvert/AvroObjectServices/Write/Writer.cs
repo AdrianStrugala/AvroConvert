@@ -221,6 +221,15 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
             WriteFixed(data, 0, data.Length);
         }
 
+        public void WriteFixed(ReadOnlySpan<byte> bytes)
+        {
+#if NET6_0_OR_GREATER
+            _stream.Write(bytes);
+#else
+            WriteBytesRaw(bytes.ToArray());
+#endif
+        }
+
         public void WriteFixed(byte[] data, int start, int len)
         {
             _stream.Write(data, start, len);

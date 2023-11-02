@@ -30,6 +30,12 @@
 		</AssemblyAttribute>
 	</ItemGroup>
 
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+			<_Parameter1>CoreBenchmarks</_Parameter1>
+		</AssemblyAttribute>
+	</ItemGroup>
+
 	<PropertyGroup>
 		<PackageIcon>docs\mini-logo.png</PackageIcon>
 		<PackageIconUrl>https://raw.githubusercontent.com/AdrianStrugala/AvroConvert/master/docs/mini-logo.png</PackageIconUrl>

@@ -29,6 +29,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes
     internal struct AvroDecimal : IConvertible, IFormattable, IComparable, IComparable<AvroDecimal>,
         IEquatable<AvroDecimal>
     {
+        private static readonly char Separator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator[0];
+
         /// <summary>
         /// Initializes a new instance of the <see cref="AvroDecimal"/> class from a given double.
         /// </summary>
@@ -53,32 +55,45 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes
         /// <param name="value">The decimal value.</param>
         internal AvroDecimal(decimal value)
         {
-            var bytes = GetBytesFromDecimal(value);
-
-            var unscaledValueBytes = new byte[12];
-            Array.Copy(bytes, unscaledValueBytes, unscaledValueBytes.Length);
-
-            var unscaledValue = new BigInteger(unscaledValueBytes);
-            var scale = bytes[14];
-
-            if (bytes[15] == 128)
+            Span<byte> decimalByteBuffer = stackalloc byte[16];
+            WriteDecimalBytes(ref decimalByteBuffer, value);
+            
+#if NET6_0_OR_GREATER
+            var unscaledValue = new BigInteger(decimalByteBuffer.Slice(0, 12));
+#else
+            var unscaledValue = new BigInteger(decimalByteBuffer.Slice(0, 12).ToArray());
+#endif
+            if (decimalByteBuffer[15] == 128)
                 unscaledValue *= BigInteger.MinusOne;
 
             UnscaledValue = unscaledValue;
-            Scale = scale;
-            SeparatorCharacter = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator.ToCharArray()[0];
+            Scale = decimalByteBuffer[14];
+            SeparatorCharacter = Separator;
         }
 
         internal AvroDecimal(string value)
         {
-            SeparatorCharacter = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator.ToCharArray()[0];
+            SeparatorCharacter = Separator;
 
-            var unscaledValue = string.Join("", value.Split(SeparatorCharacter));
-            UnscaledValue = BigInteger.Parse(unscaledValue);
+            Span<char> buffer = stackalloc char[value.Length - 1];
+            GetValueWithoutSeparator(value, ref buffer, out var indexOfSeparatorCharacter);
 
-            var indexOfSeparatorCharacter = value.IndexOf(SeparatorCharacter);
+#if NET6_0_OR_GREATER
+            UnscaledValue = BigInteger.Parse(buffer);
+#else
+            UnscaledValue = BigInteger.Parse(buffer.ToString());
+#endif
             var scale = value.Length - indexOfSeparatorCharacter - 1;
             Scale = scale;
+
+            static void GetValueWithoutSeparator(string value, ref Span<char> buffer, out int indexOfSeparator)
+            {
+                indexOfSeparator = value.AsSpan().IndexOf(Separator);
+                
+                value.AsSpan(0, indexOfSeparator).CopyTo(buffer);
+                
+                value.AsSpan(indexOfSeparator + 1).CopyTo(buffer.Slice(indexOfSeparator));
+            }
         }
 
         /// <summary>
@@ -127,7 +142,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes
         {
             UnscaledValue = unscaledValue;
             Scale = scale;
-            SeparatorCharacter = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator.ToCharArray()[0];
+            SeparatorCharacter = Separator;
         }
 
         /// <summary>
@@ -541,7 +556,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes
         /// </returns>
         public override bool Equals(object obj)
         {
-            return obj is AvroDecimal && Equals((AvroDecimal)obj);
+            return obj is AvroDecimal value && Equals(value);
         }
 
         /// <summary>
@@ -733,10 +748,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes
             if (obj == null)
                 return 1;
 
-            if (!(obj is AvroDecimal))
+            if (obj is not AvroDecimal value)
                 throw new ArgumentException("Compare to object must be a BigDecimal", nameof(obj));
 
-            return CompareTo((AvroDecimal)obj);
+            return CompareTo(value);
         }
 
         /// <summary>
@@ -776,6 +791,37 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes
         public bool Equals(AvroDecimal other)
         {
             return Scale == other.Scale && UnscaledValue == other.UnscaledValue;
+        }
+        
+        private static void WriteDecimalBytes(ref Span<byte> buffer, decimal d)
+        {   
+#if NET6_0_OR_GREATER
+            Span<int> bits = stackalloc int[4];
+            decimal.GetBits(d, bits);
+#else
+            int[] bits = decimal.GetBits(d); 
+#endif  
+            int lo = bits[0];
+            int mid = bits[1];
+            int hi = bits[2];
+            int flags = bits[3];
+
+            buffer[0] = (byte)lo;
+            buffer[1] = (byte)(lo >> 8);
+            buffer[2] = (byte)(lo >> 0x10);
+            buffer[3] = (byte)(lo >> 0x18);
+            buffer[4] = (byte)mid;
+            buffer[5] = (byte)(mid >> 8);
+            buffer[6] = (byte)(mid >> 0x10);
+            buffer[7] = (byte)(mid >> 0x18);
+            buffer[8] = (byte)hi;
+            buffer[9] = (byte)(hi >> 8);
+            buffer[10] = (byte)(hi >> 0x10);
+            buffer[11] = (byte)(hi >> 0x18);
+            buffer[12] = (byte)flags;
+            buffer[13] = (byte)(flags >> 8);
+            buffer[14] = (byte)(flags >> 0x10);
+            buffer[15] = (byte)(flags >> 0x18);
         }
 
         private static byte[] GetBytesFromDecimal(decimal d)

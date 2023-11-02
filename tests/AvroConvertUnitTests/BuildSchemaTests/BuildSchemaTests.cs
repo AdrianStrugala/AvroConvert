@@ -47,7 +47,7 @@ public sealed class BuildSchemaTests
 
 public class GuidClassWithValidDefaultValue
 {
-    [DefaultValue("00000000-0000-0000-0000-000000000000")]
+    [DefaultValue("dec57724-9fa9-4062-b5a4-e6c41c71e585")]
     public Guid Id { get; set; }
 }
 

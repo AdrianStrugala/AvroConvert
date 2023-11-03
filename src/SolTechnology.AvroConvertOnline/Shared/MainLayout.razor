@@ -1,0 +1,39 @@
+﻿@inherits LayoutComponentBase
+
+<MudThemeProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<style>
+    .Header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+</style>
+
+
+<MudLayout Style="background-color: #f0ecec;">
+    
+    <MudAppBar Elevation="0" Color="Color.Info">
+        
+        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Style="@($"color:{Colors.Shades.White};")" Link="https://github.com/AdrianStrugala/AvroConvert" Size="Size.Large" Target="_blank" />
+        <MudSpacer/>
+
+        <div class="Header">
+            <header class="App-header">
+                <h1 class="App-title">Welcome to AvroConvert Online</h1>
+            </header>
+            <p class="mb-2">Convert any Avro schema to C# model online.</p>
+        </div>
+
+        <MudSpacer/>
+        <MudIconButton Icon="@Icons.Custom.Brands.MudBlazor" Color="Color.Inherit" Link="https://mudblazor.com/" Size="Size.Large" Target="_blank"/>
+
+    </MudAppBar>
+    <MudMainContent>
+            @Body
+    </MudMainContent>
+
+</MudLayout>

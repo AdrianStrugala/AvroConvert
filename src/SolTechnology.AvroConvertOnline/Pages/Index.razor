@@ -1,0 +1,68 @@
+﻿@page "/"
+@using SolTechnology.Avro
+
+<PageTitle>Index</PageTitle>
+
+
+<style>
+
+    .TextBox {
+        display: inline-block;
+        vertical-align: text-top;
+        margin: 0;
+        padding: 0;
+        width: 35vw;
+        margin-left: 10vw;
+        margin-right: 2vw;
+        text-align: center;
+        background-color: white;
+    }
+
+    .Button {
+        margin-top: 35vh;
+    }
+
+    .TextBox2 {
+        display: inline-block;
+        vertical-align: text-top;
+        margin: 0;
+        padding: 0;
+        width: 35vw;
+        margin-left: 2vw;
+        text-align: center;
+        background-color: white;
+    }
+
+    .Body {
+        width: 100vw;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+    }
+</style>
+
+
+
+
+<div class="Body">
+    <MudTextField @bind-Value="Input" Label="Provide an Avro schema" Variant="Variant.Outlined" Class="TextBox" Lines="17"></MudTextField>
+    
+    <MudButton Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Send" Color="Color.Info" Class="Button" OnClick="Convert">Convert</MudButton>
+
+    <MudTextField @bind-Value="Result" Label="Result" Variant="Variant.Outlined" ReadOnly="true" Class="TextBox2" Lines="17"></MudTextField>
+
+    <MudContainer>
+   
+    </MudContainer>
+</div>
+
+@code {
+    public string Input { get; set; } = "";
+    public string Result { get; set; } = "";
+
+    private void Convert()
+    {
+        Result = AvroConvert.GenerateModel(Input);
+    }
+
+}

@@ -32,7 +32,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
 {
     internal partial class WriteResolver
     {
-        private static readonly ConcurrentDictionary<int, Lazy<Func<object, string, object>>> gettersDictionary = new ConcurrentDictionary<int, Lazy<Func<object, string, object>>>();
+        private static readonly ConcurrentDictionary<Type, Lazy<Func<object, string, object>>> gettersDictionary = new();
 
         internal Encoder.WriteItem ResolveRecord(RecordSchema recordSchema)
         {
@@ -57,7 +57,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
             return RecordResolver;
         }
 
-        private void WriteRecordFields(object recordObj, WriteStep[] writers, IWriter encoder)
+        private static void WriteRecordFields(object recordObj, WriteStep[] writers, IWriter encoder)
         {
             if (recordObj is null)
             {
@@ -72,9 +72,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
             }
 
             var type = recordObj.GetType();
-            var typeHash = type.GetHashCode();
 
-            var lazyGetters = gettersDictionary.GetOrAdd(typeHash, new Lazy<Func<object, string, object>>(() => GenerateGetValue(type), LazyThreadSafetyMode.ExecutionAndPublication));
+            var lazyGetters = gettersDictionary.GetOrAdd(type, getterFactory);
             Func<object, string, object> getters = lazyGetters.Value;
 
             foreach (var writer in writers)
@@ -88,6 +87,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
                 writer.WriteField(value, encoder);
             }
         }
+
+        private static Func<Type, Lazy<Func<object, string, object>>> getterFactory =>
+            type => new Lazy<Func<object, string, object>>(() => GenerateGetValue(type),
+                LazyThreadSafetyMode.ExecutionAndPublication);
 
         private static void HandleExpando(WriteStep[] writers, IWriter encoder, ExpandoObject expando)
         {

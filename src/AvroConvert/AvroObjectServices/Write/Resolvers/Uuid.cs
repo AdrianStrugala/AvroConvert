@@ -16,6 +16,7 @@
 #endregion
 
 using System;
+using System.Buffers.Text;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Infrastructure.Exceptions;
@@ -34,7 +35,13 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
                     throw new AvroTypeMismatchException($"[Guid] required to write against [string] of [Uuid] schema but found [{value.GetType()}]");
                 }
 
+#if NET6_0_OR_GREATER
+                Span<byte> buffer = stackalloc byte[36];
+                Utf8Formatter.TryFormat(guid, buffer, out _);
+                encoder.WriteBytes(buffer);
+#else
                 encoder.WriteString(guid.ToString());
+#endif
             };
         }
     }

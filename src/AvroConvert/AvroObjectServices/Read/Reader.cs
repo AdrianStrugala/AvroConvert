@@ -19,6 +19,7 @@
 /** Modifications copyright(C) 2020 Adrian Strugala **/
 
 using System;
+using System.Buffers;
 using System.IO;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
@@ -144,9 +145,27 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         public string ReadString()
         {
             int length = ReadInt();
+#if NET6_0_OR_GREATER
+            if (length <= 512)
+            {
+                Span<byte> buffer = stackalloc byte[length];
+                ReadFixed(buffer);
+                return System.Text.Encoding.UTF8.GetString(buffer);
+            }
+            else
+            {
+                byte[] bufferArray = ArrayPool<byte>.Shared.Rent(length);
+                Span<byte> buffer = bufferArray;
+                ReadFixed(buffer.Slice(0, length));
+                string result = System.Text.Encoding.UTF8.GetString(buffer);
+                ArrayPool<byte>.Shared.Return(bufferArray);
+                return result;
+            }
+#else
             byte[] buffer = new byte[length];
             ReadFixed(buffer);
             return System.Text.Encoding.UTF8.GetString(buffer);
+#endif
         }
 
         public int ReadEnum()
@@ -178,6 +197,13 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         {
             return ReadInt();
         }
+
+#if NET6_0_OR_GREATER
+        public void ReadFixed(Span<byte> buffer)
+        {
+            Read(buffer);
+        }
+#endif
 
         public void ReadFixed(byte[] buffer)
         {
@@ -275,6 +301,22 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                 len -= n;
             }
         }
+
+#if NET6_0_OR_GREATER
+        private void Read(Span<byte> buffer)
+        {
+            int length = buffer.Length;
+            int offset = 0;
+
+            while (length > 0)
+            {
+                int bytesWritten = _stream.Read(buffer.Slice(offset));
+                if (bytesWritten <= 0) throw new EndOfStreamException();
+                offset += bytesWritten;
+                length -= bytesWritten;
+            }
+        }
+#endif
 
         private long DoReadItemCount()
         {

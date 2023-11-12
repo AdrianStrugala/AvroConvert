@@ -24,6 +24,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Reflection;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Infrastructure.Extensions;
@@ -33,9 +34,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 {
     internal partial class Resolver
     {
-        private readonly Dictionary<int, Func<IList>> _cachedArrayInitializers = new Dictionary<int, Func<IList>>();
+        private readonly Dictionary<int, Func<IList>> _cachedArrayInitializers = new();
 
-        internal object ResolveArray(TypeSchema writerSchema, TypeSchema readerSchema, IReader d, Type type, long itemsCount = 0)
+        internal object ResolveArray(TypeSchema writerSchema, TypeSchema readerSchema, IReader reader, Type type, long itemsCount = 0)
         {
             if (writerSchema.Type == AvroType.Array)
             {
@@ -45,35 +46,38 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 
             if (type.IsDictionary())
             {
-                return ResolveDictionary((RecordSchema)writerSchema, (RecordSchema)readerSchema, d, type);
+                return ResolveDictionary((RecordSchema)writerSchema, (RecordSchema)readerSchema, reader, type);
             }
 
             var containingType = type.GetEnumeratedType();
             var typeHash = type.GetHashCode();
 
-            Func<IList> resultFunc;
-            if (_cachedArrayInitializers.ContainsKey(typeHash))
+            int capacity = itemsCount == 0 ? (int)reader.ReadArrayStart() : (int)itemsCount;
+            Func <IList> resultFunc;
+            if (_cachedArrayInitializers.TryGetValue(typeHash, out var initializer))
             {
-                resultFunc = _cachedArrayInitializers[typeHash];
+                resultFunc = initializer;
             }
             else
             {
                 var resultType = typeof(List<>).MakeGenericType(containingType);
-                resultFunc = Expression.Lambda<Func<IList>>(Expression.New(resultType)).Compile();
+                ConstructorInfo constructor = resultType.GetConstructor(new[] { typeof(int) });
+                ConstantExpression capacityExpr = Expression.Constant(capacity);
+                NewExpression newExp = Expression.New(constructor, capacityExpr);
+                resultFunc = Expression.Lambda<Func<IList>>(newExp).Compile();
                 _cachedArrayInitializers.Add(typeHash, resultFunc);
             }
             IList result = resultFunc.Invoke();
 
-
             int i = 0;
             if (itemsCount == 0)
             {
-                for (int n = (int)d.ReadArrayStart(); n != 0; n = (int)d.ReadArrayNext())
+                for (int n = capacity; n != 0; n = (int)reader.ReadArrayNext())
                 {
                     for (int j = 0; j < n; j++, i++)
                     {
-                        dynamic y = Resolve(writerSchema, readerSchema, d, containingType);
-                        result.Add(y);
+                        object item = Resolve(writerSchema, readerSchema, reader, containingType);
+                        result.Add(item);
                     }
                 }
             }
@@ -81,7 +85,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             {
                 for (int k = 0; k < itemsCount; k++)
                 {
-                    result.Add(Resolve(writerSchema, readerSchema, d, containingType));
+                    result.Add(Resolve(writerSchema, readerSchema, reader, containingType));
                 }
             }
 
@@ -89,8 +93,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             {
                 var containingTypeArray = containingType.MakeArrayType();
 
-                dynamic resultArray = Activator.CreateInstance(containingTypeArray, new object[] { result.Count });
-                result.CopyTo(resultArray, 0);
+                Array resultArray = (Array)Activator.CreateInstance(containingTypeArray, result.Count);
+                result.CopyTo(resultArray!, 0);
                 return resultArray;
             }
 
@@ -98,7 +102,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             {
                 return result;
             }
-
 
             var hashSetType = typeof(HashSet<>).MakeGenericType(containingType);
             if (type == hashSetType)
@@ -111,7 +114,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 
                 return resultHashSet;
             }
-
 
             var reflectionResult = type.GetField("Empty")?.GetValue(null);
             var addMethod = type.GetMethod("Add");

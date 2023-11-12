@@ -17,6 +17,7 @@
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
@@ -39,6 +40,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         internal int Position { get; }
         internal NamedEntityAttributes NamedEntityAttributes { get; }
 
+        internal string GetAliasOrDefault() => NamedEntityAttributes.Aliases.FirstOrDefault();
 
         internal RecordFieldSchema(
             NamedEntityAttributes namedEntityAttributes,

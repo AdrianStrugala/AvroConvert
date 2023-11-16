@@ -19,7 +19,6 @@ using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.Serialization;
 using FastMember;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
@@ -28,8 +27,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 {
     internal partial class Resolver
     {
-        private readonly Dictionary<int, Dictionary<string, Func<object>>> _readStepsDictionary = new Dictionary<int, Dictionary<string, Func<object>>>();
-        private readonly Dictionary<int, TypeAccessor> _accessorDictionary = new Dictionary<int, TypeAccessor>();
+        private readonly Dictionary<int, Dictionary<string, ReadStep>> _readStepsDictionary = new();
+        private readonly Dictionary<int, TypeAccessor> _accessorDictionary = new();
 
         protected virtual object ResolveRecord(RecordSchema writerSchema, RecordSchema readerSchema, IReader dec,
             Type type)
@@ -40,36 +39,28 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                 var typeHash = type.GetHashCode();
 
                 TypeAccessor accessor;
-                Dictionary<string, Func<object>> readSteps;
+                Dictionary<string, ReadStep> readSteps;
 
                 if (!_accessorDictionary.ContainsKey(typeHash))
                 {
                     accessor = TypeAccessor.Create(type, true);
-                    readSteps = new Dictionary<string, Func<object>>();
-
+                    readSteps = new Dictionary<string, ReadStep>();
                     foreach (RecordFieldSchema wf in writerSchema.Fields)
                     {
                         if (readerSchema.TryGetField(wf.Name, out var rf))
                         {
-                            string name = rf.Aliases.FirstOrDefault() ?? wf.Name;
+                            string name = rf.GetAliasOrDefault() ?? wf.Name;
 
                             var members = accessor.GetMembers();
-                            var memberInfo = members.FirstOrDefault(n =>
-                                n.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+                            var memberInfo = members.FirstOrDefault(n => n.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
                             if (memberInfo == null)
                             {
                                 continue;
                             }
 
-                            Func<object> func = () =>
-                            {
-                                object value = Resolve(wf.TypeSchema, rf.TypeSchema, dec, memberInfo.Type);
-                                return value ?? FormatDefaultValue(wf.DefaultValue, memberInfo);
-                            };
+                            accessor[result, memberInfo.Name] = GetValue(wf, rf, memberInfo, dec);
 
-                            accessor[result, memberInfo.Name] = func.Invoke();
-
-                            readSteps.Add(memberInfo.Name, func);
+                            readSteps.Add(memberInfo.Name, new ReadStep(wf, rf, memberInfo));
 
                         }
                         else
@@ -86,7 +77,13 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 
                     foreach (var readStep in readSteps)
                     {
-                        accessor[result, readStep.Key] = readStep.Value.Invoke();
+                        var readStepValue = readStep.Value;
+                        accessor[result, readStep.Key] =
+                            GetValue(
+                                readStepValue.WriteFieldSchema,
+                                readStepValue.ReadFieldSchema,
+                                readStepValue.MemberInfo,
+                                dec);
                     }
                 }
 
@@ -123,6 +120,15 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             }
         }
 
+        private object GetValue(RecordFieldSchema wf,
+            RecordFieldSchema rf,
+            Member memberInfo,
+            IReader dec)
+        {
+            object value = Resolve(wf.TypeSchema, rf.TypeSchema, dec, memberInfo.Type);
+            return value ?? FormatDefaultValue(wf.DefaultValue, memberInfo);
+        }
+
         private static object FormatDefaultValue(object defaultValue, Member memberInfo)
         {
             if (defaultValue == null)
@@ -151,6 +157,20 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             //It might be not supported at the moment
 
             return Convert.ChangeType(defaultValue, t);
+        }
+
+        private class ReadStep
+        {
+            public RecordFieldSchema WriteFieldSchema { get; set; }
+            public RecordFieldSchema ReadFieldSchema { get; set; }
+            public Member MemberInfo { get; set; }
+
+            public ReadStep(RecordFieldSchema writeFieldSchema, RecordFieldSchema readFieldSchema, Member memberInfo)
+            {
+                WriteFieldSchema = writeFieldSchema;
+                ReadFieldSchema = readFieldSchema;
+                MemberInfo = memberInfo;
+            }
         }
     }
 }

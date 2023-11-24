@@ -59,5 +59,24 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             Assert.NotNull(deserialized);
             Assert.Equal(toSerialize, deserialized);
         }
+
+
+        [Theory]
+        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
+        public void Class_with_read_only_properties(Func<object, Type, dynamic> engine)
+        {
+            //Arrange
+            var toSerialize = _fixture.Create<ClassWithReadOnlyProperties>();
+
+
+            //Act
+            var deserialized = engine.Invoke(toSerialize, typeof(ClassWithReadOnlyProperties));
+
+
+            //Assert
+            Assert.NotNull(deserialized);
+            Assert.Equal(toSerialize.ReadOnly, deserialized.ReadOnly);
+            Assert.Equal(toSerialize.NullableReadOnly, deserialized.NullableReadOnly);
+        }
     }
 }

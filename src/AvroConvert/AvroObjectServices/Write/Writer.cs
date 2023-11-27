@@ -245,7 +245,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
 #if NET6_0_OR_GREATER
             _stream.Write(bytes);
 #else
-            throw new NotImplementedException();
+            _stream.Write(bytes.ToArray(), 0, bytes.Length);
 #endif
         }
 

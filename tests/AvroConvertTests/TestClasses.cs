@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.Serialization;
-using FastMember;
 using SolTechnology.Avro.Infrastructure.Attributes;
 
 namespace AvroConvertComponentTests

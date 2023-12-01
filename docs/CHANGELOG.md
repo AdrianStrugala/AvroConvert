@@ -1,9 +1,15 @@
+**v. 3.4.2 (01.12.23)**
+- Added support for get-only properties for deserialization
+- Further performance improvements
+
+\
 **v. 3.4.1 (11.11.23)**
 - Significant performance improvements
 - BuildSchema supports Guid default value
 - AvroConvertOnline is back online
 
-\**v. 3.4.0 (18.09.23)**
+\
+**v. 3.4.0 (18.09.23)**
 - Added support for custom IAvroConverter - allows applying custom implementation of serialization/deserialization for chosen type
 - Added support for deserialization to dynamic type (default flow only)
 

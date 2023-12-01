@@ -241,12 +241,12 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         {
             if (type.IsEnum())
             {
-                return this.BuildEnumTypeSchema(type, schemas);
+                return BuildEnumTypeSchema(type, schemas);
             }
 
             if (type.IsArray)
             {
-                return this.BuildArrayTypeSchema(type, schemas, currentDepth);
+                return BuildArrayTypeSchema(type, schemas, currentDepth);
             }
 
             // Dictionary
@@ -279,13 +279,13 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 return new NullableSchema(
                     type,
                     new Dictionary<string, string>(),
-                    this.CreateSchema(false, nullable, schemas, currentDepth + 1));
+                    CreateSchema(false, nullable, schemas, currentDepth + 1));
             }
 
             // Others
             if (type.IsClass() || type.IsValueType() || type.IsInterface)
             {
-                return this.BuildRecordTypeSchema(type, schemas, currentDepth);
+                return BuildRecordTypeSchema(type, schemas, currentDepth);
             }
 
             throw new SerializationException(
@@ -305,8 +305,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 return new LongSchema(type);
             }
 
-            NamedSchema schema;
-            if (schemas.TryGetValue(type.ToString(), out schema))
+            if (schemas.TryGetValue(type.ToString(), out var schema))
             {
                 return schema;
             }
@@ -440,21 +439,15 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                     throw new SerializationException(
                         string.Format(
                             CultureInfo.InvariantCulture,
-                            "Type member '{0}' is not supported.",
-                            info.MemberInfo.GetType().Name));
+                            $"Type member '{info.MemberInfo.GetType().Name}' is not supported."));
                 }
 
-                TypeSchema fieldSchema = this.TryBuildUnionSchema(memberType, info.MemberInfo, schemas, currentDepth)
-                                         ?? this.TryBuildFixedSchema(memberType, info.MemberInfo, record)
-                                         ?? this.CreateSchema(info.Nullable, memberType, schemas, currentDepth + 1, info.DefaultValue?.GetType(), info.MemberInfo);
+                TypeSchema fieldSchema = TryBuildUnionSchema(memberType, info.MemberInfo, schemas, currentDepth)
+                                         ?? TryBuildFixedSchema(memberType, info.MemberInfo, record)
+                                         ?? CreateSchema(info.Nullable, memberType, schemas, currentDepth + 1, info.DefaultValue?.GetType(), info.MemberInfo);
 
-
-
-                var aliases = info
-                    .Aliases
-                    .ToList();
                 var recordField = new RecordFieldSchema(
-                    new NamedEntityAttributes(new SchemaName(info.Name), aliases, info.Doc),
+                    new NamedEntityAttributes(new SchemaName(info.Name), info.Aliases, info.Doc),
                     fieldSchema,
                     info.HasDefaultValue,
                     info.DefaultValue,

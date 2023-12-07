@@ -43,6 +43,20 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             //Assert
             Assert.Equal(toSerialize, deserialized);
         }
+        
+        [Theory]
+        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
+        public void Enum_with_flags_object(Func<object, Type, dynamic> engine)
+        {
+            foreach (var toSerialize in Enum.GetValues<TestEnumWithFlags>())
+            {
+                //Act
+                var deserialized = engine.Invoke(toSerialize, typeof(TestEnumWithFlags));
+
+                //Assert
+                Assert.Equal(toSerialize, deserialized);
+            }
+        }
 
         [Theory]
         [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]

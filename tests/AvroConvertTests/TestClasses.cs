@@ -301,6 +301,17 @@ namespace AvroConvertComponentTests
         ca,
         dlo
     }
+    
+    [Flags]
+    public enum TestEnumWithFlags
+    {
+        None    = 0,
+        Option1 = 1,
+        Option2 = 2,
+        Option3 = 4,
+        Option4 = 8,
+        CombinedOption = Option1 | Option2
+    }
 
     [Equals(DoNotAddEqualityOperators = true)]
     public class ClassWithEnum

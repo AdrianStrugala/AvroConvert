@@ -32,6 +32,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         {
             switch (readType)
             {
+                case not null when readType.IsEnum:
+                    return Enum.ToObject(readType, value);
+
                 case not null when readType == typeof(int):
                 case not null when readType == typeof(int?):
                     return Convert.ToInt32(value);

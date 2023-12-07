@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.Serialization;
 using FastMember;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
@@ -44,6 +45,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                 if (!_accessorDictionary.ContainsKey(typeHash))
                 {
                     accessor = TypeAccessor.Create(type, true);
+                    var members = accessor.GetMembers();
                     readSteps = new Dictionary<string, ReadStep>();
                     foreach (RecordFieldSchema wf in writerSchema.Fields)
                     {
@@ -51,7 +53,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                         {
                             string name = rf.GetAliasOrDefault() ?? wf.Name;
 
-                            var members = accessor.GetMembers();
                             var memberInfo = members.FirstOrDefault(n => n.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
                             if (memberInfo == null)
                             {
@@ -66,10 +67,14 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                             else
                             {
                                 _skipper.Skip(wf.TypeSchema, reader);
+                                readSteps.Add(memberInfo.Name, new ReadStep(wf, rf, memberInfo, true));
                             }
                         }
                         else
+                        {
                             _skipper.Skip(wf.TypeSchema, reader);
+                            readSteps.Add(wf.Name, new ReadStep(wf, rf, null, true));
+                        }
                     }
 
                     _readStepsDictionary.Add(typeHash, readSteps);
@@ -83,6 +88,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                     foreach (var readStep in readSteps)
                     {
                         var readStepValue = readStep.Value;
+                        if (readStepValue.ShouldSkip)
+                        {
+                            _skipper.Skip(readStepValue.WriteFieldSchema.TypeSchema, reader);
+                            break;
+                        }
+
                         accessor[result, readStep.Key] =
                             GetValue(
                                 readStepValue.WriteFieldSchema,
@@ -166,15 +177,17 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 
         private class ReadStep
         {
-            public RecordFieldSchema WriteFieldSchema { get; set; }
-            public RecordFieldSchema ReadFieldSchema { get; set; }
-            public Member MemberInfo { get; set; }
+            internal RecordFieldSchema WriteFieldSchema { get; set; }
+            internal RecordFieldSchema ReadFieldSchema { get; set; }
+            internal Member MemberInfo { get; set; }
+            internal bool ShouldSkip { get; set; }
 
-            public ReadStep(RecordFieldSchema writeFieldSchema, RecordFieldSchema readFieldSchema, Member memberInfo)
+            public ReadStep(RecordFieldSchema writeFieldSchema, RecordFieldSchema readFieldSchema, Member memberInfo, bool shouldSkip = false)
             {
                 WriteFieldSchema = writeFieldSchema;
                 ReadFieldSchema = readFieldSchema;
                 MemberInfo = memberInfo;
+                ShouldSkip = shouldSkip;
             }
         }
     }

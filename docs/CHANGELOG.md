@@ -1,3 +1,8 @@
+**v. 3.4.3 (09.12.23)**
+- Fix for caching of skippers during deserialization
+- Fix for deserialization of enums marked with flags 
+
+\
 **v. 3.4.2 (01.12.23)**
 - Added support for get-only properties for deserialization
 - Further performance improvements

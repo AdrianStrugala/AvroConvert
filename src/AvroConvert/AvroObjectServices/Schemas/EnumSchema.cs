@@ -39,7 +39,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         private readonly Dictionary<string, int> symbolToValue;
         private readonly Dictionary<int, string> valueToSymbol;
         private readonly Dictionary<string, string> memberToSymbol;
-        private readonly Dictionary<string, string> symbolToMember;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EnumSchema"/> class.
@@ -71,7 +70,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             this.symbols = new List<string>();
             this.symbolToValue = new Dictionary<string, int>();
             this.valueToSymbol = new Dictionary<int, string>();
-            this.symbolToMember = new Dictionary<string, string>();
             this.memberToSymbol = new Dictionary<string, string>();
             this.avroToCSharpValueMapping = new List<long>();
 
@@ -88,7 +86,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
                     this.avroToCSharpValueMapping.Add(Convert.ToInt64(values.GetValue(i), CultureInfo.InvariantCulture));
                     this.symbolToValue.Add(this.symbols[i], v);
                     this.valueToSymbol.Add(v, this.symbols[i]);
-                    this.symbolToMember.Add(this.symbols[i], values.GetValue(i)!.ToString());
                     this.memberToSymbol.Add(values.GetValue(i)!.ToString()!, this.symbols[i]);
                 }
             }

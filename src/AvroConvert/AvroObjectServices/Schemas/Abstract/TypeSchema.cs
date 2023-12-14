@@ -13,8 +13,9 @@
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
 
-/** Modifications copyright(C) 2020 Adrian Strugała **/
+/** Modifications copyright(C) 2023 Adrian Strugała **/
 
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -25,7 +26,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
     ///     Base class for all type schemas.
     ///     For more details please see <a href="http://avro.apache.org/docs/current/spec.html">the specification</a>.
     /// </summary>
-    internal abstract class TypeSchema : BuildSchema.Schema
+    public abstract class TypeSchema : BuildSchema.Schema
     {
         protected TypeSchema(Type runtimeType, IDictionary<string, string> attributes) : base(attributes)
         {
@@ -37,12 +38,30 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
             RuntimeType = runtimeType;
         }
 
+        private string emptySchema = "{\"name\":\"Object\",\"namespace\":\"System\",\"type\":\"record\",\"fields\":[]}";
+
+        internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
+        {
+            writer.WriteValue(CultureInfo.InvariantCulture.TextInfo.ToLower(this.Type.ToString()));
+        }
+
         internal Type RuntimeType { get; set; }
 
-        internal abstract AvroType Type { get; }
+        internal virtual AvroType Type { get; set; }
 
         internal virtual bool CanRead(TypeSchema writerSchema) { return Type == writerSchema.Type; }
 
-        internal virtual string Name => Type.ToString().ToLower(CultureInfo.InvariantCulture);
+
+        private string _name;
+        internal virtual string Name
+        {
+            get => string.IsNullOrEmpty(_name) ? Type.ToString().ToLower(CultureInfo.InvariantCulture) : _name;
+            set => _name = value;
+        }
+
+        public bool IsEmpty()
+        {
+            return ToString().Equals(emptySchema);
+        }
     }
 }

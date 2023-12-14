@@ -16,7 +16,7 @@
 #endregion
 namespace SolTechnology.Avro.AvroObjectServices.Schemas
 {
-    internal enum AvroType
+    public enum AvroType
     {
         Null,
         Boolean,

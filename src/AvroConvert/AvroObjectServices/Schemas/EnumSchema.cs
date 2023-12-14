@@ -13,7 +13,7 @@
 // See the Apache Version 2.0 License for specific language governing
 // permissions and limitations under the License.
 
-/** Modifications copyright(C) 2020 Adrian Struga³a **/
+/** Modifications copyright(C) 2020 Adrian Strugaï¿½a **/
 
 using System;
 using System.Collections.Generic;
@@ -96,8 +96,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             }
         }
         
-        internal ReadOnlyCollection<string> Symbols => new ReadOnlyCollection<string>(this.symbols);
+        internal ReadOnlyCollection<string> Symbols => new (this.symbols);
 
+        internal bool TryGetSymbolValue(string symbol, out int value) =>
+            this.symbolToValue.TryGetValue(symbol, out value);
+        
         public string GetMemberBySymbol(string symbol)
         {
             return symbolToMember[symbol];
@@ -162,6 +165,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             }
         }
 
-        internal override AvroType Type { get; } = AvroType.Enum;
+        internal override AvroType Type { get; set; } = AvroType.Enum;
     }
 }

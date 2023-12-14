@@ -20,21 +20,21 @@ using SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
-namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
+// ReSharper disable once CheckNamespace
+namespace SolTechnology.Avro.AvroObjectServices.Write
 {
-    internal class Fixed
+    internal partial class WriteResolver
     {
-        internal Encoder.WriteItem Resolve(FixedSchema es)
+        internal Encoder.WriteItem ResolveFixed(FixedSchema es)
         {
             return (value, encoder) =>
             {
-                if (!(value is Fixed) || !((AvroFixed)value).Schema.Equals(es))
+                if (value is not AvroFixed @fixed || !@fixed.Schema.Equals(es))
                 {
                     throw new AvroTypeMismatchException("[GenericFixed] required to write against [Fixed] schema but found " + value.GetType());
                 }
 
-                AvroFixed ba = (AvroFixed)value;
-                encoder.WriteFixed(ba.Value);
+                encoder.WriteFixed(@fixed.Value);
             };
         }
     }

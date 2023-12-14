@@ -1,8 +1,9 @@
+using System;
 using System.IO;
 
 namespace SolTechnology.Avro.AvroObjectServices.Write
 {
-    internal interface IWriter
+    public interface IWriter
     {
         /// <summary>
         /// null is written as zero bytes
@@ -47,8 +48,13 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
         /// Bytes are encoded as a long followed by that many bytes of data.
         /// </summary>
         /// <param name="value"></param>
-        /// 
         void WriteBytes(byte[] value);
+
+        /// <summary>
+        /// Bytes are encoded as a long followed by that many bytes of data.
+        /// </summary>
+        /// <param name="buffer"></param>
+        void WriteBytes(ReadOnlySpan<byte> buffer);
 
         /// <summary>
         /// A string is encoded as a long followed by
@@ -66,6 +72,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
         void WriteMapEnd();
         void WriteUnionIndex(int value);
         void WriteFixed(byte[] data);
+        void WriteFixed(ReadOnlySpan<byte> data);
         void WriteFixed(byte[] data, int start, int len);
         void WriteBytesRaw(byte[] bytes);
         void WriteStream(MemoryStream stream);

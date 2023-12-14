@@ -22,15 +22,19 @@ using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
-namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
-{
-    internal class Record
-    {
-        private readonly ConcurrentDictionary<int, Func<object, string, object>> gettersDictionary = new ConcurrentDictionary<int, Func<object, string, object>>();
+using SolTechnology.Avro.AvroObjectServices.Write.Resolvers;
 
-        internal Encoder.WriteItem Resolve(RecordSchema recordSchema)
+// ReSharper disable once CheckNamespace
+namespace SolTechnology.Avro.AvroObjectServices.Write
+{
+    internal partial class WriteResolver
+    {
+        private static readonly ConcurrentDictionary<Type, Lazy<Func<object, string, object>>> gettersDictionary = new();
+
+        internal Encoder.WriteItem ResolveRecord(RecordSchema recordSchema)
         {
             WriteStep[] writeSteps = new WriteStep[recordSchema.Fields.Count];
 
@@ -39,7 +43,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
             {
                 var record = new WriteStep
                 {
-                    WriteField = WriteResolver.ResolveWriter(field.TypeSchema),
+                    WriteField = ResolveWriter(field.TypeSchema),
                     FiledName = field.Aliases.FirstOrDefault() ?? field.Name,
                 };
                 writeSteps[index++] = record;
@@ -53,7 +57,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
             return RecordResolver;
         }
 
-        private void WriteRecordFields(object recordObj, WriteStep[] writers, IWriter encoder)
+        private static void WriteRecordFields(object recordObj, WriteStep[] writers, IWriter encoder)
         {
             if (recordObj is null)
             {
@@ -68,18 +72,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
             }
 
             var type = recordObj.GetType();
-            var typeHash = type.GetHashCode();
 
-            Func<object, string, object> getters;
-            if (gettersDictionary.ContainsKey(typeHash))
-            {
-                getters = gettersDictionary[typeHash];
-            }
-            else
-            {
-                getters = GenerateGetValue(type);
-                gettersDictionary.AddOrUpdate(typeHash, getters, (key, existingVal) => existingVal);
-            }
+            var lazyGetters = gettersDictionary.GetOrAdd(type, getterFactory);
+            Func<object, string, object> getters = lazyGetters.Value;
 
             foreach (var writer in writers)
             {
@@ -92,6 +87,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
                 writer.WriteField(value, encoder);
             }
         }
+
+        private static Func<Type, Lazy<Func<object, string, object>>> getterFactory =>
+            type => new Lazy<Func<object, string, object>>(() => GenerateGetValue(type),
+                LazyThreadSafetyMode.ExecutionAndPublication);
 
         private static void HandleExpando(WriteStep[] writers, IWriter encoder, ExpandoObject expando)
         {

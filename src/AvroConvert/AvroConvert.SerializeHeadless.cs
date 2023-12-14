@@ -32,7 +32,8 @@ namespace SolTechnology.Avro
             MemoryStream resultStream = new MemoryStream();
             var encoder = new Writer(resultStream);
             var schemaObject = Schema.Create(schema);
-            var writer = WriteResolver.ResolveWriter(schemaObject);
+            var resolver = new WriteResolver();
+            var writer = resolver.ResolveWriter(schemaObject);
 
             writer(obj, encoder);
 
@@ -48,7 +49,8 @@ namespace SolTechnology.Avro
             MemoryStream resultStream = new MemoryStream();
             var encoder = new Writer(resultStream);
             var schemaObject = BuildSchema(objectType);
-            var writer = WriteResolver.ResolveWriter(schemaObject);
+            var resolver = new WriteResolver();
+            var writer = resolver.ResolveWriter(schemaObject);
 
             writer(obj, encoder);
 

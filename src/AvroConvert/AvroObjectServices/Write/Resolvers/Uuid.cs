@@ -16,15 +16,17 @@
 #endregion
 
 using System;
+using System.Buffers.Text;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
-namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
+// ReSharper disable once CheckNamespace
+namespace SolTechnology.Avro.AvroObjectServices.Write
 {
-    internal class Uuid
+    internal partial class WriteResolver
     {
-        internal Encoder.WriteItem Resolve(UuidSchema schema)
+        internal Encoder.WriteItem ResolveUuid(UuidSchema schema)
         {
             return (value, encoder) =>
             {
@@ -33,7 +35,13 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
                     throw new AvroTypeMismatchException($"[Guid] required to write against [string] of [Uuid] schema but found [{value.GetType()}]");
                 }
 
+#if NET6_0_OR_GREATER
+                Span<byte> buffer = stackalloc byte[36];
+                Utf8Formatter.TryFormat(guid, buffer, out _);
+                encoder.WriteBytes(buffer);
+#else
                 encoder.WriteString(guid.ToString());
+#endif
             };
         }
     }

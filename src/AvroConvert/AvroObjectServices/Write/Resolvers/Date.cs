@@ -21,11 +21,12 @@ using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 using SolTechnology.Avro.Infrastructure.Extensions;
 
-namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
+// ReSharper disable once CheckNamespace
+namespace SolTechnology.Avro.AvroObjectServices.Write
 {
-    internal class Date
+    internal partial class WriteResolver
     {
-        internal Encoder.WriteItem Resolve()
+        internal Encoder.WriteItem ResolveDate()
         {
             return (value, encoder) =>
             {

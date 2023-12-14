@@ -4,11 +4,12 @@ using SolTechnology.Avro.Infrastructure.Exceptions;
 using SolTechnology.Avro.Infrastructure.Extensions;
 using Encoder = SolTechnology.Avro.Features.Serialize.Encoder;
 
-namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
+// ReSharper disable once CheckNamespace
+namespace SolTechnology.Avro.AvroObjectServices.Write
 {
-    internal class TimeMicroseconds
+    internal partial class WriteResolver
     {
-        internal Encoder.WriteItem Resolve(TimeMicrosecondsSchema schema)
+        internal Encoder.WriteItem ResolveTimeMicroseconds(TimeMicrosecondsSchema schema)
         {
             return (value, encoder) =>
             {
@@ -19,7 +20,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
                 }
 
                 if (timeOnly > TimeMicrosecondsSchema.MaxTime)
-                    throw new ArgumentOutOfRangeException(nameof(TimeMilliseconds), "A 'time-micros' value can only have the range '00:00:00' to '23:59:59'.");
+                    throw new ArgumentOutOfRangeException("value", "A 'time-micros' value can only have the range '00:00:00' to '23:59:59'.");
 
                 encoder.WriteLong((long)(timeOnly - DateTimeExtensions.UnixEpochTime).Ticks / 10);
             };

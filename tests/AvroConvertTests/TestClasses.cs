@@ -126,6 +126,7 @@ namespace AvroConvertComponentTests
         public Guid theGuid { get; set; }
     }
 
+
     [Equals(DoNotAddEqualityOperators = true)]
     public class VeryComplexClass
     {
@@ -199,8 +200,12 @@ namespace AvroConvertComponentTests
     {
         public ConcurrentBag<ComplexClassWithoutGetters> concurentBagField;
     }
+    public class ClassWithReadOnlyProperties
+    {
+        public string ReadOnly => "one";
+        public int? NullableReadOnly => 1;
+    }
 
-    [Equals(DoNotAddEqualityOperators = true)]
     public class ClassWithoutGetters
     {
         public string SomeString;
@@ -295,6 +300,17 @@ namespace AvroConvertComponentTests
         be,
         ca,
         dlo
+    }
+    
+    [Flags]
+    public enum TestEnumWithFlags
+    {
+        None    = 0,
+        Option1 = 1,
+        Option2 = 2,
+        Option3 = 4,
+        Option4 = 8,
+        CombinedOption = Option1 | Option2
     }
 
     public enum TestEnumWithMembers

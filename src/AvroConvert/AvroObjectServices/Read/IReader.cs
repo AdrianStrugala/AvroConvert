@@ -24,7 +24,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
     /// IDecoder is used to decode Avro data on a stream. There are methods to read the Avro types on the stream. There are also
     /// methods to skip items, which are usually more efficient than reading, on the stream.
     /// </summary>
-    internal interface IReader
+    public interface IReader
     {
         /// <summary>
         /// Reads a null Avro type.

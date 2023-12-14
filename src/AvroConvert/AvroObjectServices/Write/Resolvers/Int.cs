@@ -18,17 +18,18 @@
 using System;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
-namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
+// ReSharper disable once CheckNamespace
+namespace SolTechnology.Avro.AvroObjectServices.Write
 {
-    internal class Int
+    internal partial class WriteResolver
     {
-        internal void Resolve(object value, IWriter encoder)
+        internal void ResolveInt(object value, IWriter encoder)
         {
             value ??= default(int);
 
             if (value is not int i)
             {
-                try //Resolve short and uint
+                try //ResolveMap short and uint
                 {
                     encoder.WriteInt(Convert.ToInt32(value));
                     return;

@@ -50,7 +50,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         /// <param name="includeOnlyDataContractMembers">If set to <c>true</c> members without DataMemberAttribute won't be taken into consideration in serialization/deserialization.</param>
         internal AvroContractResolver(
             bool allowNullable = false,
-            bool useAlphabeticalOrder = false, 
+            bool useAlphabeticalOrder = false,
             bool includeOnlyDataContractMembers = false)
         {
             _allowNullable = allowNullable;
@@ -144,33 +144,23 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 }).ToArray();
             }
 
-            var allMembers = type.GetFieldsAndProperties(
-                BindingFlags.Public |
-                BindingFlags.NonPublic |
-                BindingFlags.Instance |
-                BindingFlags.DeclaredOnly);
-
             var membersToSerialize = type.GetFieldsAndProperties(
                 BindingFlags.Public |
                 BindingFlags.Instance |
                 BindingFlags.DeclaredOnly);
 
-            var attributes = allMembers
-                .ToDictionary(x => x, x => x.GetCustomAttributes(false));
-
             // add members that are explicitly marked with DataMember attribute
-            foreach (var memberInfo in allMembers)
+            var privateMembers = type.GetFieldsAndProperties(BindingFlags.NonPublic);
+            foreach (var privateMember in privateMembers)
             {
-                if (membersToSerialize.Contains(memberInfo))
+                if (privateMember.GetCustomAttribute<DataMemberAttribute>() != null)
                 {
-                    continue;
-                }
-
-                if (attributes[memberInfo].OfType<DataMemberAttribute>().Any())
-                {
-                    membersToSerialize.Add(memberInfo);
+                    membersToSerialize.Add(privateMember);
                 }
             }
+
+            Dictionary<MemberInfo, object[]> attributes = membersToSerialize
+                .ToDictionary(x => x, x => x.GetCustomAttributes(false));
 
             var members = membersToSerialize
                 .Where(x => !attributes[x].OfType<IgnoreDataMemberAttribute>().Any())
@@ -207,7 +197,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             });
 
 
-            if (this._useAlphabeticalOrder)
+            if (_useAlphabeticalOrder)
             {
                 result = result.OrderBy(p => p.Name);
             }

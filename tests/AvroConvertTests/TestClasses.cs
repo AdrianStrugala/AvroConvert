@@ -297,6 +297,15 @@ namespace AvroConvertComponentTests
         dlo
     }
 
+    public enum TestEnumWithMembers
+    {
+        [EnumMember(Value = "POSITIVE")]
+        Positive,
+
+        [EnumMember(Value = "NEGATIVE")]
+        Negative
+    }
+
     [Equals(DoNotAddEqualityOperators = true)]
     public class ClassWithEnum
     {
@@ -305,6 +314,17 @@ namespace AvroConvertComponentTests
 
         [DefaultValue("ca")]
         public TestEnum? SecondEnumProp { get; set; }
+    }
+
+    public class ClassWithEnumDefiningMembers
+    {
+        public TestEnumWithMembers? EnumProp { get; set; }
+
+        [DefaultValue(TestEnumWithMembers.Negative)]
+        public TestEnumWithMembers? EnumPropWithDefault { get; set; }
+
+        [DefaultValue("NEGATIVE")]
+        public TestEnumWithMembers? EnumPropWithStringDefault { get; set; }
     }
 
     public record TestRecord

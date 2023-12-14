@@ -32,7 +32,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 
             int position = d.ReadEnum();
             string value = writerSchema.Symbols[position];
-            return Enum.Parse(type, value);
+            return EnumParser.Parse(type, value);
         }
     }
 }

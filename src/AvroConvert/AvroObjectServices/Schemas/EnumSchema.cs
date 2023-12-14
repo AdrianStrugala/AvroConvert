@@ -92,7 +92,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
 
         internal bool TryGetSymbolValue(string symbol, out int value) =>
             this.symbolToValue.TryGetValue(symbol, out value);
-
+        
         internal string GetSymbolByValue(int value)
         {
             return this.valueToSymbol[value];

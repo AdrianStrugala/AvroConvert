@@ -100,22 +100,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
 
         internal bool TryGetSymbolValue(string symbol, out int value) =>
             this.symbolToValue.TryGetValue(symbol, out value);
-        
-        public string GetMemberBySymbol(string symbol)
-        {
-            return symbolToMember[symbol];
-        }
 
-        public string GetSymbolByMember(string member)
-        {
-            return memberToSymbol[member];
-        }
-
-        internal int GetValueBySymbol(string symbol)
-        {
-            return this.symbolToValue[symbol];
-        }
-
+        internal bool TryGetSymbolByMember(string member, out string symbol) =>
+            this.memberToSymbol.TryGetValue(member, out symbol);
+       
         internal string GetSymbolByValue(int value)
         {
             return this.valueToSymbol[value];

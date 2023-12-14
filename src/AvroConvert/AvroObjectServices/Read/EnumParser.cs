@@ -31,31 +31,59 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 {
     internal static class EnumParser
     {
-        private static ConcurrentDictionary<Type, Dictionary<string, string>> memberValuesToMember = new ConcurrentDictionary<Type, Dictionary<string, string>>();
+        private static ConcurrentDictionary<Type, EnumCache> memberValueCaches = new ConcurrentDictionary<Type, EnumCache>();
 
         public static object Parse(Type enumType, string value)
         {
-            var valuesCache = memberValuesToMember.GetOrAdd(enumType, type =>
-            {
-                return Enum.GetNames(type)
-                    .Select(x => new
-                    {
-                        Member = x,
-                        Value = GetEnumMemberValue(type, x)
-                    })
-                    .ToDictionary(x => x.Value, x => x.Member);
-            });
+            var cache = GetEnumMemberCache(enumType);
 
-            return Enum.Parse(enumType, valuesCache[value]);
+            return Enum.Parse(enumType, cache.MembersToNames[value]);
         }
 
-        public static string GetEnumMemberValue(Type runtimeType, string member)
+        public static string GetEnumName(Type enumType, object value)
+        {
+            var cache = GetEnumMemberCache(enumType);
+
+            var valueAsString = value.ToString();
+
+            return cache.NamesToMembers.TryGetValue(valueAsString, out var actualValue)
+                ? actualValue
+                : valueAsString;
+        }
+
+        private static EnumCache GetEnumMemberCache(Type runtimeType)
+        {
+            return memberValueCaches.GetOrAdd(runtimeType, type =>
+            {
+                var names = Enum.GetNames(type);
+                var members = names.Select(x => GetEnumMemberValue(type, x)).ToArray();
+
+                var cache = new EnumCache();
+
+                for (var i = 0; i < names.Length; i++)
+                {
+                    cache.NamesToMembers[names[i]] = members[i];
+                    cache.MembersToNames[members[i]] = names[i];
+                }
+                
+                return cache;
+            });
+        }
+
+        private static string GetEnumMemberValue(Type runtimeType, string member)
         {
             var attribute = runtimeType.GetField(member)?.GetCustomAttribute<EnumMemberAttribute>();
 
             return attribute != null && !string.IsNullOrEmpty(attribute.Value)
                 ? attribute.Value
                 : member;
+        }
+
+        private class EnumCache
+        {
+            public Dictionary<string, string> MembersToNames = new Dictionary<string, string>();
+
+            public Dictionary<string, string> NamesToMembers = new Dictionary<string, string>();
         }
     }
 }

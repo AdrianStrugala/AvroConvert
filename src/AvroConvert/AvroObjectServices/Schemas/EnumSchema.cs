@@ -38,7 +38,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         private readonly List<long> avroToCSharpValueMapping;
         private readonly Dictionary<string, int> symbolToValue;
         private readonly Dictionary<int, string> valueToSymbol;
-        private readonly Dictionary<string, string> memberToSymbol;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EnumSchema"/> class.
@@ -70,13 +69,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             this.symbols = new List<string>();
             this.symbolToValue = new Dictionary<string, int>();
             this.valueToSymbol = new Dictionary<int, string>();
-            this.memberToSymbol = new Dictionary<string, string>();
             this.avroToCSharpValueMapping = new List<long>();
 
             if (runtimeType.IsEnum())
             {
                 this.symbols = Enum.GetNames(runtimeType)
-                    .Select(x => EnumParser.GetEnumMemberValue(runtimeType, x))
+                    .Select(x => EnumParser.GetEnumName(runtimeType, x))
                     .ToList();
 
                 Array values = Enum.GetValues(runtimeType);
@@ -86,7 +84,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
                     this.avroToCSharpValueMapping.Add(Convert.ToInt64(values.GetValue(i), CultureInfo.InvariantCulture));
                     this.symbolToValue.Add(this.symbols[i], v);
                     this.valueToSymbol.Add(v, this.symbols[i]);
-                    this.memberToSymbol.Add(values.GetValue(i)!.ToString()!, this.symbols[i]);
                 }
             }
         }
@@ -96,9 +93,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         internal bool TryGetSymbolValue(string symbol, out int value) =>
             this.symbolToValue.TryGetValue(symbol, out value);
 
-        internal bool TryGetSymbolByMember(string member, out string symbol) =>
-            this.memberToSymbol.TryGetValue(member, out symbol);
-       
         internal string GetSymbolByValue(int value)
         {
             return this.valueToSymbol[value];

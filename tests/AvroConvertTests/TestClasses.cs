@@ -315,10 +315,10 @@ namespace AvroConvertComponentTests
 
     public enum TestEnumWithMembers
     {
-        [EnumMember(Value = "POSITIVE")]
+        [EnumMember(Value = "POSITIVE_VALUE")]
         Positive,
 
-        [EnumMember(Value = "NEGATIVE")]
+        [EnumMember(Value = "NEGATIVE_VALUE")]
         Negative
     }
 
@@ -339,7 +339,7 @@ namespace AvroConvertComponentTests
         [DefaultValue(TestEnumWithMembers.Negative)]
         public TestEnumWithMembers? EnumPropWithDefault { get; set; }
 
-        [DefaultValue("NEGATIVE")]
+        [DefaultValue("NEGATIVE_VALUE")]
         public TestEnumWithMembers? EnumPropWithStringDefault { get; set; }
     }
 

@@ -21,6 +21,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using Newtonsoft.Json;
+using SolTechnology.Avro.AvroObjectServices.Read;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Infrastructure.Attributes;
 using SolTechnology.Avro.Infrastructure.Extensions;
@@ -72,7 +73,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
 
             if (runtimeType.IsEnum())
             {
-                this.symbols = Enum.GetNames(runtimeType).ToList();
+                this.symbols = Enum.GetNames(runtimeType)
+                    .Select(x => EnumParser.GetEnumName(runtimeType, x))
+                    .ToList();
+
                 Array values = Enum.GetValues(runtimeType);
                 for (int i = 0; i < this.symbols.Count; i++)
                 {

@@ -15,9 +15,11 @@
 */
 #endregion
 
+using SolTechnology.Avro.AvroObjectServices.Read;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Infrastructure.Exceptions;
+using SolTechnology.Avro.Infrastructure.Extensions;
 
 // ReSharper disable once CheckNamespace
 namespace SolTechnology.Avro.AvroObjectServices.Write
@@ -28,6 +30,13 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
         {
             return (value, e) =>
             {
+                var enumType = value.GetType();
+
+                if (enumType.IsEnum())
+                {
+                    value = EnumParser.GetEnumName(enumType, value.ToString());
+                }
+
                 if (!schema.TryGetSymbolValue(value.ToString(), out var symbolValue))
                 {
                     throw new AvroTypeException(

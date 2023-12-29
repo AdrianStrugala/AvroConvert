@@ -165,7 +165,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 
             if (t.IsEnum)
             {
-                return Enum.Parse(t, (string)defaultValue);
+                return EnumParser.Parse(t, (string)defaultValue);
             }
 
             //TODO: Map and Record default values are represented as Dictionary<string,object>

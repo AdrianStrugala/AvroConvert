@@ -155,8 +155,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             else
             {
                 byte[] bufferArray = ArrayPool<byte>.Shared.Rent(length);
-                Span<byte> buffer = bufferArray;
-                ReadFixed(buffer.Slice(0, length));
+                Span<byte> buffer = bufferArray.AsSpan()[..length];
+                ReadFixed(buffer);
                 string result = System.Text.Encoding.UTF8.GetString(buffer);
                 ArrayPool<byte>.Shared.Return(bufferArray);
                 return result;

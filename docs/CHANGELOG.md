@@ -1,3 +1,7 @@
+**v. 3.4.4 (16.01.24)**
+- Add support for EnumMember attribute 
+
+\
 **v. 3.4.3 (09.12.23)**
 - Fix for caching of skippers during deserialization
 - Fix for deserialization of enums marked with flags 

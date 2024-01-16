@@ -1,5 +1,8 @@
 ﻿using Newtonsoft.Json;
 using SolTechnology.Avro;
+using System.Buffers;
+using System.IO;
+using System.Text;
 using Xunit;
 
 namespace AvroConvertComponentTests.Avro2Json
@@ -119,6 +122,38 @@ namespace AvroConvertComponentTests.Avro2Json
 
             var schema = AvroConvert.GenerateSchema(arrayTestObject.GetType());
             var avroSerialized = AvroConvert.SerializeHeadless(arrayTestObject, schema);
+
+
+            //Act
+            var resultJson = AvroConvert.Avro2Json(avroSerialized, schema);
+
+
+            //Assert
+            Assert.Equal(expectedJson, resultJson);
+        }
+
+        [Fact]
+        public void Avro2Json_ConvertLongString_ProducedDesiredJson()
+        {
+            //Arrange
+
+            // We first use an ArrayPool for something completely unrelated
+            byte[] bufferArray = ArrayPool<byte>.Shared.Rent(2048);
+            var s = "I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. secret string";
+            using (var stream = new MemoryStream(Encoding.ASCII.GetBytes(s)))
+            {
+                stream.Read(bufferArray, 0, s.Length);
+            }
+            ArrayPool<byte>.Shared.Return(bufferArray);
+
+
+            // We then use it in AvroConvert. We must have a string of >512 bytes. 
+            var @string = "I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. I am long the serialization string. ";
+
+            var expectedJson = JsonConvert.SerializeObject(@string);
+
+            var schema = AvroConvert.GenerateSchema(@string.GetType());
+            var avroSerialized = AvroConvert.SerializeHeadless(@string, schema);
 
 
             //Act

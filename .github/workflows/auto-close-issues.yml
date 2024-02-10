@@ -1,0 +1,59 @@
+name: Auto Close Inactive Issues
+
+on:
+  schedule:
+    # Runs at 00:00 UTC every day
+    - cron: '0 0 * * *'
+
+jobs:
+  close-inactive-issues:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Close inactive issues
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { Octokit } = require("@octokit/core");
+            const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const label = "awaiting user"; // Label to filter issues
+            const inactiveDays = 90; // 3 months
+            const closingComment = "Closed due to inactivity.";
+
+            const issues = await octokit.request('GET /repos/{owner}/{repo}/issues', {
+              owner,
+              repo,
+              labels: label,
+              state: 'open',
+              per_page: 100,
+            });
+
+            const now = new Date();
+            for (const issue of issues.data) {
+              const lastUpdated = new Date(issue.updated_at);
+              const differenceInDays = Math.floor((now - lastUpdated) / (1000 * 3600 * 24));
+              if (differenceInDays >= inactiveDays) {
+                // Post a comment before closing the issue
+                await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
+                  owner,
+                  repo,
+                  issue_number: issue.number,
+                  body: closingComment,
+                });
+
+                // Close the issue
+                await octokit.request('PATCH /repos/{owner}/{repo}/issues/{issue_number}', {
+                  owner,
+                  repo,
+                  issue_number: issue.number,
+                  state: 'closed',
+                });
+              }
+            }
+          env:
+            GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'

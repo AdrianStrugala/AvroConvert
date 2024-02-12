@@ -16,18 +16,13 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const { Octokit } = require("@octokit/core");
-            const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
-
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
             const label = "awaiting user"; // Label to filter issues
             const inactiveDays = 90; // 3 months
             const closingComment = "Closed due to inactivity.";
 
-            const issues = await octokit.request('GET /repos/{owner}/{repo}/issues', {
-              owner,
-              repo,
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
               labels: label,
               state: 'open',
               per_page: 100,
@@ -39,17 +34,17 @@ jobs:
               const differenceInDays = Math.floor((now - lastUpdated) / (1000 * 3600 * 24));
               if (differenceInDays >= inactiveDays) {
                 // Post a comment before closing the issue
-                await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
-                  owner,
-                  repo,
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
                   issue_number: issue.number,
                   body: closingComment,
                 });
 
                 // Close the issue
-                await octokit.request('PATCH /repos/{owner}/{repo}/issues/{issue_number}', {
-                  owner,
-                  repo,
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
                   issue_number: issue.number,
                   state: 'closed',
                 });

@@ -30,6 +30,21 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
         [Theory]
         [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
+        public void IEnumerable_of_class(Func<object, Type, dynamic> engine)
+        {
+            //Arrange
+            var someTestClasses = _fixture.CreateMany<BaseTestClass>();
+
+            //Act
+            var deserialized = engine.Invoke(someTestClasses, typeof(IEnumerable<BaseTestClass>));
+
+            //Assert
+            Assert.NotNull(deserialized);
+            Assert.Equal(someTestClasses, deserialized);
+        }
+
+        [Theory]
+        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
         public void Class_with_list(Func<object, Type, dynamic> engine)
         {
             //Arrange

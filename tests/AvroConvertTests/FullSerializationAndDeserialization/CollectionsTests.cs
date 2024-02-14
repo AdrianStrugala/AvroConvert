@@ -29,6 +29,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
         }
 
         [Theory]
+        [Trait("Fix", "https://github.com/AdrianStrugala/AvroConvert/issues/146")]
         [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
         public void IEnumerable_of_class(Func<object, Type, dynamic> engine)
         {

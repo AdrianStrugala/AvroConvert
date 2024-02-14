@@ -1,12 +1,12 @@
 ﻿using SolTechnology.Avro;
 using Xunit;
 
-namespace AvroConvertComponentTests.Headless.Proto
+namespace AvroConvertComponentTests.FilesDeserialization.Headless
 {
-    // from issue: https://github.com/AdrianStrugala/AvroConvert/issues/95
     public class HeadlessProtoFileTest
     {
         [Fact]
+        [Trait("Fix", "https://github.com/AdrianStrugala/AvroConvert/issues/95")]
         public void Component_SerializeHeadlessBiggerObjectAndReadSmaller_NoError()
         {
             //Arrange

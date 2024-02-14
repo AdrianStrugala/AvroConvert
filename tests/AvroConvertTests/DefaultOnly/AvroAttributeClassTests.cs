@@ -1,13 +1,5 @@
 ﻿using System;
-using System.CodeDom.Compiler;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.Serialization;
 using AutoFixture;
-using FluentAssertions;
-using SolTechnology.Avro;
-using SolTechnology.Avro.AvroObjectServices.BuildSchema;
-using SolTechnology.Avro.Infrastructure.Attributes;
 using Xunit;
 
 namespace AvroConvertComponentTests.DefaultOnly

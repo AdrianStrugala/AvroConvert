@@ -1,3 +1,7 @@
+**v. 3.4.5 (15.02.24)**
+- Add support for IEnumerable objects and properties
+
+\
 **v. 3.4.4 (16.01.24)**
 - Add support for EnumMember attribute 
 

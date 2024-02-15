@@ -53,7 +53,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             var typeHash = type.GetHashCode();
 
             int capacity = itemsCount == 0 ? (int)reader.ReadArrayStart() : (int)itemsCount;
-            Func <IList> resultFunc;
+            Func<IList> resultFunc;
             if (_cachedArrayInitializers.TryGetValue(typeHash, out var initializer))
             {
                 resultFunc = initializer;
@@ -98,7 +98,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                 return resultArray;
             }
 
-            if (type.IsList())
+            if (type.IsList() || type.IsEnumerable())
             {
                 return result;
             }

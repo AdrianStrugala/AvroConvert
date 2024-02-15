@@ -374,10 +374,15 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
             return type?.GetElementType() ?? type.GenericTypeArguments.FirstOrDefault();
 
         }
-        
+
         public static Type FindEnumerableType(this Type type)
         {
-            return type?
+            if (type.IsEnumerable())
+            {
+                return type;
+            }
+
+            return type
                 .GetAllInterfaces()
                 .SingleOrDefault(t => t.IsGenericType() && t.GetGenericTypeDefinition() == typeof(IEnumerable<>));
         }
@@ -415,6 +420,11 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
         internal static bool IsList(this Type type)
         {
             return typeof(IList).IsAssignableFrom(type);
+        }
+
+        internal static bool IsEnumerable(this Type type)
+        {
+            return type.IsGenericType() && type.GetGenericTypeDefinition() == typeof(IEnumerable<>);
         }
 
         internal static bool IsGuid(this Type type)

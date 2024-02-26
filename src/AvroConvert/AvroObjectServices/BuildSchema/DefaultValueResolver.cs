@@ -46,6 +46,7 @@ internal sealed class DefaultValueResolver
             { typeof(LongSchema), json => ConvertTo<long>(json) },
             { typeof(FloatSchema), json => ConvertTo<float>(json) },
             { typeof(DoubleSchema), json => ConvertTo<double>(json) },
+            { typeof(DecimalSchema), json => ConvertTo<decimal>(json) },
             { typeof(StringSchema), json => json },
             { typeof(BytesSchema), ConvertToBytes },
             { typeof(NullSchema), this.ParseNull },

@@ -1,3 +1,7 @@
+**v. 3.4.6 (04.03.24)**
+- Fix for missing decimal schema for default value resolver
+
+\
 **v. 3.4.5 (15.02.24)**
 - Add support for IEnumerable objects and properties
 

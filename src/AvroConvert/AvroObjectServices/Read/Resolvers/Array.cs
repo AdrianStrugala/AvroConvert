@@ -43,6 +43,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                 writerSchema = ((ArraySchema)writerSchema).ItemSchema;
             }
             readerSchema = ((ArraySchema)readerSchema).ItemSchema;
+            if (readerSchema.IsEmpty())
+            {
+                readerSchema = writerSchema;
+            }
 
             if (type.IsDictionary())
             {

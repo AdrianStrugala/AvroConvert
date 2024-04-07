@@ -27,6 +27,7 @@ using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.AvroObjectServices.FileHeader;
 using SolTechnology.Avro.AvroObjectServices.FileHeader.Codec;
 using SolTechnology.Avro.AvroObjectServices.Read;
+using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
@@ -65,7 +66,7 @@ namespace SolTechnology.Avro.Features.AvroToJson
             {
                 var header = reader.ReadHeader();
 
-                schema = schema ?? Schema.Create(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
+                schema ??= Schema.Create(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
                 var resolver = new Resolver(schema);
 
                 reader.ReadFixed(header.SyncData);
@@ -83,30 +84,33 @@ namespace SolTechnology.Avro.Features.AvroToJson
                 return string.Empty;
             }
 
-
             var result = new List<object>();
 
             do
             {
-                long itemsCount = reader.ReadLong();
-                var data = reader.ReadDataBlock(header.SyncData, codec);
-
-                reader = new Reader(new MemoryStream(data));
-
-                if (itemsCount > 1)
-                {
-                    for (int i = 0; i < itemsCount; i++)
-                    {
-                        result.Add(resolver.Resolve(reader));
-                    }
-                }
-                else
-                {
-                    return resolver.Resolve(reader);
-                }
-
+                result.AddRange(ReadSingleBlock(reader, header, codec, resolver));
             } while (!reader.IsReadToEnd());
 
+            if (header.Schema is not ArraySchema && result.Count < 2)
+            {
+                return result.SingleOrDefault();
+            }
+
+            return result;
+        }
+
+        private static List<object> ReadSingleBlock(Reader reader, Header header, AbstractCodec codec, Resolver resolver)
+        {
+            var result = new List<object>();
+            long itemsCount = reader.ReadLong();
+            var data = reader.ReadDataBlock(header.SyncData, codec);
+
+            reader = new Reader(new MemoryStream(data));
+
+            for (int i = 0; i < itemsCount; i++)
+            {
+                result.Add(resolver.Resolve(reader));
+            }
 
             return result;
         }

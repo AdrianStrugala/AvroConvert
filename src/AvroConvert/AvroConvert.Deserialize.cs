@@ -22,6 +22,7 @@
 
 using System;
 using System.IO;
+using System.Reflection;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.Features.Deserialize;
 
@@ -87,10 +88,18 @@ namespace SolTechnology.Avro
         /// </remarks>
         public static dynamic Deserialize(byte[] avroBytes, Type targetType)
         {
-            object result = typeof(AvroConvert)
-                            .GetMethod(nameof(Deserialize), new[] { typeof(byte[]) })
-                            ?.MakeGenericMethod(targetType)
-                            .Invoke(null, new object[] { avroBytes });
+            object result;
+            try
+            {
+                result = typeof(AvroConvert)
+                    .GetMethod(nameof(Deserialize), new[] { typeof(byte[]) })
+                    ?.MakeGenericMethod(targetType)
+                    .Invoke(null, new object[] { avroBytes });
+            }
+            catch (TargetInvocationException ex)
+            {
+                throw ex.InnerException!;
+            }
 
             return result;
         }

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using Newtonsoft.Json;
 using SolTechnology.Avro;
 
 namespace AvroConvertComponentTests;
@@ -13,14 +15,16 @@ public static class TestEngine
         yield return Headless;
 
         yield return GenericJson;
-        
+
         yield return Brotli;
-        
+
         yield return Snappy;
-        
+
         yield return Deflate;
-        
+
         yield return Gzip;
+
+        yield return Json;
     }
 
     public static IEnumerable<object[]> Core()
@@ -53,6 +57,16 @@ public static class TestEngine
         yield return Default;
 
         yield return Snappy;
+    }
+
+    public static IEnumerable<object[]> DeserializeOnly()
+    {
+        yield return DefaultDeserializeOnly;
+
+        // TODO: need to create proper test strategy for this feature
+        // yield return DeserializeByLine;
+
+        yield return GenericJsonDeserializeOnly;
     }
 
     private static object[] Default
@@ -240,6 +254,30 @@ public static class TestEngine
             });
 
             return new object[] { @default };
+        }
+    }
+
+    private static object[] DefaultDeserializeOnly
+    {
+        get
+        {
+            var func = new Func<byte[], Type, dynamic>((input, type) => AvroConvert.Deserialize(input, type));
+
+            return new object[] { func };
+        }
+    }
+
+    private static object[] GenericJsonDeserializeOnly
+    {
+        get
+        {
+            var func = new Func<byte[], Type, dynamic>((input, type) =>
+            {
+                var json = AvroConvert.Avro2Json(input);
+                return JsonConvert.DeserializeObject(json, type);
+            });
+
+            return new object[] { func };
         }
     }
 }

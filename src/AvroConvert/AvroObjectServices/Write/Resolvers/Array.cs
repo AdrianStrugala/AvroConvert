@@ -36,10 +36,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
         {
             List<object> list = EnsureArrayObject(@object);
 
-            long l = list?.Count ?? 0;
+            long count = list?.Count ?? 0;
             encoder.WriteArrayStart();
-            encoder.WriteItemCount(l);
-            WriteArrayValues(list, itemWriter, encoder, l);
+            encoder.WriteItemCount(count);
+            WriteArrayValues(list, itemWriter, encoder, count);
             encoder.WriteArrayEnd();
         }
 

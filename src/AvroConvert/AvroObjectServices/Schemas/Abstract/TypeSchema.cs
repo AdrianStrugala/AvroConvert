@@ -40,7 +40,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
 
         private string emptySchema = "{\"name\":\"Object\",\"namespace\":\"System\",\"type\":\"record\",\"fields\":[]}";
 
-        internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
+        internal override void ToJsonSafe(JsonTextWriter writer)
         {
             writer.WriteValue(CultureInfo.InvariantCulture.TextInfo.ToLower(this.Type.ToString()));
         }

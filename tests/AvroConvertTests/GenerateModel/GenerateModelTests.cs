@@ -139,7 +139,7 @@ namespace AvroConvertComponentTests.GenerateModel
                 "\tpublic ClassWithArray[] ClassesWithArray { get; set; }\r\n" +
                 "\tpublic ClassWithGuid[] ClassesWithGuid { get; set; }\r\n" +
                 "\tpublic ClassWithConstructorPopulatingProperty anotherClass { get; set; }\r\n" +
-                "\tpublic User simpleClass { get; set; }\r\n" +
+                "\tpublic AvroConvertComponentTests.User simpleClass { get; set; }\r\n" +
                 "\tpublic int simpleObject { get; set; }\r\n" +
                 "\tpublic bool[] bools { get; set; }\r\n" +
                 "\tpublic double doubleProperty { get; set; }\r\n" +
@@ -168,10 +168,10 @@ namespace AvroConvertComponentTests.GenerateModel
                 "{\r\n" +
                 "\tpublic string justSomeProperty { get; set; }\r\n" +
                 "\tpublic long andLongProperty { get; set; }\r\n" +
-                "\tpublic User objectProperty { get; set; }\r\n" +
+                "\tpublic AvroConvertComponentTests.User objectProperty { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
-                "public class User\r\n" +
+                "public class AvroConvertComponentTests.User\r\n" +
                 "{\r\n" +
                 "\tpublic string? name { get; set; }\r\n" +
                 "\tpublic int? favorite_number { get; set; }\r\n" +
@@ -291,16 +291,16 @@ namespace AvroConvertComponentTests.GenerateModel
             Assert.Equal(
                 "public class BaseTestClass\r\n" +
                 "{\r\n" +
-                "\tpublic FakeUserUser fakeUserProperty { get; set; }\r\n" +
-                "\tpublic AvroConvertComponentTestsUser objectProperty { get; set; }\r\n" +
+                "\tpublic FakeUser.User fakeUserProperty { get; set; }\r\n" +
+                "\tpublic AvroConvertComponentTests.User objectProperty { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
-                "public class FakeUserUser\r\n" +
+                "public class FakeUser.User\r\n" +
                 "{\r\n" +
                 "\tpublic string name { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
-                "public class AvroConvertComponentTestsUser\r\n" +
+                "public class AvroConvertComponentTests.User\r\n" +
                 "{\r\n" +
                 "\tpublic string name { get; set; }\r\n" +
                 "\tpublic int? favorite_number { get; set; }\r\n" +
@@ -414,11 +414,11 @@ namespace AvroConvertComponentTests.GenerateModel
                 "public class module\r\n" +
                 "{\r\n" +
                 "\tpublic string? moduleIdName { get; set; }\r\n" +
-                "\tpublic datamodule[] data { get; set; }\r\n" +
+                "\tpublic data.module[] data { get; set; }\r\n" +
                 "\tpublic int? instrumentId { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
-                "public class datamodule\r\n" +
+                "public class data.module\r\n" +
                 "{\r\n" +
                 "\tpublic bool? isControl { get; set; }\r\n" +
                 "}\r\n" +

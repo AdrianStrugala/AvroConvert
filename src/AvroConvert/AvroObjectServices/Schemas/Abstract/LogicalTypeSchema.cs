@@ -51,11 +51,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
             return writerSchema.Type == Type || writerSchema.Type == BaseTypeSchema.Type;
         }
 
-        internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
+        internal override void ToJsonSafe(JsonTextWriter writer)
         {
             writer.WriteStartObject();
             writer.WritePropertyName("type");
-            BaseTypeSchema.ToJsonSafe(writer, seenSchemas);
+            BaseTypeSchema.ToJsonSafe(writer);
             writer.WriteProperty("logicalType", LogicalTypeName);
             writer.WriteEndObject();
         }

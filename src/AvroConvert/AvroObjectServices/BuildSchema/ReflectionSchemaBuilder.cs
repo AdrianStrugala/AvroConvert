@@ -108,13 +108,13 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             uint currentDepth,
             Type prioritizedType = null,
             MemberInfo memberInfo = null)
-        {
+         {
             if (currentDepth == _options.MaxItemsInSchemaTree)
             {
                 throw new SerializationException(string.Format(CultureInfo.InvariantCulture, "Maximum depth of object graph reached."));
             }
 
-            if (_hasCustomConverters)
+              if (_hasCustomConverters)
             {
                 if (_customSchemaMapping.TryGetValue(type, out var schema))
                 {

@@ -84,13 +84,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         ///     Converts current not to JSON according to the avro specification.
         /// </summary>
         /// <param name="writer">The writer.</param>
-        /// <param name="seenSchemas">The seen schemas.</param>
-        internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
+        internal override void ToJsonSafe(JsonTextWriter writer)
         {
             writer.WriteStartObject();
             writer.WriteProperty("type", "map");
             writer.WritePropertyName("values");
-            ValueSchema.ToJson(writer, seenSchemas);
+            ValueSchema.ToJson(writer);
             writer.WriteEndObject();
         }
 

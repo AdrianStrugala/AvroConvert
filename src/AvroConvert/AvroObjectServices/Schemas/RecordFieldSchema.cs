@@ -68,7 +68,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             Position = position;
         }
 
-        internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
+        internal override void ToJsonSafe(JsonTextWriter writer)
         {
             writer.WriteStartObject();
 
@@ -77,7 +77,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             writer.WriteOptionalProperty("doc", Doc);
             writer.WriteOptionalProperty("aliases", Aliases);
             writer.WritePropertyName("type");
-            TypeSchema.ToJson(writer, seenSchemas);
+            TypeSchema.ToJson(writer);
             writer.WriteOptionalProperty("default", DefaultValue, HasDefaultValue);
 
             writer.WriteEndObject();

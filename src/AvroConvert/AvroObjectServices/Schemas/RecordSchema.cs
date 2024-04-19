@@ -81,15 +81,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
 
         internal ReadOnlyCollection<RecordFieldSchema> Fields => fields.AsReadOnly();
 
-        internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
+        internal override void ToJsonSafe(JsonTextWriter writer)
         {
-            if (seenSchemas.Contains(this))
-            {
-                writer.WriteValue(this.FullName);
-                return;
-            }
-
-            seenSchemas.Add(this);
             writer.WriteStartObject();
             writer.WriteProperty("name", Name);
             writer.WriteOptionalProperty("namespace", Namespace);
@@ -98,7 +91,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             writer.WriteProperty("type", "record");
             writer.WritePropertyName("fields");
             writer.WriteStartArray();
-            fields.ForEach(_ => _.ToJson(writer, seenSchemas));
+            fields.ForEach(_ => _.ToJson(writer));
             writer.WriteEndArray();
             writer.WriteEndObject();
         }
@@ -107,7 +100,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
 
         internal override bool CanRead(TypeSchema writerSchema)
         {
-            return Type == writerSchema.Type 
+            return Type == writerSchema.Type
                    || Fields.Count == 0; //hack to allow any item to be serialized to Object 
         }
     }

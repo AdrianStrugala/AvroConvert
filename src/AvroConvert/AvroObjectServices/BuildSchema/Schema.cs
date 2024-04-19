@@ -53,18 +53,18 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             using (var result = new StringWriter(CultureInfo.InvariantCulture))
             {
                 var writer = new JsonTextWriter(result);
-                this.ToJson(writer, new HashSet<NamedSchema>());
+                this.ToJson(writer);
                 return result.ToString();
             }
         }
 
-        internal void ToJson(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
+        internal void ToJson(JsonTextWriter writer)
         {
-            this.ToJsonSafe(writer, seenSchemas);
+            this.ToJsonSafe(writer);
         }
 
 
-        internal abstract void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas);
+        internal abstract void ToJsonSafe(JsonTextWriter writer);
 
 
         internal static TypeSchema Create(string schemaInJson)

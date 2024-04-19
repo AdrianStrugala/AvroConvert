@@ -38,20 +38,46 @@ namespace SolTechnology.Avro.Features.GenerateModel
                     continue;
                 }
 
-                
+
                 foreach (var netClass in netTypes.OfType<NetClass>().ToList())
                 {
                     foreach (var avroField in model.NetTypes.OfType<NetClass>().ToList()
-                        .SelectMany(c => c.Fields)
-                        .Where(f => (f.FieldType == netClass.Name ||
-                                    f.FieldType == netClass.Name + "[]" ||
-                                    f.FieldType == netClass.Name + "?") &&
-                                    f.Namespace == netClass.ClassNamespace))
+                                 .SelectMany(c => c.Fields)
+                                 .Where(f => (f.FieldType == netClass.Name ||
+                                              f.FieldType == netClass.Name + "[]" ||
+                                              f.FieldType == netClass.Name + "?") &&
+                                             f.Namespace == netClass.ClassNamespace))
                     {
-                        avroField.FieldType = avroField.Namespace + avroField.FieldType;
+                        if (!string.IsNullOrWhiteSpace(avroField.Namespace))
+                        {
+                            avroField.FieldType = avroField.Namespace + "." + avroField.FieldType;
+                        }
                     }
-                
-                    netClass.Name = netClass.ClassNamespace + netClass.Name;
+
+                    //deduplicate classes
+                    if (!string.IsNullOrWhiteSpace(netClass.ClassNamespace))
+                    {
+                        var nameWithNamespace = netClass.ClassNamespace + "." + netClass.Name;
+                        if (model.NetTypes.Any(x => x.Name == nameWithNamespace))
+                        {
+                            model.NetTypes.Remove(netClass);
+                        }
+                        else
+                        {
+                            netClass.Name = nameWithNamespace;
+                        }
+                    }
+                }
+
+                //deduplicate enums
+                var netEnums = netTypes.OfType<NetEnum>().ToList();
+                if (netEnums.Any())
+                {
+                    foreach (var netEnum in netEnums)
+                    {
+                        model.NetTypes.Remove(netEnum);
+                    }
+                    model.NetTypes.Add(netEnums.First());
                 }
             }
         }

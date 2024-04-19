@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using AutoFixture;
+using FluentAssertions;
 using Xunit;
 
 namespace AvroConvertComponentTests.FullSerializationAndDeserialization
@@ -75,6 +76,41 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             //Assert
             Assert.NotNull(deserialized);
             Assert.Equal(testClass, deserialized);
+        }
+
+        [Theory]
+        [Trait("Fix", "https://github.com/AdrianStrugala/AvroConvert/issues/152")]
+        [MemberData(nameof(TestEngine.Core), MemberType = typeof(TestEngine))]
+        public void Class_containing_two_dictionaries(Func<object, Type, dynamic> engine)
+        {
+            //Arrange
+            ClassWith2Dictionaries testClass = _fixture.Create<ClassWith2Dictionaries>();
+
+
+            //Act
+            var deserialized = (ClassWith2Dictionaries)engine.Invoke(testClass, typeof(ClassWith2Dictionaries));
+
+
+            //Assert
+            Assert.NotNull(deserialized);
+            deserialized.Should().BeEquivalentTo(testClass);
+        }
+
+        [Theory]
+        [MemberData(nameof(TestEngine.Core), MemberType = typeof(TestEngine))]
+        public void Class_containing_two_maps(Func<object, Type, dynamic> engine)
+        {
+            //Arrange
+            ClassWith2Maps testClass = _fixture.Create<ClassWith2Maps>();
+
+
+            //Act
+            var deserialized = (ClassWith2Maps)engine.Invoke(testClass, typeof(ClassWith2Maps));
+
+
+            //Assert
+            Assert.NotNull(deserialized);
+            deserialized.Should().BeEquivalentTo(testClass);
         }
     }
 }

@@ -100,15 +100,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
 
         internal long[] AvroToCSharpValueMapping => this.avroToCSharpValueMapping.ToArray();
 
-        internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
+        internal override void ToJsonSafe(JsonTextWriter writer)
         {
-            if (seenSchemas.Contains(this))
-            {
-                writer.WriteValue(this.FullName);
-                return;
-            }
-
-            seenSchemas.Add(this);
             writer.WriteStartObject();
             writer.WriteProperty("type", "enum");
             writer.WriteProperty("name", Name);

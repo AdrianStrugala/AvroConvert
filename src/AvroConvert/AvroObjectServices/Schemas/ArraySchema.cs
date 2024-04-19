@@ -76,12 +76,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         /// </summary>
         /// <param name="writer">The writer.</param>
         /// <param name="seenSchemas">The seen schemas.</param>
-        internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
+        internal override void ToJsonSafe(JsonTextWriter writer)
         {
             writer.WriteStartObject();
             writer.WriteProperty("type", "array");
             writer.WritePropertyName("items");
-            this.itemSchema.ToJson(writer, seenSchemas);
+            this.itemSchema.ToJson(writer);
             writer.WriteEndObject();
         }
 

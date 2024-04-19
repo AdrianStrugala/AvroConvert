@@ -64,7 +64,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             Precision = precision;
         }
 
-        internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
+        internal override void ToJsonSafe(JsonTextWriter writer)
         {
             writer.WriteStartObject();
             writer.WriteProperty("type", BaseTypeSchema.Type.ToString().ToLowerInvariant());

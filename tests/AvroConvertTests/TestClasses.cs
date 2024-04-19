@@ -74,6 +74,18 @@ namespace AvroConvertComponentTests
         public TestEnum EnumProp { get; set; }
     }
 
+    public class ClassWith2Dictionaries
+    {
+        public Dictionary<int, byte[]> ByteArrayData { get; set; } = new();
+        public Dictionary<int, float> FloatData { get; set; } = new();
+    }
+
+    public class ClassWith2Maps
+    {
+        public Dictionary<string, byte[]> ByteArrayData { get; set; } = new();
+        public Dictionary<string, float> FloatData { get; set; } = new();
+    }
+
 
     [Equals(DoNotAddEqualityOperators = true)]
     public class LogicalTypesClass
@@ -301,11 +313,11 @@ namespace AvroConvertComponentTests
         ca,
         dlo
     }
-    
+
     [Flags]
     public enum TestEnumWithFlags
     {
-        None    = 0,
+        None = 0,
         Option1 = 1,
         Option2 = 2,
         Option3 = 4,

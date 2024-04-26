@@ -1,3 +1,10 @@
+**v. 3.4.7 (26.04.24)**
+- Fix for dynamic deserialization to collection
+- Fix for Avro2Json to read correctly multiple data blocks
+- Fix for serialization of class with multiple dictionaries
+- Added support for AvroTypeAttribute - allows applying custom avro schema representation for chosen field/property
+
+\
 **v. 3.4.6 (04.03.24)**
 - Fix for missing decimal schema for default value resolver
 

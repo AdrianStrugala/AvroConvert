@@ -253,6 +253,15 @@ namespace AvroConvertComponentTests
         public string AndAnotherString;
     }
 
+    public class TypeAttributeClass
+    {
+        [AvroType(AvroTypeRepresentation.Double)]
+        public int Int;
+
+        [AvroType(AvroTypeRepresentation.TimestampMilliseconds)]
+        public DateTime DateTime;
+    }
+
     public struct ComplexStruct
     {
         [DataMember]

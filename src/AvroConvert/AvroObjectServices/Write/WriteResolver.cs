@@ -131,8 +131,15 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
 
             if (value is not S convertedValue)
             {
-                throw new AvroTypeMismatchException(
-                    $"[{typeof(S)}] required to write against [{tag}] schema but found type: [{value?.GetType()}]");
+                try
+                {
+                    convertedValue = (S)Convert.ChangeType(value, typeof(S));
+                }
+                catch
+                {
+                    throw new AvroTypeMismatchException(
+                        $"[{typeof(S)}] required to write against [{tag}] schema but found type: [{value?.GetType()}]");
+                }
             }
 
             writer(convertedValue);

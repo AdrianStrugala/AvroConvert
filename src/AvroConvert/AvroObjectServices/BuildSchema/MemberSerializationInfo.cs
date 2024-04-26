@@ -8,6 +8,7 @@
 
 using System.Collections.Generic;
 using System.Reflection;
+using SolTechnology.Avro.Infrastructure.Attributes;
 
 namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 {
@@ -68,5 +69,13 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         ///   <c>true</c> when the DefaultValue has been explicitly set.
         /// </value>
         internal bool HasDefaultValue { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating the custom avro representation of property.
+        /// </summary>
+        /// <value>
+        ///   <c>null</c> or the chosen AvroTypeRepresentation value, when a property is undefined in a serialized Avro message.
+        /// </value>
+        internal AvroTypeRepresentation? AvroTypeRepresentation { get; set; }
     }
 }

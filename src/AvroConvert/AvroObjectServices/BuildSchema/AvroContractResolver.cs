@@ -175,7 +175,8 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                         Nullable = customAttributes.OfType<NullableSchemaAttribute>().Any(), // m.GetType().CanContainNull() ||
                         DefaultValue = customAttributes.OfType<DefaultValueAttribute>().FirstOrDefault()?.Value,
                         HasDefaultValue = customAttributes.OfType<DefaultValueAttribute>().Any(),
-                        Doc = customAttributes.OfType<DescriptionAttribute>().FirstOrDefault()?.Description
+                        Doc = customAttributes.OfType<DescriptionAttribute>().FirstOrDefault()?.Description,
+                        AvroTypeRepresentation = customAttributes.OfType<AvroTypeAttribute>().FirstOrDefault()?.TypeRepresentation
                     };
                 });
 
@@ -193,7 +194,8 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 Aliases = m.Attribute?.Name != null ? new List<string> { m.Member.Name } : new List<string>(),
                 HasDefaultValue = m.HasDefaultValue,
                 DefaultValue = m.DefaultValue,
-                Doc = m.Doc
+                Doc = m.Doc,
+                AvroTypeRepresentation = m.AvroTypeRepresentation
             });
 
 

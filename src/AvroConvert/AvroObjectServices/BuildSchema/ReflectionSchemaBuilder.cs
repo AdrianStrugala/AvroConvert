@@ -35,7 +35,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
     internal sealed class ReflectionSchemaBuilder
     {
         private static readonly Dictionary<Type, Func<Type, LogicalTypeSchema>> TypeToAvroLogicalSchemaMap =
-            new Dictionary<Type, Func<Type, LogicalTypeSchema>>
+            new()
             {
                 { typeof(decimal), type => new DecimalSchema(type) },
                 { typeof(Guid), type => new UuidSchema(type) },
@@ -48,7 +48,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
 
         private static readonly Dictionary<Type, Func<Type, PrimitiveTypeSchema>> TypeToAvroPrimitiveSchemaMap =
-            new Dictionary<Type, Func<Type, PrimitiveTypeSchema>>
+            new()
             {
                 { typeof(AvroNull), type => new NullSchema(type) },
                 { typeof(char), type => new IntSchema(type) },
@@ -68,6 +68,27 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 { typeof(byte[]), type => new BytesSchema() },
                 { typeof(decimal), type => new StringSchema(type) },
                 { typeof(DateTime), type => new LongSchema(type) }
+            };
+
+        private static readonly Dictionary<AvroTypeRepresentation, Func<Type, TypeSchema>> AvroRepresentationToAvroSchemaMap =
+            new()
+            {
+                { AvroTypeRepresentation.Null, type => new NullSchema(type) },
+                { AvroTypeRepresentation.Boolean, type => new BooleanSchema() },
+                { AvroTypeRepresentation.Int, type => new IntSchema(type) },
+                { AvroTypeRepresentation.Long, type => new LongSchema(type) },
+                { AvroTypeRepresentation.Float, type => new FloatSchema(type) },
+                { AvroTypeRepresentation.Double, type => new DoubleSchema() },
+                { AvroTypeRepresentation.Bytes, type => new BytesSchema() },
+                { AvroTypeRepresentation.String, type => new StringSchema(type) },
+                { AvroTypeRepresentation.Uuid, type => new UuidSchema(type) },
+                { AvroTypeRepresentation.TimestampMilliseconds, type => new TimestampMillisecondsSchema(type) },
+                { AvroTypeRepresentation.TimestampMicroseconds, type => new TimestampMicrosecondsSchema(type) },
+                { AvroTypeRepresentation.Decimal, type => new DecimalSchema(type) },
+                { AvroTypeRepresentation.Duration, type => new DurationSchema(type) },
+                { AvroTypeRepresentation.TimeMilliseconds, type => new TimeMillisecondsSchema(type) },
+                { AvroTypeRepresentation.TimeMicroseconds, type => new TimeMicrosecondsSchema(type) },
+                { AvroTypeRepresentation.Date, type => new DateSchema(type) },
             };
 
         private readonly AvroConvertOptions _options;
@@ -442,9 +463,18 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                             $"Type member '{info.MemberInfo.GetType().Name}' is not supported."));
                 }
 
-                TypeSchema fieldSchema = TryBuildUnionSchema(memberType, info.MemberInfo, schemas, currentDepth)
-                                         ?? TryBuildFixedSchema(memberType, info.MemberInfo, record)
-                                         ?? CreateSchema(info.Nullable, memberType, schemas, currentDepth + 1, info.DefaultValue?.GetType(), info.MemberInfo);
+                TypeSchema fieldSchema;
+
+                if (info.AvroTypeRepresentation.HasValue)
+                {
+                    fieldSchema = AvroRepresentationToAvroSchemaMap[info.AvroTypeRepresentation.Value].Invoke(memberType);
+                }
+                else
+                {
+                    fieldSchema = TryBuildUnionSchema(memberType, info.MemberInfo, schemas, currentDepth)
+                                  ?? TryBuildFixedSchema(memberType, info.MemberInfo, record)
+                                  ?? CreateSchema(info.Nullable, memberType, schemas, currentDepth + 1, info.DefaultValue?.GetType(), info.MemberInfo);
+                }
 
                 var recordField = new RecordFieldSchema(
                     new NamedEntityAttributes(new SchemaName(info.Name), info.Aliases, info.Doc),

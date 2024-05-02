@@ -88,5 +88,19 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             //Assert
             deserialized.Should().BeEquivalentTo(testObject);
         }
+
+        [Theory]
+        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
+        public void ClassWithDuplicateTypeProperties(Func<object, Type, dynamic> engine)
+        {
+            //Arrange
+            ClassWithDuplicateTypes testObject = _fixture.Create<ClassWithDuplicateTypes>();
+
+            //Act
+            var deserialized = (ClassWithDuplicateTypes)engine.Invoke(testObject, typeof(ClassWithDuplicateTypes));
+
+            //Assert
+            deserialized.Should().BeEquivalentTo(testObject);
+        }
     }
 }

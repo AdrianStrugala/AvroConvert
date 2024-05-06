@@ -58,10 +58,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
 
         internal ReadOnlyCollection<TypeSchema> Schemas => schemas.AsReadOnly();
 
-        internal override void ToJsonSafe(JsonTextWriter writer)
+        internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
         {
             writer.WriteStartArray();
-            this.schemas.ForEach(_ => _.ToJson(writer));
+            this.schemas.ForEach(_ => _.ToJson(writer, seenSchemas));
             writer.WriteEndArray();
         }
 

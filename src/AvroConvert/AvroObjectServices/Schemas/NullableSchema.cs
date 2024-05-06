@@ -58,9 +58,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
 
         internal override AvroType Type => valueSchema.Type;
 
-        internal override void ToJsonSafe(JsonTextWriter writer)
+        internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
         {
-            this.valueSchema.ToJsonSafe(writer);
+            this.valueSchema.ToJsonSafe(writer, seenSchemas);
         }
     }
 }

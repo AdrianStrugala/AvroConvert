@@ -26,6 +26,6 @@ namespace SolTechnology.Avro.Features.GenerateModel.NetModel
 {
     internal class NetModel
     {
-        internal List<INetType> NetTypes { get; set; } = new();
+        internal List<INetType> NetTypes { get; set; } = new List<INetType>();
     }
 }

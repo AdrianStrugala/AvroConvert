@@ -51,8 +51,15 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
 
         internal int Size { get; }
 
-        internal override void ToJsonSafe(JsonTextWriter writer)
+        internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
         {
+            if (seenSchemas.Contains(this))
+            {
+                writer.WriteValue(this.FullName);
+                return;
+            }
+
+            seenSchemas.Add(this);
             writer.WriteStartObject();
             writer.WriteProperty("type", "fixed");
             writer.WriteProperty("name", Name);

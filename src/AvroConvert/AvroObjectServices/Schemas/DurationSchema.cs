@@ -45,7 +45,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         internal override TypeSchema BaseTypeSchema { get; set; }
         internal override string LogicalTypeName => "duration";
 
-        internal override void ToJsonSafe(JsonTextWriter writer)
+        internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
         {
             var baseSchema = (FixedSchema)BaseTypeSchema;
             writer.WriteStartObject();

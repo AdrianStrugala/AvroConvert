@@ -50,14 +50,14 @@ namespace SolTechnology.Avro.Features.GenerateModel
                     {
                         if (!string.IsNullOrWhiteSpace(avroField.Namespace))
                         {
-                            avroField.FieldType = avroField.Namespace + "." + avroField.FieldType;
+                            avroField.FieldType = avroField.Namespace + avroField.FieldType;
                         }
                     }
 
                     //deduplicate classes
                     if (!string.IsNullOrWhiteSpace(netClass.ClassNamespace))
                     {
-                        var nameWithNamespace = netClass.ClassNamespace + "." + netClass.Name;
+                        var nameWithNamespace = netClass.ClassNamespace + netClass.Name;
                         if (model.NetTypes.Any(x => x.Name == nameWithNamespace))
                         {
                             model.NetTypes.Remove(netClass);

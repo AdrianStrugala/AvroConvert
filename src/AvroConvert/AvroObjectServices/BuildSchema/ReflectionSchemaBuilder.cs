@@ -129,13 +129,13 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             uint currentDepth,
             Type prioritizedType = null,
             MemberInfo memberInfo = null)
-         {
+        {
             if (currentDepth == _options.MaxItemsInSchemaTree)
             {
                 throw new SerializationException(string.Format(CultureInfo.InvariantCulture, "Maximum depth of object graph reached."));
             }
 
-              if (_hasCustomConverters)
+            if (_hasCustomConverters)
             {
                 if (_customSchemaMapping.TryGetValue(type, out var schema))
                 {
@@ -381,6 +381,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             }
 
             var attr = GetNamedEntityAttributesFrom(type);
+
             var record = new RecordSchema(
                 attr,
                 type);
@@ -388,6 +389,13 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
             var members = _resolver.ResolveMembers(type);
             AddRecordFields(members, schemas, currentDepth, record);
+
+            //Dictionary
+            if (record.Name == "KeyValuePair2")
+            {
+                record.Namespace == $"{record.Fields.First().Name}_{record.Fields.Last().Name}";
+            }
+
             return record;
         }
 

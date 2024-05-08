@@ -451,4 +451,11 @@ namespace AvroConvertComponentTests
             this.floatProperty = floatProperty;
         }
     }
+
+    public class ClassWithDuplicateTypes
+    {
+        public BaseClass Property1 { get; set; }
+
+        public BaseClass Property2 { get; set; }
+    }
 }

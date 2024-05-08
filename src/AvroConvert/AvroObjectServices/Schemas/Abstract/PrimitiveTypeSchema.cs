@@ -29,7 +29,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
         {
         }
         
-        internal override void ToJsonSafe(JsonTextWriter writer)
+        internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
         {
             writer.WriteValue(CultureInfo.InvariantCulture.TextInfo.ToLower(this.Type.ToString()));
         }

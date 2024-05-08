@@ -143,5 +143,17 @@ namespace AvroConvertComponentTests.GenerateSchema
             Assert.Contains("{\"name\":\"NullableField\",\"type\":[\"null\",\"string\"]}", schema);
             Assert.Contains("{\"name\":\"NullableRecord\",\"type\":[\"null\",{\"name\":\"UserNameClass\",\"namespace\":\"AvroConvertComponentTests\",\"type\":\"record\",\"fields\":[{\"name\":\"name\",\"type\":\"string\"}]}]}", schema);
         }
+
+        [Fact]
+        public void GenerateSchema_PropertiesWithDuplicateTypes_EmitsSingleRecord()
+        {
+            //Arrange
+
+            //Act
+            string schema = AvroConvert.GenerateSchema(typeof(ClassWithDuplicateTypes));
+
+            // Assert
+            Assert.Contains("{\"name\":\"Property2\",\"type\":\"AvroConvertComponentTests.BaseClass\"}", schema);
+        }
     }
 }

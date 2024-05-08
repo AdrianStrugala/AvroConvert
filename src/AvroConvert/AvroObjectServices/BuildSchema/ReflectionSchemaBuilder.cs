@@ -129,13 +129,13 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             uint currentDepth,
             Type prioritizedType = null,
             MemberInfo memberInfo = null)
-         {
+        {
             if (currentDepth == _options.MaxItemsInSchemaTree)
             {
                 throw new SerializationException(string.Format(CultureInfo.InvariantCulture, "Maximum depth of object graph reached."));
             }
 
-              if (_hasCustomConverters)
+            if (_hasCustomConverters)
             {
                 if (_customSchemaMapping.TryGetValue(type, out var schema))
                 {
@@ -380,14 +380,29 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 return schema;
             }
 
-            var attr = GetNamedEntityAttributesFrom(type);
+            NamedEntityAttributes attr = GetNamedEntityAttributesFrom(type);
+
             var record = new RecordSchema(
                 attr,
                 type);
-            schemas.Add(type.ToString(), record);
+
 
             var members = _resolver.ResolveMembers(type);
-            AddRecordFields(members, schemas, currentDepth, record);
+            var fields = BuildRecordFields(members, schemas, currentDepth, record);
+
+            //Dictionary
+            if (record.Name == "KeyValuePair2")
+            {
+                attr = new NamedEntityAttributes(
+                    new SchemaName(record.Name, $"{fields.First().TypeSchema.Name}_{fields.Last().TypeSchema.Name}"),
+                    record.Aliases,
+                    record.Doc);
+                record = new RecordSchema(attr, type);
+            }
+
+            schemas.Add(type.ToString(), record);
+            fields.ForEach(f => record.AddField(f));
+
             return record;
         }
 
@@ -434,13 +449,14 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 memberType);
         }
 
-        public void AddRecordFields(
+        public List<RecordFieldSchema> BuildRecordFields(
             IEnumerable<MemberSerializationInfo> members,
             Dictionary<string, NamedSchema> schemas,
             uint currentDepth,
             RecordSchema record)
         {
             int index = 0;
+            var result = new List<RecordFieldSchema>();
             foreach (MemberSerializationInfo info in members)
             {
                 var property = info.MemberInfo as PropertyInfo;
@@ -482,8 +498,10 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                     info.HasDefaultValue,
                     info.DefaultValue,
                     index++);
-                record.AddField(recordField);
+                result.Add(recordField);
             }
+
+            return result;
         }
     }
 }

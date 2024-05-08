@@ -11,19 +11,19 @@ public static class TestEngine
     public static IEnumerable<object[]> All()
     {
         yield return Default;
-        
+
         yield return Headless;
-        
+
         yield return GenericJson;
-        
+
         yield return Brotli;
-        
+
         yield return Snappy;
-        
+
         yield return Deflate;
-        
+
         yield return Gzip;
-        
+
         // yield return Json;
     }
 

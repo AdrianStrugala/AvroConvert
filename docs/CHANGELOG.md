@@ -1,3 +1,7 @@
+**v. 3.4.8 (08.05.24)**
+- Another approach to handle serialization of multiple dictionaries, as previous introduced breaking change
+
+\
 **v. 3.4.7 (26.04.24)**
 - Fix for dynamic deserialization to collection
 - Fix for Avro2Json to read correctly multiple data blocks

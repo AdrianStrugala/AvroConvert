@@ -83,7 +83,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
                     int v = Convert.ToInt32(values.GetValue(i), CultureInfo.InvariantCulture);
                     this.avroToCSharpValueMapping.Add(Convert.ToInt64(values.GetValue(i), CultureInfo.InvariantCulture));
                     this.symbolToValue.Add(this.symbols[i], v);
-                    this.valueToSymbol.Add(v, this.symbols[i]);
+                    this.valueToSymbol.TryAdd(v, this.symbols[i]);
                 }
             }
         }

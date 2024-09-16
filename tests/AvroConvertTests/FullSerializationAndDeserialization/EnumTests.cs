@@ -151,13 +151,23 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
         [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
         public void Enum_with_duplicate_values(Func<object, Type, dynamic> engine)
         {
-            foreach (var toSerialize in Enum.GetValues<TestDuplicateEnum>())
+            var itemsToTest =
+            new [] {
+                TestDuplicateEnum.Test,
+                TestDuplicateEnum.Exam, //Compilation already sets these values to the primary duplicate value.
+                TestDuplicateEnum.Error,
+                TestDuplicateEnum.Fail,
+                TestDuplicateEnum.TestLabel,
+                TestDuplicateEnum.TestLabel2
+            };
+            
+            foreach (var toSerialize in itemsToTest)
             {
                 //Act
                 var deserialized = engine.Invoke(toSerialize, typeof(TestDuplicateEnum));
 
                 //Assert
-                Assert.Equal(toSerialize, deserialized);
+                Assert.Equal((int)toSerialize, (int)deserialized);
             }
         }
 

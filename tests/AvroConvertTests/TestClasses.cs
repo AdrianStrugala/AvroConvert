@@ -354,9 +354,9 @@ namespace AvroConvertComponentTests
     }
 
     public enum TestDuplicateEnum {
-        Test = 0
+        Test = 0,
         Exam = Test,
-        Fail = -1,
+        Fail = 1,
         Error = Fail,
         TestLabel = 2,
         TestLabel2 = 2

@@ -146,5 +146,34 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             Assert.Equal(TestEnumWithMembers.Negative, deserialized.EnumPropWithDefault);
             Assert.Equal(TestEnumWithMembers.Negative, deserialized.EnumPropWithStringDefault);
         }
+
+        [Theory]
+        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
+        public void Enum_with_duplicate_values(Func<object, Type, dynamic> engine)
+        {
+            foreach (var toSerialize in Enum.GetValues<TestDuplicateEnum>())
+            {
+                //Act
+                var deserialized = engine.Invoke(toSerialize, typeof(TestDuplicateEnum));
+
+                //Assert
+                Assert.Equal(toSerialize, deserialized);
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
+        public void Class_with_enum_with_duplicate_value(Func<object, Type, dynamic> engine)
+        {
+            //Arrange
+            ClassWithDuplicateEnums toSerialize = _fixture.Create<ClassWithDuplicateEnums>();
+
+            //Act
+            var deserialized = engine.Invoke(toSerialize, typeof(ClassWithDuplicateEnums));
+
+            //Assert
+            Assert.NotNull(deserialized);
+            Assert.Equal(toSerialize, deserialized);
+        }
     }
 }

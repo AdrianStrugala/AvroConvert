@@ -353,6 +353,25 @@ namespace AvroConvertComponentTests
         public TestEnum? SecondEnumProp { get; set; }
     }
 
+    public enum TestDuplicateEnum {
+        Test = 0,
+        Exam = Test,
+        Fail = 1,
+        Error = Fail,
+        TestLabel = 2,
+        TestLabel2 = 2
+    }
+
+    [Equals(DoNotAddEqualityOperators = true)]
+    public class ClassWithDuplicateEnums {
+        [DefaultValue(TestDuplicateEnum.Fail)]
+        public TestDuplicateEnum? EnumProp { get; set; }
+        [DefaultValue("Error")]
+        public TestDuplicateEnum? EnumProp2 { get; set;}
+        [DefaultValue(2)]
+        public TestDuplicateEnum? EnumProp3 { get; set; }
+    }
+
     public class ClassWithEnumDefiningMembers
     {
         public TestEnumWithMembers? EnumProp { get; set; }

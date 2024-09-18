@@ -36,14 +36,14 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
                 {
                     value = EnumParser.GetEnumName(enumType, value.ToString());
                 }
-
-                if (!schema.TryGetSymbolValue(value.ToString(), out var symbolValue))
+                var position = schema.GetSymbolPosition(value.ToString());
+                if (position < 0)
                 {
                     throw new AvroTypeException(
                         $"[Enum] Provided value is not of the enum [{schema.Name}] members");
                 }
 
-                e.WriteEnum(symbolValue);
+                e.WriteEnum(position);
             };
         }
     }

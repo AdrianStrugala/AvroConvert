@@ -1,3 +1,7 @@
+**v. 3.4.9 (18.09.24)**
+- Update EnumSchema to handle Enums with duplicate values
+
+\
 **v. 3.4.8 (08.05.24)**
 - Another approach to handle serialization of multiple dictionaries, as previous introduced breaking change
 

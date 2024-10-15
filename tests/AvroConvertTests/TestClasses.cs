@@ -262,6 +262,20 @@ namespace AvroConvertComponentTests
         public DateTime DateTime;
     }
 
+    public class NullableTypeAttributeClass
+    {
+        [AvroType(AvroTypeRepresentation.Double)]
+        public int? Int;
+
+        [AvroType(AvroTypeRepresentation.TimestampMilliseconds)]
+        public DateTime? DateTime;
+    }
+
+    public class NestedTypeAttributeClass
+    {
+        public NullableTypeAttributeClass[] Items;
+    }
+
     public struct ComplexStruct
     {
         [DataMember]

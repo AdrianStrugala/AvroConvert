@@ -22,6 +22,7 @@ using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Infrastructure.Exceptions;
+using SolTechnology.Avro.Infrastructure.Extensions;
 
 // ReSharper disable once CheckNamespace
 namespace SolTechnology.Avro.AvroObjectServices.Write
@@ -56,19 +57,19 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
                 case AvroType.Null:
                     return obj == null;
                 case AvroType.Boolean:
-                    return obj is bool;
+                    return obj is bool || typeof(bool).CanChangeTypeFrom(obj);
                 case AvroType.Int:
-                    return (obj is short or ushort or int or uint or char or byte or sbyte);
+                    return (obj is short or ushort or int or uint or char or byte or sbyte) || typeof(int).CanChangeTypeFrom(obj);
                 case AvroType.Long:
-                    return (obj is long or ulong);
+                    return (obj is long or ulong) || typeof(long).CanChangeTypeFrom(obj);
                 case AvroType.Float:
-                    return obj is float;
+                    return obj is float || typeof(float).CanChangeTypeFrom(obj);
                 case AvroType.Double:
-                    return obj is double;
+                    return obj is double || typeof(double).CanChangeTypeFrom(obj);
                 case AvroType.Bytes:
                     return obj is byte[];
                 case AvroType.String:
-                    return true;
+                    return true || typeof(string).CanChangeTypeFrom(obj);
                 case AvroType.Error:
                     return true;
                 case AvroType.Record:

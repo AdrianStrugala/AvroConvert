@@ -1,3 +1,7 @@
+**v. 3.4.10 (21.10.24)**
+- Fix support for nullable types for AvroType attribute
+
+\
 **v. 3.4.9 (18.09.24)**
 - Update EnumSchema to handle Enums with duplicate values
 

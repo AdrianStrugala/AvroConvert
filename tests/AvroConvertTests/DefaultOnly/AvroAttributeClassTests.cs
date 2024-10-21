@@ -86,5 +86,49 @@ namespace AvroConvertComponentTests.DefaultOnly
             Assert.Equal(toSerialize.Int, deserialized.Int);
             toSerialize.DateTime.Should().BeCloseTo(deserialized.DateTime, TimeSpan.FromMilliseconds(1)); //milliseconds precision
         }
+
+        [Theory]
+        [MemberData(nameof(TestEngine.DefaultOnly), MemberType = typeof(TestEngine))]
+        public void AvroTypeAttribute_overwrites_nullable_default_type_mapping(Func<object, Type, dynamic> engine)
+        {
+            //Arrange
+            NullableTypeAttributeClass toSerialize = _fixture.Create<NullableTypeAttributeClass>();
+
+            //Act
+            var schema = AvroConvert.GenerateSchema(typeof(NullableTypeAttributeClass));
+
+            var deserialized = (NullableTypeAttributeClass)engine.Invoke(toSerialize, typeof(NullableTypeAttributeClass));
+
+
+            //Assert
+            Assert.Equal("{\"name\":\"NullableTypeAttributeClass\",\"namespace\":\"AvroConvertComponentTests\",\"type\":\"record\",\"fields\":[{\"name\":\"Int\",\"type\":[\"null\",\"double\"]},{\"name\":\"DateTime\",\"type\":[\"null\",{\"type\":\"long\",\"logicalType\":\"timestamp-millis\"}]}]}", schema);
+            Assert.NotNull(deserialized);
+            Assert.Equal(toSerialize.Int, deserialized.Int);
+            toSerialize.DateTime.Should().BeCloseTo(deserialized.DateTime.Value, TimeSpan.FromMilliseconds(1)); //milliseconds precision
+        }
+
+        [Theory]
+        [MemberData(nameof(TestEngine.DefaultOnly), MemberType = typeof(TestEngine))]
+        public void AvroTypeAttribute_overwrites_nullable_default_type_mapping_in_array(Func<object, Type, dynamic> engine)
+        {
+            //Arrange
+            NestedTypeAttributeClass toSerialize = _fixture.Create<NestedTypeAttributeClass>();
+
+            //Act
+            var schema = AvroConvert.GenerateSchema(typeof(NestedTypeAttributeClass));
+
+            var deserialized = (NestedTypeAttributeClass)engine.Invoke(toSerialize, typeof(NestedTypeAttributeClass));
+
+
+            //Assert
+            Assert.Equal("{\"name\":\"NestedTypeAttributeClass\",\"namespace\":\"AvroConvertComponentTests\",\"type\":\"record\",\"fields\":[{\"name\":\"Items\",\"type\":{\"type\":\"array\",\"items\":{\"name\":\"NullableTypeAttributeClass\",\"namespace\":\"AvroConvertComponentTests\",\"type\":\"record\",\"fields\":[{\"name\":\"Int\",\"type\":[\"null\",\"double\"]},{\"name\":\"DateTime\",\"type\":[\"null\",{\"type\":\"long\",\"logicalType\":\"timestamp-millis\"}]}]}}}]}", schema);
+            Assert.NotNull(deserialized);
+
+            for (var i = 0; i < toSerialize.Items.Length; i++)
+            {
+                Assert.Equal(toSerialize.Items[i].Int, deserialized.Items[i].Int);
+                toSerialize.Items[i].DateTime.Should().BeCloseTo(deserialized.Items[i].DateTime.Value, TimeSpan.FromMilliseconds(1)); //milliseconds precision
+            }
+        }
     }
 }

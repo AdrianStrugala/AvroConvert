@@ -33,14 +33,27 @@
 
 ## Features
 
+|                                                               | AvroConvert                                | Apache.Avro | Newtonsoft.Json |
+|---------------------------------------------------------------|:------------------------------------------:|:-----------:|:---------------:|
+| Rapid serialization                                            |                      ✔️                     |      ✔️      |        ✔️        |                       
+| Low memory allocation                                         |                      ✔️                     |      ✔️      |        ✔️        |
+| Readable schema of data structure                                      |                      ✔️                     |      ✔️      |        ✔️        |
+| Support for C# native objects (Dictionary, List, DateTime...) |                      ✔️                     |      ❌      |        ✔️        |
+| Built-in data encryption                                          |                      ✔️                     |      ✔️      |        ❌        |
+| Support for compression codecs                                | Deflate<br/>  Snappy<br/> GZip<br/> Brotli |   Deflate   |        ❌        |
 
+
+//TODO: może to powinno przekierowywać do docsów i być w samples?
+
+
+**Expanded list:** <br>
 1. Serialization of .NET object to Avro format 
    - [Standard](https://github.com/AdrianStrugala/AvroConvert/blob/refactore-readme/src/AvroConvert/AvroConvert.Serialize.cs)
    - [Excluding header](https://github.com/AdrianStrugala/AvroConvert/blob/refactore-readme/src/AvroConvert/AvroConvert.SerializeHeadless.cs)
 2. Deserialization of Avro data to .NET object 
    - [Standard](https://github.com/AdrianStrugala/AvroConvert/blob/refactore-readme/src/AvroConvert/AvroConvert.Deserialize.cs)
    - [Excluding header](https://github.com/AdrianStrugala/AvroConvert/blob/refactore-readme/src/AvroConvert/AvroConvert.DeserializeHeadless.cs)
-   - [Processing items from collection one by one](https://github.com/AdrianStrugala/AvroConvert/blob/refactore-readme/src/AvroConvert/AvroConvert.DeserializeByLine.cs)
+   - [Processing collection items one by one](https://github.com/AdrianStrugala/AvroConvert/blob/refactore-readme/src/AvroConvert/AvroConvert.DeserializeByLine.cs)
 3. Other Avro data related operations
    - [Merge Avro objects](https://github.com/AdrianStrugala/AvroConvert/blob/refactore-readme/src/AvroConvert/AvroConvert.Merge.cs)
    - [JSON to Avro conversion](https://github.com/AdrianStrugala/AvroConvert/blob/refactore-readme/src/AvroConvert/AvroConvert.Json2Avro.cs)
@@ -52,16 +65,6 @@
    - [Generate Avro schema for JSON data](https://github.com/AdrianStrugala/AvroConvert/blob/refactore-readme/src/AvroConvert/SchemaConvert.GenerateFromJson.cs)
 
 
-|                                                               | AvroConvert                                | Apache.Avro | Newtonsoft.Json |
-|---------------------------------------------------------------|:------------------------------------------:|:-----------:|:---------------:|
-| Rapid serialization                                            |                      ✔️                     |      ✔️      |        ✔️        |
-| Easy to use                                                   |                      ✔️                     |      ❌      |        ✔️        |
-| Built-in compression                                          |                      ✔️                     |      ✔️      |        ❌        |
-| Low memory allocation                                         |                      ✔️                     |      ✔️      |        ✔️        |
-| Support for C# data structures: Dictionary, List, DateTime... |                      ✔️                     |      ❌      |        ✔️        |
-| Support for compression codecs                                | Deflate<br/>  Snappy<br/> GZip<br/> Brotli |   Deflate   |        ❌        |
-| Readable schema of data structure                                      |                      ✔️                     |      ✔️      |        ✔️        |
-| Data encryption                                       |                      ✔️                     |      ✔️      |        ❌        |
 
 [Full Changelog](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/CHANGELOG.md)
 
@@ -72,21 +75,6 @@ Introducing Avro to the projects brings three main benefits:
 * Reduction of data size and storage cost
 * Decrease of the communication time and the network traffic between microservices
 * Increased security - the data is not visible in plain text format
-
-
-
-## Benchmark
-
-Results of BenchmarkDotNet:
-
-|Converter     | Request Time [ms] | Allocated Memory [MB] | Compressed Size [kB] |
-|------------- |------------------:|----------------------:|---------------------:|
-| Json         |       672.3       |          52.23        |         6044         |
-| Avro         |       384.7       |          76.58        |         2623         |
-| Json_Gzip    |       264.1       |          88.32        |          514         |
-| Avro_Gzip    |       181.2       |          75.05        |          104         |
-| Json_Brotli  |       222.5       |          86.15        |           31         |
-| Avro_Brotli  |       193.5       |          74.75        |           31         |
 
 
 Article describing Avro format specification and benchmark methodology: https://www.c-sharpcorner.com/blogs/avro-rest-api-as-the-evolution-of-json-based-communication-between-mic

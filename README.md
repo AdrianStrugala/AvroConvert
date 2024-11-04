@@ -151,3 +151,11 @@ For commercial purposes purchase AvroConvert on website - [Xabe.net](https://xab
 We want to improve AvroConvert as much as possible. If you have any idea, found next possible feature, optimization opportunity or better way for integration, leave a comment or pull request.
 
 
+Thank you a million [to all the contributors](https://github.com/AdrianStrugala/AvroConvert/graphs/contributors) to the library, including those that raise issues, started conversations, and those who send pull requests. Thank you!
+
+These amazing people have contributed to AvroConvert:
+
+<a href="https://github.com/AdrianStrugala/AvroConvert/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=AdrianStrugala/AvroConvert" />
+</a>
+

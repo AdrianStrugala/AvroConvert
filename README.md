@@ -20,8 +20,6 @@
 
 ## Docs
 
-**Avro format combines readability of JSON and data compression of binary serialization.**
-
 [Apache Avro format documentation](http://avro.apache.org/)
 
 [First steps with Avro in the .NET article](https://www.c-sharpcorner.com/article/how-to-work-with-avro-data-type-in-net-environment/)
@@ -30,6 +28,8 @@
 
 
 ## Benefits
+
+**Avro format combines readability of JSON and data compression of binary serialization.**
 
 |                                                               | AvroConvert                                | Apache.Avro | Newtonsoft.Json |
 |---------------------------------------------------------------|:------------------------------------------:|:-----------:|:---------------:|
@@ -55,8 +55,8 @@ Using Avro for communication between your services significantly reduces data si
 [Full Changelog](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/CHANGELOG.md)
 
 
-## Features
 
+## Features
 
 
 * Serialization
@@ -120,7 +120,6 @@ using (var reader = AvroConvert.OpenDeserializer<CustomClass>(new MemoryStream(a
    - [Generate schema from .NET object](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#generating-avro-schema-for-c-classes)
    - [Generate .NET model from Avro data or schema](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#generate-model)
    - [Generate Avro schema for JSON data](https://github.com/AdrianStrugala/AvroConvert/blob/master/src/AvroConvert/SchemaConvert.GenerateFromJson.cs)
-5. Advanced use cases
 
 
 [Full documentation](https://github.com/AdrianStrugala/AvroConvert/tree/master/docs)

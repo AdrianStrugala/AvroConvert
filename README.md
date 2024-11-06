@@ -26,12 +26,10 @@
 
 [First steps with Avro in the .NET article](https://www.c-sharpcorner.com/article/how-to-work-with-avro-data-type-in-net-environment/)
 
-[Basic AvroConvert documentation](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md)
-
-[Advanced AvroConvert documentation](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md)
+[AvroConvert documentation](https://github.com/AdrianStrugala/AvroConvert/tree/master/docs)
 
 
-## Features
+## Benefits
 
 |                                                               | AvroConvert                                | Apache.Avro | Newtonsoft.Json |
 |---------------------------------------------------------------|:------------------------------------------:|:-----------:|:---------------:|
@@ -42,48 +40,24 @@
 | Built-in data encryption                                          |                      ✔️                     |      ✔️      |        ❌        |
 | Support for compression codecs                                | Deflate<br/>  Snappy<br/> GZip<br/> Brotli |   Deflate   |        ❌        |
 
-
-//TODO: może to powinno przekierowywać do docsów i być w samples?
-
-
-**Expanded list:** <br>
-1. Serialization of .NET object to Avro format 
-   - [Standard](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#serialization)
-   - [Excluding header](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#headless-serialization-and-deserialization)
-2. Deserialization of Avro data to .NET object 
-   - [Standard](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#serialization)
-   - [Excluding header](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#headless-serialization-and-deserialization)
-   - [Processing collection items one by one](https://github.com/AdrianStrugala/AvroConvert/blob/refactore-readme/src/AvroConvert/AvroConvert.DeserializeByLine.cs)
-3. Other Avro data related operations
-   - [Merge Avro objects](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#merge)
-   - [JSON to Avro conversion](https://github.com/AdrianStrugala/AvroConvert/blob/refactore-readme/src/AvroConvert/AvroConvert.Json2Avro.cs)
-   - [Avro to JSON conversion](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#avro2json)
-4. Schema related
-   - [Get schema from Avro data](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#reading-avro-schema-from-avro-encoded-object)
-   - [Generate schema from .NET object](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#generating-avro-schema-for-c-classes)
-   - [Generate .NET model from Avro data or schema](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#generate-model)
-   - [Generate Avro schema for JSON data](https://github.com/AdrianStrugala/AvroConvert/blob/refactore-readme/src/AvroConvert/SchemaConvert.GenerateFromJson.cs)
-
-
-
-[Full Changelog](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/CHANGELOG.md)
-
-
-## Benefits
-
 Introducing Avro to the projects brings three main benefits:
 * Reduction of data size and storage cost
 * Decrease of the communication time and the network traffic between microservices
 * Increased security - the data is not visible in plain text format
 
 
-Article describing Avro format specification and benchmark methodology: https://www.c-sharpcorner.com/blogs/avro-rest-api-as-the-evolution-of-json-based-communication-between-mic
+Article describing Avro format specification and Avro API idea: https://www.c-sharpcorner.com/blogs/avro-rest-api-as-the-evolution-of-json-based-communication-between-mic
 
 **Conclusion:** <br>
 Using Avro for communication between your services significantly reduces data size and network traffic. Additionally choosing encoding (compression algorithm) can improve the results even further.
 
 
-## Code samples
+[Full Changelog](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/CHANGELOG.md)
+
+
+## Features
+
+
 
 * Serialization
 ```csharp
@@ -129,11 +103,27 @@ using (var reader = AvroConvert.OpenDeserializer<CustomClass>(new MemoryStream(a
   var resultJson = AvroConvert.Avro2Json(avroObject);
 ```
 
+**Extended list:** <br>
+1. Serialization of .NET object to Avro format 
+   - [Standard](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#serialization)
+   - [Excluding header](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#headless-serialization-and-deserialization)
+2. Deserialization of Avro data to .NET object 
+   - [Standard](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#serialization)
+   - [Excluding header](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#headless-serialization-and-deserialization)
+   - [Processing collection items one by one](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#deserialization-of-large-collection-of-avro-objects-one-by-one)
+3. Other Avro data related operations
+   - [Merge Avro objects](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#merge)
+   - [JSON to Avro conversion](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#json2avro)
+   - [Avro to JSON conversion](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#avro2json)
+4. Schema related
+   - [Get schema from Avro data](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#reading-avro-schema-from-avro-encoded-object)
+   - [Generate schema from .NET object](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#generating-avro-schema-for-c-classes)
+   - [Generate .NET model from Avro data or schema](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#generate-model)
+   - [Generate Avro schema for JSON data](https://github.com/AdrianStrugala/AvroConvert/blob/master/src/AvroConvert/SchemaConvert.GenerateFromJson.cs)
+5. Advanced use cases
 
-[Basic documentation](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md)
 
-[Advanced documentation](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md)
-
+[Full documentation](https://github.com/AdrianStrugala/AvroConvert/tree/master/docs)
 
 
 

@@ -12,9 +12,13 @@
 </p>
 
 <p align="center">
- <a href="https://www.nuget.org/packages/AvroConvert"><img src="https://img.shields.io/badge/Nuget-v3.4.10-blue?logo=nuget"></a>
- <a href="https://adrianstrugala.github.io/AvroConvert/"><img src="https://img.shields.io/badge/Downloads-899k-blue?logo=github"></a>
+ <a href="https://github.com/AdrianStrugala/AvroConvert"><img src="https://img.shields.io/github/stars/AdrianStrugala/AvroConvert.svg?label=%E2%AD%90%20Stars%20%E2%AD%90&color=yellow&style=flat&logo=github"></a>
+ <a href="https://adrianstrugala.github.io/AvroConvert/"><img src="https://img.shields.io/badge/AvroConvertOnline-Try%20Now-blue.svg?logo=google-chrome"></a>
+ <br>
+ <a href="https://www.nuget.org/packages/AvroConvert"><img src="https://img.shields.io/nuget/v/AvroConvert.svg?logo=nuget"></a>
  <a href="https://github.com/AdrianStrugala/AvroConvert/actions/workflows/build&test.yml"><img src="https://github.com/AdrianStrugala/AvroConvert/actions/workflows/build&test.yml/badge.svg"></a>
+ <a href="https://www.nuget.org/packages/AvroConvert"><img src="https://img.shields.io/nuget/dt/AvroConvert.svg?label=NuGet%20Downloads&logo=nuget&color=blue"></a>
+ <br> 
 
 </p>
 
@@ -22,7 +26,7 @@
 
 [Apache Avro format documentation](http://avro.apache.org/)
 
-[First steps with Avro in the .NET article](https://www.c-sharpcorner.com/article/how-to-work-with-avro-data-type-in-net-environment/)
+[First steps with Avro in the .NET](https://www.c-sharpcorner.com/article/how-to-work-with-avro-data-type-in-net-environment/)
 
 [AvroConvert documentation](https://github.com/AdrianStrugala/AvroConvert/tree/master/docs)
 
@@ -128,10 +132,9 @@ using (var reader = AvroConvert.OpenDeserializer<CustomClass>(new MemoryStream(a
 
 ## License  
 
-The project is [CC BY-NC-SA 3.0](https://creativecommons.org/licenses/by-nc-sa/3.0/) licensed.
-\
-For commercial purposes purchase AvroConvert on website - [Xabe.net](https://xabe.net/product/avroconvert/)
+AvroConvert is licensed under the [CC BY-NC-SA 3.0](https://creativecommons.org/licenses/by-nc-sa/3.0/) license.
 
+For commercial use, please [purchase a license](https://xabe.net/product/avroconvert/).
 
 ## Contribution
 
@@ -150,7 +153,7 @@ These amazing people have contributed to AvroConvert:
 
 ## Related Work  
 
-- [AvroConvertOnline](https://adrianstrugala.github.io/AvroConvert/) - online Avro Schema to C# model converter
+- [![](https://img.shields.io/badge/AvroConvertOnline-Try%20Now-blue.svg?logo=google-chrome)](https://adrianstrugala.github.io/AvroConvert/)- online Avro Schema to C# model converter
 
 - [![Nuget](https://img.shields.io/badge/Soltechnology.Avro.Http-v3.0.0-blue?logo=nuget)](https://www.nuget.org/packages/SolTechnology.Avro.Http/) - Library containing functionalities, which enable communication between microservices via Http using Avro data format
 

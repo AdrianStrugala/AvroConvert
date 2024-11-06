@@ -48,20 +48,20 @@
 
 **Expanded list:** <br>
 1. Serialization of .NET object to Avro format 
-   - [Standard](https://github.com/AdrianStrugala/AvroConvert/blob/refactore-readme/src/AvroConvert/AvroConvert.Serialize.cs)
-   - [Excluding header](https://github.com/AdrianStrugala/AvroConvert/blob/refactore-readme/src/AvroConvert/AvroConvert.SerializeHeadless.cs)
+   - [Standard](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#serialization)
+   - [Excluding header](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#headless-serialization-and-deserialization)
 2. Deserialization of Avro data to .NET object 
-   - [Standard](https://github.com/AdrianStrugala/AvroConvert/blob/refactore-readme/src/AvroConvert/AvroConvert.Deserialize.cs)
-   - [Excluding header](https://github.com/AdrianStrugala/AvroConvert/blob/refactore-readme/src/AvroConvert/AvroConvert.DeserializeHeadless.cs)
+   - [Standard](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#serialization)
+   - [Excluding header](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#headless-serialization-and-deserialization)
    - [Processing collection items one by one](https://github.com/AdrianStrugala/AvroConvert/blob/refactore-readme/src/AvroConvert/AvroConvert.DeserializeByLine.cs)
 3. Other Avro data related operations
-   - [Merge Avro objects](https://github.com/AdrianStrugala/AvroConvert/blob/refactore-readme/src/AvroConvert/AvroConvert.Merge.cs)
+   - [Merge Avro objects](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#merge)
    - [JSON to Avro conversion](https://github.com/AdrianStrugala/AvroConvert/blob/refactore-readme/src/AvroConvert/AvroConvert.Json2Avro.cs)
-   - [Avro to JSON conversion](https://github.com/AdrianStrugala/AvroConvert/blob/refactore-readme/src/AvroConvert/AvroConvert.Avro2Json.cs)
+   - [Avro to JSON conversion](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#avro2json)
 4. Schema related
-   - [Get schema from Avro data](https://github.com/AdrianStrugala/AvroConvert/blob/refactore-readme/src/AvroConvert/AvroConvert.GetSchema.cs)
-   - [Generate schema from .NET object](https://github.com/AdrianStrugala/AvroConvert/blob/refactore-readme/src/AvroConvert/AvroConvert.GenerateSchema.cs)
-   - [Generate .NET model from Avro data or schema](https://github.com/AdrianStrugala/AvroConvert/blob/refactore-readme/src/AvroConvert/AvroConvert.GenerateModel.cs)
+   - [Get schema from Avro data](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#reading-avro-schema-from-avro-encoded-object)
+   - [Generate schema from .NET object](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#generating-avro-schema-for-c-classes)
+   - [Generate .NET model from Avro data or schema](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#generate-model)
    - [Generate Avro schema for JSON data](https://github.com/AdrianStrugala/AvroConvert/blob/refactore-readme/src/AvroConvert/SchemaConvert.GenerateFromJson.cs)
 
 

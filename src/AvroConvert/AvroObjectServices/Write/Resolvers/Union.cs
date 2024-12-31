@@ -69,7 +69,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
                 case AvroType.Bytes:
                     return obj is byte[];
                 case AvroType.String:
-                    return true || typeof(string).CanChangeTypeFrom(obj);
+                    return typeof(string).CanChangeTypeFrom(obj);
                 case AvroType.Error:
                     return true;
                 case AvroType.Record:

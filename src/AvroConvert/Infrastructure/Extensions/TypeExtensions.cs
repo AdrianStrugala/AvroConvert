@@ -447,12 +447,22 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
             return type.GetTypeInfo().BaseType;
         }
 
+
         internal static bool CanChangeTypeFrom(this Type type, object value)
         {
+            if (value is null)
+            {
+                return !type.IsValueType || Nullable.GetUnderlyingType(type) != null;
+            }
+
+            if (type.IsInstanceOfType(value))
+            {
+                return true;
+            }
+
             try
             {
                 _ = Convert.ChangeType(value, type);
-
                 return true;
             }
             catch

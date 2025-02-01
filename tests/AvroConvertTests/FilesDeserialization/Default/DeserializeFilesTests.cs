@@ -22,11 +22,11 @@ namespace AvroConvertComponentTests.FilesDeserialization.Default
 
 
             //Act
-            var result = engine.Invoke(_schemaOnlyAvroBytes, typeof(List<UserNameClass>));
+            var result = (List<UserNameClass>)engine.Invoke(_schemaOnlyAvroBytes, typeof(List<UserNameClass>));
 
 
             //Assert
-            Assert.Equal(null, result);
+            result.Should().BeNull();
         }
 
 
@@ -90,11 +90,11 @@ namespace AvroConvertComponentTests.FilesDeserialization.Default
             });
 
             //Act
-            var result = AvroConvert.Deserialize(_avroBytes, typeof(List<UserNameClass>));
+            var result = (List<UserNameClass>)AvroConvert.Deserialize(_avroBytes, typeof(List<UserNameClass>));
 
 
             //Assert
-            Assert.Equal(expectedResult, result);
+            result.Should().BeEquivalentTo(expectedResult);
         }
 
         [Fact]

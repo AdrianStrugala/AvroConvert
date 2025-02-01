@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-	  <PackageReference Include="AutoFixture" Version="4.17.0" />
+	  <PackageReference Include="AutoFixture" Version="4.18.1" />
 	  <ProjectReference Include="..\..\src\AvroConvert\AvroConvert.csproj" />
   </ItemGroup>
 

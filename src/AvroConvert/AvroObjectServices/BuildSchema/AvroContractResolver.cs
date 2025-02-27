@@ -24,6 +24,7 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using SolTechnology.Avro.Infrastructure.Attributes;
 using SolTechnology.Avro.Infrastructure.Extensions;
+using SolTechnology.Avro.Policies;
 
 namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 {
@@ -40,6 +41,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         private readonly bool _allowNullable;
         private readonly bool _useAlphabeticalOrder;
         private readonly bool _includeOnlyDataContractMembers;
+        private readonly IAvroNamingPolicy _namingPolicy;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AvroContractResolver"/> class.
@@ -51,11 +53,13 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         internal AvroContractResolver(
             bool allowNullable = false,
             bool useAlphabeticalOrder = false,
-            bool includeOnlyDataContractMembers = false)
+            bool includeOnlyDataContractMembers = false,
+            IAvroNamingPolicy namingPolicy = null)
         {
             _allowNullable = allowNullable;
             _useAlphabeticalOrder = useAlphabeticalOrder;
             _includeOnlyDataContractMembers = includeOnlyDataContractMembers;
+            _namingPolicy = namingPolicy;
         }
 
 
@@ -106,10 +110,28 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                     string.Format(CultureInfo.InvariantCulture, "Type '{0}' is not supported by the resolver.", type));
             }
 
+            var name = dataContract?.Name ?? type.Name;
+            var ns = dataContract?.Namespace ?? type.Namespace;
+
+            if (_namingPolicy != null)
+            {
+                var naming = _namingPolicy.GetTypeName(type);
+
+                if (!string.IsNullOrEmpty(naming?.Name))
+                {
+                    name = naming.Name;
+                }
+
+                if (!string.IsNullOrEmpty(naming?.Namespace))
+                {
+                    ns = naming.Namespace;
+                }
+            }
+
             var result = new TypeSerializationInfo
             {
-                Name = SolTechnology.Avro.Infrastructure.Extensions.TypeExtensions.StripAvroNonCompatibleCharacters(dataContract?.Name ?? type.Name),
-                Namespace = SolTechnology.Avro.Infrastructure.Extensions.TypeExtensions.StripAvroNonCompatibleCharacters(dataContract?.Namespace ?? type.Namespace),
+                Name = SolTechnology.Avro.Infrastructure.Extensions.TypeExtensions.StripAvroNonCompatibleCharacters(name),
+                Namespace = SolTechnology.Avro.Infrastructure.Extensions.TypeExtensions.StripAvroNonCompatibleCharacters(ns),
                 Nullable = isNullable,
                 Doc = attributes.OfType<DescriptionAttribute>().SingleOrDefault()?.Description
             };
@@ -168,10 +190,23 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 {
                     var customAttributes = attributes[m];
 
+                    var attribute = customAttributes.OfType<DataMemberAttribute>().SingleOrDefault();
+
+                    if (_namingPolicy != null)
+                    {
+                        var naming = _namingPolicy.GetMemberName(m);
+
+                        if (!string.IsNullOrEmpty(naming))
+                        {
+                            attribute ??= new DataMemberAttribute();
+                            attribute.Name = naming;
+                        }
+                    }
+
                     return new
                     {
                         Member = m,
-                        Attribute = customAttributes.OfType<DataMemberAttribute>().SingleOrDefault(),
+                        Attribute = attribute,
                         Nullable = customAttributes.OfType<NullableSchemaAttribute>().Any(), // m.GetType().CanContainNull() ||
                         DefaultValue = customAttributes.OfType<DefaultValueAttribute>().FirstOrDefault()?.Value,
                         HasDefaultValue = customAttributes.OfType<DefaultValueAttribute>().Any(),

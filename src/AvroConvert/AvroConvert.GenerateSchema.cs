@@ -40,10 +40,21 @@ namespace SolTechnology.Avro
         /// </summary>
         public static string GenerateSchema(Type type, bool includeOnlyDataContractMembers)
         {
-            var builder = new ReflectionSchemaBuilder(new AvroConvertOptions
+            return GenerateSchema(type, new AvroConvertOptions
             {
                 IncludeOnlyDataContractMembers = includeOnlyDataContractMembers
             });
+        }
+
+        /// <summary>
+        /// Generates schema for given .NET Type
+        /// </summary>
+        /// <param name="type">The given .NET type</param>
+        /// <param name="options">Options to use for generating the schema</param>
+        /// <returns></returns>
+        public static string GenerateSchema(Type type, AvroConvertOptions options)
+        {
+            var builder = new ReflectionSchemaBuilder(options);
             var schema = builder.BuildSchema(type);
 
             return schema.ToString();

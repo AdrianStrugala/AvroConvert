@@ -22,6 +22,7 @@ using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.AvroObjectServices.Skip;
 using SolTechnology.Avro.Infrastructure.Exceptions;
+using SolTechnology.Avro.Policies;
 
 namespace SolTechnology.Avro.AvroObjectServices.Read
 {
@@ -32,6 +33,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         private readonly TypeSchema _writerSchema;
         private readonly bool _hasCustomConverters;
         private readonly Dictionary<Type, Func<IReader, object>> _customDeserializerMapping;
+        private readonly IAvroNamingPolicy _namingPolicy;
 
         internal Resolver(TypeSchema writerSchema, TypeSchema readerSchema, AvroConvertOptions options = null)
         {
@@ -44,6 +46,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             _customDeserializerMapping = options?.AvroConverters.ToDictionary(
                 x => x.TypeSchema.RuntimeType,
                 y => (Func<IReader, object>)y.Deserialize);
+            _namingPolicy = options?.NamingPolicy;
         }
 
         internal T Resolve<T>(IReader reader, long itemsCount = 0)

@@ -34,7 +34,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
 
                 if (enumType.IsEnum())
                 {
-                    value = EnumParser.GetEnumName(enumType, value.ToString());
+                    value = EnumParser.GetEnumName(enumType, value.ToString(), _namingPolicy);
                 }
                 var position = schema.GetSymbolPosition(value.ToString());
                 if (position < 0)

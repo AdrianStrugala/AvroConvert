@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using SolTechnology.Avro.Policies;
 
 namespace SolTechnology.Avro.AvroObjectServices.Read
 {
@@ -33,16 +34,16 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
     {
         private static ConcurrentDictionary<Type, EnumCache> memberValueCaches = new ConcurrentDictionary<Type, EnumCache>();
 
-        public static object Parse(Type enumType, string value)
+        public static object Parse(Type enumType, string value, IAvroNamingPolicy namingPolicy)
         {
-            var cache = GetEnumMemberCache(enumType);
+            var cache = GetEnumMemberCache(enumType, namingPolicy);
 
             return Enum.Parse(enumType, cache.MembersToNames[value]);
         }
 
-        public static string GetEnumName(Type enumType, object value)
+        public static string GetEnumName(Type enumType, object value, IAvroNamingPolicy namingPolicy)
         {
-            var cache = GetEnumMemberCache(enumType);
+            var cache = GetEnumMemberCache(enumType, namingPolicy);
 
             var valueAsString = value.ToString();
 
@@ -51,12 +52,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                 : valueAsString;
         }
 
-        private static EnumCache GetEnumMemberCache(Type runtimeType)
+        private static EnumCache GetEnumMemberCache(Type runtimeType, IAvroNamingPolicy namingPolicy)
         {
             return memberValueCaches.GetOrAdd(runtimeType, type =>
             {
                 var names = Enum.GetNames(type);
-                var members = names.Select(x => GetEnumMemberValue(type, x)).ToArray();
+                var members = names.Select(x => GetEnumMemberValue(type, x, namingPolicy)).ToArray();
 
                 var cache = new EnumCache();
 
@@ -70,9 +71,21 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             });
         }
 
-        private static string GetEnumMemberValue(Type runtimeType, string member)
+        private static string GetEnumMemberValue(Type runtimeType, string member, IAvroNamingPolicy namingPolicy)
         {
-            var attribute = runtimeType.GetField(member)?.GetCustomAttribute<EnumMemberAttribute>();
+            var field = runtimeType.GetField(member);
+
+            if (field != null && namingPolicy != null)
+            {
+                var naming = namingPolicy.GetMemberName(field);
+
+                if (!string.IsNullOrEmpty(naming))
+                {
+                    return naming;
+                }
+            }
+
+            var attribute = field?.GetCustomAttribute<EnumMemberAttribute>();
 
             return attribute != null && !string.IsNullOrEmpty(attribute.Value)
                 ? attribute.Value

@@ -22,6 +22,7 @@
 
 using System.Collections.Generic;
 using SolTechnology.Avro.Converters;
+using SolTechnology.Avro.Policies;
 
 namespace SolTechnology.Avro;
 
@@ -63,4 +64,9 @@ public class AvroConvertOptions
     /// If set to <c>true</c> members without DataMemberAttribute won't be taken into consideration in serialization/deserialization
     /// </summary>
     public bool IncludeOnlyDataContractMembers { get; set; }
+    
+    /// <summary>
+    /// Gets or sets the naming policy that can determine how types and fields are named.
+    /// </summary>
+    public IAvroNamingPolicy NamingPolicy { get; set; }
 }

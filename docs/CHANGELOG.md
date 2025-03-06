@@ -1,3 +1,7 @@
+**v. 3.4.11 (06.03.25)**
+- Add naming policy option for customizing type and member names
+
+\
 **v. 3.4.10 (21.10.24)**
 - Fix support for nullable types for AvroType attribute
 

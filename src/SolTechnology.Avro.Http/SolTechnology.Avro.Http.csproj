@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <Authors>Adrian Strugala</Authors>
-    <Version>3.0.0</Version>
+    <Version>3.0.1</Version>
     <Description>Library containing functionalities, which enable communication between microservices using Avro data format</Description>
     <PackageLicenseUrl>https://creativecommons.org/licenses/by-nc-sa/3.0/</PackageLicenseUrl>
     <PackageProjectUrl>https://xabe.net/product/avroconvert/</PackageProjectUrl>

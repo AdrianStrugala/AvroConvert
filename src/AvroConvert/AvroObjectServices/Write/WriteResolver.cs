@@ -23,6 +23,7 @@ using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Infrastructure.Exceptions;
+using SolTechnology.Avro.Policies;
 
 
 namespace SolTechnology.Avro.AvroObjectServices.Write
@@ -33,6 +34,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
 
         private static bool _hasCustomConverters;
         private readonly Dictionary<Type, Action<object, IWriter>> _customSerializerMapping;
+        private readonly IAvroNamingPolicy _namingPolicy;
 
         internal WriteResolver(AvroConvertOptions options = null)
         {
@@ -40,6 +42,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
             _customSerializerMapping = options?.AvroConverters.ToDictionary(
                 x => x.TypeSchema.RuntimeType,
                 y => (Action<object, IWriter>)y.Serialize);
+            _namingPolicy = options?.NamingPolicy;
         }
 
         internal Encoder.WriteItem ResolveWriter(TypeSchema schema)

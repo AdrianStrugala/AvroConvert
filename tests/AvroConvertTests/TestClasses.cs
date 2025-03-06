@@ -348,6 +348,16 @@ namespace AvroConvertComponentTests
         CombinedOption = Option1 | Option2
     }
 
+    public enum EnumWithDifferentNames
+    {
+        None,
+        CombinedOption,
+        Option1,
+        Option23,
+        Option1WithSuffix,
+        Option23WithSuffix
+    }
+
     public enum TestEnumWithMembers
     {
         [EnumMember(Value = "POSITIVE_VALUE")]
@@ -490,5 +500,12 @@ namespace AvroConvertComponentTests
         public BaseClass Property1 { get; set; }
 
         public BaseClass Property2 { get; set; }
+    }
+
+    public class BasicTypeWithProperties
+    {
+        public BaseClass PropertyName { get; set; }
+
+        public EnumWithDifferentNames EnumValue { get; set; }
     }
 }

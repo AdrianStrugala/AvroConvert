@@ -21,10 +21,12 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using SolTechnology.Avro.AvroObjectServices.Read;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Infrastructure.Attributes;
 using SolTechnology.Avro.Infrastructure.Extensions;
+using SolTechnology.Avro.Policies;
 
 namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 {
@@ -95,7 +97,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         private readonly bool _hasCustomConverters;
         private readonly Dictionary<Type, TypeSchema> _customSchemaMapping;
         private readonly AvroContractResolver _resolver;
-
+        private readonly IAvroNamingPolicy _namingPolicy;
 
         internal ReflectionSchemaBuilder(AvroConvertOptions options = null)
         {
@@ -107,7 +109,9 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             _hasCustomConverters = options.AvroConverters.Any();
             _customSchemaMapping = options.AvroConverters.ToDictionary(x => x.TypeSchema.RuntimeType, y => y.TypeSchema);
             _resolver = new AvroContractResolver(
-                includeOnlyDataContractMembers: options.IncludeOnlyDataContractMembers);
+                includeOnlyDataContractMembers: options.IncludeOnlyDataContractMembers,
+                namingPolicy: options.NamingPolicy);
+            _namingPolicy = options.NamingPolicy;
         }
 
         /// <summary>
@@ -340,6 +344,15 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
             var attributes = this.GetNamedEntityAttributesFrom(type);
             var result = new EnumSchema(attributes, type);
+
+            var symbols = Enum.GetNames(type)
+                .Select(x => EnumParser.GetEnumName(type, x, _namingPolicy));
+
+            foreach (var symbol in symbols)
+            {
+                result.AddSymbol(symbol);
+            }
+
             schemas.Add(type.ToString(), result);
             return result;
         }

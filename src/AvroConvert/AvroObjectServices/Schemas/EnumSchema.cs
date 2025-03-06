@@ -70,25 +70,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             this.symbolToValue = new Dictionary<string, int>();
             this.valueToSymbol = new Dictionary<int, string>();
             this.avroToCSharpValueMapping = new List<long>();
-
-            if (runtimeType.IsEnum())
-            {
-                this.symbols = Enum.GetNames(runtimeType)
-                    .Select(x => EnumParser.GetEnumName(runtimeType, x))
-                    .ToList();
-
-                Array values = Enum.GetValues(runtimeType);
-                for (int i = 0; i < this.symbols.Count; i++)
-                {
-                    int v = Convert.ToInt32(values.GetValue(i), CultureInfo.InvariantCulture);
-                    this.avroToCSharpValueMapping.Add(Convert.ToInt64(values.GetValue(i), CultureInfo.InvariantCulture));
-                    this.symbolToValue.Add(this.symbols[i], v);
-                    if (!this.valueToSymbol.ContainsKey(v))
-                    {
-                        this.valueToSymbol.Add(v, this.symbols[i]);
-                    }
-                }
-            }
         }
         
         internal ReadOnlyCollection<string> Symbols => new (this.symbols);

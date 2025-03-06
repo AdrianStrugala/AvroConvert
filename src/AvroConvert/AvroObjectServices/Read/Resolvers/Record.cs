@@ -145,7 +145,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             return value ?? FormatDefaultValue(wf.DefaultValue, memberInfo);
         }
 
-        private static object FormatDefaultValue(object defaultValue, Member memberInfo)
+        private object FormatDefaultValue(object defaultValue, Member memberInfo)
         {
             if (defaultValue == null)
             {
@@ -165,7 +165,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 
             if (t.IsEnum)
             {
-                return EnumParser.Parse(t, (string)defaultValue);
+                return EnumParser.Parse(t, (string)defaultValue, _namingPolicy);
             }
 
             //TODO: Map and Record default values are represented as Dictionary<string,object>

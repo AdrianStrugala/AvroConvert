@@ -92,10 +92,28 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 type.IsNativelySupported() ||
                 (type.IsEnum() && !type.GetTypeInfo().GetCustomAttributes(false).OfType<DataContractAttribute>().Any()))
             {
+                var typeName = type.Name;
+                var typeNamespace = type.Namespace;
+
+                if (type.IsEnum() && _namingPolicy != null)
+                {
+                    var naming = _namingPolicy.GetTypeName(type);
+
+                    if (!string.IsNullOrEmpty(naming?.Name))
+                    {
+                        typeName = naming.Name;
+                    }
+
+                    if (!string.IsNullOrEmpty(naming?.Namespace))
+                    {
+                        typeNamespace = naming.Namespace;
+                    }
+                }
+
                 return new TypeSerializationInfo
                 {
-                    Name = SolTechnology.Avro.Infrastructure.Extensions.TypeExtensions.StripAvroNonCompatibleCharacters(type.Name),
-                    Namespace = SolTechnology.Avro.Infrastructure.Extensions.TypeExtensions.StripAvroNonCompatibleCharacters(type.Namespace),
+                    Name = SolTechnology.Avro.Infrastructure.Extensions.TypeExtensions.StripAvroNonCompatibleCharacters(typeName),
+                    Namespace = SolTechnology.Avro.Infrastructure.Extensions.TypeExtensions.StripAvroNonCompatibleCharacters(typeNamespace),
                     Nullable = isNullable
                 };
             }

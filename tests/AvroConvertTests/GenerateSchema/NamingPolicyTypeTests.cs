@@ -21,7 +21,7 @@ public class NamingPolicyTypeTests
         //Assert
         Assert.Contains("\"name\":\"BasicTypeWithProperties\",\"namespace\":\"com.company.product\"", schema);
         Assert.Contains("\"name\":\"BaseClass\",\"namespace\":\"com.company.product\"", schema);
-        Assert.Contains("\"name\":\"EnumWithDifferentNames\",\"namespace\":\"AvroConvertComponentTests\"", schema);
+        Assert.Contains("\"name\":\"EnumWithDifferentNames\",\"namespace\":\"com.company.product\"", schema);
     }
 
     [Fact]

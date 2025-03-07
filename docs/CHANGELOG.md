@@ -1,3 +1,7 @@
+**v. 3.4.12 (07.03.25)**
+- Fix naming policy for enums
+
+\
 **v. 3.4.11 (06.03.25)**
 - Add naming policy option for customizing type and member names
 

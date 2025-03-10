@@ -410,13 +410,22 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             var members = _resolver.ResolveMembers(type);
             var fields = BuildRecordFields(members, schemas, currentDepth, record);
 
-            //Dictionary
+            // Dictionary special handling
             if (record.Name == "KeyValuePair2")
             {
                 attr = new NamedEntityAttributes(
                     new SchemaName(record.Name, $"{fields.First().TypeSchema.Name}_{fields.Last().TypeSchema.Name}"),
                     record.Aliases,
                     record.Doc);
+                record = new RecordSchema(attr, type);
+            }
+
+            // GenericsSpecialHandling
+            else if (!type.IsAnonymous() && type.IsGenericType())
+            {
+                string genericArgName = type.GetGenericArguments()[0].Name;
+                string newName = type.Name.Replace("`1", "") + genericArgName;
+                attr = new NamedEntityAttributes(new SchemaName(newName, ""), attr.Aliases, attr.Doc);
                 record = new RecordSchema(attr, type);
             }
 

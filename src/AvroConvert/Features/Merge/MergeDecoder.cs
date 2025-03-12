@@ -59,7 +59,7 @@ namespace SolTechnology.Avro.Features.Merge
                     reader.ReadFixed(header.SyncData);
 
                     result.Header = header;
-                    result.Header.Schema = Schema.Create(result.Header.GetMetadata(DataFileConstants.SchemaMetadataKey));
+                    result.Header.Schema = Schema.Parse(result.Header.GetMetadata(DataFileConstants.SchemaMetadataKey));
 
                     if (reader.IsReadToEnd())
                     {

@@ -76,8 +76,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
                     {
                         var type = obj?.GetType();
                         if (type == null) return false;
-                        return type.FullName.Equals((typeSchema as RecordSchema).FullName)
-                               || (type.IsGenericType && type.Name.Contains("AnonymousType"))
+                        return type.Name.Equals((typeSchema as RecordSchema).Name)
+                               || type.IsAnonymous()
                                || type == typeof(ExpandoObject);
                     }
                 case AvroType.Enum:

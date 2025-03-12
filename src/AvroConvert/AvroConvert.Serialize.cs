@@ -30,6 +30,7 @@ namespace SolTechnology.Avro
         {
             return Serialize(obj, CodecType.Null);
         }
+        
 
         /// <summary>
         /// Serializes given object into Avro format (including header with metadata)
@@ -47,6 +48,18 @@ namespace SolTechnology.Avro
                 byte[] result = resultStream.ToArray();
                 return result;
             }
+        }
+        
+        public static byte[] Serialize(object obj, string schema)
+        {
+            using MemoryStream resultStream = new MemoryStream();
+            var schemaObject = Schema.Parse(schema);
+            using (var writer = new Encoder(schemaObject, resultStream, CodecType.Null))
+            {
+                writer.Append(obj);
+            }
+            byte[] result = resultStream.ToArray();
+            return result;
         }
 
         /// <summary>

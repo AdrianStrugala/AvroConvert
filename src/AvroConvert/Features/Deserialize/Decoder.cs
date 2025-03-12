@@ -66,7 +66,7 @@ namespace SolTechnology.Avro.Features.Deserialize
             {
                 var header = reader.ReadHeader();
 
-                TypeSchema writeSchema = Schema.Create(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
+                TypeSchema writeSchema = Schema.Parse(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
 
                 if (readSchema == null || readSchema.IsEmpty())
                 {

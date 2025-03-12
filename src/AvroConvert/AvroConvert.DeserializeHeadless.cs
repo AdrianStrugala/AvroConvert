@@ -30,7 +30,7 @@ namespace SolTechnology.Avro
         /// </summary>
         public static T DeserializeHeadless<T>(byte[] avroBytes, string schema)
         {
-            return DeserializeHeadless<T>(avroBytes, Schema.Create(schema), BuildSchema(typeof(T)), 1);
+            return DeserializeHeadless<T>(avroBytes, Schema.Parse(schema), BuildSchema(typeof(T)), 1);
         }
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace SolTechnology.Avro
         /// </summary>
         public static T DeserializeHeadless<T>(byte[] avroBytes, string schema, int numberOfRows)
         {
-            return DeserializeHeadless<T>(avroBytes, Schema.Create(schema), BuildSchema(typeof(T)), numberOfRows);
+            return DeserializeHeadless<T>(avroBytes, Schema.Parse(schema), BuildSchema(typeof(T)), numberOfRows);
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace SolTechnology.Avro
         /// </summary>
         public static T DeserializeHeadless<T>(byte[] avroBytes, string writeSchema, string readSchema, int numberOfRows)
         {
-            return DeserializeHeadless<T>(avroBytes, Schema.Create(writeSchema), Schema.Create(readSchema), numberOfRows);
+            return DeserializeHeadless<T>(avroBytes, Schema.Parse(writeSchema), Schema.Parse(readSchema), numberOfRows);
         }
 
 
@@ -107,7 +107,7 @@ namespace SolTechnology.Avro
             {
                 using UnmanagedMemoryStream stream = new(ptr, avroBytes.Length);
                 var reader = new Reader(stream);
-                var writeSchema = Schema.Create(schema);
+                var writeSchema = Schema.Parse(schema);
                 var readSchema = BuildSchema(typeof(T));
                 var resolver = new Resolver(writeSchema, readSchema);
                 var result = resolver.Resolve<T>(reader, 1);

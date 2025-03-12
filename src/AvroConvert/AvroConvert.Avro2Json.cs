@@ -53,7 +53,7 @@ namespace SolTechnology.Avro
             using (var stream = new MemoryStream(avro))
             {
                 var decoder = new Decoder();
-                var deserialized = decoder.Decode(stream, Schema.Create(avroSchema));
+                var deserialized = decoder.Decode(stream, Schema.Parse(avroSchema));
                 var json = JsonConvert.SerializeObject(deserialized);
 
                 return json;

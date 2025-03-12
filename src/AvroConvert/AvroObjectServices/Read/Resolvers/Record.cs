@@ -1,4 +1,5 @@
 ﻿#region license
+
 /**Copyright (c) 2023 Adrian Strugała
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +14,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+
 #endregion
 
 using System;
@@ -53,7 +55,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                         {
                             string name = rf.GetAliasOrDefault() ?? wf.Name;
 
-                            var memberInfo = members.FirstOrDefault(n => n.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+                            var memberInfo = members.FirstOrDefault(n =>
+                                n.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
                             if (memberInfo == null)
                             {
                                 continue;
@@ -109,30 +112,67 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             {
                 //for reading dynamics
 
-                var result = new ExpandoObject() as IDictionary<string, object>;
 
-                foreach (RecordFieldSchema wf in writerSchema.Fields)
+                // Try to look up a matching CLR type.
+                Type clrType = GetClrTypeForRecordSchema(writerSchema);
+                if (clrType != null)
                 {
-                    if (readerSchema.TryGetField(wf.Name, out var rf))
+                    object result = FormatterServices.GetUninitializedObject(clrType);
+                    var accessor = TypeAccessor.Create(clrType, true);
+                    foreach (RecordFieldSchema wf in writerSchema.Fields)
                     {
-                        string name = rf.Aliases.FirstOrDefault() ?? wf.Name;
-
-                        dynamic value;
-                        if (wf.TypeSchema.Type == AvroType.Array)
+                        if (readerSchema.TryGetField(wf.Name, out var rf))
                         {
-                            value = Resolve(wf.TypeSchema, rf.TypeSchema, reader, typeof(List<object>)) ?? wf.DefaultValue;
+                            string name = rf.GetAliasOrDefault() ?? wf.Name;
+                            var memberInfo = accessor.GetMembers()
+                                .FirstOrDefault(m => m.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+                            if (memberInfo != null && memberInfo.CanWrite)
+                            {
+                                accessor[result, memberInfo.Name] = GetValue(wf, rf, memberInfo, reader);
+                            }
+                            else
+                            {
+                                _skipper.Skip(wf.TypeSchema, reader);
+                            }
                         }
                         else
                         {
-                            value = Resolve(wf.TypeSchema, rf.TypeSchema, reader, typeof(object)) ?? wf.DefaultValue;
+                            _skipper.Skip(wf.TypeSchema, reader);
                         }
-
-                        result.Add(name, value);
                     }
-                    else
-                        _skipper.Skip(wf.TypeSchema, reader);
+                    return result;
                 }
-                return result;
+                else
+                {
+                    // Fall back to Expando
+                    var result = new ExpandoObject() as IDictionary<string, object>;
+
+                    foreach (RecordFieldSchema wf in writerSchema.Fields)
+                    {
+                        if (readerSchema.TryGetField(wf.Name, out var rf))
+                        {
+                            string name = rf.Aliases.FirstOrDefault() ?? wf.Name;
+
+                            dynamic value;
+                            if (wf.TypeSchema.Type == AvroType.Array)
+                            {
+                                value = Resolve(wf.TypeSchema, rf.TypeSchema, reader, typeof(List<object>)) ??
+                                        wf.DefaultValue;
+                            }
+                            else
+                            {
+                                value = Resolve(wf.TypeSchema, rf.TypeSchema, reader, typeof(object)) ??
+                                        wf.DefaultValue;
+                            }
+
+                            result.Add(name, value);
+                        }
+                        else
+                            _skipper.Skip(wf.TypeSchema, reader);
+                    }
+
+                    return result;
+                }
             }
         }
 
@@ -182,13 +222,29 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             internal Member MemberInfo { get; set; }
             internal bool ShouldSkip { get; set; }
 
-            public ReadStep(RecordFieldSchema writeFieldSchema, RecordFieldSchema readFieldSchema, Member memberInfo, bool shouldSkip = false)
+            public ReadStep(RecordFieldSchema writeFieldSchema, RecordFieldSchema readFieldSchema, Member memberInfo,
+                bool shouldSkip = false)
             {
                 WriteFieldSchema = writeFieldSchema;
                 ReadFieldSchema = readFieldSchema;
                 MemberInfo = memberInfo;
                 ShouldSkip = shouldSkip;
             }
+        }
+
+        /// <summary>
+        /// Attempts to find a CLR type that matches the given record schema.
+        /// The matching is based on the schema’s full name or simple name.
+        /// </summary>
+        private Type GetClrTypeForRecordSchema(RecordSchema schema)
+        {
+            // Prefer using the full name (namespace + name) if available.
+            string fullName = schema.FullName; // For example, "TypeUnionExampleAvro.ObjA"
+            // Search loaded assemblies for a matching type.
+            var clrType = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(a => a.GetTypes())
+                .FirstOrDefault(t => t.FullName == fullName || t.Name == schema.Name);
+            return clrType;
         }
     }
 }

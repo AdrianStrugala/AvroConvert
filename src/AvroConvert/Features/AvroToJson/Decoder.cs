@@ -66,7 +66,7 @@ namespace SolTechnology.Avro.Features.AvroToJson
             {
                 var header = reader.ReadHeader();
 
-                schema ??= Schema.Create(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
+                schema ??= Schema.Parse(header.GetMetadata(DataFileConstants.SchemaMetadataKey));
                 var resolver = new Resolver(schema);
 
                 reader.ReadFixed(header.SyncData);

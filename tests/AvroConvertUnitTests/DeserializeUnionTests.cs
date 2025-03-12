@@ -29,7 +29,7 @@ namespace AvroConvertUnitTests
             var unionSchema = new UnionSchema(Schema.Create(type), Schema.Create(type));
 
             Assert.ThrowsAny<Exception>(() => 
-                Schema.Create(unionSchema.ToString())
+                Schema.Parse(unionSchema.ToString())
             );
         }
 
@@ -38,7 +38,7 @@ namespace AvroConvertUnitTests
         {
             var unionSchema = new UnionSchema(Schema.Create(typeof(Person)), Schema.Create(typeof(Car)));
 
-            var fromJsonSchema = Schema.Create(unionSchema.ToString());
+            var fromJsonSchema = Schema.Parse(unionSchema.ToString());
 
             Assert.NotNull(fromJsonSchema);
         }

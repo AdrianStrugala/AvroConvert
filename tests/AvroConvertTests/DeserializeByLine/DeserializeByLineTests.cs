@@ -315,5 +315,47 @@ namespace AvroConvertComponentTests.DeserializeByLine
             //Assert
             result.Should().BeEmpty();
         }
+        
+                
+        [Fact]
+        public void DeserializeByLine_CollectionWithUnionOfClasses_ResultIsTheSameAsInput()
+        {
+            //Arrange
+
+            var schema =
+                "{\n  \"type\": \"record\",\n  \"name\": \"TypeWithUnionAvro\",\n  \"namespace\": \"TypeUnionExampleAvro\",\n  \"fields\": [\n    {\n      \"name\": \"TopLevelField\",\n      \"type\": \"string\"\n    },\n    {\n      \"name\": \"UnionField\",\n      \"type\": [\n        {\n          \"type\": \"record\",\n          \"name\": \"ObjA\",\n          \"fields\": [\n            {\n              \"name\": \"FieldA\",\n              \"type\": \"string\"\n            }\n          ]\n        },\n        {\n          \"type\": \"record\",\n          \"name\": \"ObjB\",\n          \"fields\": [\n            {\n              \"name\": \"FieldB\",\n              \"type\": \"int\"\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}";
+
+            var toSerialize = new List<TypeWithUnionAvro>
+            {
+                new TypeWithUnionAvro
+                {
+                    TopLevelField = "First",
+                    UnionField = new ObjA
+                    {
+                        FieldA = "dupa"
+                    }
+                },
+                new TypeWithUnionAvro
+                {
+                    TopLevelField = "Second",
+                    UnionField = new ObjB
+                    {
+                        FieldB = 2137
+                    } 
+                }
+            };
+            
+            //Act
+            var result = new List<TypeWithUnionAvro>();
+            foreach (var item in toSerialize)
+            {
+                var serialized = AvroConvert.Serialize(item, schema);
+                result.Add(AvroConvert.Deserialize<TypeWithUnionAvro>(serialized, schema));
+            }
+            
+            //Assert
+            Assert.Equivalent(toSerialize, result);
+        }
+    
     }
 }

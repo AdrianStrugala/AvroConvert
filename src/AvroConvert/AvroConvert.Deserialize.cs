@@ -116,6 +116,34 @@ namespace SolTechnology.Avro
 
             return result;
         }
+        
+        /// <summary>
+        /// Deserializes Avro data from a byte array into an object of the specified target type using reflection.
+        /// </summary>
+        /// <param name="avroBytes">The byte array containing the Avro data to be deserialized.</param>
+        /// <param name="targetType">The target type into which the Avro data should be deserialized.</param>
+        /// <returns>The deserialized object of the specified target type.</returns>
+        /// <remarks>
+        /// This method uses reflection to dynamically invoke the generic <see cref="Deserialize{T}"/> method
+        /// to deserialize Avro data from a byte array into an object of the specified target type.
+        /// </remarks>
+        public static dynamic Deserialize(byte[] avroBytes, Type targetType, string schema)
+        {
+            object result;
+            try
+            {
+                result = typeof(AvroConvert)
+                    .GetMethod(nameof(Deserialize), new[] { typeof(byte[]), typeof(string) })
+                    ?.MakeGenericMethod(targetType)
+                    .Invoke(null, new object[] { avroBytes, schema });
+            }
+            catch (TargetInvocationException ex)
+            {
+                throw ex.InnerException!;
+            }
+
+            return result;
+        }
 
 
         /// <summary>

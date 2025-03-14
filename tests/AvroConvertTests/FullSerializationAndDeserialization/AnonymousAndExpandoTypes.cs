@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Dynamic;
 using FluentAssertions;
 using SolTechnology.Avro;
@@ -99,6 +100,31 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             //Assert
             deserialized.Should().BeEquivalentTo(new { Value = new { KeyNested = "key1", ValueNested = "val1" } });
 
+        }
+        
+        [Theory]
+        [MemberData(nameof(TestEngine.CoreUsingSchema), MemberType = typeof(TestEngine))]
+        public void DeserializeByLine_CollectionWithUnionOfClasses_ResultIsTheSameAsInput(Func<object, Type, string, string, dynamic> engine)
+        {
+          //Arrange
+          var schema =
+            "{\n  \"type\": \"record\",\n  \"name\": \"TypeWithUnionAvro\",\n  \"namespace\": \"TypeUnionExampleAvro\",\n  \"fields\": [\n    {\n      \"name\": \"TopLevelField\",\n      \"type\": \"string\"\n    },\n    {\n      \"name\": \"UnionField\",\n      \"type\": [\n        {\n          \"type\": \"record\",\n          \"name\": \"ObjA\",\n          \"fields\": [\n            {\n              \"name\": \"FieldA\",\n              \"type\": \"string\"\n            }\n          ]\n        },\n        {\n          \"type\": \"record\",\n          \"name\": \"ObjB\",\n          \"fields\": [\n            {\n              \"name\": \"FieldB\",\n              \"type\": \"int\"\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}";
+
+          var toSerialize =
+            new TypeWithUnionAvro
+            {
+              TopLevelField = "First",
+              UnionField = new ObjA
+              {
+                FieldA = "dupa"
+              }
+            };
+            
+          //Act
+          var deserialized = (TypeWithUnionAvro)engine.Invoke(toSerialize, typeof(object), schema, schema);
+            
+          //Assert
+          Assert.Equivalent(toSerialize, deserialized);
         }
     }
 

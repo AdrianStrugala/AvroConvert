@@ -508,4 +508,20 @@ namespace AvroConvertComponentTests
 
         public EnumWithDifferentNames EnumValue { get; set; }
     }
+    
+    public class TypeWithUnionAvro
+    {
+        public string TopLevelField { get; set; }
+        public object UnionField { get; set; }
+    }
+
+    public class ObjA
+    {
+        public string FieldA { get; set; }
+    }
+
+    public class ObjB
+    {
+        public int FieldB { get; set; }
+    }
 }

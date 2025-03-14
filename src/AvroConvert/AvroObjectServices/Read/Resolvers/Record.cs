@@ -112,9 +112,14 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             {
                 //for reading dynamics
 
-
                 // Try to look up a matching CLR type.
-                Type clrType = GetClrTypeForRecordSchema(writerSchema);
+                Assembly[] assemblies = { Assembly.GetExecutingAssembly(), Assembly.GetEntryAssembly() };
+                Type clrType = GetClrTypeForRecordSchema(writerSchema, assemblies);
+                if (clrType == null)
+                {
+                    clrType = GetClrTypeForRecordSchema(writerSchema, AppDomain.CurrentDomain.GetAssemblies());
+                }
+                
                 if (clrType != null)
                 {
                     object result = FormatterServices.GetUninitializedObject(clrType);
@@ -126,7 +131,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                             string name = rf.GetAliasOrDefault() ?? wf.Name;
                             var memberInfo = accessor.GetMembers()
                                 .FirstOrDefault(m => m.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
-                            if (memberInfo != null && memberInfo.CanWrite)
+                            if (memberInfo is { CanWrite: true })
                             {
                                 accessor[result, memberInfo.Name] = GetValue(wf, rf, memberInfo, reader);
                             }
@@ -236,12 +241,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         /// Attempts to find a CLR type that matches the given record schema.
         /// The matching is based on the schema’s full name or simple name.
         /// </summary>
-        private Type GetClrTypeForRecordSchema(RecordSchema schema)
+        private Type GetClrTypeForRecordSchema(RecordSchema schema, Assembly[] assemblies)
         {
             // Prefer using the full name (namespace + name) if available.
-            string fullName = schema.FullName; // For example, "TypeUnionExampleAvro.ObjA"
-            // Search loaded assemblies for a matching type.
-            var clrType = AppDomain.CurrentDomain.GetAssemblies()
+            string fullName = schema.FullName; 
+            
+            var clrType = assemblies
                 .SelectMany(a => a.GetTypes())
                 .FirstOrDefault(t => t.FullName == fullName || t.Name == schema.Name);
             return clrType;

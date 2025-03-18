@@ -24,13 +24,29 @@ namespace SolTechnology.Avro
     public static partial class AvroConvert
     {
         /// <summary>
-        /// Opens Avro object deserializer which allows to read large collection of Avro objects one by one
+        /// Opens an Avro object deserializer which allows reading a large collection of Avro objects of type <typeparamref name="T"/> one by one.
         /// </summary>
+        /// <typeparam name="T">The type of objects to be deserialized.</typeparam>
+        /// <param name="stream">The stream containing the Avro data to be deserialized.</param>
+        /// <returns>An <see cref="ILineReader{T}"/> instance for sequentially reading the deserialized Avro objects.</returns>
         public static ILineReader<T> OpenDeserializer<T>(Stream stream)
         {
             var reader = Decoder.OpenReader<T>(stream, Schema.Create(typeof(T)));
-
             return reader;
         }
+
+        /// <summary>
+        /// Opens an Avro object deserializer which allows reading a large collection of Avro objects of type <typeparamref name="T"/> one by one using the provided schema.
+        /// </summary>
+        /// <typeparam name="T">The type of objects to be deserialized.</typeparam>
+        /// <param name="stream">The memory stream containing the Avro data to be deserialized.</param>
+        /// <param name="schema">A string representation of the Avro schema to be used for deserialization.</param>
+        /// <returns>An <see cref="ILineReader{T}"/> instance for sequentially reading the deserialized Avro objects.</returns>
+        public static ILineReader<T> OpenDeserializer<T>(MemoryStream stream, string schema)
+        {
+            var reader = Decoder.OpenReader<T>(stream, Schema.Parse(schema));
+            return reader;
+        }
+
     }
 }

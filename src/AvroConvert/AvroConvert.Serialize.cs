@@ -24,7 +24,6 @@ namespace SolTechnology.Avro
 {
     public static partial class AvroConvert
     {
-        // The internal method that contains the core serialization logic.
         private static byte[] SerializeInternal(object obj, TypeSchema schema, CodecType codecType, AvroConvertOptions options = null)
         {
             using MemoryStream resultStream = new MemoryStream();

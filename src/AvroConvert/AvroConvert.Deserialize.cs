@@ -51,6 +51,29 @@ namespace SolTechnology.Avro
                 return deserialized;
             }
         }
+        
+        /// <summary>
+        /// Deserializes Avro data from a byte array into a specified .NET type.
+        /// </summary>
+        /// <typeparam name="T">The type of object to deserialize into.</typeparam>
+        /// <param name="avroBytes">The byte array containing the Avro data to be deserialized.</param>
+        /// <param name="schema">A string representation of the Avro schema to be used for deserialization.</param>
+        /// <returns>The deserialized object of the specified type.</returns>
+        /// <remarks>
+        /// This method takes a byte array containing Avro data and deserializes it into an object of the specified type (generic parameter T).
+        /// </remarks>
+        public static T Deserialize<T>(byte[] avroBytes, string schema)
+        {
+            using (var stream = new MemoryStream(avroBytes))
+            {
+                var decoder = new Decoder();
+                var deserialized = decoder.Decode<T>(
+                    stream,
+                    Schema.Parse(schema)
+                );
+                return deserialized;
+            }
+        }
 
         /// <summary>
         /// Deserializes Avro data from a byte array into a specified .NET type using the provided Avro conversion options.
@@ -95,6 +118,35 @@ namespace SolTechnology.Avro
                     .GetMethod(nameof(Deserialize), new[] { typeof(byte[]) })
                     ?.MakeGenericMethod(targetType)
                     .Invoke(null, new object[] { avroBytes });
+            }
+            catch (TargetInvocationException ex)
+            {
+                throw ex.InnerException!;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Deserializes Avro data from a byte array into an object of the specified target type using reflection.
+        /// </summary>
+        /// <param name="avroBytes">The byte array containing the Avro data to be deserialized.</param>
+        /// <param name="targetType">The target type into which the Avro data should be deserialized.</param>
+        /// <param name="schema">A string representation of the Avro schema to be used for deserialization.</param>
+        /// <returns>The deserialized object of the specified target type.</returns>
+        /// <remarks>
+        /// This method uses reflection to dynamically invoke the generic <see cref="Deserialize{T}"/> method
+        /// to deserialize Avro data from a byte array into an object of the specified target type.
+        /// </remarks>
+        public static dynamic Deserialize(byte[] avroBytes, Type targetType, string schema)
+        {
+            object result;
+            try
+            {
+                result = typeof(AvroConvert)
+                    .GetMethod(nameof(Deserialize), new[] { typeof(byte[]), typeof(string) })
+                    ?.MakeGenericMethod(targetType)
+                    .Invoke(null, new object[] { avroBytes, schema });
             }
             catch (TargetInvocationException ex)
             {

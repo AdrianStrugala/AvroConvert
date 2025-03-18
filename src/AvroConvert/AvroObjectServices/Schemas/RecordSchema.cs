@@ -107,7 +107,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
 
         internal override bool CanRead(TypeSchema writerSchema)
         {
-            return Type == writerSchema.Type 
+            return Name.Equals((writerSchema as RecordSchema)?.Name)
                    || Fields.Count == 0; //hack to allow any item to be serialized to Object 
         }
     }

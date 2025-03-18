@@ -1,4 +1,7 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using AutoFixture;
 using SolTechnology.Avro;
 using Xunit;
 

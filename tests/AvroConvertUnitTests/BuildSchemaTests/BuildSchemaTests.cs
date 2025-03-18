@@ -15,7 +15,7 @@ public sealed class BuildSchemaTests
         var schema = Schema.Create(typeof(AttributeClass));
 
         // Act
-        var result = Schema.Create(schema.ToString());
+        var result = Schema.Parse(schema.ToString());
 
         // Assert
         Assert.Equal(schema.ToString(), result.ToString());
@@ -28,7 +28,7 @@ public sealed class BuildSchemaTests
         var schema = Schema.Create(typeof(GuidClassWithValidDefaultValue));
 
         // Act
-        var resultSchema = Schema.Create(schema.ToString());
+        var resultSchema = Schema.Parse(schema.ToString());
 
         // Assert
         Assert.Equal(schema.ToString(), resultSchema.ToString());
@@ -41,7 +41,7 @@ public sealed class BuildSchemaTests
         var schema = Schema.Create(typeof(GuidClassWithInvalidDefaultValue));
 
         // Act and Assert
-        Assert.Throws<SerializationException>(() => Schema.Create(schema.ToString()));
+        Assert.Throws<SerializationException>(() => Schema.Parse(schema.ToString()));
     }
 }
 

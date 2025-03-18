@@ -17,60 +17,81 @@
 
 using System.IO;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
+using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Features.Serialize;
 
 namespace SolTechnology.Avro
 {
     public static partial class AvroConvert
     {
+        private static byte[] SerializeInternal(object obj, TypeSchema schema, CodecType codecType, AvroConvertOptions options = null)
+        {
+            using MemoryStream resultStream = new MemoryStream();
+            using (var writer = options != null 
+                       ? new Encoder(schema, resultStream, options.Codec, options)
+                       : new Encoder(schema, resultStream, codecType))
+            {
+                writer.Append(obj);
+            }
+            return resultStream.ToArray();
+        }
+
         /// <summary>
-        /// Serializes given object into Avro format (including header with metadata)
+        /// Serializes the given object into Avro format (including header with metadata) using a default codec.
         /// </summary>
+        /// <param name="obj">The object to serialize.</param>
+        /// <returns>A byte array containing the serialized Avro data.</returns>
         public static byte[] Serialize(object obj)
         {
             return Serialize(obj, CodecType.Null);
         }
-
+        
         /// <summary>
-        /// Serializes given object into Avro format (including header with metadata)
-        /// Choosing <paramref name="codecType"/> reduces output object size
+        /// Serializes the given object into Avro format (including header with metadata) using the specified codec type.
         /// </summary>
+        /// <param name="obj">The object to serialize.</param>
+        /// <param name="codecType">The codec type to be used for serialization. Choosing a specific codec may reduce the output size.</param>
+        /// <returns>A byte array containing the serialized Avro data.</returns>
         public static byte[] Serialize(object obj, CodecType codecType)
         {
-            using (MemoryStream resultStream = new MemoryStream())
-            {
-                var schema = Schema.Create(obj);
-                using (var writer = new Encoder(schema, resultStream, codecType))
-                {
-                    writer.Append(obj);
-                }
-                byte[] result = resultStream.ToArray();
-                return result;
-            }
+            var schema = Schema.Create(obj);
+            return SerializeInternal(obj, schema, codecType);
+        }
+        
+        /// <summary>
+        /// Serializes the given object into Avro format (including header with metadata) using the specified schema string and codec type.
+        /// </summary>
+        /// <param name="obj">The object to serialize.</param>
+        /// <param name="codecType">The codec type to be used for serialization. Choosing a specific codec may reduce the output size.</param>
+        /// <param name="schema">A string representation of the Avro schema to be used for serialization.</param>
+        /// <returns>A byte array containing the serialized Avro data.</returns>
+        public static byte[] Serialize(object obj, CodecType codecType, string schema)
+        {
+            var schemaObject = Schema.Parse(schema);
+            return SerializeInternal(obj, schemaObject, codecType);
+        }
+        
+        /// <summary>
+        /// Serializes the given object into Avro format (including header with metadata) using the specified schema string and a default codec.
+        /// </summary>
+        /// <param name="obj">The object to serialize.</param>
+        /// <param name="schema">A string representation of the Avro schema to be used for serialization.</param>
+        /// <returns>A byte array containing the serialized Avro data.</returns>
+        public static byte[] Serialize(object obj, string schema)
+        {
+            return Serialize(obj, CodecType.Null, schema);
         }
 
         /// <summary>
-        /// Serializes given object into Avro format (including header with metadata) and returns the serialized data as a byte array.
+        /// Serializes the given object into Avro format (including header with metadata) using the specified Avro conversion options.
         /// </summary>
-        /// <param name="obj">The object to be serialized into Avro format.</param>
-        /// <param name="options">The Avro conversion options that control the serialization process.</param>
+        /// <param name="obj">The object to serialize.</param>
+        /// <param name="options">The Avro conversion options that control the serialization process, including codec and other settings.</param>
         /// <returns>A byte array containing the serialized Avro data.</returns>
-        /// <remarks>
-        /// This method takes an object and serializes it into Avro format based on the provided Avro conversion options.
-        /// The resulting serialized data is returned as a byte array.
-        /// </remarks>
         public static byte[] Serialize(object obj, AvroConvertOptions options)
         {
-            using (MemoryStream resultStream = new MemoryStream())
-            {
-                var schema = Schema.Create(obj, options);
-                using (var writer = new Encoder(schema, resultStream, options.Codec, options))
-                {
-                    writer.Append(obj);
-                }
-                byte[] result = resultStream.ToArray();
-                return result;
-            }
+            var schema = Schema.Create(obj, options);
+            return SerializeInternal(obj, schema, options.Codec, options);
         }
     }
 }

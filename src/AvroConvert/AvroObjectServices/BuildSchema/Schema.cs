@@ -67,7 +67,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         internal abstract void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas);
 
 
-        internal static TypeSchema Create(string schemaInJson)
+        internal static TypeSchema Parse(string schemaInJson)
         {
             if (string.IsNullOrEmpty(schemaInJson))
             {

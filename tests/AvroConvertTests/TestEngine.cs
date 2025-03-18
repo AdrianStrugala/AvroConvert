@@ -198,9 +198,8 @@ public static class TestEngine
         {
             var @default = new Func<object, Type, string, string, dynamic>((input, type, writeSchema, readSchema) =>
             {
-                var x = readSchema; //not used, but the cases are important to cover
-                var serialized = AvroConvert.Serialize(input);
-                return AvroConvert.Deserialize(serialized, type);
+                var serialized = AvroConvert.Serialize(input, writeSchema);
+                return AvroConvert.Deserialize(serialized, type, readSchema);
             });
 
             return new object[] { @default };
@@ -248,9 +247,8 @@ public static class TestEngine
         {
             var @default = new Func<object, Type, string, string, dynamic>((input, type, writeSchema, readSchema) =>
             {
-                var x = writeSchema; //not used, but the cases are important to cover
-                var serialized = AvroConvert.Serialize(input, CodecType.Brotli);
-                return AvroConvert.Deserialize(serialized, type);
+                var serialized = AvroConvert.Serialize(input, CodecType.Brotli, writeSchema);
+                return AvroConvert.Deserialize(serialized, type, readSchema);
             });
 
             return new object[] { @default };

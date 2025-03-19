@@ -1,3 +1,7 @@
+**v. 3.4.14 (19.03.25)**
+- Different approach to Union type support; exposing AvroUnionAttribute
+
+\
 **v. 3.4.13 (18.03.25)**
 - Added support for Union type for serialization and deserialization of different classes being represented as single object in the c# model 
 

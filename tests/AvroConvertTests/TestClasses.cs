@@ -512,6 +512,8 @@ namespace AvroConvertComponentTests
     public class TypeWithUnionAvro
     {
         public string TopLevelField { get; set; }
+        
+        [AvroUnion(typeof(ObjA), typeof(ObjB))]
         public object UnionField { get; set; }
     }
 

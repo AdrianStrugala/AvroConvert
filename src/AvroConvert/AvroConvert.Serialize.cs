@@ -58,29 +58,6 @@ namespace SolTechnology.Avro
             return SerializeInternal(obj, schema, codecType);
         }
         
-        /// <summary>
-        /// Serializes the given object into Avro format (including header with metadata) using the specified schema string and codec type.
-        /// </summary>
-        /// <param name="obj">The object to serialize.</param>
-        /// <param name="codecType">The codec type to be used for serialization. Choosing a specific codec may reduce the output size.</param>
-        /// <param name="schema">A string representation of the Avro schema to be used for serialization.</param>
-        /// <returns>A byte array containing the serialized Avro data.</returns>
-        public static byte[] Serialize(object obj, CodecType codecType, string schema)
-        {
-            var schemaObject = Schema.Parse(schema);
-            return SerializeInternal(obj, schemaObject, codecType);
-        }
-        
-        /// <summary>
-        /// Serializes the given object into Avro format (including header with metadata) using the specified schema string and a default codec.
-        /// </summary>
-        /// <param name="obj">The object to serialize.</param>
-        /// <param name="schema">A string representation of the Avro schema to be used for serialization.</param>
-        /// <returns>A byte array containing the serialized Avro data.</returns>
-        public static byte[] Serialize(object obj, string schema)
-        {
-            return Serialize(obj, CodecType.Null, schema);
-        }
 
         /// <summary>
         /// Serializes the given object into Avro format (including header with metadata) using the specified Avro conversion options.

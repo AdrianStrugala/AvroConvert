@@ -345,12 +345,15 @@ namespace AvroConvertComponentTests.DeserializeByLine
                 }
             };
             
-            //Act
             var result = new List<TypeWithUnionAvro>();
-            foreach (var item in toSerialize)
+            
+            //Act
+            var serialized = AvroConvert.Serialize(toSerialize);
+            
+            using var reader = AvroConvert.OpenDeserializer<TypeWithUnionAvro>(new MemoryStream(serialized));
+            while(reader.HasNext())
             {
-                var serialized = AvroConvert.Serialize(item, schema);
-                result.Add(AvroConvert.Deserialize<TypeWithUnionAvro>(serialized, schema));
+                result.Add(reader.ReadNext());
             }
             
             //Assert

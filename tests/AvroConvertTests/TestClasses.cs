@@ -517,9 +517,31 @@ namespace AvroConvertComponentTests
         public object UnionField { get; set; }
     }
 
-    public class ObjA
+    public class ObjA 
     {
         public string FieldA { get; set; }
+    }
+    
+    public class ObjB 
+    {
+        public int FieldB { get; set; }
+    }
+
+}
+
+namespace AvroGen  // Mimic namespace for generated classes
+{
+    public class TypeWithUnionAvro
+    {
+        public string TopLevelField { get; set; }
+        
+        [AvroUnion(typeof(ObjA), typeof(ObjB))]
+        public object UnionField { get; set; }
+    }
+    
+    public class ObjA
+    {
+        public string FieldA { get; set; } 
     }
 
     public class ObjB

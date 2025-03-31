@@ -114,10 +114,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 
                 // Try to look up a matching CLR type.
                 Assembly[] assemblies = { Assembly.GetExecutingAssembly(), Assembly.GetEntryAssembly() };
-                Type clrType = GetClrTypeForRecordSchema(writerSchema, assemblies);
+                Type clrType = GetClrTypeForRecordSchema(readerSchema, assemblies);
                 if (clrType == null)
                 {
-                    clrType = GetClrTypeForRecordSchema(writerSchema, AppDomain.CurrentDomain.GetAssemblies());
+                    clrType = GetClrTypeForRecordSchema(readerSchema, AppDomain.CurrentDomain.GetAssemblies());
                 }
                 
                 if (clrType != null)
@@ -246,9 +246,17 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             // Prefer using the full name (namespace + name) if available.
             string fullName = schema.FullName; 
             
-            var clrType = assemblies
+            var types = assemblies
                 .SelectMany(a => a.GetTypes())
-                .FirstOrDefault(t => t.FullName == fullName || t.Name == schema.Name);
+                .ToList();
+            
+            var clrType = types.FirstOrDefault(t => t.FullName == fullName);
+            if (clrType != null)
+            {
+                return clrType;
+            }
+
+            clrType = types.FirstOrDefault(t => t.Name == schema.Name);
             return clrType;
         }
     }

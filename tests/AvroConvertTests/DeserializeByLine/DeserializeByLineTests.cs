@@ -325,20 +325,20 @@ namespace AvroConvertComponentTests.DeserializeByLine
             var schema =
                 "{\n  \"type\": \"record\",\n  \"name\": \"TypeWithUnionAvro\",\n  \"namespace\": \"TypeUnionExampleAvro\",\n  \"fields\": [\n    {\n      \"name\": \"TopLevelField\",\n      \"type\": \"string\"\n    },\n    {\n      \"name\": \"UnionField\",\n      \"type\": [\n        {\n          \"type\": \"record\",\n          \"name\": \"ObjA\",\n          \"fields\": [\n            {\n              \"name\": \"FieldA\",\n              \"type\": \"string\"\n            }\n          ]\n        },\n        {\n          \"type\": \"record\",\n          \"name\": \"ObjB\",\n          \"fields\": [\n            {\n              \"name\": \"FieldB\",\n              \"type\": \"int\"\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}";
 
-            var toSerialize = new List<TypeWithUnionAvro>
+            var toSerialize = new List<AvroGen.TypeWithUnionAvro>
             {
-                new TypeWithUnionAvro
+                new()
                 {
                     TopLevelField = "First",
-                    UnionField = new ObjA
+                    UnionField = new AvroGen.ObjA
                     {
-                        FieldA = "dupa"
+                        FieldA = "test"
                     }
                 },
-                new TypeWithUnionAvro
+                new()
                 {
                     TopLevelField = "Second",
-                    UnionField = new ObjB
+                    UnionField = new AvroGen.ObjB
                     {
                         FieldB = 2137
                     } 

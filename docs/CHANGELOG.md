@@ -1,3 +1,6 @@
+**v. 3.4.15 (31.03.25)**
+- Fix for namespace in Union resolution
+
 **v. 3.4.14 (19.03.25)**
 - Different approach to Union type support; exposing AvroUnionAttribute
 

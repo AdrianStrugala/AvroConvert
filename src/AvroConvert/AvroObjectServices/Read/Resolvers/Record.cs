@@ -33,7 +33,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         private readonly Dictionary<int, Dictionary<string, ReadStep>> _readStepsDictionary = new();
         private readonly Dictionary<int, TypeAccessor> _accessorDictionary = new();
 
-        protected virtual object ResolveRecord(RecordSchema writerSchema, RecordSchema readerSchema, IReader reader,
+        protected virtual object ResolveRecord(
+            RecordSchema writerSchema,
+            RecordSchema readerSchema,
+            IReader reader,
             Type type)
         {
             if (type != typeof(object))
@@ -122,30 +125,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                 
                 if (clrType != null)
                 {
-                    object result = FormatterServices.GetUninitializedObject(clrType);
-                    var accessor = TypeAccessor.Create(clrType, true);
-                    foreach (RecordFieldSchema wf in writerSchema.Fields)
-                    {
-                        if (readerSchema.TryGetField(wf.Name, out var rf))
-                        {
-                            string name = rf.GetAliasOrDefault() ?? wf.Name;
-                            var memberInfo = accessor.GetMembers()
-                                .FirstOrDefault(m => m.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
-                            if (memberInfo is { CanWrite: true })
-                            {
-                                accessor[result, memberInfo.Name] = GetValue(wf, rf, memberInfo, reader);
-                            }
-                            else
-                            {
-                                _skipper.Skip(wf.TypeSchema, reader);
-                            }
-                        }
-                        else
-                        {
-                            _skipper.Skip(wf.TypeSchema, reader);
-                        }
-                    }
-                    return result;
+                    return ReadForType(writerSchema, readerSchema, reader, clrType);
                 }
                 else
                 {
@@ -179,6 +159,34 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                     return result;
                 }
             }
+        }
+
+        private object ReadForType(RecordSchema writerSchema, RecordSchema readerSchema, IReader reader, Type clrType)
+        {
+            object result = FormatterServices.GetUninitializedObject(clrType);
+            var accessor = TypeAccessor.Create(clrType, true);
+            foreach (RecordFieldSchema wf in writerSchema.Fields)
+            {
+                if (readerSchema.TryGetField(wf.Name, out var rf))
+                {
+                    string name = rf.GetAliasOrDefault() ?? wf.Name;
+                    var memberInfo = accessor.GetMembers()
+                        .FirstOrDefault(m => m.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+                    if (memberInfo is { CanWrite: true })
+                    {
+                        accessor[result, memberInfo.Name] = GetValue(wf, rf, memberInfo, reader);
+                    }
+                    else
+                    {
+                        _skipper.Skip(wf.TypeSchema, reader);
+                    }
+                }
+                else
+                {
+                    _skipper.Skip(wf.TypeSchema, reader);
+                }
+            }
+            return result;
         }
 
         private object GetValue(RecordFieldSchema wf,

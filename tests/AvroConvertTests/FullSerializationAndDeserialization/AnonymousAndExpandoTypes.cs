@@ -102,7 +102,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
         }
         
-        [Theory(Skip = "Not working for Headless flow for now")]
+        [Theory]
         [MemberData(nameof(TestEngine.CoreUsingSchema), MemberType = typeof(TestEngine))]
         public void DeserializeByLine_CollectionWithUnionOfClasses_ResultIsTheSameAsInput(Func<object, Type, string, string, dynamic> engine)
         {
@@ -121,7 +121,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             };
             
           //Act
-          var deserialized = (TypeWithUnionAvro)engine.Invoke(toSerialize, typeof(object), schema, schema);
+          var deserialized = (TypeWithUnionAvro)engine.Invoke(toSerialize, typeof(TypeWithUnionAvro), schema, schema);
             
           //Assert
           Assert.Equivalent(toSerialize, deserialized);

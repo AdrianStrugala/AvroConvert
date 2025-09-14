@@ -35,6 +35,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
         private static bool _hasCustomConverters;
         private readonly Dictionary<Type, Action<object, IWriter>> _customSerializerMapping;
         private readonly IAvroNamingPolicy _namingPolicy;
+        private readonly AvroNumberHandling _numberHandling;
 
         internal WriteResolver(AvroConvertOptions options = null)
         {
@@ -43,6 +44,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
                 x => x.TypeSchema.RuntimeType,
                 y => (Action<object, IWriter>)y.Serialize);
             _namingPolicy = options?.NamingPolicy;
+            _numberHandling = options?.NumberHandling ?? AvroNumberHandling.Strict;
         }
 
         internal Encoder.WriteItem ResolveWriter(TypeSchema schema)

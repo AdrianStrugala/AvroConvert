@@ -20,6 +20,7 @@ using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Infrastructure.Exceptions;
+using SolTechnology.Avro.Policies;
 
 // ReSharper disable once CheckNamespace
 namespace SolTechnology.Avro.AvroObjectServices.Write
@@ -36,11 +37,32 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
             int sizeDiff = logicalScale - scale;
             if (sizeDiff < 0)
             {
-                throw new AvroTypeException(
-                    $@"Decimal Scale for value [{logicalValue}] is equal to [{scale}]. This exceeds default setting [{logicalScale}].
+                if (_numberHandling == AvroNumberHandling.Strict)
+                {
+                    throw new AvroTypeException(
+                        $@"Decimal Scale for value [{logicalValue}] is equal to [{scale}]. This exceeds default setting [{logicalScale}].
 Consider adding following attribute to your property:
 [AvroDecimal(Precision = 28, Scale = {scale})]
 ");
+                }
+
+                if (_numberHandling == AvroNumberHandling.Truncate)
+                {
+                    var multiplier = (decimal)Math.Pow(10, logicalScale);
+                    var truncatedValue = Math.Truncate((decimal)logicalValue * multiplier) / multiplier;
+
+                    logicalValue = truncatedValue;
+                    avroDecimal = new AvroDecimal(truncatedValue);
+                    sizeDiff = 0;
+                }
+                else if (_numberHandling == AvroNumberHandling.Rounding)
+                {
+                    var roundedValue = Math.Round((decimal)logicalValue, logicalScale);
+
+                    logicalValue = roundedValue;
+                    avroDecimal = new AvroDecimal(roundedValue);
+                    sizeDiff = 0;
+                }
             }
 
             string trailingZeros = new string('0', sizeDiff);

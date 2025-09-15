@@ -34,7 +34,19 @@ public class NumberTests
 
         //Assert
         Assert.NotNull(deserialized);
-        Assert.Equal(14, value.Scale);
+        Assert.Equal(14, GetScale(value));
         Assert.True(value >= 1.12345678901234m && value <= 1.12345678901235m);
+    }
+
+    private int GetScale(decimal value)
+    {
+        if (value == 0)
+        {
+            return 0;
+        }
+
+        var bits = decimal.GetBits(value);
+
+        return (bits[3] >> 16) & 0x7F;
     }
 }

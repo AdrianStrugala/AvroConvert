@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 using SolTechnology.Avro;
+using SolTechnology.Avro.Policies;
 
 namespace AvroConvertComponentTests;
 
@@ -52,6 +53,13 @@ public static class TestEngine
         yield return BrotliWithSchema;
     }
 
+    public static IEnumerable<object[]> HeadlessUsingNumberHandling()
+    {
+        yield return HeadlessWithTruncateNumberHandling;
+
+        yield return HeadlessWithRoundingNumberHandling;
+    }
+
     public static IEnumerable<object[]> DefaultOnly()
     {
         yield return Default;
@@ -91,6 +99,38 @@ public static class TestEngine
             {
                 var schema = AvroConvert.GenerateSchema(type);
                 var serialized = AvroConvert.SerializeHeadless(input, schema);
+                return AvroConvert.DeserializeHeadless(serialized, type);
+            });
+
+            return new object[] { headless };
+        }
+    }
+
+    private static object[] HeadlessWithTruncateNumberHandling
+    {
+        get
+        {
+            var headless = new Func<object, Type, dynamic>((input, type) =>
+            {
+                var schema = AvroConvert.GenerateSchema(type);
+                var options = new AvroConvertOptions { NumberHandling = AvroNumberHandling.Truncate };
+                var serialized = AvroConvert.SerializeHeadless(input, schema, options);
+                return AvroConvert.DeserializeHeadless(serialized, type);
+            });
+
+            return new object[] { headless };
+        }
+    }
+
+    private static object[] HeadlessWithRoundingNumberHandling
+    {
+        get
+        {
+            var headless = new Func<object, Type, dynamic>((input, type) =>
+            {
+                var schema = AvroConvert.GenerateSchema(type);
+                var options = new AvroConvertOptions { NumberHandling = AvroNumberHandling.Rounding };
+                var serialized = AvroConvert.SerializeHeadless(input, schema, options);
                 return AvroConvert.DeserializeHeadless(serialized, type);
             });
 

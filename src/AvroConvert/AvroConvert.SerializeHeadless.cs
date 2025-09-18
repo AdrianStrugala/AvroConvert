@@ -27,12 +27,12 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Serializes given object to Avro format - <c>excluding</c> header
         /// </summary>
-        public static byte[] SerializeHeadless(object obj, string schema)
+        public static byte[] SerializeHeadless(object obj, string schema, AvroConvertOptions options = null)
         {
             MemoryStream resultStream = new MemoryStream();
             var encoder = new Writer(resultStream);
             var schemaObject = Schema.Parse(schema);
-            var resolver = new WriteResolver();
+            var resolver = new WriteResolver(options);
             var writer = resolver.ResolveWriter(schemaObject);
 
             writer(obj, encoder);
@@ -44,12 +44,12 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Serializes given object to Avro format - <c>excluding</c> header
         /// </summary>
-        public static byte[] SerializeHeadless(object obj, Type objectType)
+        public static byte[] SerializeHeadless(object obj, Type objectType, AvroConvertOptions options = null)
         {
             MemoryStream resultStream = new MemoryStream();
             var encoder = new Writer(resultStream);
             var schemaObject = BuildSchema(objectType);
-            var resolver = new WriteResolver();
+            var resolver = new WriteResolver(options);
             var writer = resolver.ResolveWriter(schemaObject);
 
             writer(obj, encoder);

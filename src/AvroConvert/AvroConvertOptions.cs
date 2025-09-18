@@ -69,4 +69,9 @@ public class AvroConvertOptions
     /// Gets or sets the naming policy that can determine how types and fields are named.
     /// </summary>
     public IAvroNamingPolicy NamingPolicy { get; set; }
+
+    /// <summary>
+    /// Gets or sets the number handling behavior for Avro types.
+    /// </summary>
+    public AvroNumberHandling NumberHandling { get; set; }
 }

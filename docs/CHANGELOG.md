@@ -1,3 +1,6 @@
+**v. 3.4.16 (18.09.25)**
+- Add number handling options to round/truncate decimals
+
 **v. 3.4.15 (31.03.25)**
 - Fix for namespace in Union resolution
 

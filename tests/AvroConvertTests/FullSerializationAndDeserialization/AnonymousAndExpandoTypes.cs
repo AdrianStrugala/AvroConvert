@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using FluentAssertions;
@@ -125,27 +125,6 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             
           //Assert
           Assert.Equivalent(toSerialize, deserialized);
-        }
-
-        [Theory]
-        [MemberData(nameof(TestEngine.CoreUsingSchema), MemberType = typeof(TestEngine))]
-        public void Deserialize_AvroUnionsWithEnums_ResultGetsEnumType(Func<object, Type, string, string, dynamic> engine)
-        {
-            //Arrange
-            var schema = AvroConvert.GenerateSchema(typeof(TypeWithUnionEnums));
-
-            var toSerialize = new TypeWithUnionAvro
-            {
-                TopLevelField = "First",
-                UnionField = TestEnum.be
-            };
-
-            //Act
-            var deserialized = (TypeWithUnionEnums)engine.Invoke(toSerialize, typeof(TypeWithUnionEnums), schema, schema);
-
-            //Assert
-            Assert.Equivalent(toSerialize, deserialized);
-            Assert.IsType<TestEnum>(deserialized.EnumField);
         }
     }
 

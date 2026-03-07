@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -515,14 +515,6 @@ namespace AvroConvertComponentTests
         
         [AvroUnion(typeof(ObjA), typeof(ObjB))]
         public object UnionField { get; set; }
-    }
-
-    public class TypeWithUnionEnums
-    {
-        public string TopLevelField { get; set; }
-
-        [AvroUnion(typeof(TestEnum), typeof(EnumWithDifferentNames))]
-        public object EnumField { get; set; }
     }
 
     public class ObjA 

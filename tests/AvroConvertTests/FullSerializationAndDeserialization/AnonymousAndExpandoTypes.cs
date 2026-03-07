@@ -134,10 +134,10 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             //Arrange
             var schema = AvroConvert.GenerateSchema(typeof(TypeWithUnionEnums));
 
-            var toSerialize = new TypeWithUnionEnums
+            var toSerialize = new TypeWithUnionAvro
             {
                 TopLevelField = "First",
-                EnumField = TestEnum.be
+                UnionField = TestEnum.be
             };
 
             //Act

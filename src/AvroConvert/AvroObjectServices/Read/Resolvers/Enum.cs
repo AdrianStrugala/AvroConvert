@@ -16,6 +16,8 @@
 #endregion
 
 using System;
+using System.Linq;
+using System.Reflection;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 
@@ -32,7 +34,30 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 
             int position = d.ReadEnum();
             string value = writerSchema.Symbols[position];
+
+            if (type == typeof(object))
+            {
+                var targetType = GetClrTypeForEnum(readerSchema, new[] { Assembly.GetExecutingAssembly(), Assembly.GetEntryAssembly() });
+
+                if (targetType == null)
+                {
+                    targetType = GetClrTypeForEnum(readerSchema, AppDomain.CurrentDomain.GetAssemblies());
+                }
+
+                if (targetType != null)
+                {
+                    type = targetType;
+                }
+            }
+
             return EnumParser.Parse(type, value, _namingPolicy);
+        }
+
+        private Type GetClrTypeForEnum(TypeSchema schema, Assembly[] assemblies)
+        {
+            return assemblies
+                .Select(x => x.GetType(schema.Name))
+                .FirstOrDefault(x => x != null);
         }
     }
 }

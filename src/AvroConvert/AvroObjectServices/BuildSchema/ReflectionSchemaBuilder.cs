@@ -440,9 +440,17 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             {
                 result.Add(memberType);
             }
+            
+            var unionSchemas = result.Select(type => CreateNotNullableSchema(type, schemas, currentDepth + 1, memberInfo, representation)).ToList();
 
+            var typeInfo = _resolver.ResolveType(memberType, memberInfo);
 
-            return new UnionSchema(result.Select(type => CreateNotNullableSchema(type, schemas, currentDepth + 1, memberInfo, representation)).ToList(), memberType);
+            if (typeInfo.Nullable)
+            {
+                unionSchemas.Insert(0, new NullSchema());
+            }
+
+            return new UnionSchema(unionSchemas, memberType);
         }
 
         private FixedSchema TryBuildFixedSchema(Type memberType, MemberInfo memberInfo, NamedSchema parentSchema)

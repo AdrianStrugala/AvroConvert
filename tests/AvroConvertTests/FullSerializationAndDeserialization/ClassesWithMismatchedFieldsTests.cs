@@ -11,8 +11,8 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             //Arrange
             var write = new WriteModel
             {
-                Models =
-                [
+                Models = new[]
+                {
                     new WriteModelWithAdditionalField
                     {
                         StringValue = "string value",
@@ -25,7 +25,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
                         DecimalValue = 123.456m,
                         IntValue = 10
                     }
-                ],
+                },
                 FinalField = 456.789m
             };
 

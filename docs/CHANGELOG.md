@@ -1,3 +1,7 @@
+**v. 3.4.17 (14.07.26)**
+- Nullable handling in Union schemas
+- Fix for records to skip additional fields
+
 **v. 3.4.16 (18.09.25)**
 - Add number handling options to round/truncate decimals
 

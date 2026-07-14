@@ -1,4 +1,4 @@
-﻿#region license
+#region license
 
 /**Copyright (c) 2023 Adrian Strugała
 *
@@ -97,15 +97,16 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                         if (readStepValue.ShouldSkip)
                         {
                             _skipper.Skip(readStepValue.WriteFieldSchema.TypeSchema, reader);
-                            break;
                         }
-
-                        accessor[result, readStep.Key] =
-                            GetValue(
-                                readStepValue.WriteFieldSchema,
-                                readStepValue.ReadFieldSchema,
-                                readStepValue.MemberInfo,
-                                reader);
+                        else
+                        {
+                            accessor[result, readStep.Key] =
+                                GetValue(
+                                    readStepValue.WriteFieldSchema,
+                                    readStepValue.ReadFieldSchema,
+                                    readStepValue.MemberInfo,
+                                    reader);
+                        }
                     }
                 }
 

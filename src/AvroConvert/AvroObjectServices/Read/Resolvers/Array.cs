@@ -22,9 +22,9 @@
 
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Reflection;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Infrastructure.Extensions;
@@ -34,7 +34,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 {
     internal partial class Resolver
     {
-        private readonly Dictionary<int, Func<IList>> _cachedArrayInitializers = new();
+        private static readonly ConcurrentDictionary<Type, Func<int, IList>> ListInitializers = new();
 
         internal object ResolveArray(TypeSchema writerSchema, TypeSchema readerSchema, IReader reader, Type type, long itemsCount = 0)
         {
@@ -54,24 +54,15 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             }
 
             var containingType = type.GetEnumeratedType();
-            var typeHash = type.GetHashCode();
 
             int capacity = itemsCount == 0 ? (int)reader.ReadArrayStart() : (int)itemsCount;
-            Func<IList> resultFunc;
-            if (_cachedArrayInitializers.TryGetValue(typeHash, out var initializer))
+            var resultFunc = ListInitializers.GetOrAdd(containingType, itemType =>
             {
-                resultFunc = initializer;
-            }
-            else
-            {
-                var resultType = typeof(List<>).MakeGenericType(containingType);
-                ConstructorInfo constructor = resultType.GetConstructor(new[] { typeof(int) });
-                ConstantExpression capacityExpr = Expression.Constant(capacity);
-                NewExpression newExp = Expression.New(constructor, capacityExpr);
-                resultFunc = Expression.Lambda<Func<IList>>(newExp).Compile();
-                _cachedArrayInitializers.Add(typeHash, resultFunc);
-            }
-            IList result = resultFunc.Invoke();
+                var capacityParam = Expression.Parameter(typeof(int), "capacity");
+                var constructor = typeof(List<>).MakeGenericType(itemType).GetConstructor(new[] { typeof(int) });
+                return Expression.Lambda<Func<int, IList>>(Expression.New(constructor!, capacityParam), capacityParam).Compile();
+            });
+            IList result = resultFunc.Invoke(capacity);
 
             int i = 0;
             if (itemsCount == 0)

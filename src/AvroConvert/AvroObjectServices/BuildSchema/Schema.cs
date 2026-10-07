@@ -20,10 +20,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using Newtonsoft.Json;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
-using SolTechnology.Avro.Policies;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 {
@@ -31,6 +30,8 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
     {
         private static readonly ConcurrentDictionary<Type, TypeSchema> _schemaCache = new();
         private static readonly ConcurrentDictionary<(Type Type, OptionsKey Options), TypeSchema> _schemaWithOptionsCache = new();
+        private static readonly ConcurrentDictionary<string, TypeSchema> _parsedSchemaCache = new();
+        private const int ParsedSchemaCacheLimit = 256;
         private string _json;
 
         protected Schema(IDictionary<string, string> attributes)
@@ -85,7 +86,19 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 throw new ArgumentNullException(nameof(schemaInJson));
             }
 
-            return new TypeSchemaBuilder().BuildSchema(schemaInJson);
+            // Parsed schemas are immutable, so the same JSON text (e.g. a file header) is parsed once per process.
+            if (_parsedSchemaCache.TryGetValue(schemaInJson, out var cached))
+            {
+                return cached;
+            }
+
+            var parsed = new TypeSchemaBuilder().BuildSchema(schemaInJson);
+            if (_parsedSchemaCache.Count >= ParsedSchemaCacheLimit)
+            {
+                _parsedSchemaCache.Clear();
+            }
+            _parsedSchemaCache.TryAdd(schemaInJson, parsed);
+            return parsed;
         }
 
         internal static TypeSchema Create(object obj, AvroConvertOptions options = null)
@@ -107,26 +120,5 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
         internal static TypeSchema Create(Type type) =>
             _schemaCache.GetOrAdd(type, t => new ReflectionSchemaBuilder().BuildSchema(t));
-
-        /// <summary>
-        /// Schema-affecting part of <see cref="AvroConvertOptions"/>. Naming policy and converters are keyed by their
-        /// types (they are expected to be stateless), so the cache cannot grow with every options instance.
-        /// </summary>
-        private readonly record struct OptionsKey(
-            bool IncludeOnlyDataContractMembers,
-            int MaxItemsInSchemaTree,
-            AvroNumberHandling NumberHandling,
-            Type NamingPolicy,
-            string Converters)
-        {
-            internal static OptionsKey From(AvroConvertOptions options) => new(
-                options.IncludeOnlyDataContractMembers,
-                options.MaxItemsInSchemaTree,
-                options.NumberHandling,
-                options.NamingPolicy?.GetType(),
-                options.AvroConverters.Count == 0
-                    ? null
-                    : string.Join("|", options.AvroConverters.Select(c => c.GetType().AssemblyQualifiedName)));
-        }
     }
 }

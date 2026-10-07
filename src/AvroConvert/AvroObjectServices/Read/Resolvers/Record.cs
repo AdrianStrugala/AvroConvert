@@ -33,7 +33,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 {
     internal partial class Resolver
     {
-        private readonly Dictionary<(RecordSchema Writer, RecordSchema Reader, Type Type), RecordPlan> _recordPlans = new();
+        private readonly ConcurrentDictionary<(RecordSchema Writer, RecordSchema Reader, Type Type), RecordPlan> _recordPlans = new();
         private static readonly ConcurrentDictionary<string, Type> ClrTypeBySchemaName = new();
 
         protected virtual object ResolveRecord(
@@ -89,8 +89,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             var key = (writerSchema, readerSchema, type);
             if (!_recordPlans.TryGetValue(key, out var plan))
             {
-                plan = BuildRecordPlan(writerSchema, readerSchema, type);
-                _recordPlans.Add(key, plan);
+                plan = _recordPlans.GetOrAdd(key, _ => BuildRecordPlan(writerSchema, readerSchema, type));
             }
 
             object result = RuntimeHelpers.GetUninitializedObject(type);
@@ -151,7 +150,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         /// Avro schema resolution: reader fields absent from the writer take the reader's default;
         /// without a default, fields that can hold null resolve to null and anything else is governed by MissingFieldHandling.
         /// </summary>
-        private IEnumerable<(MemberAccessor Member, object Value)> ResolveMissingReaderFields(
+        internal IEnumerable<(MemberAccessor Member, object Value)> ResolveMissingReaderFields(
             RecordSchema writerSchema,
             RecordSchema readerSchema,
             TypeMembers members)
@@ -202,7 +201,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                 $"Add a [DefaultValue] / \"default\" to the field, make it nullable, or set {nameof(AvroConvertOptions)}.{nameof(AvroConvertOptions.MissingFieldHandling)} = {nameof(AvroMissingFieldHandling.UseDefault)}.");
         }
 
-        private object FormatDefaultValue(object defaultValue, MemberAccessor member)
+        internal object FormatDefaultValue(object defaultValue, MemberAccessor member)
         {
             if (defaultValue == null)
             {

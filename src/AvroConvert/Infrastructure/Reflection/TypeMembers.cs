@@ -12,14 +12,16 @@ namespace SolTechnology.Avro.Infrastructure.Reflection
     {
         internal string Name { get; }
         internal Type Type { get; }
+        internal MemberInfo Info { get; }
         internal bool CanRead => Get != null;
         internal bool CanWrite => Set != null;
         internal Func<object, object> Get { get; }
         internal Action<object, object> Set { get; }
 
-        internal MemberAccessor(string name, Type type, Func<object, object> get, Action<object, object> set)
+        internal MemberAccessor(MemberInfo info, Type type, Func<object, object> get, Action<object, object> set)
         {
-            Name = name;
+            Info = info;
+            Name = info.Name;
             Type = type;
             Get = get;
             Set = set;
@@ -68,7 +70,7 @@ namespace SolTechnology.Avro.Infrastructure.Reflection
                     }
 
                     result.Add(new MemberAccessor(
-                        property.Name,
+                        property,
                         property.PropertyType,
                         property.GetMethod != null ? CompileGetter(type, property) : null,
                         property.SetMethod != null ? CompileSetter(type, property) : null));
@@ -83,7 +85,7 @@ namespace SolTechnology.Avro.Infrastructure.Reflection
                     }
 
                     result.Add(new MemberAccessor(
-                        field.Name,
+                        field,
                         field.FieldType,
                         CompileGetter(type, field),
                         field.IsInitOnly ? null : CompileSetter(type, field)));

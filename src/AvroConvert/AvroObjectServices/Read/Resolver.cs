@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Linq;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
+using SolTechnology.Avro.AvroObjectServices.Read.Typed;
 using SolTechnology.Avro.AvroObjectServices.Skip;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 using SolTechnology.Avro.Policies;
@@ -35,11 +36,13 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         private readonly Dictionary<Type, Func<IReader, object>> _customDeserializerMapping;
         private readonly IAvroNamingPolicy _namingPolicy;
         private readonly AvroMissingFieldHandling _missingFieldHandling;
+        private readonly AvroConvertOptions _options;
 
         internal Resolver(TypeSchema writerSchema, TypeSchema readerSchema, AvroConvertOptions options = null)
         {
             _readerSchema = readerSchema;
             _writerSchema = writerSchema;
+            _options = options;
 
             _skipper = new Skipper();
 
@@ -53,16 +56,26 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 
         internal T Resolve<T>(IReader reader, long itemsCount = 0)
         {
-            if (itemsCount > 1)
+            try
             {
-                return (T)ResolveArray(
-                        _writerSchema,
-                        _readerSchema,
-                        reader, typeof(T), itemsCount);
-            }
+                var plan = ReadPlanCache.Get<T>(_writerSchema, _readerSchema, _options);
 
-            var result = Resolve(_writerSchema, _readerSchema, reader, typeof(T));
-            return (T)result;
+                if (itemsCount > 1)
+                {
+                    if (plan.Many != null)
+                    {
+                        return plan.Many(reader, itemsCount);
+                    }
+
+                    return (T)ResolveArray(_writerSchema, _readerSchema, reader, typeof(T), itemsCount);
+                }
+
+                return plan.One(reader);
+            }
+            catch (Exception e)
+            {
+                throw new AvroTypeMismatchException($"Unable to deserialize [{_writerSchema.Name}] of schema [{_writerSchema.Type}] to the target type [{typeof(T)}]. Inner exception:", e);
+            }
         }
 
         internal object Resolve(

@@ -1,62 +1,38 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System;
 
 namespace SolTechnology.Avro.AvroObjectServices.FileHeader.Codec
 {
     /// <summary>
-    /// Performs 32-bit reversed cyclic redundancy checks.
+    /// CRC-32 (IEEE 802.3, reflected polynomial 0xEDB88320) as required by the Avro snappy codec.
     /// </summary>
     internal static class Crc32
     {
-        #region Constants
-        /// <summary>
-        /// Generator polynomial (modulo 2) for the reversed CRC32 algorithm. 
-        /// </summary>
-        private const uint SGenerator = 0xEDB88320;
-        #endregion
+        private const uint Polynomial = 0xEDB88320;
+        private static readonly uint[] Table = BuildTable();
 
-        #region Constructors
-        /// <summary>
-        /// Creates a new instance of the Crc32 class.
-        /// </summary>
-        static Crc32()
+        private static uint[] BuildTable()
         {
-            // Constructs the checksum lookup table. Used to optimize the checksum.
-            _mChecksumTable = Enumerable.Range(0, 256).Select(i =>
-                                                              {
-                                                                  var tableEntry = (uint)i;
-                                                                  for (var j = 0; j < 8; ++j)
-                                                                  {
-                                                                      tableEntry = ((tableEntry & 1) != 0)
-                                                                                       ? (SGenerator ^ (tableEntry >> 1))
-                                                                                       : (tableEntry >> 1);
-                                                                  }
-                                                                  return tableEntry;
-                                                              }).ToArray();
+            var table = new uint[256];
+            for (uint i = 0; i < 256; i++)
+            {
+                uint entry = i;
+                for (int j = 0; j < 8; j++)
+                {
+                    entry = (entry & 1) != 0 ? Polynomial ^ (entry >> 1) : entry >> 1;
+                }
+                table[i] = entry;
+            }
+            return table;
         }
-        #endregion
 
-        #region Methods
-        /// <summary>
-        /// Calculates the checksum of the byte stream.
-        /// </summary>
-        /// <param name="byteStream">The byte stream to calculate the checksum for.</param>
-        /// <returns>A 32-bit reversed checksum.</returns>
-        internal static uint Get<T>(IEnumerable<T> byteStream)
+        internal static uint Get(ReadOnlySpan<byte> data)
         {
-            // Initialize checksumRegister to 0xFFFFFFFF and calculate the checksum.
-            return ~byteStream.Aggregate(0xFFFFFFFF, (checksumRegister, currentByte) =>
-                                                         (_mChecksumTable[(checksumRegister & 0xFF) ^ Convert.ToByte(currentByte)] ^ (checksumRegister >> 8)));
+            uint crc = 0xFFFFFFFF;
+            foreach (byte b in data)
+            {
+                crc = Table[(crc ^ b) & 0xFF] ^ (crc >> 8);
+            }
+            return ~crc;
         }
-        #endregion
-
-        #region Fields
-        /// <summary>
-        /// Contains a cache of calculated checksum chunks.
-        /// </summary>
-        private static readonly uint[] _mChecksumTable;
-
-        #endregion
     }
 }

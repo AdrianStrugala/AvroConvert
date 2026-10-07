@@ -16,8 +16,8 @@
 #endregion
 
 using System;
+using System.Buffers.Binary;
 using System.IO;
-using System.Linq;
 using IronSnappy;
 
 namespace SolTechnology.Avro.AvroObjectServices.FileHeader.Codec
@@ -30,19 +30,19 @@ namespace SolTechnology.Avro.AvroObjectServices.FileHeader.Codec
         {
             var toCompressBytes = toCompress.ToArray();
             var compressedData = Snappy.Encode(toCompressBytes);
-            uint checksumUint = Crc32.Get(compressedData);
-            byte[] checksumBytes = BitConverter.GetBytes(checksumUint);
 
-            byte[] result = compressedData.Concat(checksumBytes).ToArray();
+            // Avro spec: 4-byte big-endian CRC-32 of the *uncompressed* data appended to the block.
+            byte[] result = new byte[compressedData.Length + 4];
+            compressedData.CopyTo(result, 0);
+            BinaryPrimitives.WriteUInt32BigEndian(result.AsSpan(compressedData.Length), Crc32.Get(toCompressBytes));
+
             return new MemoryStream(result);
         }
 
         internal override byte[] Decompress(byte[] compressedData)
         {
-            byte[] dataToDecompress = new byte[compressedData.Length - 4]; // last 4 bytes are CRC
-            Array.Copy(compressedData, dataToDecompress, dataToDecompress.Length);
-
-            return Snappy.Decode(dataToDecompress);
+            // Trailing CRC is not validated: files written by AvroConvert 3.x carry a non-spec checksum.
+            return Snappy.Decode(compressedData.AsSpan(0, compressedData.Length - 4).ToArray());
         }
     }
 }

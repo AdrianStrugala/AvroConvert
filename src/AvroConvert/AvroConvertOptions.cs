@@ -74,4 +74,10 @@ public class AvroConvertOptions
     /// Gets or sets the number handling behavior for Avro types.
     /// </summary>
     public AvroNumberHandling NumberHandling { get; set; }
+
+    /// <summary>
+    /// Gets or sets how reader-schema fields that are absent from the writer schema and have no <c>default</c> are handled.
+    /// Defaults to <see cref="AvroMissingFieldHandling.Throw"/> as required by the Avro specification.
+    /// </summary>
+    public AvroMissingFieldHandling MissingFieldHandling { get; set; }
 }

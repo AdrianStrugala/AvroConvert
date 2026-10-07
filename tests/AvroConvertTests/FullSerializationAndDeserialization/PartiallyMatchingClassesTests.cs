@@ -4,6 +4,7 @@ using System.Linq;
 using AutoFixture;
 using AutoFixture.Kernel;
 using SolTechnology.Avro;
+using SolTechnology.Avro.Policies;
 using Xunit;
 
 namespace AvroConvertComponentTests.FullSerializationAndDeserialization
@@ -33,6 +34,66 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
         }
 
 
+        [Fact]
+        public void SerializeSmallerClassAndReadBigger_MissingValueTypeFieldWithoutDefault_Throws()
+        {
+            //Arrange
+            ReducedBaseTestClass toSerialize = _fixture.Create<ReducedBaseTestClass>();
+            var serialized = AvroConvert.Serialize(toSerialize);
+
+
+            //Act
+            var exception = Record.Exception(() => AvroConvert.Deserialize<BaseTestClass>(serialized));
+
+
+            //Assert
+            Assert.NotNull(exception);
+            Assert.Contains(nameof(BaseTestClass.andLongProperty), exception.InnerException!.Message);
+        }
+
+
+        [Fact]
+        public void SerializeSmallerClassAndReadBigger_UseDefaultOption_MissingFieldsGetClrDefault()
+        {
+            //Arrange
+            ReducedBaseTestClass toSerialize = _fixture.Create<ReducedBaseTestClass>();
+            var serialized = AvroConvert.Serialize(toSerialize);
+            var options = new AvroConvertOptions { MissingFieldHandling = AvroMissingFieldHandling.UseDefault };
+
+
+            //Act
+            var deserialized = AvroConvert.Deserialize<BaseTestClass>(serialized, options);
+
+
+            //Assert
+            Assert.NotNull(deserialized);
+            Assert.Equal(toSerialize.justSomeProperty, deserialized.justSomeProperty);
+            Assert.Equal(0L, deserialized.andLongProperty);
+            Assert.Null(deserialized.objectProperty);
+        }
+
+
+        [Fact]
+        public void SerializeSmallerClassAndReadBigger_ReaderDefaults_MissingFieldsGetReaderDefault()
+        {
+            //Arrange
+            ReducedBaseTestClass toSerialize = _fixture.Create<ReducedBaseTestClass>();
+            var serialized = AvroConvert.Serialize(toSerialize);
+
+
+            //Act
+            var deserialized = AvroConvert.Deserialize<BaseTestClassWithDefaults>(serialized);
+
+
+            //Assert
+            Assert.NotNull(deserialized);
+            Assert.Equal(toSerialize.justSomeProperty, deserialized.justSomeProperty);
+            Assert.Equal(42L, deserialized.andLongProperty);
+            Assert.Equal(7, deserialized.nullableIntProperty);
+            Assert.Null(deserialized.objectProperty);
+        }
+
+
         [Theory]
         [MemberData(nameof(TestEngine.CoreUsingSchema), MemberType = typeof(TestEngine))]
         public void SerializeSmallerClassAndReadBigger(Func<object, Type, string, string, dynamic> engine)
@@ -43,7 +104,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
             //Act
             var schema = AvroConvert.GenerateSchema(typeof(ReducedBaseTestClass));
-            var deserialized = engine.Invoke(toSerialize, typeof(BaseTestClass), schema, schema);
+            var deserialized = engine.Invoke(toSerialize, typeof(BaseTestClassWithDefaults), schema, schema);
 
 
             //Assert

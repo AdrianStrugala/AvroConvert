@@ -9,6 +9,32 @@ namespace AvroConvertUnitTests.BuildSchemaTests
     public class LogicalTypeTests
     {
         [Theory]
+        [InlineData(@"{""type"":""string"",""logicalType"":""datetime""}", AvroType.String)]
+        [InlineData(@"{""type"":""long"",""logicalType"":""timestamp-nanos""}", AvroType.Long)]
+        [InlineData(@"{""type"":""bytes"",""logicalType"":""geography_wkb""}", AvroType.Bytes)]
+        public void Parse_UnknownLogicalType_FallsBackToUnderlyingType(string json, AvroType expected)
+        {
+            //Act
+            var schema = Schema.Parse(json);
+
+
+            //Assert
+            Assert.Equal(expected, schema.Type);
+        }
+
+        [Fact]
+        public void Parse_TimeMicros_IsRecognised()
+        {
+            //Act
+            var schema = Schema.Parse(@"{""type"":""long"",""logicalType"":""time-micros""}");
+
+
+            //Assert
+            Assert.IsType<TimeMicrosecondsSchema>(schema);
+            Assert.Equal("time-micros", ((LogicalTypeSchema)schema).LogicalTypeName);
+        }
+
+        [Theory]
         [InlineData(typeof(decimal), 29, 14)]
         public void BuildDecimalSchema(Type type, int precision, int scale)
         {

@@ -23,8 +23,10 @@ using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 using FastMember;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
+using SolTechnology.Avro.Policies;
 
 namespace SolTechnology.Avro.AvroObjectServices.Read
 {
@@ -83,6 +85,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                         }
                     }
 
+                    foreach (var (member, value) in ResolveMissingReaderFields(writerSchema, readerSchema, members))
+                    {
+                        accessor[result, member.Name] = value;
+                        readSteps.Add(member.Name, ReadStep.Default(member, value));
+                    }
+
                     _readStepsDictionary.Add(typeHash, readSteps);
                     _accessorDictionary.Add(typeHash, accessor);
                 }
@@ -94,7 +102,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                     foreach (var readStep in readSteps)
                     {
                         var readStepValue = readStep.Value;
-                        if (readStepValue.ShouldSkip)
+                        if (readStepValue.IsDefault)
+                        {
+                            accessor[result, readStep.Key] = readStepValue.DefaultValue;
+                        }
+                        else if (readStepValue.ShouldSkip)
                         {
                             _skipper.Skip(readStepValue.WriteFieldSchema.TypeSchema, reader);
                         }
@@ -157,6 +169,17 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                             _skipper.Skip(wf.TypeSchema, reader);
                     }
 
+                    foreach (RecordFieldSchema rf in readerSchema.Fields)
+                    {
+                        if (writerSchema.TryGetField(rf.Name, out _))
+                        {
+                            continue;
+                        }
+
+                        string name = rf.Aliases.FirstOrDefault() ?? rf.Name;
+                        result.Add(name, ResolveMissingReaderField(readerSchema, rf, rf.DefaultValue));
+                    }
+
                     return result;
                 }
             }
@@ -166,12 +189,13 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         {
             object result = RuntimeHelpers.GetUninitializedObject(clrType);
             var accessor = TypeAccessor.Create(clrType, true);
+            var members = accessor.GetMembers();
             foreach (RecordFieldSchema wf in writerSchema.Fields)
             {
                 if (readerSchema.TryGetField(wf.Name, out var rf))
                 {
                     string name = rf.GetAliasOrDefault() ?? wf.Name;
-                    var memberInfo = accessor.GetMembers()
+                    var memberInfo = members
                         .FirstOrDefault(m => m.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
                     if (memberInfo is { CanWrite: true })
                     {
@@ -187,7 +211,69 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                     _skipper.Skip(wf.TypeSchema, reader);
                 }
             }
+
+            foreach (var (member, value) in ResolveMissingReaderFields(writerSchema, readerSchema, members))
+            {
+                accessor[result, member.Name] = value;
+            }
+
             return result;
+        }
+
+        /// <summary>
+        /// Avro schema resolution: reader fields absent from the writer take the reader's default;
+        /// without a default, fields that can hold null resolve to null and anything else is governed by MissingFieldHandling.
+        /// </summary>
+        private IEnumerable<(Member Member, object Value)> ResolveMissingReaderFields(
+            RecordSchema writerSchema,
+            RecordSchema readerSchema,
+            MemberSet members)
+        {
+            foreach (RecordFieldSchema rf in readerSchema.Fields)
+            {
+                if (writerSchema.TryGetField(rf.Name, out _))
+                {
+                    continue;
+                }
+
+                string name = rf.GetAliasOrDefault() ?? rf.Name;
+                var member = members.FirstOrDefault(m => m.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+                if (member is not { CanWrite: true })
+                {
+                    continue;
+                }
+
+                object defaultValue = rf.HasDefaultValue ? FormatDefaultValue(rf.DefaultValue, member) : null;
+                bool clrNullable = !member.Type.IsValueType || Nullable.GetUnderlyingType(member.Type) != null;
+                var value = ResolveMissingReaderField(readerSchema, rf, defaultValue, clrNullable);
+                if (value == null && !clrNullable)
+                {
+                    // UseDefault on a non-nullable value type: leave the CLR default rather than assigning null.
+                    continue;
+                }
+
+                yield return (member, value);
+            }
+        }
+
+        private object ResolveMissingReaderField(RecordSchema readerSchema, RecordFieldSchema rf, object formattedDefault, bool clrNullable = false)
+        {
+            if (rf.HasDefaultValue)
+            {
+                return formattedDefault;
+            }
+
+            bool nullable = clrNullable ||
+                            rf.TypeSchema.Type == AvroType.Null ||
+                            rf.TypeSchema is UnionSchema union && union.Schemas.Any(s => s.Type == AvroType.Null);
+            if (nullable || _missingFieldHandling == AvroMissingFieldHandling.UseDefault)
+            {
+                return null;
+            }
+
+            throw new SerializationException(
+                $"Field '{rf.Name}' of record '{readerSchema.FullName}' is not present in the writer schema and has no default value. " +
+                $"Add a [DefaultValue] / \"default\" to the field, make it nullable, or set {nameof(AvroConvertOptions)}.{nameof(AvroConvertOptions.MissingFieldHandling)} = {nameof(AvroMissingFieldHandling.UseDefault)}.");
         }
 
         private object GetValue(RecordFieldSchema wf,
@@ -235,6 +321,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             internal RecordFieldSchema ReadFieldSchema { get; set; }
             internal Member MemberInfo { get; set; }
             internal bool ShouldSkip { get; set; }
+            internal bool IsDefault { get; private set; }
+            internal object DefaultValue { get; private set; }
 
             public ReadStep(RecordFieldSchema writeFieldSchema, RecordFieldSchema readFieldSchema, Member memberInfo,
                 bool shouldSkip = false)
@@ -244,6 +332,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                 MemberInfo = memberInfo;
                 ShouldSkip = shouldSkip;
             }
+
+            internal static ReadStep Default(Member memberInfo, object value) =>
+                new(null, null, memberInfo) { IsDefault = true, DefaultValue = value };
         }
 
         /// <summary>

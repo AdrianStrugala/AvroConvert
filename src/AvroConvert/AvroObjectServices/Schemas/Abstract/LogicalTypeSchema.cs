@@ -1,5 +1,5 @@
 #region license
-/**Copyright (c) 2020 Adrian Struga³a
+/**Copyright (c) 2020 Adrian Strugaï¿½a
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
                 Decimal = "decimal",
                 Duration = "duration",
                 TimeMilliseconds = "time-millis",
-                TimeMicrosecond = "time-micros ",
+                TimeMicrosecond = "time-micros",
                 Date = "date";
         }
 

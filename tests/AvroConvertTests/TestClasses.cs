@@ -53,6 +53,17 @@ namespace AvroConvertComponentTests
     }
 
     [Equals(DoNotAddEqualityOperators = true)]
+    public class BaseTestClassWithDefaults
+    {
+        public string justSomeProperty { get; set; }
+        [DefaultValue(42L)]
+        public long andLongProperty { get; set; }
+        [DefaultValue(7)]
+        public int? nullableIntProperty { get; set; }
+        public User objectProperty { get; set; }
+    }
+
+    [Equals(DoNotAddEqualityOperators = true)]
     public class ExtendedBaseTestClass
     {
         public string justSomeProperty { get; set; }

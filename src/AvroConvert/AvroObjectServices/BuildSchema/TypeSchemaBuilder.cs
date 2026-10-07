@@ -137,7 +137,11 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 var logicalType = token.OptionalProperty<string>(AvroKeywords.LogicalType);
                 if (logicalType != null)
                 {
-                    return this.ParseLogicalType(token, parent, namedSchemas, logicalType);
+                    var logicalSchema = this.ParseLogicalType(token, logicalType);
+                    if (logicalSchema != null)
+                    {
+                        return logicalSchema;
+                    }
                 }
 
                 switch (type)
@@ -297,43 +301,34 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             return new MapSchema(new StringSchema(), valueSchema, typeof(Dictionary<string, object>));
         }
 
-        private TypeSchema ParseLogicalType(JObject token, NamedSchema parent, Dictionary<string, NamedSchema> namedSchemas, string logicalType)
+        /// <summary>
+        /// Returns null for an unknown logical type; per the Avro spec readers must then fall back to the underlying type.
+        /// </summary>
+        private TypeSchema ParseLogicalType(JObject token, string logicalType)
         {
-            TypeSchema result;
             switch (logicalType)
             {
                 case LogicalTypeSchema.LogicalTypeEnum.Uuid:
-                    result = new UuidSchema();
-                    break;
+                    return new UuidSchema();
                 case LogicalTypeSchema.LogicalTypeEnum.Decimal:
                     var scale = token.OptionalProperty<int>(nameof(DecimalSchema.Scale).ToLower());
                     var precision = token.RequiredProperty<int>(nameof(DecimalSchema.Precision).ToLower());
-                    result = new DecimalSchema(typeof(decimal), precision, scale);
-                    break;
+                    return new DecimalSchema(typeof(decimal), precision, scale);
                 case LogicalTypeSchema.LogicalTypeEnum.Duration:
-                    result = new DurationSchema();
-                    break;
+                    return new DurationSchema();
                 case LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds:
-                    result = new TimestampMillisecondsSchema();
-                    break;
+                    return new TimestampMillisecondsSchema();
                 case LogicalTypeSchema.LogicalTypeEnum.TimestampMicroseconds:
-                    result = new TimestampMicrosecondsSchema();
-                    break;
+                    return new TimestampMicrosecondsSchema();
                 case LogicalTypeSchema.LogicalTypeEnum.TimeMilliseconds:
-                    result = new TimeMillisecondsSchema();
-                    break;
+                    return new TimeMillisecondsSchema();
                 case LogicalTypeSchema.LogicalTypeEnum.TimeMicrosecond:
-                    result = new TimeMicrosecondsSchema();
-                    break;
+                    return new TimeMicrosecondsSchema();
                 case LogicalTypeSchema.LogicalTypeEnum.Date:
-                    result = new DateSchema();
-                    break;
+                    return new DateSchema();
                 default:
-                    throw new SerializationException(
-                        string.Format(CultureInfo.InvariantCulture, "Unknown LogicalType schema :'{0}'.", logicalType));
+                    return null;
             }
-
-            return result;
         }
 
         /// <summary>

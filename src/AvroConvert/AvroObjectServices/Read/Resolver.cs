@@ -34,6 +34,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         private readonly bool _hasCustomConverters;
         private readonly Dictionary<Type, Func<IReader, object>> _customDeserializerMapping;
         private readonly IAvroNamingPolicy _namingPolicy;
+        private readonly AvroMissingFieldHandling _missingFieldHandling;
 
         internal Resolver(TypeSchema writerSchema, TypeSchema readerSchema, AvroConvertOptions options = null)
         {
@@ -47,6 +48,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                 x => x.TypeSchema.RuntimeType,
                 y => (Func<IReader, object>)y.Deserialize);
             _namingPolicy = options?.NamingPolicy;
+            _missingFieldHandling = options?.MissingFieldHandling ?? AvroMissingFieldHandling.Throw;
         }
 
         internal T Resolve<T>(IReader reader, long itemsCount = 0)

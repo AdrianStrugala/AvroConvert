@@ -22,7 +22,6 @@
 
 using Newtonsoft.Json.Linq;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
-using SolTechnology.Avro.Infrastructure.Exceptions;
 
 namespace SolTechnology.Avro.Features.GenerateModel.Resolvers
 {
@@ -47,7 +46,7 @@ namespace SolTechnology.Avro.Features.GenerateModel.Resolvers
                 case LogicalTypeSchema.LogicalTypeEnum.Uuid:
                     return "Guid";
                 default:
-                    throw new InvalidAvroObjectException($"Unidentified logicalType {logicalType}");
+                    return null;
             }
         }
     }

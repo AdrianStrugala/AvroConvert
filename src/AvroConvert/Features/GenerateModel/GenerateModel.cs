@@ -232,14 +232,8 @@ namespace SolTechnology.Avro.Features.GenerateModel
                     break;
                 default:
                     {
-                        if (typeObj["logicalType"] != null)
-                        {
-                            result.FieldType = _logicalResolver.ResolveLogical(typeObj);
-                        }
-                        else
-                        {
-                            result.FieldType = objectType;
-                        }
+                        result.FieldType = (typeObj["logicalType"] != null ? _logicalResolver.ResolveLogical(typeObj) : null)
+                                           ?? objectType;
 
                         break;
                     }

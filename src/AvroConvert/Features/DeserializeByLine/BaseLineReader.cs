@@ -80,7 +80,7 @@ namespace SolTechnology.Avro.Features.DeserializeByLine
             var itemsCount = _reader.ReadLong();
 
             var dataBlock = _reader.ReadDataBlock(_syncDate, _codec);
-            var dataReader = new Reader(new MemoryStream(dataBlock));
+            var dataReader = new Reader(dataBlock);
 
 
             if (itemsCount > 1)

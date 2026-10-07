@@ -26,7 +26,7 @@ namespace AvroConvertComponentTests.FilesDeserialization.Default
 
 
             //Assert
-            result.Should().BeNull();
+            result.Should().BeNullOrEmpty();
         }
 
 

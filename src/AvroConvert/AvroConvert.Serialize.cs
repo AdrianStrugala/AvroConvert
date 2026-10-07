@@ -16,9 +16,13 @@
 #endregion
 
 using System.IO;
+using System;
+using System.Collections;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
+using SolTechnology.Avro.AvroObjectServices.Read.Typed;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Features.Serialize;
+using SolTechnology.Avro.Policies;
 
 namespace SolTechnology.Avro
 {
@@ -34,6 +38,40 @@ namespace SolTechnology.Avro
                 writer.Append(obj);
             }
             return resultStream.ToArray();
+        }
+
+        /// <summary>
+        /// Writes every element of a top-level collection as its own container entry (schema = element schema).
+        /// </summary>
+        private static byte[] SerializeEntries(IEnumerable items, Type itemType, CodecType codecType, AvroConvertOptions options)
+        {
+            var schema = Schema.Create(itemType, options);
+            using MemoryStream resultStream = new MemoryStream();
+            using (var writer = new Encoder(schema, resultStream, codecType, options))
+            {
+                foreach (var item in items)
+                {
+                    writer.Append(item);
+                }
+            }
+            return resultStream.ToArray();
+        }
+
+        /// <summary>Element type of a generic collection suitable for entry-wise serialization; null otherwise.</summary>
+        private static Type EntryItemType(object obj)
+        {
+            if (obj is not IEnumerable || obj is string || obj is byte[] || obj is IDictionary)
+            {
+                return null;
+            }
+
+            var itemType = ReadCompiler.CollectionItemType(obj.GetType());
+            if (itemType == null || itemType == typeof(object) || itemType.IsInterface || itemType.IsAbstract)
+            {
+                return null;
+            }
+
+            return itemType;
         }
 
         /// <summary>
@@ -54,6 +92,12 @@ namespace SolTechnology.Avro
         /// <returns>A byte array containing the serialized Avro data.</returns>
         public static byte[] Serialize(object obj, CodecType codecType)
         {
+            var itemType = EntryItemType(obj);
+            if (itemType != null)
+            {
+                return SerializeEntries((IEnumerable)obj, itemType, codecType, null);
+            }
+
             var schema = Schema.Create(obj);
             return SerializeInternal(obj, schema, codecType);
         }
@@ -67,6 +111,12 @@ namespace SolTechnology.Avro
         /// <returns>A byte array containing the serialized Avro data.</returns>
         public static byte[] Serialize(object obj, AvroConvertOptions options)
         {
+            var itemType = options.CollectionMode == AvroCollectionMode.Entries ? EntryItemType(obj) : null;
+            if (itemType != null)
+            {
+                return SerializeEntries((IEnumerable)obj, itemType, options.Codec, options);
+            }
+
             var schema = Schema.Create(obj, options);
             return SerializeInternal(obj, schema, options.Codec, options);
         }

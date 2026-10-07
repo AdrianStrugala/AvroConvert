@@ -80,4 +80,10 @@ public class AvroConvertOptions
     /// Defaults to <see cref="AvroMissingFieldHandling.Throw"/> as required by the Avro specification.
     /// </summary>
     public AvroMissingFieldHandling MissingFieldHandling { get; set; }
+
+    /// <summary>
+    /// Gets or sets how a top-level collection is written by <c>Serialize</c>.
+    /// Defaults to <see cref="AvroCollectionMode.Entries"/> (one container entry per element, like other Avro implementations).
+    /// </summary>
+    public AvroCollectionMode CollectionMode { get; set; }
 }

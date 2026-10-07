@@ -54,11 +54,13 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             _missingFieldHandling = options?.MissingFieldHandling ?? AvroMissingFieldHandling.Throw;
         }
 
+        internal ReadPlan<T> GetPlan<T>() => ReadPlanCache.Get<T>(_writerSchema, _readerSchema, _options);
+
         internal T Resolve<T>(IReader reader, long itemsCount = 0)
         {
             try
             {
-                var plan = ReadPlanCache.Get<T>(_writerSchema, _readerSchema, _options);
+                var plan = GetPlan<T>();
 
                 if (itemsCount > 1)
                 {
@@ -74,9 +76,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             }
             catch (Exception e)
             {
-                throw new AvroTypeMismatchException($"Unable to deserialize [{_writerSchema.Name}] of schema [{_writerSchema.Type}] to the target type [{typeof(T)}]. Inner exception:", e);
+                throw WrapFailure<T>(e);
             }
         }
+
+        internal AvroTypeMismatchException WrapFailure<T>(Exception e) =>
+            new($"Unable to deserialize [{_writerSchema.Name}] of schema [{_writerSchema.Type}] to the target type [{typeof(T)}]. Inner exception:", e);
 
         internal object Resolve(
             TypeSchema writerSchema,

@@ -105,7 +105,7 @@ namespace SolTechnology.Avro.Features.AvroToJson
             long itemsCount = reader.ReadLong();
             var data = reader.ReadDataBlock(header.SyncData, codec);
 
-            reader = new Reader(new MemoryStream(data));
+            reader = new Reader(data);
 
             for (int i = 0; i < itemsCount; i++)
             {

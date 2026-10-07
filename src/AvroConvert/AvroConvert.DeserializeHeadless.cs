@@ -119,7 +119,7 @@ namespace SolTechnology.Avro
 
         private static T DeserializeHeadless<T>(byte[] avroBytes, TypeSchema writeSchema, TypeSchema readSchema, int numberOfRows)
         {
-            var reader = new Reader(new MemoryStream(avroBytes));
+            var reader = new Reader(avroBytes);
             var resolver = new Resolver(writeSchema, readSchema);
             var result = resolver.Resolve<T>(reader, numberOfRows);
 

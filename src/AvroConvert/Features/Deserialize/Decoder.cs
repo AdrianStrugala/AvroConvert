@@ -90,41 +90,64 @@ namespace SolTechnology.Avro.Features.Deserialize
         {
             if (reader.IsReadToEnd())
             {
-                return default;
+                // Header-only file: an empty collection for collection targets, default otherwise.
+                var emptyPlan = resolver.GetPlan<T>().Blocks;
+                return emptyPlan != null ? emptyPlan.Finish(emptyPlan.NewAccumulator()) : default;
             }
 
-            long itemsCount = 0;
-            var blocks = new List<byte[]>();
-            long totalLength = 0;
+            long firstCount = reader.ReadLong();
+            byte[] firstBlock = reader.ReadDataBlock(header.SyncData, codec);
 
-            do
+            // Single block: decode straight from the decompressed buffer.
+            if (reader.IsReadToEnd())
             {
-                itemsCount += reader.ReadLong();
-                var dataBlock = reader.ReadDataBlock(header.SyncData, codec);
-                blocks.Add(dataBlock);
-                totalLength += dataBlock.Length;
-
-            } while (!reader.IsReadToEnd());
-
-            byte[] data;
-            if (blocks.Count == 1)
-            {
-                data = blocks[0];
+                return resolver.Resolve<T>(new Reader(firstBlock), firstCount);
             }
-            else
+
+            var plan = resolver.GetPlan<T>();
+            if (plan.Blocks != null)
             {
-                data = new byte[totalLength];
-                int offset = 0;
-                foreach (var block in blocks)
+                // Multi-block file: append each block's entries to the result collection, no buffer concatenation.
+                try
                 {
-                    block.CopyTo(data, offset);
-                    offset += block.Length;
+                    var accumulator = plan.Blocks.NewAccumulator();
+                    plan.Blocks.Append(new Reader(firstBlock), firstCount, accumulator);
+                    while (!reader.IsReadToEnd())
+                    {
+                        long count = reader.ReadLong();
+                        var block = reader.ReadDataBlock(header.SyncData, codec);
+                        plan.Blocks.Append(new Reader(block), count, accumulator);
+                    }
+
+                    return plan.Blocks.Finish(accumulator);
+                }
+                catch (Exception e)
+                {
+                    throw resolver.WrapFailure<T>(e);
                 }
             }
 
-            reader = new Reader(new MemoryStream(data, 0, data.Length, writable: false, publiclyVisible: true));
+            // T is not a collection: classic behaviour over the concatenated blocks.
+            long itemsCount = firstCount;
+            var blocks = new List<byte[]> { firstBlock };
+            long totalLength = firstBlock.Length;
+            while (!reader.IsReadToEnd())
+            {
+                itemsCount += reader.ReadLong();
+                var block = reader.ReadDataBlock(header.SyncData, codec);
+                blocks.Add(block);
+                totalLength += block.Length;
+            }
 
-            return resolver.Resolve<T>(reader, itemsCount);
+            var data = new byte[totalLength];
+            int offset = 0;
+            foreach (var block in blocks)
+            {
+                block.CopyTo(data, offset);
+                offset += block.Length;
+            }
+
+            return resolver.Resolve<T>(new Reader(data), itemsCount);
         }
     }
 }

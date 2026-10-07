@@ -1,6 +1,7 @@
 using Avro;
 using Avro.Generic;
 using SolTechnology.Avro;
+using SolTechnology.Avro.Policies;
 using Xunit;
 
 namespace AvroConvertInteropTests;
@@ -43,7 +44,7 @@ public class ContainerFileInteropTests
         InteropAssert.Equivalent(expected, actual);
     }
 
-    [Fact(Skip = "#118: a top-level collection is written as a single array object; becomes N container entries in the typed-core phase")]
+    [Fact]
     public void AvroConvertWritesList_ApacheReadsAllEntries()
     {
         var expected = SampleList(50);
@@ -59,11 +60,12 @@ public class ContainerFileInteropTests
     }
 
     [Fact]
-    public void AvroConvertWritesList_ApacheReadsSingleArrayEntry()
+    public void AvroConvertWritesList_SingleArrayMode_ApacheReadsSingleArrayEntry()
     {
         var expected = SampleList(50);
+        var options = new AvroConvertOptions { Codec = CodecType.Snappy, CollectionMode = AvroCollectionMode.SingleArray };
 
-        var bytes = AvroConvert.Serialize(expected, CodecType.Snappy);
+        var bytes = AvroConvert.Serialize(expected, options);
         var (schema, items) = ApacheAvro.ReadContainer<object[]>(bytes);
 
         Assert.Equal(Schema.Type.Array, schema.Tag);

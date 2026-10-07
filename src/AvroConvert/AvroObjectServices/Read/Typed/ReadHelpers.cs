@@ -24,12 +24,16 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         internal static List<T> ReadCount<T>(IReader reader, long count, Func<IReader, T> readItem)
         {
             var list = new List<T>(count < 1024 ? (int)count : 1024);
+            ReadCountInto(reader, count, readItem, list);
+            return list;
+        }
+
+        internal static void ReadCountInto<T>(IReader reader, long count, Func<IReader, T> readItem, List<T> list)
+        {
             for (long i = 0; i < count; i++)
             {
                 list.Add(readItem(reader));
             }
-
-            return list;
         }
 
         internal static Dictionary<string, T> ReadMap<T>(IReader reader, Func<IReader, T> readValue)

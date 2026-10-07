@@ -12,6 +12,16 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 
         /// <summary>Reads <c>count</c> container entries into T; null when T is not a collection.</summary>
         internal Func<IReader, long, T> Many { get; init; }
+
+        /// <summary>Block-wise variant of <see cref="Many"/>: create an accumulator, append each block, finish into T.</summary>
+        internal ManyPlan<T> Blocks { get; init; }
+    }
+
+    internal sealed class ManyPlan<T>
+    {
+        internal Func<object> NewAccumulator { get; init; }
+        internal Action<IReader, long, object> Append { get; init; }
+        internal Func<object, T> Finish { get; init; }
     }
 
     /// <summary>
@@ -32,10 +42,19 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             }
 
             var compiler = new ReadCompiler(writerSchema, readerSchema, options);
+            var blocks = compiler.CompileMany<T>(writerSchema, readerSchema);
             var plan = new ReadPlan<T>
             {
                 One = compiler.CompileOne<T>(writerSchema, readerSchema),
-                Many = compiler.CompileMany<T>(writerSchema, readerSchema)
+                Blocks = blocks,
+                Many = blocks == null
+                    ? null
+                    : (reader, count) =>
+                    {
+                        var accumulator = blocks.NewAccumulator();
+                        blocks.Append(reader, count, accumulator);
+                        return blocks.Finish(accumulator);
+                    }
             };
 
             if (Plans.Count >= Limit)

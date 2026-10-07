@@ -20,21 +20,38 @@
 
 using System;
 using System.Buffers;
+using System.Buffers.Binary;
 using System.IO;
+using System.Text;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
 namespace SolTechnology.Avro.AvroObjectServices.Read
 {
     /// <summary>
-    /// IDecoder for Avro binary format
+    /// IDecoder for Avro binary format. Reads either from a <see cref="Stream"/> or, on the hot path, directly from an
+    /// in-memory block (<see cref="Reader(byte[], int, int)"/>) without virtual per-byte calls or intermediate copies.
     /// </summary>
     internal partial class Reader : IReader
     {
         private readonly Stream _stream;
+        private readonly byte[] _buffer;
+        private int _pos;
+        private readonly int _end;
 
         internal Reader(Stream stream)
         {
             this._stream = stream;
+        }
+
+        internal Reader(byte[] data) : this(data, 0, data.Length)
+        {
+        }
+
+        internal Reader(byte[] data, int offset, int count)
+        {
+            _buffer = data;
+            _pos = offset;
+            _end = offset + count;
         }
 
         /// <summary>
@@ -46,14 +63,13 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 
         public bool IsReadToEnd()
         {
-            return this._stream.Position == this._stream.Length;
+            return _buffer != null ? _pos >= _end : _stream.Position == _stream.Length;
         }
 
         /// <summary>
         /// a boolean is written as a single byte 
         /// whose value is either 0 (false) or 1 (true).
         /// </summary>
-        /// <returns></returns>
         public bool ReadBoolean()
         {
             byte b = Read();
@@ -65,78 +81,75 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         /// <summary>
         /// int and long values are written using variable-length, zig-zag coding.
         /// </summary>
-        /// <param name="?"></param>
-        /// <returns></returns>
         public int ReadInt()
         {
             return (int)ReadLong();
         }
+
         /// <summary>
         /// int and long values are written using variable-length, zig-zag coding.
         /// </summary>
-        /// <param name="?"></param>
-        /// <returns></returns>
         public long ReadLong()
         {
-            byte b = Read();
-            ulong n = b & 0x7FUL;
-            int shift = 7;
-            while ((b & 0x80) != 0)
+            ulong n;
+            if (_buffer != null)
             {
-                b = Read();
-                n |= (b & 0x7FUL) << shift;
-                shift += 7;
+                var buffer = _buffer;
+                int pos = _pos;
+                if (pos >= _end) throw new EndOfStreamException();
+
+                byte b = buffer[pos++];
+                n = b & 0x7FUL;
+                int shift = 7;
+                while ((b & 0x80) != 0)
+                {
+                    if (pos >= _end) throw new EndOfStreamException();
+                    b = buffer[pos++];
+                    n |= (b & 0x7FUL) << shift;
+                    shift += 7;
+                }
+                _pos = pos;
             }
+            else
+            {
+                byte b = Read();
+                n = b & 0x7FUL;
+                int shift = 7;
+                while ((b & 0x80) != 0)
+                {
+                    b = Read();
+                    n |= (b & 0x7FUL) << shift;
+                    shift += 7;
+                }
+            }
+
             long value = (long)n;
             return (-(value & 0x01L)) ^ ((value >> 1) & 0x7fffffffffffffffL);
         }
 
         /// <summary>
-        /// A float is written as 4 bytes.
-        /// The float is converted into a 32-bit integer using a method equivalent to
-        /// Java's floatToIntBits and then encoded in little-endian format.
+        /// A float is written as 4 bytes, little-endian (Java floatToIntBits).
         /// </summary>
-        /// <returns></returns>
         public float ReadFloat()
         {
-            byte[] buffer = Read(4);
-
-            if (!BitConverter.IsLittleEndian)
-                Array.Reverse(buffer);
-
-            return BitConverter.ToSingle(buffer, 0);
-
-            //int bits = (Stream.ReadByte() & 0xff |
-            //(Stream.ReadByte()) & 0xff << 8 |
-            //(Stream.ReadByte()) & 0xff << 16 |
-            //(Stream.ReadByte()) & 0xff << 24);
-            //return intBitsToFloat(bits);
+            Span<byte> buffer = stackalloc byte[4];
+            Read(buffer);
+            return BinaryPrimitives.ReadSingleLittleEndian(buffer);
         }
 
         /// <summary>
-        /// A double is written as 8 bytes.
-        /// The double is converted into a 64-bit integer using a method equivalent to
-        /// Java's doubleToLongBits and then encoded in little-endian format.
+        /// A double is written as 8 bytes, little-endian (Java doubleToLongBits).
         /// </summary>
-        /// <param name="?"></param>
-        /// <returns></returns>
         public double ReadDouble()
         {
-            long bits = (_stream.ReadByte() & 0xffL) |
-              (_stream.ReadByte() & 0xffL) << 8 |
-              (_stream.ReadByte() & 0xffL) << 16 |
-              (_stream.ReadByte() & 0xffL) << 24 |
-              (_stream.ReadByte() & 0xffL) << 32 |
-              (_stream.ReadByte() & 0xffL) << 40 |
-              (_stream.ReadByte() & 0xffL) << 48 |
-              (_stream.ReadByte() & 0xffL) << 56;
-            return BitConverter.Int64BitsToDouble(bits);
+            Span<byte> buffer = stackalloc byte[8];
+            Read(buffer);
+            return BinaryPrimitives.ReadDoubleLittleEndian(buffer);
         }
 
         /// <summary>
         /// Bytes are encoded as a long followed by that many bytes of data. 
         /// </summary>
-        /// <returns></returns>
         public byte[] ReadBytes()
         {
             return Read(ReadLong());
@@ -145,18 +158,26 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         public string ReadString()
         {
             int length = ReadInt();
+            if (_buffer != null)
+            {
+                EnsureAvailable(length);
+                var result = Encoding.UTF8.GetString(_buffer, _pos, length);
+                _pos += length;
+                return result;
+            }
+
             if (length <= 512)
             {
                 Span<byte> buffer = stackalloc byte[length];
-                ReadFixed(buffer);
-                return System.Text.Encoding.UTF8.GetString(buffer);
+                Read(buffer);
+                return Encoding.UTF8.GetString(buffer);
             }
             else
             {
                 byte[] bufferArray = ArrayPool<byte>.Shared.Rent(length);
                 Span<byte> buffer = bufferArray.AsSpan()[..length];
-                ReadFixed(buffer);
-                string result = System.Text.Encoding.UTF8.GetString(buffer);
+                Read(buffer);
+                string result = Encoding.UTF8.GetString(buffer);
                 ArrayPool<byte>.Shared.Return(bufferArray);
                 return result;
             }
@@ -199,12 +220,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 
         public void ReadFixed(byte[] buffer)
         {
-            ReadFixed(buffer, 0, buffer.Length);
+            Read(buffer.AsSpan());
         }
 
         public void ReadFixed(byte[] buffer, int start, int length)
         {
-            Read(buffer, start, length);
+            Read(buffer.AsSpan(start, length));
         }
 
         public void SkipNull()
@@ -216,7 +237,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         {
             ReadBoolean();
         }
-
 
         public void SkipInt()
         {
@@ -267,35 +287,33 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         private byte[] Read(long p)
         {
             byte[] buffer = new byte[p];
-            Read(buffer, 0, buffer.Length);
+            Read(buffer.AsSpan());
             return buffer;
-        }
-
-        private static float IntBitsToFloat(int value)
-        {
-            return BitConverter.ToSingle(BitConverter.GetBytes(value), 0);
         }
 
         private byte Read()
         {
+            if (_buffer != null)
+            {
+                if (_pos >= _end) throw new EndOfStreamException();
+                return _buffer[_pos++];
+            }
+
             int n = _stream.ReadByte();
             if (n >= 0) return (byte)n;
             throw new EndOfStreamException();
         }
 
-        private void Read(byte[] buffer, int start, int len)
-        {
-            while (len > 0)
-            {
-                int n = _stream.Read(buffer, start, len);
-                if (n <= 0) throw new EndOfStreamException();
-                start += n;
-                len -= n;
-            }
-        }
-
         private void Read(Span<byte> buffer)
         {
+            if (_buffer != null)
+            {
+                EnsureAvailable(buffer.Length);
+                _buffer.AsSpan(_pos, buffer.Length).CopyTo(buffer);
+                _pos += buffer.Length;
+                return;
+            }
+
             int length = buffer.Length;
             int offset = 0;
 
@@ -306,6 +324,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                 offset += bytesWritten;
                 length -= bytesWritten;
             }
+        }
+
+        private void EnsureAvailable(int count)
+        {
+            if (count < 0 || _pos + count > _end) throw new EndOfStreamException();
         }
 
         private long DoReadItemCount()
@@ -319,23 +342,16 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             return result;
         }
 
-        private void Skip(int p)
-        {
-            _stream.Seek(p, SeekOrigin.Current);
-        }
-
         private void Skip(long p)
         {
-            _stream.Seek(p, SeekOrigin.Current);
-        }
-
-        internal byte[] ReadToEnd()
-        {
-            using (MemoryStream ms = new MemoryStream())
+            if (_buffer != null)
             {
-                _stream.CopyTo(ms);
-                return ms.ToArray();
+                EnsureAvailable((int)p);
+                _pos += (int)p;
+                return;
             }
+
+            _stream.Seek(p, SeekOrigin.Current);
         }
     }
 }

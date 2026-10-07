@@ -145,7 +145,7 @@ Wynik: dwie zależności zewnętrzne zamiast pięciu, oba kodeki managed.
 - **Tylko `net10.0`.** Usunięte `netstandard2.0` i `net6.0`; .NET Framework / .NET 6–9 → pozostać na 3.4.x.
 - `Newtonsoft.Json.Linq.JObject` w API publicznym (`Serialize(JObject)`, `Json2Avro`, `Avro2Json`, konwertery) → `System.Text.Json.Nodes.JsonNode`.
 - Usunięty pakiet `SolTechnology.FastMember` (był pakowany do AvroConvert jako zależność wewnętrzna – brak wpływu na użytkowników, chyba że ktoś referował go bezpośrednio).
-- Kolekcja top-level serializowana jako N obiektów w kontenerze zamiast jednego rekordu `array` (#118) – opcja przywracająca.
+- Kolekcja top-level serializowana jako N obiektów w kontenerze zamiast jednego rekordu `array` (#118). Dotyczy `List<T>`, `T[]`, `HashSet<T>`, `IEnumerable<T>` itp. z konkretnym typem elementu (nie `object`, nie słowniki). Pliki 3.x (`array`) nadal się czytają. Opcja przywracająca: `AvroConvertOptions.CollectionMode = SingleArray`. Konsekwencja: plik z samym nagłówkiem (0 wpisów) deserializuje się do pustej kolekcji zamiast `null`.
 - Brak pola obowiązkowego u pisarza → wyjątek zamiast `default(T)` (#87, S4). Dotyczy tylko pól, które nie mogą przyjąć `null` (typy wartościowe bez `Nullable<>`, bez `[DefaultValue]`, bez unii z `null`); `string`, klasy i `Nullable<T>` dostają `null` jak w 3.x. Opcja przywracająca: `AvroConvertOptions.MissingFieldHandling = UseDefault`.
 - Avro2Json: JSON Encoding wg spec dla unii (#156, S6) – opcja przywracająca.
 - Nazwy typów generycznych w schemacie zawierają argumenty generyczne (#159, S5) – schematy wygenerowane w 3.x dla typów generycznych nie są tekstowo identyczne; dane binarne pozostają kompatybilne, bo nazwy rekordów nie wpływają na encoding, ale Schema Registry zobaczy nową wersję.

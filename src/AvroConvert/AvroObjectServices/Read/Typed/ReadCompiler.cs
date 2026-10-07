@@ -42,7 +42,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         private static readonly MethodInfo ConvertToLogicalMethod = typeof(LogicalTypeSchema).GetMethod(nameof(LogicalTypeSchema.ConvertToLogicalValue), BindingFlags.Instance | BindingFlags.NonPublic)!;
         private static readonly MethodInfo GetUninitializedObjectMethod = typeof(RuntimeHelpers).GetMethod(nameof(RuntimeHelpers.GetUninitializedObject))!;
         private static readonly MethodInfo ReadListMethod = typeof(ReadHelpers).GetMethod(nameof(ReadHelpers.ReadList), BindingFlags.Static | BindingFlags.NonPublic)!;
-        private static readonly MethodInfo ReadCountMethod = typeof(ReadHelpers).GetMethod(nameof(ReadHelpers.ReadCount), BindingFlags.Static | BindingFlags.NonPublic)!;
+        private static readonly MethodInfo ReadCountIntoMethod = typeof(ReadHelpers).GetMethod(nameof(ReadHelpers.ReadCountInto), BindingFlags.Static | BindingFlags.NonPublic)!;
         private static readonly MethodInfo ReadMapMethod = typeof(ReadHelpers).GetMethod(nameof(ReadHelpers.ReadMap), BindingFlags.Static | BindingFlags.NonPublic)!;
         private static readonly MethodInfo UnionIndexOutOfRangeMethod = typeof(ReadHelpers).GetMethod(nameof(ReadHelpers.UnionIndexOutOfRange), BindingFlags.Static | BindingFlags.NonPublic)!;
 
@@ -68,8 +68,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             return Expression.Lambda<Func<IReader, T>>(body, reader).Compile();
         }
 
-        /// <summary>Reads <c>count</c> top-level entries of a container file into a collection T; null when T is not a collection.</summary>
-        internal Func<IReader, long, T> CompileMany<T>(TypeSchema writerSchema, TypeSchema readerSchema)
+        /// <summary>Block-wise reader of top-level container entries into a collection T; null when T is not a collection.</summary>
+        internal ManyPlan<T> CompileMany<T>(TypeSchema writerSchema, TypeSchema readerSchema)
         {
             var itemType = CollectionItemType(typeof(T));
             if (itemType == null)
@@ -84,17 +84,26 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                 itemReader = itemWriter;
             }
 
+            var listType = typeof(List<>).MakeGenericType(itemType);
             var reader = Expression.Parameter(typeof(IReader), "reader");
             var count = Expression.Parameter(typeof(long), "count");
+            var accumulator = Expression.Parameter(typeof(object), "accumulator");
             var itemFn = CompileItem(itemWriter, itemReader, itemType);
-            var list = Expression.Call(ReadCountMethod.MakeGenericMethod(itemType), reader, count, Expression.Constant(itemFn));
-            var body = AdaptCollection(list, itemType, typeof(T));
-            if (body == null)
+
+            var finishBody = AdaptCollection(Expression.Convert(accumulator, listType), itemType, typeof(T));
+            if (finishBody == null)
             {
                 return null;
             }
 
-            return Expression.Lambda<Func<IReader, long, T>>(body, reader, count).Compile();
+            var append = Expression.Call(ReadCountIntoMethod.MakeGenericMethod(itemType), reader, count, Expression.Constant(itemFn), Expression.Convert(accumulator, listType));
+
+            return new ManyPlan<T>
+            {
+                NewAccumulator = Expression.Lambda<Func<object>>(Expression.Convert(Expression.New(listType), typeof(object))).Compile(),
+                Append = Expression.Lambda<Action<IReader, long, object>>(append, reader, count, accumulator).Compile(),
+                Finish = Expression.Lambda<Func<object, T>>(finishBody, accumulator).Compile()
+            };
         }
 
         // ------------------------------------------------------------------ core

@@ -15,6 +15,7 @@
 */
 #endregion
 
+using System;
 using System.IO;
 using System.IO.Compression;
 
@@ -23,24 +24,20 @@ namespace SolTechnology.Avro.AvroObjectServices.FileHeader.Codec
     internal class GZipCodec : AbstractCodec
     {
         internal override string Name { get; } = "gzip";
+
         internal override byte[] Decompress(byte[] compressedData)
         {
-            using (var compressedStream = new MemoryStream(compressedData))
-            using (var zipStream = new GZipStream(compressedStream, CompressionMode.Decompress))
-            using (var resultStream = new MemoryStream())
-            {
-                zipStream.CopyTo(resultStream);
-                return resultStream.ToArray();
-            }
+            using var input = new MemoryStream(compressedData);
+            using var gzip = new GZipStream(input, CompressionMode.Decompress);
+            using var output = new MemoryStream(compressedData.Length * 3);
+            gzip.CopyTo(output);
+            return output.ToArray();
         }
 
-        internal override MemoryStream Compress(MemoryStream toCompress)
+        internal override void Compress(ReadOnlySpan<byte> data, Stream output)
         {
-            var toCompressBytes = toCompress.ToArray();
-            var compressedStream = new MemoryStream();
-            using var zipStream = new GZipStream(compressedStream, CompressionMode.Compress, leaveOpen: true);
-            zipStream.Write(toCompressBytes, 0, toCompressBytes.Length);
-            return compressedStream;
+            using var gzip = new GZipStream(output, CompressionMode.Compress, leaveOpen: true);
+            gzip.Write(data);
         }
     }
 }

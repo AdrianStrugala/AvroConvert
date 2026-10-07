@@ -21,6 +21,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
@@ -93,21 +94,35 @@ namespace SolTechnology.Avro.Features.Deserialize
             }
 
             long itemsCount = 0;
-            byte[] data = Array.Empty<byte>();
+            var blocks = new List<byte[]>();
+            long totalLength = 0;
 
             do
             {
                 itemsCount += reader.ReadLong();
                 var dataBlock = reader.ReadDataBlock(header.SyncData, codec);
-
-                int dataBlockSize = data.Length;
-                Array.Resize(ref data, dataBlockSize + dataBlock.Length);
-                Array.Copy(dataBlock, 0, data, dataBlockSize, dataBlock.Length);
+                blocks.Add(dataBlock);
+                totalLength += dataBlock.Length;
 
             } while (!reader.IsReadToEnd());
 
+            byte[] data;
+            if (blocks.Count == 1)
+            {
+                data = blocks[0];
+            }
+            else
+            {
+                data = new byte[totalLength];
+                int offset = 0;
+                foreach (var block in blocks)
+                {
+                    block.CopyTo(data, offset);
+                    offset += block.Length;
+                }
+            }
 
-            reader = new Reader(new MemoryStream(data));
+            reader = new Reader(new MemoryStream(data, 0, data.Length, writable: false, publiclyVisible: true));
 
             return resolver.Resolve<T>(reader, itemsCount);
         }

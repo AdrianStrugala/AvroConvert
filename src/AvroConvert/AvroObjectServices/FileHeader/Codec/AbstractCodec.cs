@@ -26,7 +26,8 @@ namespace SolTechnology.Avro.AvroObjectServices.FileHeader.Codec
 
         internal abstract byte[] Decompress(byte[] compressedData);
 
-        internal abstract MemoryStream Compress(MemoryStream toCompress);
+        /// <summary>Compresses <paramref name="data"/> and appends the result to <paramref name="output"/>.</summary>
+        internal abstract void Compress(ReadOnlySpan<byte> data, Stream output);
 
         internal static AbstractCodec CreateCodec(CodecType codecType)
         {
@@ -40,7 +41,7 @@ namespace SolTechnology.Avro.AvroObjectServices.FileHeader.Codec
                     return new GZipCodec();
                 case CodecType.Brotli:
                     return new BrotliCodec();
-                 default:
+                default:
                     return new NullCodec();
             }
         }

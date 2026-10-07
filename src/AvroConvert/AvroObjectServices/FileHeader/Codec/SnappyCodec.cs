@@ -26,23 +26,21 @@ namespace SolTechnology.Avro.AvroObjectServices.FileHeader.Codec
     {
         internal override string Name { get; } = CodecType.Snappy.ToString().ToLower();
 
-        internal override MemoryStream Compress(MemoryStream toCompress)
+        internal override void Compress(ReadOnlySpan<byte> data, Stream output)
         {
-            var toCompressBytes = toCompress.ToArray();
-            var compressedData = Snappy.Encode(toCompressBytes);
+            var compressed = Snappy.Encode(data);
+            output.Write(compressed);
 
             // Avro spec: 4-byte big-endian CRC-32 of the *uncompressed* data appended to the block.
-            byte[] result = new byte[compressedData.Length + 4];
-            compressedData.CopyTo(result, 0);
-            BinaryPrimitives.WriteUInt32BigEndian(result.AsSpan(compressedData.Length), Crc32.Get(toCompressBytes));
-
-            return new MemoryStream(result);
+            Span<byte> crc = stackalloc byte[4];
+            BinaryPrimitives.WriteUInt32BigEndian(crc, Crc32.Get(data));
+            output.Write(crc);
         }
 
         internal override byte[] Decompress(byte[] compressedData)
         {
             // Trailing CRC is not validated: files written by AvroConvert 3.x carry a non-spec checksum.
-            return Snappy.Decode(compressedData.AsSpan(0, compressedData.Length - 4).ToArray());
+            return Snappy.Decode(compressedData.AsSpan(0, compressedData.Length - 4));
         }
     }
 }

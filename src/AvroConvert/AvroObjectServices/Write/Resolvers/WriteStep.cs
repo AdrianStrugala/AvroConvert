@@ -20,6 +20,7 @@
 /** Modifications copyright(C) 2022 Adrian Strugala **/
 #endregion
 
+using System;
 using SolTechnology.Avro.Features.Serialize;
 
 namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
@@ -28,5 +29,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Resolvers
     {
         internal Encoder.WriteItem WriteField { get; set; }
         internal string FiledName { get; set; }
+
+        // Getter resolved for the last runtime type seen; a WriteStep graph is used by a single Encoder (single-threaded).
+        internal Type CachedType;
+        internal Func<object, object> CachedGetter;
     }
 }

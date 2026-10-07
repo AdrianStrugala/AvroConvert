@@ -22,6 +22,7 @@ using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Threading;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
@@ -32,7 +33,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
 {
     internal partial class WriteResolver
     {
-        private static readonly ConcurrentDictionary<Type, Lazy<Func<object, string, object>>> gettersDictionary = new();
+        private static readonly ConcurrentDictionary<Type, Lazy<MemberGetters>> gettersDictionary = new();
+
+        private static readonly Func<Type, Lazy<MemberGetters>> getterFactory =
+            type => new Lazy<MemberGetters>(() => MemberGetters.Build(type), LazyThreadSafetyMode.ExecutionAndPublication);
 
         internal Encoder.WriteItem ResolveRecord(RecordSchema recordSchema)
         {
@@ -73,24 +77,18 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
 
             var type = recordObj.GetType();
 
-            var lazyGetters = gettersDictionary.GetOrAdd(type, getterFactory);
-            Func<object, string, object> getters = lazyGetters.Value;
-
             foreach (var writer in writers)
             {
-                var value = getters.Invoke(recordObj, writer.FiledName);
-                if (value == null)
+                if (!ReferenceEquals(writer.CachedType, type))
                 {
-                    value = type.GetField(writer.FiledName)?.GetValue(recordObj);
+                    writer.CachedType = type;
+                    writer.CachedGetter = gettersDictionary.GetOrAdd(type, getterFactory).Value.Get(writer.FiledName);
                 }
 
+                var value = writer.CachedGetter?.Invoke(recordObj);
                 writer.WriteField(value, encoder);
             }
         }
-
-        private static Func<Type, Lazy<Func<object, string, object>>> getterFactory =>
-            type => new Lazy<Func<object, string, object>>(() => GenerateGetValue(type),
-                LazyThreadSafetyMode.ExecutionAndPublication);
 
         private static void HandleExpando(WriteStep[] writers, IWriter encoder, ExpandoObject expando)
         {
@@ -103,27 +101,72 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
             }
         }
 
-        private static Func<object, string, object> GenerateGetValue(Type type)
+        /// <summary>Compiled getters for every readable member of a type, looked up exact-case first, then case-insensitively.</summary>
+        private sealed class MemberGetters
         {
-            var instance = Expression.Parameter(typeof(object), "instance");
-            var memberName = Expression.Parameter(typeof(string), "memberName");
-            var nameHash = Expression.Variable(typeof(int), "nameHash");
-            var calHash = Expression.Assign(nameHash,
-                Expression.Call(memberName, typeof(object).GetMethod("GetHashCode")));
-            var cases = new List<SwitchCase>();
-            foreach (var propertyInfo in type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase | BindingFlags.FlattenHierarchy))
-            {
-                var property = Expression.Property(Expression.Convert(instance, type), propertyInfo.Name);
-                var propertyHash = Expression.Constant(propertyInfo.Name.GetHashCode(), typeof(int));
+            private readonly Dictionary<string, Func<object, object>> _exact = new(StringComparer.Ordinal);
+            private readonly Dictionary<string, Func<object, object>> _ignoreCase = new(StringComparer.OrdinalIgnoreCase);
 
-                cases.Add(Expression.SwitchCase(Expression.Convert(property, typeof(object)), propertyHash));
+            internal Func<object, object> Get(string name)
+            {
+                if (_exact.TryGetValue(name, out var getter) || _ignoreCase.TryGetValue(name, out getter))
+                {
+                    return getter;
+                }
+
+                return null;
             }
 
-            var switchEx = Expression.Switch(nameHash, Expression.Constant(null), cases.ToArray());
-            var methodBody = Expression.Block(typeof(object), new[] { nameHash }, calHash, switchEx);
+            internal static MemberGetters Build(Type type)
+            {
+                var result = new MemberGetters();
+                var instance = Expression.Parameter(typeof(object), "instance");
+                var typed = Expression.Convert(instance, type);
 
-            return Expression.Lambda<Func<object, string, object>>(methodBody, instance, memberName).Compile();
+                const BindingFlags publicMembers = BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy;
+                const BindingFlags privateMembers = BindingFlags.Instance | BindingFlags.NonPublic;
 
+                foreach (var property in type.GetProperties(publicMembers))
+                {
+                    if (property.CanRead && property.GetIndexParameters().Length == 0)
+                    {
+                        result.Add(property.Name, Compile(instance, Expression.Property(typed, property)));
+                    }
+                }
+
+                foreach (var field in type.GetFields(publicMembers))
+                {
+                    result.Add(field.Name, Compile(instance, Expression.Field(typed, field)));
+                }
+
+                // Non-public members take part in the schema only when marked with [DataMember].
+                foreach (var property in type.GetProperties(privateMembers))
+                {
+                    if (property.CanRead && property.GetIndexParameters().Length == 0 && property.IsDefined(typeof(DataMemberAttribute), true))
+                    {
+                        result.Add(property.Name, Compile(instance, Expression.Property(typed, property)));
+                    }
+                }
+
+                foreach (var field in type.GetFields(privateMembers))
+                {
+                    if (field.IsDefined(typeof(DataMemberAttribute), true))
+                    {
+                        result.Add(field.Name, Compile(instance, Expression.Field(typed, field)));
+                    }
+                }
+
+                return result;
+            }
+
+            private void Add(string name, Func<object, object> getter)
+            {
+                _exact.TryAdd(name, getter);
+                _ignoreCase.TryAdd(name, getter);
+            }
+
+            private static Func<object, object> Compile(ParameterExpression instance, MemberExpression member) =>
+                Expression.Lambda<Func<object, object>>(Expression.Convert(member, typeof(object)), instance).Compile();
         }
     }
 }

@@ -16,10 +16,10 @@
 #endregion
 
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.Features.Serialize;
+using SolTechnology.Avro.Infrastructure.Exceptions;
 
 // ReSharper disable once CheckNamespace
 namespace SolTechnology.Avro.AvroObjectServices.Write
@@ -34,36 +34,44 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
 
         private void WriteArray(Encoder.WriteItem itemWriter, object @object, IWriter encoder)
         {
-            List<object> list = EnsureArrayObject(@object);
-
-            long count = list?.Count ?? 0;
             encoder.WriteArrayStart();
-            encoder.WriteItemCount(count);
-            WriteArrayValues(list, itemWriter, encoder, count);
+
+            switch (@object)
+            {
+                case null:
+                    break;
+
+                case IList list:
+                    encoder.WriteItemCount(list.Count);
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        itemWriter(list[i], encoder);
+                    }
+                    break;
+
+                case ICollection collection:
+                    encoder.WriteItemCount(collection.Count);
+                    foreach (var item in collection)
+                    {
+                        itemWriter(item, encoder);
+                    }
+                    break;
+
+                case IEnumerable enumerable:
+                    // Unknown count: materialise once (Avro needs the block size before its items).
+                    var buffered = enumerable.Cast<object>().ToList();
+                    encoder.WriteItemCount(buffered.Count);
+                    foreach (var item in buffered)
+                    {
+                        itemWriter(item, encoder);
+                    }
+                    break;
+
+                default:
+                    throw new AvroTypeMismatchException($"Expected a collection for an array schema, but found [{@object.GetType()}]");
+            }
+
             encoder.WriteArrayEnd();
-        }
-
-        private List<object> EnsureArrayObject(object value)
-        {
-            var enumerable = value as IEnumerable;
-            List<object> list = enumerable?.Cast<object>().ToList();
-
-            return list;
-        }
-
-        private void WriteArrayValues(List<object> list, Encoder.WriteItem itemWriter, IWriter encoder, long count)
-        {
-            if (list == null)
-            {
-                itemWriter(null, encoder);
-            }
-            else
-            {
-                for (int i = 0; i < count; i++)
-                {
-                    itemWriter(list[i], encoder);
-                }
-            }
         }
     }
 }

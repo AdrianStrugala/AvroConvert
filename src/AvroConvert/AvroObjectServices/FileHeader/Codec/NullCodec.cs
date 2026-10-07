@@ -18,6 +18,7 @@
 
 /** Modifications copyright(C) 2020 Adrian Strugała **/
 
+using System;
 using System.IO;
 
 namespace SolTechnology.Avro.AvroObjectServices.FileHeader.Codec
@@ -25,14 +26,15 @@ namespace SolTechnology.Avro.AvroObjectServices.FileHeader.Codec
     internal class NullCodec : AbstractCodec
     {
         internal override string Name { get; } = CodecType.Null.ToString().ToLower();
+
         internal override byte[] Decompress(byte[] toDecompress)
         {
             return toDecompress;
         }
 
-        internal override MemoryStream Compress(MemoryStream toCompress)
+        internal override void Compress(ReadOnlySpan<byte> data, Stream output)
         {
-            return toCompress;
+            output.Write(data);
         }
     }
 }

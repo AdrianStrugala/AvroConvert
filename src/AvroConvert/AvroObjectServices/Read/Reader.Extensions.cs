@@ -15,8 +15,8 @@
 */
 #endregion
 
+using System;
 using System.IO;
-using System.Linq;
 using SolTechnology.Avro.AvroObjectServices.FileHeader;
 using SolTechnology.Avro.AvroObjectServices.FileHeader.Codec;
 using SolTechnology.Avro.Infrastructure.Exceptions;
@@ -67,7 +67,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 
         internal void ReadAndValidateSync(byte[] expectedSync)
         {
-            var syncBuffer = new byte[DataFileConstants.SyncSize];
+            Span<byte> syncBuffer = stackalloc byte[DataFileConstants.SyncSize];
             ReadFixed(syncBuffer);
 
             if (!syncBuffer.SequenceEqual(expectedSync))

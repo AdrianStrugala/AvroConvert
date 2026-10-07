@@ -20,14 +20,19 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using Newtonsoft.Json;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
+using SolTechnology.Avro.Policies;
 
 namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 {
     public abstract class Schema
     {
-        private static ConcurrentDictionary<Type, TypeSchema> _schemaCache = new();
+        private static readonly ConcurrentDictionary<Type, TypeSchema> _schemaCache = new();
+        private static readonly ConcurrentDictionary<(Type Type, OptionsKey Options), TypeSchema> _schemaWithOptionsCache = new();
+        private string _json;
+
         protected Schema(IDictionary<string, string> attributes)
         {
             Attributes = (Dictionary<string, string>)(attributes ?? new Dictionary<string, string>());
@@ -49,6 +54,12 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         }
 
         public override string ToString()
+        {
+            // Schemas are immutable once built, so the JSON form is computed once and reused by every Serialize call.
+            return _json ??= BuildJson();
+        }
+
+        private string BuildJson()
         {
             using (var result = new StringWriter(CultureInfo.InvariantCulture))
             {
@@ -80,35 +91,42 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         internal static TypeSchema Create(object obj, AvroConvertOptions options = null)
         {
             var type = obj?.GetType();
-            
-            if (options is null && type is not null)
+            if (type is null)
             {
-                return _schemaCache.GetOrAdd(type,
-                    t =>
-                    {
-                        var builder = new ReflectionSchemaBuilder(null);
-                        var schema = builder.BuildSchema(t);
-
-                        return schema;
-                    });
+                return new ReflectionSchemaBuilder(options).BuildSchema(null);
             }
-            else
+
+            if (options is null)
             {
-                var builder = new ReflectionSchemaBuilder(options);
-                var schema = builder.BuildSchema(type);
-
-                return schema;
+                return Create(type);
             }
+
+            return _schemaWithOptionsCache.GetOrAdd((type, OptionsKey.From(options)),
+                _ => new ReflectionSchemaBuilder(options).BuildSchema(type));
         }
 
         internal static TypeSchema Create(Type type) =>
-            _schemaCache.GetOrAdd(type,
-                t =>
-                {
-                    var builder = new ReflectionSchemaBuilder();
-                    var schema = builder.BuildSchema(t);
+            _schemaCache.GetOrAdd(type, t => new ReflectionSchemaBuilder().BuildSchema(t));
 
-                    return schema;
-                });
+        /// <summary>
+        /// Schema-affecting part of <see cref="AvroConvertOptions"/>. Naming policy and converters are keyed by their
+        /// types (they are expected to be stateless), so the cache cannot grow with every options instance.
+        /// </summary>
+        private readonly record struct OptionsKey(
+            bool IncludeOnlyDataContractMembers,
+            int MaxItemsInSchemaTree,
+            AvroNumberHandling NumberHandling,
+            Type NamingPolicy,
+            string Converters)
+        {
+            internal static OptionsKey From(AvroConvertOptions options) => new(
+                options.IncludeOnlyDataContractMembers,
+                options.MaxItemsInSchemaTree,
+                options.NumberHandling,
+                options.NamingPolicy?.GetType(),
+                options.AvroConverters.Count == 0
+                    ? null
+                    : string.Join("|", options.AvroConverters.Select(c => c.GetType().AssemblyQualifiedName)));
+        }
     }
 }

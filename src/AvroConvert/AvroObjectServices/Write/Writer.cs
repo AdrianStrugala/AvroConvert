@@ -112,8 +112,15 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
         public void WriteStream(MemoryStream stream)
         {
             WriteLong(stream.Length);
-            stream.Seek(0, SeekOrigin.Begin);
-            stream.CopyTo(_stream);
+            if (stream.TryGetBuffer(out var buffer))
+            {
+                _stream.Write(buffer);
+            }
+            else
+            {
+                stream.Seek(0, SeekOrigin.Begin);
+                stream.CopyTo(_stream);
+            }
         }
 
         /// <summary>

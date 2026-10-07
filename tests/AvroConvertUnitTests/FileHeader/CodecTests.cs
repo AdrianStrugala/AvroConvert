@@ -39,7 +39,9 @@ namespace AvroConvertUnitTests.FileHeader
 
 
             //Act
-            var compressed = codec.Compress(new MemoryStream(payload)).ToArray();
+            using var output = new MemoryStream();
+            codec.Compress(payload, output);
+            var compressed = output.ToArray();
 
 
             //Assert

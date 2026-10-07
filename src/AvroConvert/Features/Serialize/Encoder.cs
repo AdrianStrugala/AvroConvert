@@ -37,8 +37,9 @@ namespace SolTechnology.Avro.Features.Serialize
         private readonly Stream _outStream;
         private readonly Writer _writer;
 
-        private MemoryStream _memoryChunk;
-        private Writer _chunkWriter;
+        private readonly MemoryStream _memoryChunk;
+        private readonly MemoryStream _compressedChunk;
+        private readonly Writer _chunkWriter;
 
         private readonly WriteItem _writeItem;
         private int _blockCount;
@@ -56,6 +57,7 @@ namespace SolTechnology.Avro.Features.Serialize
             _blockCount = 0;
             _writer = new Writer(_outStream);
             _memoryChunk = new MemoryStream();
+            _compressedChunk = _codec is NullCodec ? null : new MemoryStream();
             _chunkWriter = new Writer(_memoryChunk);
 
             GenerateSyncData();
@@ -90,20 +92,28 @@ namespace SolTechnology.Avro.Features.Serialize
         {
             if (_blockCount > 0)
             {
-                _writer.WriteDataBlock(_codec.Compress(_memoryChunk), _header.SyncData, _blockCount);
+                if (_compressedChunk == null)
+                {
+                    _writer.WriteDataBlock(_memoryChunk, _header.SyncData, _blockCount);
+                }
+                else
+                {
+                    _compressedChunk.SetLength(0);
+                    _memoryChunk.TryGetBuffer(out var raw);
+                    _codec.Compress(raw, _compressedChunk);
+                    _writer.WriteDataBlock(_compressedChunk, _header.SyncData, _blockCount);
+                }
 
-                // reset memory buffer
                 _blockCount = 0;
-                _memoryChunk = new MemoryStream();
-                _chunkWriter = new Writer(_memoryChunk);
+                _memoryChunk.SetLength(0);
             }
         }
 
         public void Dispose()
         {
             WriteBuffer();
-            _memoryChunk.Flush();
             _memoryChunk.Dispose();
+            _compressedChunk?.Dispose();
             _outStream.Flush();
             _outStream.Dispose();
         }

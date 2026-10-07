@@ -18,6 +18,7 @@
 
 /** Modifications copyright(C) 2022 Adrian Strugala **/
 
+using System;
 using System.IO;
 using System.IO.Compression;
 
@@ -27,38 +28,19 @@ namespace SolTechnology.Avro.AvroObjectServices.FileHeader.Codec
     {
         internal override string Name { get; } = CodecType.Deflate.ToString().ToLower();
 
-        internal override MemoryStream Compress(MemoryStream toCompress)
+        internal override void Compress(ReadOnlySpan<byte> data, Stream output)
         {
-            var toCompressBytes = toCompress.ToArray();
-            MemoryStream outStream = new MemoryStream();
-
-            using DeflateStream compress = new DeflateStream(outStream, CompressionMode.Compress, true);
-            compress.Write(toCompressBytes, 0, toCompressBytes.Length);
-            return outStream;
+            using var deflate = new DeflateStream(output, CompressionMode.Compress, leaveOpen: true);
+            deflate.Write(data);
         }
 
         internal override byte[] Decompress(byte[] compressedData)
         {
-            MemoryStream inStream = new MemoryStream(compressedData);
-            MemoryStream outStream = new MemoryStream();
-
-            using (DeflateStream decompress =
-                        new DeflateStream(inStream,
-                        CompressionMode.Decompress))
-            {
-                CopyTo(decompress, outStream);
-            }
-            return outStream.ToArray();
-        }
-
-        private static void CopyTo(Stream from, Stream to)
-        {
-            byte[] buffer = new byte[4096];
-            int read;
-            while ((read = from.Read(buffer, 0, buffer.Length)) != 0)
-            {
-                to.Write(buffer, 0, read);
-            }
+            using var input = new MemoryStream(compressedData);
+            using var deflate = new DeflateStream(input, CompressionMode.Decompress);
+            using var output = new MemoryStream(compressedData.Length * 3);
+            deflate.CopyTo(output);
+            return output.ToArray();
         }
     }
 }

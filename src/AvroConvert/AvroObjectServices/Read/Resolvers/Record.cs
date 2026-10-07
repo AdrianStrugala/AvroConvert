@@ -18,22 +18,23 @@
 #endregion
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
-using FastMember;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
+using SolTechnology.Avro.Infrastructure.Reflection;
 using SolTechnology.Avro.Policies;
 
 namespace SolTechnology.Avro.AvroObjectServices.Read
 {
     internal partial class Resolver
     {
-        private readonly Dictionary<int, Dictionary<string, ReadStep>> _readStepsDictionary = new();
-        private readonly Dictionary<int, TypeAccessor> _accessorDictionary = new();
+        private readonly Dictionary<(RecordSchema Writer, RecordSchema Reader, Type Type), RecordPlan> _recordPlans = new();
+        private static readonly ConcurrentDictionary<string, Type> ClrTypeBySchemaName = new();
 
         protected virtual object ResolveRecord(
             RecordSchema writerSchema,
@@ -43,168 +44,25 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         {
             if (type != typeof(object))
             {
-                object result = RuntimeHelpers.GetUninitializedObject(type);
-                var typeHash = type.GetHashCode();
-
-                TypeAccessor accessor;
-                Dictionary<string, ReadStep> readSteps;
-
-                if (!_accessorDictionary.ContainsKey(typeHash))
-                {
-                    accessor = TypeAccessor.Create(type, true);
-                    var members = accessor.GetMembers();
-                    readSteps = new Dictionary<string, ReadStep>();
-                    foreach (RecordFieldSchema wf in writerSchema.Fields)
-                    {
-                        if (readerSchema.TryGetField(wf.Name, out var rf))
-                        {
-                            string name = rf.GetAliasOrDefault() ?? wf.Name;
-
-                            var memberInfo = members.FirstOrDefault(n =>
-                                n.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
-                            if (memberInfo == null)
-                            {
-                                continue;
-                            }
-
-                            if (memberInfo.CanWrite)
-                            {
-                                accessor[result, memberInfo.Name] = GetValue(wf, rf, memberInfo, reader);
-                                readSteps.Add(memberInfo.Name, new ReadStep(wf, rf, memberInfo));
-                            }
-                            else
-                            {
-                                _skipper.Skip(wf.TypeSchema, reader);
-                                readSteps.Add(memberInfo.Name, new ReadStep(wf, rf, memberInfo, true));
-                            }
-                        }
-                        else
-                        {
-                            _skipper.Skip(wf.TypeSchema, reader);
-                            readSteps.Add(wf.Name, new ReadStep(wf, rf, null, true));
-                        }
-                    }
-
-                    foreach (var (member, value) in ResolveMissingReaderFields(writerSchema, readerSchema, members))
-                    {
-                        accessor[result, member.Name] = value;
-                        readSteps.Add(member.Name, ReadStep.Default(member, value));
-                    }
-
-                    _readStepsDictionary.Add(typeHash, readSteps);
-                    _accessorDictionary.Add(typeHash, accessor);
-                }
-                else
-                {
-                    accessor = _accessorDictionary[typeHash];
-                    readSteps = _readStepsDictionary[typeHash];
-
-                    foreach (var readStep in readSteps)
-                    {
-                        var readStepValue = readStep.Value;
-                        if (readStepValue.IsDefault)
-                        {
-                            accessor[result, readStep.Key] = readStepValue.DefaultValue;
-                        }
-                        else if (readStepValue.ShouldSkip)
-                        {
-                            _skipper.Skip(readStepValue.WriteFieldSchema.TypeSchema, reader);
-                        }
-                        else
-                        {
-                            accessor[result, readStep.Key] =
-                                GetValue(
-                                    readStepValue.WriteFieldSchema,
-                                    readStepValue.ReadFieldSchema,
-                                    readStepValue.MemberInfo,
-                                    reader);
-                        }
-                    }
-                }
-
-                return result;
+                return ReadForType(writerSchema, readerSchema, reader, type);
             }
-            else
+
+            // Dynamic target: prefer a CLR type whose name matches the schema, otherwise an ExpandoObject.
+            Type clrType = ClrTypeBySchemaName.GetOrAdd(readerSchema.FullName, _ => FindClrTypeForRecordSchema(readerSchema));
+            if (clrType != null)
             {
-                //for reading dynamics
-
-                // Try to look up a matching CLR type.
-                Assembly[] assemblies = { Assembly.GetExecutingAssembly(), Assembly.GetEntryAssembly() };
-                Type clrType = GetClrTypeForRecordSchema(readerSchema, assemblies);
-                if (clrType == null)
-                {
-                    clrType = GetClrTypeForRecordSchema(readerSchema, AppDomain.CurrentDomain.GetAssemblies());
-                }
-                
-                if (clrType != null)
-                {
-                    return ReadForType(writerSchema, readerSchema, reader, clrType);
-                }
-                else
-                {
-                    // Fall back to Expando
-                    var result = new ExpandoObject() as IDictionary<string, object>;
-
-                    foreach (RecordFieldSchema wf in writerSchema.Fields)
-                    {
-                        if (readerSchema.TryGetField(wf.Name, out var rf))
-                        {
-                            string name = rf.Aliases.FirstOrDefault() ?? wf.Name;
-
-                            dynamic value;
-                            if (wf.TypeSchema.Type == AvroType.Array)
-                            {
-                                value = Resolve(wf.TypeSchema, rf.TypeSchema, reader, typeof(List<object>)) ??
-                                        wf.DefaultValue;
-                            }
-                            else
-                            {
-                                value = Resolve(wf.TypeSchema, rf.TypeSchema, reader, typeof(object)) ??
-                                        wf.DefaultValue;
-                            }
-
-                            result.Add(name, value);
-                        }
-                        else
-                            _skipper.Skip(wf.TypeSchema, reader);
-                    }
-
-                    foreach (RecordFieldSchema rf in readerSchema.Fields)
-                    {
-                        if (writerSchema.TryGetField(rf.Name, out _))
-                        {
-                            continue;
-                        }
-
-                        string name = rf.Aliases.FirstOrDefault() ?? rf.Name;
-                        result.Add(name, ResolveMissingReaderField(readerSchema, rf, rf.DefaultValue));
-                    }
-
-                    return result;
-                }
+                return ReadForType(writerSchema, readerSchema, reader, clrType);
             }
-        }
 
-        private object ReadForType(RecordSchema writerSchema, RecordSchema readerSchema, IReader reader, Type clrType)
-        {
-            object result = RuntimeHelpers.GetUninitializedObject(clrType);
-            var accessor = TypeAccessor.Create(clrType, true);
-            var members = accessor.GetMembers();
+            var result = new ExpandoObject() as IDictionary<string, object>;
+
             foreach (RecordFieldSchema wf in writerSchema.Fields)
             {
                 if (readerSchema.TryGetField(wf.Name, out var rf))
                 {
-                    string name = rf.GetAliasOrDefault() ?? wf.Name;
-                    var memberInfo = members
-                        .FirstOrDefault(m => m.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
-                    if (memberInfo is { CanWrite: true })
-                    {
-                        accessor[result, memberInfo.Name] = GetValue(wf, rf, memberInfo, reader);
-                    }
-                    else
-                    {
-                        _skipper.Skip(wf.TypeSchema, reader);
-                    }
+                    string name = rf.Aliases.FirstOrDefault() ?? wf.Name;
+                    var targetType = wf.TypeSchema.Type == AvroType.Array ? typeof(List<object>) : typeof(object);
+                    result.Add(name, Resolve(wf.TypeSchema, rf.TypeSchema, reader, targetType) ?? wf.DefaultValue);
                 }
                 else
                 {
@@ -212,22 +70,91 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                 }
             }
 
-            foreach (var (member, value) in ResolveMissingReaderFields(writerSchema, readerSchema, members))
+            foreach (RecordFieldSchema rf in readerSchema.Fields)
             {
-                accessor[result, member.Name] = value;
+                if (writerSchema.TryGetField(rf.Name, out _))
+                {
+                    continue;
+                }
+
+                string name = rf.Aliases.FirstOrDefault() ?? rf.Name;
+                result.Add(name, ResolveMissingReaderField(readerSchema, rf, rf.DefaultValue));
+            }
+
+            return result;
+        }
+
+        private object ReadForType(RecordSchema writerSchema, RecordSchema readerSchema, IReader reader, Type type)
+        {
+            var key = (writerSchema, readerSchema, type);
+            if (!_recordPlans.TryGetValue(key, out var plan))
+            {
+                plan = BuildRecordPlan(writerSchema, readerSchema, type);
+                _recordPlans.Add(key, plan);
+            }
+
+            object result = RuntimeHelpers.GetUninitializedObject(type);
+
+            foreach (var step in plan.Steps)
+            {
+                switch (step.Kind)
+                {
+                    case ReadStepKind.Skip:
+                        _skipper.Skip(step.WriterField.TypeSchema, reader);
+                        break;
+
+                    case ReadStepKind.Read:
+                        var value = Resolve(step.WriterField.TypeSchema, step.ReaderField.TypeSchema, reader, step.Member.Type)
+                                    ?? FormatDefaultValue(step.WriterField.DefaultValue, step.Member);
+                        step.Member.Set(result, value);
+                        break;
+
+                    case ReadStepKind.Default:
+                        step.Member.Set(result, step.DefaultValue);
+                        break;
+                }
             }
 
             return result;
         }
 
         /// <summary>
+        /// Resolves writer fields against the reader schema and the CLR type once per (writer, reader, type):
+        /// which fields are read into which member, which are skipped, and which reader-only fields get a default.
+        /// </summary>
+        private RecordPlan BuildRecordPlan(RecordSchema writerSchema, RecordSchema readerSchema, Type type)
+        {
+            var members = TypeMembers.For(type);
+            var steps = new List<ReadStep>(writerSchema.Fields.Count);
+
+            foreach (RecordFieldSchema wf in writerSchema.Fields)
+            {
+                if (!readerSchema.TryGetField(wf.Name, out var rf))
+                {
+                    steps.Add(ReadStep.Skip(wf));
+                    continue;
+                }
+
+                var member = members.Find(rf.GetAliasOrDefault() ?? wf.Name);
+                steps.Add(member is { CanWrite: true } ? ReadStep.Read(wf, rf, member) : ReadStep.Skip(wf));
+            }
+
+            foreach (var (member, value) in ResolveMissingReaderFields(writerSchema, readerSchema, members))
+            {
+                steps.Add(ReadStep.Default(member, value));
+            }
+
+            return new RecordPlan(steps.ToArray());
+        }
+
+        /// <summary>
         /// Avro schema resolution: reader fields absent from the writer take the reader's default;
         /// without a default, fields that can hold null resolve to null and anything else is governed by MissingFieldHandling.
         /// </summary>
-        private IEnumerable<(Member Member, object Value)> ResolveMissingReaderFields(
+        private IEnumerable<(MemberAccessor Member, object Value)> ResolveMissingReaderFields(
             RecordSchema writerSchema,
             RecordSchema readerSchema,
-            MemberSet members)
+            TypeMembers members)
         {
             foreach (RecordFieldSchema rf in readerSchema.Fields)
             {
@@ -236,8 +163,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                     continue;
                 }
 
-                string name = rf.GetAliasOrDefault() ?? rf.Name;
-                var member = members.FirstOrDefault(m => m.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+                var member = members.Find(rf.GetAliasOrDefault() ?? rf.Name);
                 if (member is not { CanWrite: true })
                 {
                     continue;
@@ -276,27 +202,14 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                 $"Add a [DefaultValue] / \"default\" to the field, make it nullable, or set {nameof(AvroConvertOptions)}.{nameof(AvroConvertOptions.MissingFieldHandling)} = {nameof(AvroMissingFieldHandling.UseDefault)}.");
         }
 
-        private object GetValue(RecordFieldSchema wf,
-            RecordFieldSchema rf,
-            Member memberInfo,
-            IReader dec)
-        {
-            object value = Resolve(wf.TypeSchema, rf.TypeSchema, dec, memberInfo.Type);
-            return value ?? FormatDefaultValue(wf.DefaultValue, memberInfo);
-        }
-
-        private object FormatDefaultValue(object defaultValue, Member memberInfo)
+        private object FormatDefaultValue(object defaultValue, MemberAccessor member)
         {
             if (defaultValue == null)
             {
-                return defaultValue;
+                return null;
             }
 
-            var t = memberInfo.Type;
-            if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>))
-            {
-                t = Nullable.GetUnderlyingType(t);
-            }
+            var t = Nullable.GetUnderlyingType(member.Type) ?? member.Type;
 
             if (defaultValue.GetType() == t)
             {
@@ -315,49 +228,50 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             return Convert.ChangeType(defaultValue, t);
         }
 
-        private class ReadStep
+        private enum ReadStepKind { Read, Skip, Default }
+
+        private sealed class RecordPlan
         {
-            internal RecordFieldSchema WriteFieldSchema { get; set; }
-            internal RecordFieldSchema ReadFieldSchema { get; set; }
-            internal Member MemberInfo { get; set; }
-            internal bool ShouldSkip { get; set; }
-            internal bool IsDefault { get; private set; }
-            internal object DefaultValue { get; private set; }
-
-            public ReadStep(RecordFieldSchema writeFieldSchema, RecordFieldSchema readFieldSchema, Member memberInfo,
-                bool shouldSkip = false)
-            {
-                WriteFieldSchema = writeFieldSchema;
-                ReadFieldSchema = readFieldSchema;
-                MemberInfo = memberInfo;
-                ShouldSkip = shouldSkip;
-            }
-
-            internal static ReadStep Default(Member memberInfo, object value) =>
-                new(null, null, memberInfo) { IsDefault = true, DefaultValue = value };
+            internal ReadStep[] Steps { get; }
+            internal RecordPlan(ReadStep[] steps) => Steps = steps;
         }
 
-        /// <summary>
-        /// Attempts to find a CLR type that matches the given record schema.
-        /// The matching is based on the schema’s full name or simple name.
-        /// </summary>
-        private Type GetClrTypeForRecordSchema(RecordSchema schema, Assembly[] assemblies)
+        private sealed class ReadStep
         {
-            // Prefer using the full name (namespace + name) if available.
-            string fullName = schema.FullName; 
-            
-            var types = assemblies
-                .SelectMany(a => a.GetTypes())
-                .ToList();
-            
-            var clrType = types.FirstOrDefault(t => t.FullName == fullName);
-            if (clrType != null)
+            internal ReadStepKind Kind { get; private init; }
+            internal RecordFieldSchema WriterField { get; private init; }
+            internal RecordFieldSchema ReaderField { get; private init; }
+            internal MemberAccessor Member { get; private init; }
+            internal object DefaultValue { get; private init; }
+
+            internal static ReadStep Read(RecordFieldSchema wf, RecordFieldSchema rf, MemberAccessor member) =>
+                new() { Kind = ReadStepKind.Read, WriterField = wf, ReaderField = rf, Member = member };
+
+            internal static ReadStep Skip(RecordFieldSchema wf) =>
+                new() { Kind = ReadStepKind.Skip, WriterField = wf };
+
+            internal static ReadStep Default(MemberAccessor member, object value) =>
+                new() { Kind = ReadStepKind.Default, Member = member, DefaultValue = value };
+        }
+
+        /// <summary>Finds a loaded CLR type whose full name (or simple name) matches the record schema.</summary>
+        private static Type FindClrTypeForRecordSchema(RecordSchema schema)
+        {
+            Assembly[] preferred = { Assembly.GetExecutingAssembly(), Assembly.GetEntryAssembly() };
+            return Find(preferred) ?? Find(AppDomain.CurrentDomain.GetAssemblies());
+
+            Type Find(Assembly[] assemblies)
             {
-                return clrType;
+                var types = assemblies.Where(a => a != null).SelectMany(SafeGetTypes).ToList();
+                return types.FirstOrDefault(t => t.FullName == schema.FullName)
+                       ?? types.FirstOrDefault(t => t.Name == schema.Name);
             }
 
-            clrType = types.FirstOrDefault(t => t.Name == schema.Name);
-            return clrType;
+            static IEnumerable<Type> SafeGetTypes(Assembly assembly)
+            {
+                try { return assembly.GetTypes(); }
+                catch (ReflectionTypeLoadException e) { return e.Types.Where(t => t != null); }
+            }
         }
     }
 }

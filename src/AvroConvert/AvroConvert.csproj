@@ -53,9 +53,7 @@
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.*" />
 		<PackageReference Include="IronSnappy" Version="1.3.*" />
 	</ItemGroup>
-	<ItemGroup>
-	  <ProjectReference Include="..\SolTechnology.FastMember\SolTechnology.FastMember.csproj"  PrivateAssets="All" />
-	</ItemGroup>
+
 
 	<!-- To indlucde referenced projects in nuget package: -->
 	<PropertyGroup>

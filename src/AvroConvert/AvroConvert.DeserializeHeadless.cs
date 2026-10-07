@@ -126,10 +126,6 @@ namespace SolTechnology.Avro
             return result;
         }
 
-        private static TypeSchema BuildSchema(Type type)
-        {
-            var schemaBuilder = new ReflectionSchemaBuilder();
-            return schemaBuilder.BuildSchema(type);
-        }
+        private static TypeSchema BuildSchema(Type type) => Schema.Create(type);
     }
 }

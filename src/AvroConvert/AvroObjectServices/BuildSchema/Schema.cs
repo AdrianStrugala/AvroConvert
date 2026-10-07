@@ -109,6 +109,16 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 return new ReflectionSchemaBuilder(options).BuildSchema(null);
             }
 
+            return Create(type, options);
+        }
+
+        internal static TypeSchema Create(Type type, AvroConvertOptions options)
+        {
+            if (type is null)
+            {
+                return new ReflectionSchemaBuilder(options).BuildSchema(null);
+            }
+
             if (options is null)
             {
                 return Create(type);

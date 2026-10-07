@@ -14,15 +14,18 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         internal Func<IReader, long, T> Many { get; init; }
     }
 
-    /// <summary>Process-wide cache of compiled read plans keyed by schema text, target type and options.</summary>
+    /// <summary>
+    /// Process-wide cache of compiled read plans. Schemas are keyed by reference: instances come from the per-type and
+    /// per-text schema caches, so the same logical schema is the same object.
+    /// </summary>
     internal static class ReadPlanCache
     {
-        private static readonly ConcurrentDictionary<(string Writer, string Reader, Type Target, OptionsKey Options), object> Plans = new();
+        private static readonly ConcurrentDictionary<(TypeSchema Writer, TypeSchema Reader, Type Target, OptionsKey Options), object> Plans = new();
         private const int Limit = 1024;
 
         internal static ReadPlan<T> Get<T>(TypeSchema writerSchema, TypeSchema readerSchema, AvroConvertOptions options)
         {
-            var key = (writerSchema.ToString(), readerSchema.ToString(), typeof(T), OptionsKey.From(options));
+            var key = (writerSchema, readerSchema, typeof(T), OptionsKey.From(options));
             if (Plans.TryGetValue(key, out var cached))
             {
                 return (ReadPlan<T>)cached;

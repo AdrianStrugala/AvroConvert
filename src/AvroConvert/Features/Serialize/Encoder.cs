@@ -26,6 +26,7 @@ using SolTechnology.Avro.AvroObjectServices.FileHeader;
 using SolTechnology.Avro.AvroObjectServices.FileHeader.Codec;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.AvroObjectServices.Write;
+using SolTechnology.Avro.AvroObjectServices.Write.Typed;
 
 namespace SolTechnology.Avro.Features.Serialize
 {
@@ -41,7 +42,11 @@ namespace SolTechnology.Avro.Features.Serialize
         private readonly MemoryStream _compressedChunk;
         private readonly Writer _chunkWriter;
 
-        private readonly WriteItem _writeItem;
+        private WriteItem _writeItem;
+        private readonly TypeSchema _schema;
+        private readonly AvroConvertOptions _options;
+        private Type _typedRootType;
+        private WriteItem _typedWriteItem;
         private int _blockCount;
         private readonly int _syncInterval;
         private readonly Header _header;
@@ -64,8 +69,8 @@ namespace SolTechnology.Avro.Features.Serialize
             _header.AddMetadata(DataFileConstants.CodecMetadataKey, _codec.Name);
             _header.AddMetadata(DataFileConstants.SchemaMetadataKey, schema.ToString());
 
-            var resolver = new WriteResolver(options);
-            _writeItem = resolver.ResolveWriter(schema);
+            _schema = schema;
+            _options = options;
 
             _writer.WriteHeader(_header);
         }
@@ -77,7 +82,22 @@ namespace SolTechnology.Avro.Features.Serialize
 
         internal void Append(object datum)
         {
-            _writeItem(datum, _chunkWriter);
+            if (datum == null)
+            {
+                _writeItem ??= new WriteResolver(_options).ResolveWriter(_schema);
+                _writeItem(datum, _chunkWriter);
+            }
+            else
+            {
+                var type = datum.GetType();
+                if (!ReferenceEquals(type, _typedRootType))
+                {
+                    _typedRootType = type;
+                    _typedWriteItem = WritePlanCache.Get(_schema, type, _options);
+                }
+
+                _typedWriteItem(datum, _chunkWriter);
+            }
 
             _blockCount++;
 

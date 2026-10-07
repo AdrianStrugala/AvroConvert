@@ -27,10 +27,7 @@ namespace SolTechnology.Avro
         /// </summary>
         public static string GenerateSchema(Type type)
         {
-            var schemaBuilder = new ReflectionSchemaBuilder();
-            var schema = schemaBuilder.BuildSchema(type);
-
-            return schema.ToString();
+            return Schema.Create(type, null).ToString();
         }
 
 
@@ -54,10 +51,7 @@ namespace SolTechnology.Avro
         /// <returns></returns>
         public static string GenerateSchema(Type type, AvroConvertOptions options)
         {
-            var builder = new ReflectionSchemaBuilder(options);
-            var schema = builder.BuildSchema(type);
-
-            return schema.ToString();
+            return Schema.Create(type, options).ToString();
         }
     }
 }

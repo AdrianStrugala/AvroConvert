@@ -1,9 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Authors>Adrian Strugala</Authors>
-    <Version>3.0.1</Version>
+    <Company>SolTechnology</Company>
+    <Version>4.0.0-preview.1</Version>
     <Description>Library containing functionalities, which enable communication between microservices using Avro data format</Description>
     <PackageLicenseUrl>https://creativecommons.org/licenses/by-nc-sa/3.0/</PackageLicenseUrl>
     <PackageProjectUrl>https://xabe.net/product/avroconvert/</PackageProjectUrl>
@@ -28,8 +29,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AvroConvert" Version="3.4.10" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.0" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AvroConvert\AvroConvert.csproj" />
   </ItemGroup>
 
 </Project>

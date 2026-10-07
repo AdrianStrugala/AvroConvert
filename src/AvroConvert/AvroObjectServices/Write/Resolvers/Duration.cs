@@ -16,7 +16,7 @@
 #endregion
 
 using System;
-using System.Runtime.InteropServices;
+using System.Buffers.Binary;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Infrastructure.Exceptions;
@@ -34,30 +34,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
             Span<byte> buffer = stackalloc byte[baseSchema.Size];
             buffer.Slice(0, 4).Fill(0);
 
-#if NET6_0_OR_GREATER
-            var days = duration.Days;
-            var daysBytes = MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref days, 1));
-#else
-            var daysBytes = BitConverter.GetBytes(duration.Days);
-#endif
-            daysBytes.CopyTo(buffer.Slice(4, 4));
-
             var milliseconds = ((duration.Hours * 60 + duration.Minutes) * 60 + duration.Seconds) * 1000 +
                                duration.Milliseconds;
-#if NET6_0_OR_GREATER
-            var millisecondsBytes = MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref milliseconds, 1));
-#else
-            var millisecondsBytes = BitConverter.GetBytes(milliseconds);
-#endif
-            millisecondsBytes.CopyTo(buffer.Slice(8, 4));
+            BinaryPrimitives.WriteInt32LittleEndian(buffer.Slice(4, 4), duration.Days);
+            BinaryPrimitives.WriteInt32LittleEndian(buffer.Slice(8, 4), milliseconds);
 
-            if (!BitConverter.IsLittleEndian)
-                buffer.Reverse();
-#if NET6_0_OR_GREATER
             writer.WriteFixed(buffer);
-#else
-            writer.WriteFixed(buffer.ToArray());
-#endif
 
         }
     }

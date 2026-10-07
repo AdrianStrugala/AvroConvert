@@ -58,11 +58,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes
             Span<byte> decimalByteBuffer = stackalloc byte[16];
             WriteDecimalBytes(ref decimalByteBuffer, value);
             
-#if NET6_0_OR_GREATER
             var unscaledValue = new BigInteger(decimalByteBuffer.Slice(0, 12));
-#else
-            var unscaledValue = new BigInteger(decimalByteBuffer.Slice(0, 12).ToArray());
-#endif
             if (decimalByteBuffer[15] == 128)
                 unscaledValue *= BigInteger.MinusOne;
 
@@ -78,11 +74,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes
             Span<char> buffer = stackalloc char[value.Length - 1];
             GetValueWithoutSeparator(value, ref buffer, out var indexOfSeparatorCharacter);
 
-#if NET6_0_OR_GREATER
             UnscaledValue = BigInteger.Parse(buffer);
-#else
-            UnscaledValue = BigInteger.Parse(buffer.ToString());
-#endif
             var scale = value.Length - indexOfSeparatorCharacter - 1;
             Scale = scale;
 
@@ -795,12 +787,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes
         
         private static void WriteDecimalBytes(ref Span<byte> buffer, decimal d)
         {   
-#if NET6_0_OR_GREATER
             Span<int> bits = stackalloc int[4];
             decimal.GetBits(d, bits);
-#else
-            int[] bits = decimal.GetBits(d); 
-#endif  
             int lo = bits[0];
             int mid = bits[1];
             int hi = bits[2];

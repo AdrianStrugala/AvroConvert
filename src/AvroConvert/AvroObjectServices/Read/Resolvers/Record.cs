@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Serialization;
+using System.Runtime.CompilerServices;
 using FastMember;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 
@@ -41,7 +41,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         {
             if (type != typeof(object))
             {
-                object result = FormatterServices.GetUninitializedObject(type);
+                object result = RuntimeHelpers.GetUninitializedObject(type);
                 var typeHash = type.GetHashCode();
 
                 TypeAccessor accessor;
@@ -164,7 +164,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 
         private object ReadForType(RecordSchema writerSchema, RecordSchema readerSchema, IReader reader, Type clrType)
         {
-            object result = FormatterServices.GetUninitializedObject(clrType);
+            object result = RuntimeHelpers.GetUninitializedObject(clrType);
             var accessor = TypeAccessor.Create(clrType, true);
             foreach (RecordFieldSchema wf in writerSchema.Fields)
             {

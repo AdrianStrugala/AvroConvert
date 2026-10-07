@@ -72,7 +72,8 @@ namespace SolTechnology.Avro.Features.GenerateModel
                 ac.Write(sb);
             }
 
-            return sb.ToString();
+            // Generated code uses CRLF regardless of the host platform so the output is deterministic.
+            return sb.Replace("\r\n", "\n").Replace("\n", "\r\n").ToString();
         }
 
 

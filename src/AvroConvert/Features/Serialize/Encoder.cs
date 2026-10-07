@@ -70,9 +70,7 @@ namespace SolTechnology.Avro.Features.Serialize
         private void GenerateSyncData()
         {
             _header.SyncData = new byte[16];
-
-            Random random = new Random();
-            random.NextBytes(_header.SyncData);
+            System.Security.Cryptography.RandomNumberGenerator.Fill(_header.SyncData);
         }
 
         internal void Append(object datum)

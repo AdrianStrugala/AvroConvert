@@ -35,13 +35,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
                     throw new AvroTypeMismatchException($"[Guid] required to write against [string] of [Uuid] schema but found [{value.GetType()}]");
                 }
 
-#if NET6_0_OR_GREATER
                 Span<byte> buffer = stackalloc byte[36];
                 Utf8Formatter.TryFormat(guid, buffer, out _);
                 encoder.WriteBytes(buffer);
-#else
-                encoder.WriteString(guid.ToString());
-#endif
             };
         }
     }

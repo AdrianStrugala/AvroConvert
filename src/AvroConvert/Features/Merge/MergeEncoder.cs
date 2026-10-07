@@ -116,9 +116,7 @@ namespace SolTechnology.Avro.Features.Merge
         private void GenerateSyncData()
         {
             _header.SyncData = new byte[16];
-
-            Random random = new Random();
-            random.NextBytes(_header.SyncData);
+            System.Security.Cryptography.RandomNumberGenerator.Fill(_header.SyncData);
         }
 
         public void Dispose()

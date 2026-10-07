@@ -25,7 +25,10 @@ namespace SolTechnology.Avro.Kafka.Serialization
             int id = 0;
             var schema = AvroConvert.GenerateSchema(typeof(T));
             var dataTypeName = typeof(T).FullName;
-            string subject = context.Component == MessageComponentType.Key ? RegistryClient.ConstructKeySubjectName(context.Topic, dataTypeName) : RegistryClient.ConstructValueSubjectName(context.Topic, dataTypeName);
+            // TopicNameStrategy: {topic}-key / {topic}-value
+            string subject = context.Component == MessageComponentType.Key
+                ? $"{context.Topic}-key"
+                : $"{context.Topic}-value";
 
             if (cache.ContainsKey(subject))
             {

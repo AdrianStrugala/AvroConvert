@@ -6,7 +6,6 @@ using System.Text;
 using AutoFixture;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
-using BrotliSharpLib;
 using GrandeBenchmark;
 using GroBuf;
 using GroBuf.DataMembersExtracters;
@@ -143,12 +142,21 @@ namespace SolTechnology.PerformanceBenchmark
 
         internal byte[] BrotliJson(byte[] uncompressedData)
         {
-            return Brotli.CompressBuffer(uncompressedData, 0, uncompressedData.Length, 4);
+            using var output = new MemoryStream();
+            using (var brotli = new BrotliStream(output, CompressionLevel.Optimal, leaveOpen: true))
+            {
+                brotli.Write(uncompressedData, 0, uncompressedData.Length);
+            }
+            return output.ToArray();
         }
 
         internal byte[] UnBrotliJson(byte[] compressedData)
         {
-            return Brotli.DecompressBuffer(compressedData, 0, compressedData.Length /**, customDictionary **/);
+            using var input = new MemoryStream(compressedData);
+            using var brotli = new BrotliStream(input, CompressionMode.Decompress);
+            using var output = new MemoryStream();
+            brotli.CopyTo(output);
+            return output.ToArray();
         }
 
     }

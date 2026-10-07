@@ -69,11 +69,7 @@ Consider adding following attribute to your property:
             var logicalValueString = logicalValue.ToString();
 
             string valueWithTrailingZeros;
-#if NET6_0_OR_GREATER
             if (logicalValueString.Contains(avroDecimal.SeparatorCharacter))
-#else
-            if (logicalValueString.Contains(avroDecimal.SeparatorCharacter.ToString()))
-#endif
             {
                 valueWithTrailingZeros = $"{logicalValueString}{trailingZeros}";
             }
@@ -84,14 +80,9 @@ Consider adding following attribute to your property:
 
             avroDecimal = new AvroDecimal(valueWithTrailingZeros);
 
-#if NET6_0_OR_GREATER
             Span<byte> buffer = stackalloc byte[avroDecimal.UnscaledValue.GetByteCount(isUnsigned: false)];
             avroDecimal.UnscaledValue.TryWriteBytes(buffer, out var _);
             buffer.Reverse();
-#else            
-            var buffer = new Span<byte>(avroDecimal.UnscaledValue.ToByteArray());
-            buffer.Reverse();
-#endif
             var result = AvroType.Bytes == schema.BaseTypeSchema.Type
                 ? buffer
                 : new AvroFixed(

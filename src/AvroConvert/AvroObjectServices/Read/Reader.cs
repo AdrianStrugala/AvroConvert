@@ -145,7 +145,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         public string ReadString()
         {
             int length = ReadInt();
-#if NET6_0_OR_GREATER
             if (length <= 512)
             {
                 Span<byte> buffer = stackalloc byte[length];
@@ -161,11 +160,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                 ArrayPool<byte>.Shared.Return(bufferArray);
                 return result;
             }
-#else
-            byte[] buffer = new byte[length];
-            ReadFixed(buffer);
-            return System.Text.Encoding.UTF8.GetString(buffer);
-#endif
         }
 
         public int ReadEnum()
@@ -198,12 +192,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             return ReadInt();
         }
 
-#if NET6_0_OR_GREATER
         public void ReadFixed(Span<byte> buffer)
         {
             Read(buffer);
         }
-#endif
 
         public void ReadFixed(byte[] buffer)
         {
@@ -302,7 +294,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             }
         }
 
-#if NET6_0_OR_GREATER
         private void Read(Span<byte> buffer)
         {
             int length = buffer.Length;
@@ -316,7 +307,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                 length -= bytesWritten;
             }
         }
-#endif
 
         private long DoReadItemCount()
         {

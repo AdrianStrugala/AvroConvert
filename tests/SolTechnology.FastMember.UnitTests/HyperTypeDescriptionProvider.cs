@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.ComponentModel;
-using System.Security.Permissions;
 
 /* Change history:
  * 20 Apr 2007  Marc Gravell    Rollback dictionary on error;
@@ -46,9 +45,6 @@ namespace Hyper.ComponentModel {
                 return descriptor;
             }
         }
-#pragma warning disable CS0618, CS0612
-        [ReflectionPermission( SecurityAction.Assert, Flags = ReflectionPermissionFlag.AllFlags)]
-#pragma warning restore CS0618, CS0612
         private ICustomTypeDescriptor BuildDescriptor(Type objectType)
         {
             // NOTE: "descriptors" already locked here

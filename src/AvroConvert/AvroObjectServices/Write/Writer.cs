@@ -80,46 +80,16 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
 
         public void WriteFloat(float value)
         {
-#if NET6_0_OR_GREATER
             Span<byte> buffer = stackalloc byte[4];
             BinaryPrimitives.WriteSingleLittleEndian(buffer, value);
-
-            if (!BitConverter.IsLittleEndian)
-            {
-                buffer.Reverse();
-            }
-
             WriteBytesRaw(buffer);
-#else
-            byte[] buffer = BitConverter.GetBytes(value);
-            if (!BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(buffer);
-            }
-            WriteBytesRaw(buffer);
-#endif
         }
 
         public void WriteDouble(double value)
         {
-#if NET6_0_OR_GREATER
             Span<byte> buffer = stackalloc byte[8];
             BinaryPrimitives.WriteDoubleLittleEndian(buffer, value);
-
-            if (!BitConverter.IsLittleEndian)
-            {
-                buffer.Reverse();
-            }
-
             WriteBytesRaw(buffer);
-#else
-            var bytes = BitConverter.GetBytes(value);
-            if (!BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(bytes);
-            }
-            WriteBytesRaw(bytes);
-#endif
         }
 
         /// <summary>
@@ -153,7 +123,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
         /// <param name="value"></param>
         public void WriteString(string value)
         {
-#if NET6_0_OR_GREATER
             int maxByteCount = System.Text.Encoding.UTF8.GetMaxByteCount(value.Length);
 
             if (maxByteCount <= 512)
@@ -174,9 +143,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
 
                 ArrayPool<byte>.Shared.Return(rentedBuffer);
             }
-#else
-            WriteBytes(System.Text.Encoding.UTF8.GetBytes(value));
-#endif
         }
 
         public void WriteEnum(int value)
@@ -223,11 +189,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
 
         public void WriteFixed(ReadOnlySpan<byte> bytes)
         {
-#if NET6_0_OR_GREATER
             _stream.Write(bytes);
-#else
-            WriteBytesRaw(bytes.ToArray());
-#endif
         }
 
         public void WriteFixed(byte[] data, int start, int len)
@@ -242,11 +204,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
 
         public void WriteBytesRaw(ReadOnlySpan<byte> bytes)
         {
-#if NET6_0_OR_GREATER
             _stream.Write(bytes);
-#else
-            _stream.Write(bytes.ToArray(), 0, bytes.Length);
-#endif
         }
 
         private void WriteByte(byte b)

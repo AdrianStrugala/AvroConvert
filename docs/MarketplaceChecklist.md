@@ -65,7 +65,7 @@ Osobne prywatne repo `sol-technology/licensing` (TypeScript, `wrangler`), bo zaw
 
 **Kroki**
 - [ ] Resend: konto, domena `soltechnology.dev` (SPF/DKIM w Cloudflare DNS), adres `licensing@`.
-- [ ] Repo + Worker: webhook, podpis, D1, Resend; testy jednostkowe podpisu krzyżowo z `LicenseKeyGenerator verify`.
+- [x] Repo + Worker: `~/Documents/GitHub/licensing` (webhook, podpis, D1, Resend, certyfikat PDF, testy); podpis zweryfikowany krzyżowo z `LicenseKeyGenerator verify`. Do zrobienia: utworzyć prywatne repo `sol-technology/licensing` na GitHubie i wypchnąć; kroki wdrożenia w jego README.
 - [ ] Paddle sandbox → Notifications → destination `https://licensing.soltechnology.dev/paddle/webhook` (custom domain Workera), zdarzenia `transaction.completed`, `adjustment.created`; test „Simulate” + prawdziwy zakup testową kartą.
 - [ ] Strona: pole licensee + `customData`; tekst „A licence key by e-mail within minutes” już jest.
 - [ ] Produkcja: te same kroki z produkcyjnym sekretem webhooka i `PRICE_*`.

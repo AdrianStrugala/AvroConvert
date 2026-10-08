@@ -9,6 +9,7 @@ using System.Runtime.Serialization;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.AvroObjectServices.Skip;
+using SolTechnology.Avro.Infrastructure.Attributes;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 using SolTechnology.Avro.Infrastructure.Reflection;
 using SolTechnology.Avro.Policies;
@@ -111,7 +112,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 
         // ------------------------------------------------------------------ core
 
-        private Expression Build(TypeSchema ws, TypeSchema rs, Type target, ParameterExpression reader)
+        private Expression Build(TypeSchema ws, TypeSchema rs, Type target, ParameterExpression reader, Type[] candidates = null)
         {
             if (_converters != null && _converters.TryGetValue(target, out var converter))
             {
@@ -151,7 +152,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                         {
                             throw new NotSupportedException($"Schema mismatch: reader schema [{rs.Type}] cannot read a record");
                         }
-                        return BuildRecord((RecordSchema)ws, readerRecord, target, reader);
+                        return BuildRecord((RecordSchema)ws, readerRecord, target, reader, candidates);
                     case AvroType.Enum:
                         return BuildEnum((EnumSchema)ws, target, reader);
                     case AvroType.Fixed:
@@ -161,7 +162,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                     case AvroType.Map:
                         return BuildMap((MapSchema)ws, rs, target, reader);
                     case AvroType.Union:
-                        return BuildUnion((UnionSchema)ws, rs, target, reader);
+                        return BuildUnion((UnionSchema)ws, rs, target, reader, candidates);
                     default:
                         throw new NotSupportedException($"Unknown schema type {ws.Type}");
                 }
@@ -357,7 +358,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             return Expression.Convert(map, target);
         }
 
-        private Expression BuildUnion(UnionSchema ws, TypeSchema rs, Type target, ParameterExpression reader)
+        private Expression BuildUnion(UnionSchema ws, TypeSchema rs, Type target, ParameterExpression reader, Type[] candidates = null)
         {
             var index = Expression.Call(reader, ReadUnionIndexMethod);
             var cases = new List<SwitchCase>(ws.Schemas.Count);
@@ -374,7 +375,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                 }
                 else
                 {
-                    body = Build(branchWs, branchRs, target, reader);
+                    body = Build(branchWs, branchRs, target, reader, candidates);
                 }
 
                 cases.Add(Expression.SwitchCase(body, Expression.Constant(i)));
@@ -386,8 +387,18 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 
         // ------------------------------------------------------------------ records
 
-        private Expression BuildRecord(RecordSchema ws, RecordSchema rs, Type target, ParameterExpression reader)
+        private Expression BuildRecord(RecordSchema ws, RecordSchema rs, Type target, ParameterExpression reader, Type[] candidates = null)
         {
+            if (candidates != null && (target == typeof(object) || target.IsAbstract || target.IsInterface))
+            {
+                // [AvroUnion] names the alternatives explicitly, so matching on the simple name is unambiguous.
+                var candidate = candidates.FirstOrDefault(t => t.Name == ws.Name) ?? candidates.FirstOrDefault(t => t.Name == rs.Name);
+                if (candidate != null && target.IsAssignableFrom(candidate))
+                {
+                    return Expression.Convert(BuildRecord(ws, rs, candidate, reader), target);
+                }
+            }
+
             if (target == typeof(object))
             {
                 // A CLR `object` member is described by an empty "System.Object" record; the writer schema is the only useful one.
@@ -455,7 +466,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                     continue;
                 }
 
-                Expression value = Build(wf.TypeSchema, rf.TypeSchema, member.Type, reader);
+                Expression value = Build(wf.TypeSchema, rf.TypeSchema, member.Type, reader, UnionCandidates(member.Info));
                 if (wf.HasDefaultValue && wf.DefaultValue != null && (!member.Type.IsValueType || Nullable.GetUnderlyingType(member.Type) != null))
                 {
                     // A null read for a field with a writer default yields that default.
@@ -500,6 +511,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             var lambda = Expression.Lambda(typeof(Func<,>).MakeGenericType(typeof(IReader), target), Expression.Block(target, new[] { instance }, body), reader);
             return lambda.Compile();
         }
+
+        private static Type[] UnionCandidates(MemberInfo member) =>
+            member.GetCustomAttribute<AvroUnionAttribute>(false)?.TypeAlternatives.ToArray();
 
         /// <summary>Dynamic record: an ExpandoObject with one entry per reader field (arrays as List&lt;object&gt;).</summary>
         private Expression BuildExpando(RecordSchema ws, RecordSchema rs, ParameterExpression reader)

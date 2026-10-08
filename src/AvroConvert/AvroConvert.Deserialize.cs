@@ -1,25 +1,18 @@
 ﻿#region license
-/**Copyright (c) 2021 Adrian Strugala
+/**Copyright (c) 2019-2026 Adrian Strugała (SolTechnology)
 *
-* Licensed under the CC BY-NC-SA 3.0 License(the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
+* Licensed under the PolyForm Noncommercial License 1.0.0, the PolyForm Small Business License 1.0.0,
+* or the SolTechnology Commercial Licence – pick the one that applies to you. See LICENSE.md:
 *
-* https://creativecommons.org/licenses/by-nc-sa/3.0/
+* https://github.com/AdrianStrugala/AvroConvert/blob/master/LICENSE.md
 *
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
 *
-* You are free to use or modify the code for personal usage.
-* For commercial usage purchase the product at
-*
-* https://xabe.net/product/avroconvert/
+* Required Notice: Copyright Adrian Strugała (https://soltechnology.dev)
 */
 #endregion
-
 using System;
 using System.IO;
 using System.Reflection;

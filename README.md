@@ -18,6 +18,7 @@
  <a href="https://www.nuget.org/packages/AvroConvert"><img src="https://img.shields.io/nuget/v/AvroConvert.svg?logo=nuget"></a>
  <a href="https://github.com/AdrianStrugala/AvroConvert/actions/workflows/build&test.yml"><img src="https://github.com/AdrianStrugala/AvroConvert/actions/workflows/build&test.yml/badge.svg"></a>
  <a href="https://www.nuget.org/packages/AvroConvert"><img src="https://img.shields.io/nuget/dt/AvroConvert.svg?label=NuGet%20Downloads&logo=nuget&color=blue"></a>
+ <a href="./LICENSE.md"><img src="https://img.shields.io/badge/licence-PolyForm%20NC%20%2F%20Small%20Business%20%2F%20Commercial-F59E0B.svg"></a>
  <br> 
 
 </p>
@@ -130,11 +131,25 @@ using (var reader = AvroConvert.OpenDeserializer<CustomClass>(new MemoryStream(a
 
 
 
-## License  
+## License
 
-AvroConvert is licensed under the [CC BY-NC-SA 3.0](https://creativecommons.org/licenses/by-nc-sa/3.0/) license.
+AvroConvert is source-available and **free for noncommercial use and for small companies**:
 
-For commercial use, please [purchase a license](https://xabe.net/product/avroconvert/).
+| You are… | Licence | Cost |
+|---|---|---|
+| Individual, student, non-profit, public institution, research or evaluation | [PolyForm Noncommercial 1.0.0](LICENSE-NONCOMMERCIAL.md) | Free |
+| Company with fewer than 100 people **and** under 1,000,000 USD annual revenue | [PolyForm Small Business 1.0.0](LICENSE-SMALL-BUSINESS.md) | Free |
+| Any other company or organisation | [Commercial Licence](LICENSE-COMMERCIAL.md) | Annual, per organisation, unlimited developers — [buy at soltechnology.dev](https://soltechnology.dev/avroconvert/) |
+
+Declare the licence you rely on (optional, silences a one-time `Trace` warning; nothing is validated):
+
+```csharp
+AvroConvert.License = AvroLicense.NonCommercial;                 // or AvroLicense.SmallBusiness
+AvroConvert.License = AvroLicense.Commercial("Your Company Ltd."); // name as on the invoice
+```
+
+or set the environment variable `AVROCONVERT_LICENSE=Commercial:Your Company Ltd.`. Details in [LICENSE.md](LICENSE.md).
+Versions 3.x remain under CC BY-NC-SA 3.0.
 
 ## Contribution
 

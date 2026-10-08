@@ -10,7 +10,6 @@ namespace CoreBenchmarks;
 public class WriterBenchmarksDuration
 {
     private TimeSpan _duration;
-    private WriteResolver _resolver;
     private DurationSchema _schema;
     private IWriter _writer;
 

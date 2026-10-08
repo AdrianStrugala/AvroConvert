@@ -86,6 +86,8 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 throw new ArgumentNullException(nameof(schemaInJson));
             }
 
+            AvroConvert.EnsureLicenseNotice();
+
             // Parsed schemas are immutable, so the same JSON text (e.g. a file header) is parsed once per process.
             if (_parsedSchemaCache.TryGetValue(schemaInJson, out var cached))
             {
@@ -114,6 +116,8 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
         internal static TypeSchema Create(Type type, AvroConvertOptions options)
         {
+            AvroConvert.EnsureLicenseNotice();
+
             if (type is null)
             {
                 return new ReflectionSchemaBuilder(options).BuildSchema(null);
@@ -128,7 +132,10 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 _ => new ReflectionSchemaBuilder(options).BuildSchema(type));
         }
 
-        internal static TypeSchema Create(Type type) =>
-            _schemaCache.GetOrAdd(type, t => new ReflectionSchemaBuilder().BuildSchema(t));
+        internal static TypeSchema Create(Type type)
+        {
+            AvroConvert.EnsureLicenseNotice();
+            return _schemaCache.GetOrAdd(type, t => new ReflectionSchemaBuilder().BuildSchema(t));
+        }
     }
 }

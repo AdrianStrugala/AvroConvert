@@ -8,8 +8,10 @@
 		<Authors>Adrian Strugala</Authors>
 		<Company>SolTechnology</Company>
 		<Version>4.0.0-preview.1</Version>
-		<Description>Rapid Apache Avro serializer for .NET.</Description>
-		<PackageLicenseUrl>https://creativecommons.org/licenses/by-nc-sa/3.0/</PackageLicenseUrl>
+		<Description>Rapid Apache Avro serializer for .NET. Free for noncommercial use and for companies under 100 people / 1M USD revenue (PolyForm Noncommercial / Small Business); commercial licence for other organisations – see LICENSE.md.</Description>
+		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+		<PackageReleaseNotes>4.0: new licence (PolyForm Noncommercial / Small Business / Commercial), net10.0 only, compiled typed serializers (up to 20x faster deserialization), spec fixes. See docs/CHANGELOG.md.</PackageReleaseNotes>
 		<PackageProjectUrl>https://soltechnology.dev/avroconvert/</PackageProjectUrl>
 		<RepositoryType>Dependency</RepositoryType>
 		<PackageTags>avro serialization deserialization standard apache core microservice big data bigdata kafka apache.avro</PackageTags>
@@ -38,14 +40,18 @@
 
 
 	<PropertyGroup>
-		<PackageIcon>docs\mini-logo.png</PackageIcon>
-		<PackageIconUrl>https://raw.githubusercontent.com/AdrianStrugala/AvroConvert/master/docs/mini-logo.png</PackageIconUrl>
+		<PackageIcon>avroconvert-icon.png</PackageIcon>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<None Include="..\..\README.md" Pack="true" PackagePath="\" />
-		<None Include="..\..\docs\mini-logo.png" Pack="true" Visible="false" PackagePath="docs\mini-logo.png" />
+		<None Include="..\..\LICENSE.md" Pack="true" PackagePath="\" />
+		<None Include="..\..\LICENSE-NONCOMMERCIAL.md" Pack="true" PackagePath="\" />
+		<None Include="..\..\LICENSE-SMALL-BUSINESS.md" Pack="true" PackagePath="\" />
+		<None Include="..\..\LICENSE-COMMERCIAL.md" Pack="true" PackagePath="\" />
+		<None Include="NOTICE" Pack="true" PackagePath="\" />
+		<None Include="..\..\docs\avroconvert-icon.png" Pack="true" Visible="false" PackagePath="\" />
 	</ItemGroup>
 
 

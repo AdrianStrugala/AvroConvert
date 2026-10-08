@@ -7,8 +7,8 @@
 		<Company>SolTechnology</Company>
 		<Version>4.0.0-preview.1</Version>
 		<Description>Library containing extensions for Confluent Kafka platform</Description>
-		<PackageLicenseUrl>https://creativecommons.org/licenses/by-nc-sa/3.0/</PackageLicenseUrl>
-		<PackageProjectUrl>https://xabe.net/product/avroconvert/</PackageProjectUrl>
+		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+		<PackageProjectUrl>https://soltechnology.dev/avroconvert/</PackageProjectUrl>
 		<RepositoryType>Dependency</RepositoryType>
 		<PackageTags>avro communication event bus confluent apache kafka core microservice apache.avro</PackageTags>
 		<PackageId>SolTechnology.Avro.Kafka</PackageId>
@@ -18,6 +18,11 @@
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\..\LICENSE.md" Pack="true" PackagePath="\" />
+		<None Include="..\..\docs\avroconvert-icon.png" Pack="true" Visible="false" PackagePath="\" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Confluent.Kafka" Version="2.*" />

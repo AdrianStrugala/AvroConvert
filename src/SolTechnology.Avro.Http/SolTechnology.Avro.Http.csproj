@@ -6,8 +6,8 @@
     <Company>SolTechnology</Company>
     <Version>4.0.0-preview.1</Version>
     <Description>Library containing functionalities, which enable communication between microservices using Avro data format</Description>
-    <PackageLicenseUrl>https://creativecommons.org/licenses/by-nc-sa/3.0/</PackageLicenseUrl>
-    <PackageProjectUrl>https://xabe.net/product/avroconvert/</PackageProjectUrl>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageProjectUrl>https://soltechnology.dev/avroconvert/</PackageProjectUrl>
     <RepositoryType>Dependency</RepositoryType>
     <PackageTags>avro communication http net core microservice apache.avro avro avroConvert </PackageTags>
     <ApplicationIcon />
@@ -20,12 +20,12 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageIcon>docs\mini-logo.png</PackageIcon>
-    <PackageIconUrl>https://raw.githubusercontent.com/AdrianStrugala/AvroConvert/master/docs/mini-logo.png</PackageIconUrl>
+    <PackageIcon>avroconvert-icon.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\docs\mini-logo.png" Pack="true" Visible="false" PackagePath="docs\mini-logo.png" />
+    <None Include="..\..\docs\avroconvert-icon.png" Pack="true" Visible="false" PackagePath="\" />
+    <None Include="..\..\LICENSE.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>

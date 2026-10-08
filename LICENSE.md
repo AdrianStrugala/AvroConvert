@@ -18,18 +18,22 @@ Required Notice: Copyright Adrian Strugała (https://soltechnology.dev)
 
 ## Declaring your licence in code
 
-AvroConvert does **not** validate licence keys, phone home or restrict functionality. Instead, it asks
-you to state which licence you rely on, so the choice is visible in your code base:
+AvroConvert does **not** phone home or restrict functionality. It asks you to state which licence you
+rely on, so the choice is visible in your code base:
 
 ```csharp
 AvroConvert.License = AvroLicense.NonCommercial;
 // or
 AvroConvert.License = AvroLicense.SmallBusiness;
 // or
-AvroConvert.License = AvroLicense.Commercial("Your Company Ltd.");   // name as on the invoice
+AvroConvert.License = AvroLicense.Commercial("AVC1.…");   // licence key received by e-mail after purchase
 ```
 
-Without a declaration the library works normally and emits a single `Trace` warning per process.
+The same can be set through the `AVROCONVERT_LICENSE` environment variable (`NonCommercial`,
+`SmallBusiness` or the key). A commercial key is signed by SolTechnology and carries the licence number,
+licensee, plan and subscription end; the library verifies the signature and exposes these values
+(`AvroConvert.License.Licensee`, `.ValidUntil`, …) but an invalid or ended key only produces a `Trace`
+warning. Without any declaration the library works normally and emits a single `Trace` warning per process.
 
 ## Versions
 

@@ -1,5 +1,5 @@
 **v. 4.0.0 (preview)**
-- License changed to PolyForm Noncommercial / PolyForm Small Business (free) and SolTechnology Commercial; optional declaration via `AvroConvert.License` or `AVROCONVERT_LICENSE`
+- License changed to PolyForm Noncommercial / PolyForm Small Business (free) and SolTechnology Commercial; optional declaration via `AvroConvert.License` or `AVROCONVERT_LICENSE`; commercial licence keys are signed tokens parsed by `AvroLicense.Commercial` (nothing is restricted)
 - Target framework net10.0 only; netstandard2.0 and net6.0 dropped
 - Dependencies reduced to Newtonsoft.Json and IronSnappy; FastMember.dll no longer shipped
 - Serialization and deserialization compiled per schema and type; multiple times faster with a fraction of allocations

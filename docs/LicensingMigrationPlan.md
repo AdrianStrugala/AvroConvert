@@ -88,15 +88,18 @@ Nie jest to porada prawna – do potwierdzenia z księgową/doradcą.
 - 27 plików z CC BY-NC-SA: zamienić na nagłówek PolyForm NC / Small Business / Commercial z linkiem do `LICENSE.md`. Lista: `grep -rl "CC BY-NC-SA" src/`.
 - Pliki z nagłówkiem Apache 2.0 – bez zmian.
 
-### 5.4 Deklaracja licencji zamiast klucza (zrealizowane 08.10.2026)
+### 5.4 Podpisany klucz bez egzekucji (zrealizowane 08.10.2026)
 
 Przegląd rynku (.NET): ImageSharp / FluentAssertions 8 – czysto prawne; **EPPlus** (PolyForm NC, `ExcelPackage.LicenseContext` / `License.SetNonCommercialPersonal`) i **QuestPDF** (`Settings.License`) – deklaracja bez walidacji; AutoMapper/MediatR, Duende – miękki klucz podpisany; NServiceBus, Syncfusion – twardy klucz/trial; Hangfire Pro – prywatny feed. Antyprzykład: Moq + SponsorLink (telemetria → exodus użytkowników).
 
-Decyzja: model EPPlus/QuestPDF w łagodnym wariancie:
-- `AvroConvert.License = AvroLicense.NonCommercial | SmallBusiness | Commercial("nazwa z faktury")` albo zmienna `AVROCONVERT_LICENSE` (`NonCommercial`, `SmallBusiness`, `Commercial:Nazwa`).
-- Bez deklaracji: jedno `Trace.TraceWarning` na proces (przy pierwszym tworzeniu/parsowaniu schematu), zero ograniczeń. W 5.0 do rozważenia: deklaracja obowiązkowa (wyjątek), jeśli konwersja będzie słaba.
-- Zero kryptografii, generatora kluczy, wygasania, telemetrii. „Dowód” licencji komercyjnej = nazwa w kodzie zgodna z nazwą na fakturze Paddle + certyfikat PDF wysyłany po zakupie.
+Decyzja (08.10, po dyskusji „deklaracja nazwy” vs „klucz”): model AutoMapper/MediatR – klucz podpisany, parsowany, **nieegzekwowany**:
+- `AvroConvert.License = AvroLicense.NonCommercial | SmallBusiness | Commercial("AVC1.…")` albo zmienna `AVROCONVERT_LICENSE` (`NonCommercial`, `SmallBusiness` lub sam klucz).
+- Klucz: `AVC1.<base64url JSON>.<base64url podpis>`; payload `{id, licensee, product, plan, issued, expires}`; podpis ECDSA P-256/SHA-256 (IEEE P1363) nad ASCII `AVC1.<payload>`. Klucz publiczny (SPKI) wkompilowany w `AvroLicense`; prywatny w `~/.config/soltechnology/avroconvert-signing.pem` (menedżer haseł) i jako sekret Workera. ECDSA zamiast Ed25519, bo .NET ma je wbudowane, a WebCrypto w Cloudflare Workers podpisuje tym samym formatem.
+- Biblioteka: ciąg nieparsowalny → `ArgumentException` (literówka ma być głośna); zły podpis albo `expires` wcześniejsze niż `AvroConvert.ReleaseDate` (AssemblyMetadata z csproj) → klucz przyjęty, jedno `Trace.TraceWarning`. Bez deklaracji – jedno ostrzeżenie na proces. Zero ograniczeń funkcji, zero telemetrii. Wygaśnięcie respektuje perpetual fallback z licencji: ostrzega tylko wersja wydana po końcu subskrypcji.
+- Numer licencji `AVC-<rok>-<6 znaków Crockford base32>`; ten sam numer przez cały okres subskrypcji (odnowienie = nowy klucz z nowym `expires`, ten sam `id`).
+- Narzędzie `tools/LicenseKeyGenerator`: `keygen` (raz), `issue --licensee --plan [--expires] [--id]`, `verify`. Do wystawiania ręcznego (oferty, PO, przelew) i jako wzorzec dla Workera (§8.5 w `MarketplaceChecklist.md`).
 - Widoczność (model prawny): `PackageLicenseFile`, pliki licencji i `NOTICE` w paczce, opis i release notes w NuGet, sekcja i badge w README, nagłówki `.cs` z `Required Notice`.
+- W 5.0 do rozważenia: deklaracja obowiązkowa (wyjątek), jeśli konwersja będzie słaba – API już to umożliwia bez zmian po stronie klientów.
 
 ### 5.5 Testy
 - `tests/AvroConvertUnitTests/LicenseTests.cs`: parsowanie zmiennej środowiskowej, walidacja nazwy licencjobiorcy, brak wpływu deklaracji na serializację.

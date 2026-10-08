@@ -38,6 +38,11 @@
 		</AssemblyAttribute>
 	</ItemGroup>
 
+	<!-- Read by AvroConvert.ReleaseDate: a commercial subscription covers every version released before it ended. -->
+	<ItemGroup>
+		<AssemblyMetadata Include="ReleaseDate" Value="$([System.DateTime]::UtcNow.ToString('yyyy-MM-dd'))" />
+	</ItemGroup>
+
 
 	<PropertyGroup>
 		<PackageIcon>avroconvert-icon.png</PackageIcon>

@@ -165,17 +165,23 @@ Assert.Equal(expectedAvro, resultAvro);
 
 AvroConvert is free for noncommercial use and for companies under 100 people / 1,000,000 USD revenue; other
 organisations need a commercial licence (see [LICENSE.md](../LICENSE.md)). Declare which licence your application
-relies on — the declaration is informational (nothing is validated, functionality is never restricted) and
-silences the one-time `Trace` warning emitted when no licence is declared:
+relies on — functionality is never restricted, and the declaration silences the one-time `Trace` warning emitted
+when no licence is declared:
 
 ```csharp
 AvroConvert.License = AvroLicense.NonCommercial;
 AvroConvert.License = AvroLicense.SmallBusiness;
-AvroConvert.License = AvroLicense.Commercial("Your Company Ltd.");   // the name on the invoice
+AvroConvert.License = AvroLicense.Commercial("AVC1.…");   // licence key received by e-mail after purchase
 ```
 
 The same can be done without code changes through the `AVROCONVERT_LICENSE` environment variable:
-`NonCommercial`, `SmallBusiness` or `Commercial:Your Company Ltd.`.
+`NonCommercial`, `SmallBusiness` or the key itself.
+
+A commercial key is a signed token (`AVC1.<payload>.<signature>`, ECDSA P-256) that carries the licence number,
+licensee, plan and subscription end. `AvroLicense.Commercial` verifies the signature and exposes the values as
+`Id`, `Licensee`, `Plan`, `ValidUntil` and `IsSignatureValid`; a malformed string throws `ArgumentException`,
+while a key with a wrong signature or a subscription that ended before this version was released is accepted
+and only produces a `Trace` warning (versions released during the subscription stay licensed for ever).
 
 ### Options reference (4.0)
 

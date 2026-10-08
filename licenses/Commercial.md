@@ -69,8 +69,10 @@ the Software; the perpetual fallback in section 3 does not survive termination f
 This licence is governed by the laws of Poland. Disputes are subject to the courts competent for the
 seat of SolTechnology, without prejudice to mandatory consumer protection rules where they apply.
 
-## 11. Declaration in code
+## 11. Licence key
 
-The Customer should declare the licence in its code base
-(`AvroConvert.License = AvroLicense.Commercial("<name on invoice>")`). The declaration is for
-transparency and audits only; the Software does not validate it.
+After purchase the Customer receives by e-mail a licence certificate and a licence key naming the
+Customer, the plan and the Subscription Term. The Customer should declare it in its code base
+(`AvroConvert.License = AvroLicense.Commercial("<licence key>")`). The key is for transparency and
+audits only; the Software never restricts functionality based on it. The Customer may share the key
+within its organisation but not with third parties.

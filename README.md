@@ -146,14 +146,14 @@ AvroConvert is source-available and **free for noncommercial use and for small c
 | Company with fewer than 100 people **and** under 1,000,000 USD annual revenue | [PolyForm Small Business 1.0.0](licenses/PolyForm-Small-Business-1.0.0.md) | Free |
 | Any other company or organisation | [Commercial Licence](licenses/Commercial.md) | Annual, per organisation, unlimited developers — [buy at soltechnology.dev](https://soltechnology.dev/avroconvert/) |
 
-Declare the licence you rely on (optional, silences a one-time `Trace` warning; nothing is validated):
+Declare the licence you rely on (optional, silences a one-time `Trace` warning; functionality is never restricted):
 
 ```csharp
-AvroConvert.License = AvroLicense.NonCommercial;                 // or AvroLicense.SmallBusiness
-AvroConvert.License = AvroLicense.Commercial("Your Company Ltd."); // name as on the invoice
+AvroConvert.License = AvroLicense.NonCommercial;          // or AvroLicense.SmallBusiness
+AvroConvert.License = AvroLicense.Commercial("AVC1.…");   // licence key received by e-mail after purchase
 ```
 
-or set the environment variable `AVROCONVERT_LICENSE=Commercial:Your Company Ltd.`. Details in [LICENSE.md](LICENSE.md).
+or set the environment variable `AVROCONVERT_LICENSE` to `NonCommercial`, `SmallBusiness` or the key. Details in [LICENSE.md](LICENSE.md).
 Versions 3.x remain under CC BY-NC-SA 3.0.
 
 ## Contribution

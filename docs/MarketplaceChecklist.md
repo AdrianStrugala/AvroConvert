@@ -50,7 +50,7 @@ Klucz jest podpisany (ECDSA P-256), ale nieegzekwowany – biblioteka bez klucza
 
 ### 4.1 Automat (Cloudflare Worker) – plan
 
-Osobne prywatne repo `sol-technology/licensing` (TypeScript, `wrangler`), bo zawiera szablony maili i logikę fulfillmentu; sekrety wyłącznie jako Worker Secrets.
+Osobne prywatne repo `Sol-Technology/sol-technology-licensing` (TypeScript, `wrangler`), bo zawiera szablony maili i logikę fulfillmentu; sekrety wyłącznie jako Worker Secrets.
 
 **Przepływ**
 1. Strona (`avroconvert.astro`): przed `Paddle.Checkout.open` pole „Licensee (company name as it should appear on the licence)” – wymagane, przekazywane jako `customData.licensee`. Paddle Checkout dodatkowo zbiera dane firmy (`business`) na życzenie klienta, ale pole na stronie jest jedynym pewnym źródłem nazwy.
@@ -65,7 +65,7 @@ Osobne prywatne repo `sol-technology/licensing` (TypeScript, `wrangler`), bo zaw
 
 **Kroki**
 - [ ] Resend: konto, domena `soltechnology.dev` (SPF/DKIM w Cloudflare DNS), adres `licensing@`.
-- [x] Repo + Worker: `~/Documents/GitHub/licensing` (webhook, podpis, D1, Resend, certyfikat PDF, testy); podpis zweryfikowany krzyżowo z `LicenseKeyGenerator verify`. Do zrobienia: utworzyć prywatne repo `sol-technology/licensing` na GitHubie i wypchnąć; kroki wdrożenia w jego README.
+- [x] Repo + Worker: `~/Documents/GitHub/licensing` → `https://github.com/Sol-Technology/sol-technology-licensing` (prywatne; webhook, podpis, D1, Resend, certyfikat PDF, testy); podpis zweryfikowany krzyżowo z `LicenseKeyGenerator verify`. Kroki wdrożenia w jego README.
 - [ ] Paddle sandbox → Notifications → destination `https://licensing.soltechnology.dev/paddle/webhook` (custom domain Workera), zdarzenia `transaction.completed`, `adjustment.created`; test „Simulate” + prawdziwy zakup testową kartą.
 - [ ] Strona: pole licensee + `customData`; tekst „A licence key by e-mail within minutes” już jest.
 - [ ] Produkcja: te same kroki z produkcyjnym sekretem webhooka i `PRICE_*`.

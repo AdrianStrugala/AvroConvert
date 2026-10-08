@@ -1,6 +1,6 @@
 ﻿
 <p align="center">
-    <img alt="SolTechnology-logo" src="./docs/logo.png" width="200">
+    <img alt="SolTechnology / AvroConvert" src="./docs/logo.png" width="420">
 </p>
 
 <h2 align="center">

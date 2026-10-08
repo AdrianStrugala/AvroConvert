@@ -1,24 +1,22 @@
 <p align="center">
-  <img alt="SolTechnology / AvroConvert" src="./docs/logo.png" width="420">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./docs/logo-dark.png">
+    <img alt="SolTechnology / AvroConvert" src="./docs/logo.png" width="300">
+  </picture>
 </p>
 
 <p align="center">
-  <b>Rapid Apache Avro serializer for .NET</b>
+  Rapid Apache Avro serializer for .NET
 </p>
 
 <p align="center">
-  <a href="https://www.nuget.org/packages/AvroConvert"><img alt="NuGet version" src="https://img.shields.io/nuget/v/AvroConvert.svg?logo=nuget"></a>
-  <a href="https://www.nuget.org/packages/AvroConvert"><img alt="NuGet downloads" src="https://img.shields.io/nuget/dt/AvroConvert.svg?label=downloads&logo=nuget&color=blue"></a>
-  <a href="https://github.com/AdrianStrugala/AvroConvert/actions/workflows/build&test.yml"><img alt="Build" src="https://github.com/AdrianStrugala/AvroConvert/actions/workflows/build&test.yml/badge.svg"></a>
-  <a href="https://github.com/AdrianStrugala/AvroConvert"><img alt="GitHub stars" src="https://img.shields.io/github/stars/AdrianStrugala/AvroConvert.svg?logo=github&color=yellow"></a>
-  <a href="./LICENSE.md"><img alt="Licence" src="https://img.shields.io/badge/licence-free%20for%20small%20teams%20%7C%20commercial-F59E0B.svg"></a>
-</p>
-
-<p align="center">
-  <a href="https://github.com/AdrianStrugala/AvroConvert/tree/master/docs">Documentation</a> ·
-  <a href="https://adrianstrugala.github.io/AvroConvert/">Try online</a> ·
-  <a href="https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/CHANGELOG.md">Changelog</a> ·
-  <a href="https://soltechnology.dev/avroconvert/#pricing">Pricing</a>
+ <a href="https://github.com/AdrianStrugala/AvroConvert"><img src="https://img.shields.io/github/stars/AdrianStrugala/AvroConvert.svg?label=%E2%AD%90%20Stars%20%E2%AD%90&color=yellow&style=flat&logo=github"></a>
+ <a href="https://adrianstrugala.github.io/AvroConvert/"><img src="https://img.shields.io/badge/AvroConvertOnline-Try%20Now-blue.svg?logo=google-chrome"></a>
+ <br>
+ <a href="https://www.nuget.org/packages/AvroConvert"><img src="https://img.shields.io/nuget/v/AvroConvert.svg?logo=nuget"></a>
+ <a href="https://github.com/AdrianStrugala/AvroConvert/actions/workflows/build&test.yml"><img src="https://github.com/AdrianStrugala/AvroConvert/actions/workflows/build&test.yml/badge.svg"></a>
+ <a href="https://www.nuget.org/packages/AvroConvert"><img src="https://img.shields.io/nuget/dt/AvroConvert.svg?label=NuGet%20Downloads&logo=nuget&color=blue"></a>
+ <a href="./LICENSE.md"><img src="https://img.shields.io/badge/licence-free%20under%20%241M%20%C2%B7%20commercial-F59E0B.svg"></a>
 </p>
 
 ## Installation

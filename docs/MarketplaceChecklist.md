@@ -45,8 +45,8 @@ Stan 07.10.2026: strona `https://soltechnology.dev` działa (GitHub Pages, HTTPS
 Klucz jest podpisany (ECDSA P-256), ale nieegzekwowany – biblioteka bez klucza działa w pełni i tylko loguje ostrzeżenie (szczegóły: `LicensingMigrationPlan.md` §5.4). Para kluczy już istnieje: publiczny w `AvroLicense`, prywatny w `~/.config/soltechnology/avroconvert-signing.pem`.
 
 - [ ] Skopiuj `avroconvert-signing.pem` do menedżera haseł (utrata = wszystkie wydane klucze przestają się weryfikować przy ponownym wygenerowaniu).
-- [ ] Ręczny proces na start i dla ofert/PO/przelewów: `dotnet run --project tools/LicenseKeyGenerator -- issue --licensee "Nazwa z faktury" --plan business|enterprise` → wklej klucz do e-maila z `support@` wraz z certyfikatem PDF (szablon w §4.1). Odnowienie: `--id` z poprzedniego klucza, nowe `--expires`.
-- [ ] Przy wsparciu: `… -- verify "AVC1.…"` pokazuje, co klient ma w kluczu.
+- [ ] Sprzedaż ręczna (oferty, PO, przelewy, klienci Xabe): w repo Workera `scripts/issue.sh --licensee "Nazwa z faktury" --email kupujacy@firma.com --plan business|enterprise --reference NR-FAKTURY` – ta sama ścieżka co zakup przez Paddle (D1, PDF, mail). Odnowienie: `--id` z poprzedniego klucza, nowe `--expires`. Wymaga sekretu `ADMIN_TOKEN` (patrz README Workera).
+- [ ] Przy wsparciu: `dotnet run scripts/verify.cs -- "AVC1.…"` w repo Workera pokazuje, co klient ma w kluczu.
 
 ### 4.1 Automat (Cloudflare Worker) – plan
 
@@ -56,7 +56,7 @@ Osobne prywatne repo `Sol-Technology/sol-technology-licensing` (TypeScript, `wra
 1. Strona (`avroconvert.astro`): przed `Paddle.Checkout.open` pole „Licensee (company name as it should appear on the licence)” – wymagane, przekazywane jako `customData.licensee`. Paddle Checkout dodatkowo zbiera dane firmy (`business`) na życzenie klienta, ale pole na stronie jest jedynym pewnym źródłem nazwy.
 2. Paddle → `POST /paddle/webhook` na `transaction.completed`. Worker: weryfikacja `Paddle-Signature` (`ts` + `h1` = HMAC-SHA256 sekretu nad `${ts}:${rawBody}`, tolerancja 5 min), idempotencja po `event_id` (D1), mapowanie `items[].price.id` → plan (zmienne `PRICE_BUSINESS`, `PRICE_ENTERPRISE`), `expires` = `billing_period.ends_at`, licencjobiorca = `custom_data.licensee` → `business.name` (API `GET /customers/{id}/businesses/{id}`) → nazwa klienta.
 3. Numer licencji: nowy dla nowej subskrypcji; dla `origin = subscription_recurring` ten sam `id` z D1 po `subscription_id`, nowy `expires`.
-4. Podpis: WebCrypto `importKey("pkcs8", …, {name:"ECDSA", namedCurve:"P-256"})` + `sign({name:"ECDSA", hash:"SHA-256"})` – daje format P1363, który czyta .NET. Payload i kolejność pól identyczne jak w `tools/LicenseKeyGenerator`.
+4. Podpis: WebCrypto `importKey("pkcs8", …, {name:"ECDSA", namedCurve:"P-256"})` + `sign({name:"ECDSA", hash:"SHA-256"})` – daje format P1363, który czyta .NET.
 5. D1 `licenses(id, subscription_id, transaction_id, customer_id, email, licensee, plan, issued, expires, key, status)`.
 6. Certyfikat PDF (`pdf-lib`): logo, numer, licencjobiorca, plan, okres, odnośnik do `licenses/Commercial.md`. E-mail przez Resend z `licensing@soltechnology.dev` (reply-to `support@`), klucz w treści + PDF w załączniku + instrukcja `AvroConvert.License = AvroLicense.Commercial("…")`, BCC na własną skrzynkę.
 7. `adjustment.created` (refund/chargeback) → `status = revoked` w D1 + mail do Ciebie; technicznie nic się nie dzieje (brak egzekucji). `subscription.canceled` → nic; klucz wygasa sam.
@@ -65,7 +65,7 @@ Osobne prywatne repo `Sol-Technology/sol-technology-licensing` (TypeScript, `wra
 
 **Kroki**
 - [ ] Resend: konto, domena `soltechnology.dev` (SPF/DKIM w Cloudflare DNS), adres `licensing@`.
-- [x] Repo + Worker: `~/Documents/GitHub/licensing` → `https://github.com/Sol-Technology/sol-technology-licensing` (prywatne; webhook, podpis, D1, Resend, certyfikat PDF, testy); podpis zweryfikowany krzyżowo z `LicenseKeyGenerator verify`. Kroki wdrożenia w jego README.
+- [x] Repo + Worker: `~/Documents/GitHub/licensing` → `https://github.com/Sol-Technology/sol-technology-licensing` (prywatne; webhook, `POST /admin/issue`, podpis, D1, Resend, certyfikat PDF, testy); wdrożony na `licensing.soltechnology.dev`, klucz z Workera zweryfikowany parserem .NET. Kroki wdrożenia w jego README.
 - [ ] Paddle sandbox → Notifications → destination `https://licensing.soltechnology.dev/paddle/webhook` (custom domain Workera), zdarzenia `transaction.completed`, `adjustment.created`; test „Simulate” + prawdziwy zakup testową kartą.
 - [ ] Strona: pole licensee + `customData`; tekst „A licence key by e-mail within minutes” już jest.
 - [ ] Produkcja: te same kroki z produkcyjnym sekretem webhooka i `PRICE_*`.

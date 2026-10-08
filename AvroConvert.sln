@@ -52,10 +52,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvroConvertOnline", "src\So
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AvroConvertInteropTests", "tests\AvroConvertInteropTests\AvroConvertInteropTests.csproj", "{CE707D7A-6297-4796-AC59-E6CF5CA0984E}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{07C2787E-EAC7-C090-1BA3-A61EC2A24D84}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LicenseKeyGenerator", "tools\LicenseKeyGenerator\LicenseKeyGenerator.csproj", "{33373F34-E2FE-4BB5-A98F-4ACD1DAAB1EC}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -292,22 +288,6 @@ Global
 		{CE707D7A-6297-4796-AC59-E6CF5CA0984E}.Release|x86.Build.0 = Release|Any CPU
 		{CE707D7A-6297-4796-AC59-E6CF5CA0984E}.Release|x64.ActiveCfg = Release|Any CPU
 		{CE707D7A-6297-4796-AC59-E6CF5CA0984E}.Release|x64.Build.0 = Release|Any CPU
-		{33373F34-E2FE-4BB5-A98F-4ACD1DAAB1EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{33373F34-E2FE-4BB5-A98F-4ACD1DAAB1EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{33373F34-E2FE-4BB5-A98F-4ACD1DAAB1EC}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{33373F34-E2FE-4BB5-A98F-4ACD1DAAB1EC}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{33373F34-E2FE-4BB5-A98F-4ACD1DAAB1EC}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{33373F34-E2FE-4BB5-A98F-4ACD1DAAB1EC}.Debug|x86.Build.0 = Debug|Any CPU
-		{33373F34-E2FE-4BB5-A98F-4ACD1DAAB1EC}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{33373F34-E2FE-4BB5-A98F-4ACD1DAAB1EC}.Debug|x64.Build.0 = Debug|Any CPU
-		{33373F34-E2FE-4BB5-A98F-4ACD1DAAB1EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{33373F34-E2FE-4BB5-A98F-4ACD1DAAB1EC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{33373F34-E2FE-4BB5-A98F-4ACD1DAAB1EC}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{33373F34-E2FE-4BB5-A98F-4ACD1DAAB1EC}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{33373F34-E2FE-4BB5-A98F-4ACD1DAAB1EC}.Release|x86.ActiveCfg = Release|Any CPU
-		{33373F34-E2FE-4BB5-A98F-4ACD1DAAB1EC}.Release|x86.Build.0 = Release|Any CPU
-		{33373F34-E2FE-4BB5-A98F-4ACD1DAAB1EC}.Release|x64.ActiveCfg = Release|Any CPU
-		{33373F34-E2FE-4BB5-A98F-4ACD1DAAB1EC}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -323,7 +303,6 @@ Global
 		{F2E89AF6-EFDD-4233-A15D-3AE4D5CFE48F} = {78EEDAB3-E0F3-4BDC-AB47-C5FBF60417B8}
 		{ADAE7FF2-F659-43D8-B826-D6D2C477E596} = {78EEDAB3-E0F3-4BDC-AB47-C5FBF60417B8}
 		{CE707D7A-6297-4796-AC59-E6CF5CA0984E} = {CCBD5998-CCF4-48BA-B80E-716F68613375}
-		{33373F34-E2FE-4BB5-A98F-4ACD1DAAB1EC} = {07C2787E-EAC7-C090-1BA3-A61EC2A24D84}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F9BF1700-C9CB-438A-B3CD-601762B9DCB2}

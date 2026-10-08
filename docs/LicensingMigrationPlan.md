@@ -97,7 +97,7 @@ Decyzja (08.10, po dyskusji „deklaracja nazwy” vs „klucz”): model AutoMa
 - Klucz: `AVC1.<base64url JSON>.<base64url podpis>`; payload `{id, licensee, product, plan, issued, expires}`; podpis ECDSA P-256/SHA-256 (IEEE P1363) nad ASCII `AVC1.<payload>`. Klucz publiczny (SPKI) wkompilowany w `AvroLicense`; prywatny w `~/.config/soltechnology/avroconvert-signing.pem` (menedżer haseł) i jako sekret Workera. ECDSA zamiast Ed25519, bo .NET ma je wbudowane, a WebCrypto w Cloudflare Workers podpisuje tym samym formatem.
 - Biblioteka: ciąg nieparsowalny → `ArgumentException` (literówka ma być głośna); zły podpis albo `expires` wcześniejsze niż `AvroConvert.ReleaseDate` (AssemblyMetadata z csproj) → klucz przyjęty, jedno `Trace.TraceWarning`. Bez deklaracji – jedno ostrzeżenie na proces. Zero ograniczeń funkcji, zero telemetrii. Wygaśnięcie respektuje perpetual fallback z licencji: ostrzega tylko wersja wydana po końcu subskrypcji.
 - Numer licencji `AVC-<rok>-<6 znaków Crockford base32>`; ten sam numer przez cały okres subskrypcji (odnowienie = nowy klucz z nowym `expires`, ten sam `id`).
-- Narzędzie `tools/LicenseKeyGenerator`: `keygen` (raz), `issue --licensee --plan [--expires] [--id]`, `verify`. Do wystawiania ręcznego (oferty, PO, przelew) i jako wzorzec dla Workera (§8.5 w `MarketplaceChecklist.md`).
+- Wystawianie kluczy wyłącznie w prywatnym repo Workera (`Sol-Technology/sol-technology-licensing`): webhook Paddle albo `POST /admin/issue` (`scripts/issue.sh`) dla sprzedaży ręcznej – jedna ścieżka (D1, PDF, mail). Awaryjnie `scripts/issue-offline.ts` z lokalnym PEM; `scripts/verify.cs` sprawdza klucz prawdziwym parserem .NET. W publicznym repo AvroConvert zostaje tylko weryfikacja.
 - Widoczność (model prawny): `PackageLicenseFile`, pliki licencji i `NOTICE` w paczce, opis i release notes w NuGet, sekcja i badge w README, nagłówki `.cs` z `Required Notice`.
 - W 5.0 do rozważenia: deklaracja obowiązkowa (wyjątek), jeśli konwersja będzie słaba – API już to umożliwia bez zmian po stronie klientów.
 
@@ -198,7 +198,7 @@ Wiele produktów na domenie (kolejne biblioteki, e-book): dozwolone i preferowan
 - Produkty i ceny: Business (roczna subskrypcja), Enterprise (roczna lub przez Invoicing z przelewem – 3,5% zamiast 5% + 0,50 USD), opcjonalnie e-book (one-off).
 - Kategoria podatkowa: "Software" / "Standard digital goods" dla biblioteki, "eBook" dla książki (Paddle wymaga wyboru taxable category).
 - Waluta rozliczeniowa konta (Payment Currency): EUR lub USD – raz wybrana.
-- Notification/webhook endpoint na `transaction.completed` i `subscription.*` → generowanie klucza licencyjnego i wysyłka e-mailem. Hosting webhooka: Azure Function / Cloudflare Worker (etap 2; na start klucze można wystawiać ręcznie z `tools/LicenseKeyGenerator`).
+- Notification/webhook endpoint na `transaction.completed` i `adjustment.*` → Cloudflare Worker `licensing.soltechnology.dev` generuje klucz, certyfikat PDF i wysyła e-mail (zrealizowane 08.10.2026; sprzedaż ręczna przez `POST /admin/issue`).
 - Checkout: overlay/inline Paddle.js na stronie cennika lub hosted checkout link.
 
 ### 8.5 Formalności po stronie PL

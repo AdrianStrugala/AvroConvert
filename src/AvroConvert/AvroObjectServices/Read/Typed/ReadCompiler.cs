@@ -390,8 +390,14 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         {
             if (target == typeof(object))
             {
+                // A CLR `object` member is described by an empty "System.Object" record; the writer schema is the only useful one.
+                if (rs.Fields.Count == 0 && rs.FullName == typeof(object).FullName)
+                {
+                    rs = ws;
+                }
+
                 var clrType = ClrTypeCache.Find(rs);
-                if (clrType != null)
+                if (clrType != null && clrType != typeof(object))
                 {
                     return Expression.Convert(BuildRecord(ws, rs, clrType, reader), typeof(object));
                 }

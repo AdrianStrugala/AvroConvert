@@ -13,6 +13,11 @@
 - Fixed non-public members with `[DataMember]` being skipped
 - Fixed `GenerateModel` output differing between operating systems
 - Support for string-convertible map keys (e.g. `Dictionary<Uri, T>`)
+- `ExpandoObject` serialization in default, headless and Avro2Json flows; schema inferred from the instance (#112)
+- `DeserializeHeadless<dynamic>` / `DeserializeHeadless<ExpandoObject>` with an explicit schema (#107)
+- Union of records read into an `object` member or `dynamic` (#174)
+- Closed generic types get distinct record names, e.g. `Field_String`, `Field_Int32` (#159)
+- Multidimensional arrays are rejected with an explicit error instead of being flattened (#26)
 - SolTechnology.Avro.Http and SolTechnology.Avro.Kafka moved to net10.0; Kafka on Confluent 2.x
 
 \

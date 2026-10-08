@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -281,6 +282,12 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 return BuildArrayTypeSchema(type, schemas, currentDepth, representation);
             }
 
+            // Shape known only at runtime: same empty record as `object`, so readers fall back to the writer schema.
+            if (type == typeof(ExpandoObject))
+            {
+                return BuildRecordTypeSchema(typeof(object), schemas, currentDepth);
+            }
+
             // Dictionary
             Type dictionaryType = type
                 .GetAllInterfaces()
@@ -379,6 +386,12 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         /// </returns>
         private TypeSchema BuildArrayTypeSchema(Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth, AvroTypeRepresentation? representation)
         {
+            if (type.GetArrayRank() > 1)
+            {
+                throw new SerializationException(
+                    string.Format(CultureInfo.InvariantCulture, "Multidimensional array '{0}' is not supported; use a jagged array (T[][]) instead.", type));
+            }
+
             Type element = type.GetElementType();
             TypeSchema elementSchema = this.CreateSchema(false, element, schemas, currentDepth + 1, representation);
             return new ArraySchema(elementSchema, type);

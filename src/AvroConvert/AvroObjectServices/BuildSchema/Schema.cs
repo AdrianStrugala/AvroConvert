@@ -18,10 +18,12 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Globalization;
 using System.IO;
 using Newtonsoft.Json;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
+using SolTechnology.Avro.Features.JsonToAvro;
 using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
@@ -109,6 +111,12 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             if (type is null)
             {
                 return new ReflectionSchemaBuilder(options).BuildSchema(null);
+            }
+
+            if (obj is ExpandoObject expando)
+            {
+                AvroConvert.EnsureLicenseNotice();
+                return new JsonSchemaBuilder().BuildSchema(new[] { expando });
             }
 
             return Create(type, options);

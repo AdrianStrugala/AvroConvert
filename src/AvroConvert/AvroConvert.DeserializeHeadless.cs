@@ -108,7 +108,7 @@ namespace SolTechnology.Avro
                 using UnmanagedMemoryStream stream = new(ptr, avroBytes.Length);
                 var reader = new Reader(stream);
                 var writeSchema = Schema.Parse(schema);
-                var readSchema = BuildSchema(typeof(T));
+                var readSchema = ReadSchemaOrWriter(BuildSchema(typeof(T)), writeSchema);
                 var resolver = new Resolver(writeSchema, readSchema);
                 var result = resolver.Resolve<T>(reader, 1);
 
@@ -120,12 +120,16 @@ namespace SolTechnology.Avro
         private static T DeserializeHeadless<T>(byte[] avroBytes, TypeSchema writeSchema, TypeSchema readSchema, int numberOfRows)
         {
             var reader = new Reader(avroBytes);
-            var resolver = new Resolver(writeSchema, readSchema);
+            var resolver = new Resolver(writeSchema, ReadSchemaOrWriter(readSchema, writeSchema));
             var result = resolver.Resolve<T>(reader, numberOfRows);
 
             return result;
         }
 
         private static TypeSchema BuildSchema(Type type) => Schema.Create(type);
+
+        /// <summary>dynamic / ExpandoObject targets carry no shape of their own; the writer schema is read as-is.</summary>
+        private static TypeSchema ReadSchemaOrWriter(TypeSchema readSchema, TypeSchema writeSchema) =>
+            readSchema == null || readSchema.IsEmpty() ? writeSchema : readSchema;
     }
 }

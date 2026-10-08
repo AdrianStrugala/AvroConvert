@@ -20,11 +20,14 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Dynamic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.AvroObjectServices.Read.Typed;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
+using SolTechnology.Avro.Features.JsonToAvro;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Policies;
 
@@ -49,7 +52,9 @@ namespace SolTechnology.Avro
         /// </summary>
         private static byte[] SerializeEntries(IEnumerable items, Type itemType, CodecType codecType, AvroConvertOptions options)
         {
-            var schema = Schema.Create(itemType, options);
+            var schema = itemType == typeof(ExpandoObject)
+                ? new JsonSchemaBuilder().BuildSchema(items.Cast<ExpandoObject>())
+                : Schema.Create(itemType, options);
             using MemoryStream resultStream = new MemoryStream();
             using (var writer = new Encoder(schema, resultStream, codecType, options))
             {

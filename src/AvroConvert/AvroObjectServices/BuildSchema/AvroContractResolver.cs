@@ -128,7 +128,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                     string.Format(CultureInfo.InvariantCulture, "Type '{0}' is not supported by the resolver.", type));
             }
 
-            var name = dataContract?.Name ?? type.Name;
+            var name = dataContract?.Name ?? type.GetAvroName();
             var ns = dataContract?.Namespace ?? type.Namespace;
 
             if (_namingPolicy != null)

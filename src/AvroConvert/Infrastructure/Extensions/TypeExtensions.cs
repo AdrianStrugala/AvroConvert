@@ -246,19 +246,18 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
             }
         }
 
-        internal static string GetStrippedFullName(this Type type)
+        /// <summary>Avro-safe type name; closed generics include their arguments so Field&lt;int&gt; and Field&lt;string&gt; do not collide.</summary>
+        internal static string GetAvroName(this Type type)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException("type");
-            }
-
-            if (string.IsNullOrEmpty(type.Namespace))
+            type = Nullable.GetUnderlyingType(type) ?? type;
+            if (!type.IsGenericType() || type.IsGenericTypeDefinition)
             {
                 return StripAvroNonCompatibleCharacters(type.Name);
             }
 
-            return StripAvroNonCompatibleCharacters(type.Namespace + "." + type.Name);
+            int tick = type.Name.IndexOf('`');
+            string baseName = tick < 0 ? type.Name : type.Name.Substring(0, tick);
+            return StripAvroNonCompatibleCharacters(baseName + "_" + string.Join("_", type.GetGenericArguments().Select(GetAvroName)));
         }
 
         internal static string StripAvroNonCompatibleCharacters(string value)

@@ -152,3 +152,18 @@ Wynik: dwie zależności zewnętrzne zamiast pięciu, oba kodeki managed.
 - `time-micros` bez spacji (S1) – jw., tylko tekst schematu.
 - Snappy: poprawny CRC (S3) – pliki z 3.x nadal się czytają (CRC nie jest walidowane przy odczycie; opcjonalnie `ValidateSnappyCrc = false` dla starych plików).
 - Nieznany `logicalType` nie rzuca wyjątku (S2).
+
+## 6. Publikacja 4.0.0 – checklista
+
+Stan 08.10.2026: kod, testy (1134 + 47 + 27), licencje, dokumentacja i CHANGELOG gotowe na `release/4.0`. Wersja w csproj: `4.0.0-preview.1`.
+
+1. **Preview** (można od razu): `scripts/pack.sh` (lub `pack.ps1`) → `artifacts/*.nupkg` → `dotnet nuget push artifacts/*.nupkg --source https://api.nuget.org/v3/index.json --api-key $NUGET_API_KEY`. Preview na nuget.org nie jest pokazywane jako „latest”, więc nikt nie dostanie go przez przypadek.
+2. Zebrać feedback z preview (tydzień–dwa): issue na GitHubie „4.0 preview – breaking changes” z linkiem do CHANGELOG i §5.
+3. Przed stabilnym 4.0.0:
+   - przegląd prawny `LICENSE-COMMERCIAL.md`, realna nazwa prawna JDG w pliku i w `config.ts` strony;
+   - Paddle: produkt + ceny (0 / 189 / 1299), Domain Review zaliczony, checkout na soltechnology.dev działa; webhook → e-mail z certyfikatem licencji (PDF) – do zbudowania;
+   - wznowienie JDG (CEIDG) – dopiero gdy checkout gotowy;
+   - `<Version>4.0.0</Version>` w trzech csproj, `docs/CHANGELOG.md` – data; tag `v4.0.0`;
+   - merge `release/4.0` → `master` (CI: `.github/workflows/build&test.yml` na .NET 10, artefakty nupkg); `release/3.x` zostaje gałęzią utrzymaniową 3.4.x.
+4. Po publikacji: GitHub Release z CHANGELOG, pinned issue o zmianie licencji, aktualizacja README/strony (badge wersji), zamknięcie issues #69, #87, #100 (częściowo), #118, zamknięcie PR #119 z podziękowaniem.
+5. Transfer repo do organizacji `sol-technology` (GitHub robi redirecty; NuGet `RepositoryUrl` do zmiany w kolejnym wydaniu).

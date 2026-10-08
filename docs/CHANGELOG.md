@@ -1,3 +1,41 @@
+**v. 4.0.0 (preview)**
+
+Major release: new licence, .NET 10 only, rewritten core. Full plan and rationale in `docs/V4ReleasePlan.md`.
+
+*Licence*
+- CC BY-NC-SA 3.0 replaced by **PolyForm Noncommercial 1.0.0 / PolyForm Small Business 1.0.0** (free) and the **SolTechnology Commercial Licence** (companies over 100 people or 1M USD revenue). Versions 3.x keep their licence.
+- Optional declaration `AvroConvert.License = AvroLicense.NonCommercial | SmallBusiness | Commercial("name")` or `AVROCONVERT_LICENSE`; nothing is validated, a single `Trace` warning is emitted when undeclared.
+
+*Platform*
+- Target framework **net10.0 only** (netstandard2.0 / net6.0 dropped – stay on 3.4.x for older runtimes).
+- Dependencies: BrotliSharpLib, Portable.System.DateTimeOnly, Microsoft.CSharp and the bundled FastMember removed. Remaining: Newtonsoft.Json, IronSnappy.
+- Satellite packages (SolTechnology.Avro.Http, SolTechnology.Avro.Kafka) moved to net10.0; Kafka on Confluent 2.x.
+
+*Performance* (Apple M1 Max, .NET 10; 3.4.17 → 4.0 on the same machine)
+- Serializers and deserializers are compiled per (schema, type) into strongly typed delegates (Expression trees): no boxing of primitives, no per-value schema dispatch, union branches and member access resolved once.
+- Deserialize flat record: 16.9 µs / 32 KB → 0.6 µs / 2.1 KB (**28×**). Serialize flat record: 2.7 µs / 8.4 KB → 0.8 µs / 2.7 KB.
+- Deserialize 1 000 records: 439 µs / 547 KB → 91 µs / 244 KB. Deserialize 20 000-record multi-block file: 57.5 ms / 81 MB → 14.5 ms / 12.6 MB.
+- Block reading without buffer concatenation; codecs compress from spans without intermediate copies; schema parse and plan caches.
+
+*Specification compliance (Avro 1.12)*
+- `time-micros` logical type name fixed (had a trailing space).
+- Unknown `logicalType` falls back to the underlying type instead of throwing (#69 – BigQuery `datetime`, Debezium, Iceberg).
+- Snappy blocks carry the spec CRC-32 (uncompressed data, big-endian); files are now readable by Java/Python/Apache.Avro C# with CRC validation. Files written by 3.x remain readable.
+- Schema resolution for reader fields absent from the writer: reader default, `null` for nullable fields, otherwise an error (#87). Option `MissingFieldHandling = UseDefault` restores 3.x behaviour.
+- Top-level collections are written as **one container entry per element** with the element schema, like other Avro implementations (#118). Option `CollectionMode = SingleArray` restores the 3.x single-array layout. A header-only file deserializes to an empty collection instead of `null`.
+- Interop test suite against Apache.Avro 1.12.2 (container files for every codec, binary encoding both ways, schema parsing).
+
+*Fixes*
+- `GenerateModel` output is deterministic (CRLF) on every OS.
+- `Merge` no longer loses data after the first 64 KB block.
+- Non-public members marked with `[DataMember]` are serialized (were silently skipped).
+- Null top-level collection written as an empty array per spec (previously an invalid item).
+- `Deserialize<Dictionary<Uri, T>>` and other string-convertible map keys.
+
+*Breaking changes*
+- See `docs/V4ReleasePlan.md` §5: licence, net10.0 only, missing-field errors for non-nullable value types, collection container layout, empty collection instead of `null`, FastMember package removed.
+
+\
 **v. 3.4.17 (14.07.26)**
 - Nullable handling in Union schemas
 - Fix for records to skip additional fields

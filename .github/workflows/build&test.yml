@@ -2,24 +2,32 @@ name: Build&Test
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "release/**" ]
   pull_request:
     types: [opened, synchronize, reopened]
 
 jobs:
   build:
-
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Setup .NET
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 10.0.x
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore AvroConvert.sln
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build AvroConvert.sln --no-restore -c Release
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test AvroConvert.sln --no-build -c Release --verbosity normal
+    - name: Pack
+      run: |
+        dotnet pack src/AvroConvert/AvroConvert.csproj --no-build -c Release -o artifacts
+        dotnet pack src/SolTechnology.Avro.Http/SolTechnology.Avro.Http.csproj --no-build -c Release -o artifacts
+        dotnet pack src/Soltechnology.Avro.Kafka/SolTechnology.Avro.Kafka.csproj --no-build -c Release -o artifacts
+    - uses: actions/upload-artifact@v4
+      with:
+        name: nupkg
+        path: artifacts/*.nupkg

@@ -64,3 +64,4 @@ docs/AvroAPIArticle.synctex.gz
 .vscode/launch.json
 .vscode/tasks.json
 /.idea
+artifacts/

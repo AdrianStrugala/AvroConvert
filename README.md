@@ -1,27 +1,31 @@
-﻿
 <p align="center">
-    <img alt="SolTechnology / AvroConvert" src="./docs/logo.png" width="420">
-</p>
-
-<h2 align="center">
-  AvroConvert
-</h2>
-
-<p align="center">
- <a> Rapid Avro serializer for C# .NET </a>
+  <img alt="SolTechnology / AvroConvert" src="./docs/logo.png" width="420">
 </p>
 
 <p align="center">
- <a href="https://github.com/AdrianStrugala/AvroConvert"><img src="https://img.shields.io/github/stars/AdrianStrugala/AvroConvert.svg?label=%E2%AD%90%20Stars%20%E2%AD%90&color=yellow&style=flat&logo=github"></a>
- <a href="https://adrianstrugala.github.io/AvroConvert/"><img src="https://img.shields.io/badge/AvroConvertOnline-Try%20Now-blue.svg?logo=google-chrome"></a>
- <br>
- <a href="https://www.nuget.org/packages/AvroConvert"><img src="https://img.shields.io/nuget/v/AvroConvert.svg?logo=nuget"></a>
- <a href="https://github.com/AdrianStrugala/AvroConvert/actions/workflows/build&test.yml"><img src="https://github.com/AdrianStrugala/AvroConvert/actions/workflows/build&test.yml/badge.svg"></a>
- <a href="https://www.nuget.org/packages/AvroConvert"><img src="https://img.shields.io/nuget/dt/AvroConvert.svg?label=NuGet%20Downloads&logo=nuget&color=blue"></a>
- <a href="./LICENSE.md"><img src="https://img.shields.io/badge/licence-PolyForm%20NC%20%2F%20Small%20Business%20%2F%20Commercial-F59E0B.svg"></a>
- <br> 
-
+  <b>Rapid Apache Avro serializer for .NET</b>
 </p>
+
+<p align="center">
+  <a href="https://www.nuget.org/packages/AvroConvert"><img alt="NuGet version" src="https://img.shields.io/nuget/v/AvroConvert.svg?logo=nuget"></a>
+  <a href="https://www.nuget.org/packages/AvroConvert"><img alt="NuGet downloads" src="https://img.shields.io/nuget/dt/AvroConvert.svg?label=downloads&logo=nuget&color=blue"></a>
+  <a href="https://github.com/AdrianStrugala/AvroConvert/actions/workflows/build&test.yml"><img alt="Build" src="https://github.com/AdrianStrugala/AvroConvert/actions/workflows/build&test.yml/badge.svg"></a>
+  <a href="https://github.com/AdrianStrugala/AvroConvert"><img alt="GitHub stars" src="https://img.shields.io/github/stars/AdrianStrugala/AvroConvert.svg?logo=github&color=yellow"></a>
+  <a href="./LICENSE.md"><img alt="Licence" src="https://img.shields.io/badge/licence-free%20for%20small%20teams%20%7C%20commercial-F59E0B.svg"></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/AdrianStrugala/AvroConvert/tree/master/docs">Documentation</a> ·
+  <a href="https://adrianstrugala.github.io/AvroConvert/">Try online</a> ·
+  <a href="https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/CHANGELOG.md">Changelog</a> ·
+  <a href="https://soltechnology.dev/avroconvert/#pricing">Pricing</a>
+</p>
+
+## Installation
+
+```
+dotnet add package AvroConvert
+```
 
 ## Docs
 
@@ -53,12 +57,8 @@ Introducing Avro to the projects brings three main benefits:
 
 Article describing Avro format specification and Avro API idea: https://www.c-sharpcorner.com/blogs/avro-rest-api-as-the-evolution-of-json-based-communication-between-mic
 
-**Conclusion:** <br>
+**Conclusion:**
 Using Avro for communication between your services significantly reduces data size and network traffic. Additionally choosing encoding (compression algorithm) can improve the results even further.
-
-
-[Full Changelog](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/CHANGELOG.md)
-
 
 
 ## Features
@@ -130,7 +130,6 @@ using (var reader = AvroConvert.OpenDeserializer<CustomClass>(new MemoryStream(a
 [Full documentation](https://github.com/AdrianStrugala/AvroConvert/tree/master/docs)
 
 
-
 ## Performance
 
 4.0 compiles serializers per (schema, type); compared with earlier releases on the same machine (BenchmarkDotNet, .NET 10, log scale):
@@ -145,9 +144,9 @@ AvroConvert is source-available and **free for noncommercial use and for small c
 
 | You are… | Licence | Cost |
 |---|---|---|
-| Individual, student, non-profit, public institution, research or evaluation | [PolyForm Noncommercial 1.0.0](LICENSE-NONCOMMERCIAL.md) | Free |
-| Company with fewer than 100 people **and** under 1,000,000 USD annual revenue | [PolyForm Small Business 1.0.0](LICENSE-SMALL-BUSINESS.md) | Free |
-| Any other company or organisation | [Commercial Licence](LICENSE-COMMERCIAL.md) | Annual, per organisation, unlimited developers — [buy at soltechnology.dev](https://soltechnology.dev/avroconvert/) |
+| Individual, student, non-profit, public institution, research or evaluation | [PolyForm Noncommercial 1.0.0](licenses/PolyForm-Noncommercial-1.0.0.md) | Free |
+| Company with fewer than 100 people **and** under 1,000,000 USD annual revenue | [PolyForm Small Business 1.0.0](licenses/PolyForm-Small-Business-1.0.0.md) | Free |
+| Any other company or organisation | [Commercial Licence](licenses/Commercial.md) | Annual, per organisation, unlimited developers — [buy at soltechnology.dev](https://soltechnology.dev/avroconvert/) |
 
 Declare the licence you rely on (optional, silences a one-time `Trace` warning; nothing is validated):
 
@@ -171,7 +170,6 @@ These amazing people have contributed to AvroConvert:
 <a href="https://github.com/AdrianStrugala/AvroConvert/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=AdrianStrugala/AvroConvert" />
 </a>
-
 
 
 ## Related Work  

@@ -7,9 +7,9 @@ inside small companies; larger companies need a commercial licence. Pick the pat
 
 | You are… | Licence | Cost |
 |---|---|---|
-| An individual, a student, a non-profit, a public institution, or using it for research, hobby or evaluation | [PolyForm Noncommercial 1.0.0](LICENSE-NONCOMMERCIAL.md) | Free |
-| A company with **fewer than 100 people** (employees + contractors) **and** under **1,000,000 USD** revenue in the prior tax year | [PolyForm Small Business 1.0.0](LICENSE-SMALL-BUSINESS.md) | Free |
-| Any other company or organisation | [SolTechnology Commercial Licence](LICENSE-COMMERCIAL.md) | Annual subscription per organisation — https://soltechnology.dev/avroconvert/ |
+| An individual, a student, a non-profit, a public institution, or using it for research, hobby or evaluation | [PolyForm Noncommercial 1.0.0](licenses/PolyForm-Noncommercial-1.0.0.md) | Free |
+| A company with **fewer than 100 people** (employees + contractors) **and** under **1,000,000 USD** revenue in the prior tax year | [PolyForm Small Business 1.0.0](licenses/PolyForm-Small-Business-1.0.0.md) | Free |
+| Any other company or organisation | [SolTechnology Commercial Licence](licenses/Commercial.md) | Annual subscription per organisation — https://soltechnology.dev/avroconvert/ |
 
 The two free licences are offered in parallel: you may rely on whichever one fits your situation. If
 neither does, you need the commercial licence to use AvroConvert in production.

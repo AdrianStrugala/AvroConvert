@@ -73,16 +73,16 @@ Nie jest to porada prawna – do potwierdzenia z księgową/doradcą.
 
 ### 5.1 Pliki licencji (root)
 - `LICENSE.md` – przegląd: trzy ścieżki (Noncommercial / Small Business / Commercial), próg, link do zakupu, informacja o komponentach Apache 2.0 i `NOTICE`.
-- `LICENSE-NONCOMMERCIAL.md` – pełny tekst PolyForm Noncommercial 1.0.0.
-- `LICENSE-SMALL-BUSINESS.md` – pełny tekst PolyForm Small Business 1.0.0.
-- `LICENSE-COMMERCIAL.md` – warunki licencji komercyjnej (per organizacja, roczna, perpetual fallback, brak gwarancji, ograniczenie odpowiedzialności). Wymaga przejrzenia przez prawnika.
+- `licenses/PolyForm-Noncommercial-1.0.0.md` – pełny tekst PolyForm Noncommercial 1.0.0.
+- `licenses/PolyForm-Small-Business-1.0.0.md` – pełny tekst PolyForm Small Business 1.0.0.
+- `licenses/Commercial.md` – warunki licencji komercyjnej (per organizacja, roczna, perpetual fallback, brak gwarancji, ograniczenie odpowiedzialności). Wymaga przejrzenia przez prawnika.
 - Źródło tekstów PolyForm: `https://polyformproject.org/licenses/noncommercial/1.0.0/` i `.../small-business/1.0.0/` (pobranie przez `wp-content/uploads/...md` zwróciło HTML – trzeba skopiować ze strony ręcznie lub z repo `polyformproject/polyform-licenses` na GitHubie).
 
 ### 5.2 `src/AvroConvert/AvroConvert.csproj`
 - `Version` → `4.0.0`.
 - Usunąć `PackageLicenseUrl` (deprecated), dodać `PackageLicenseFile=LICENSE.md` i spakować wszystkie pliki licencji.
 - `PackageProjectUrl` → GitHub lub strona sklepu (zamiast Xabe).
-- `scripts/version.txt` → 4.0.0 (bez `ReleaseDate` – perpetual fallback jest zapisem umownym w `LICENSE-COMMERCIAL.md`, nie mechanizmem w kodzie).
+- `scripts/version.txt` → 4.0.0 (bez `ReleaseDate` – perpetual fallback jest zapisem umownym w `licenses/Commercial.md`, nie mechanizmem w kodzie).
 
 ### 5.3 Nagłówki `.cs`
 - 27 plików z CC BY-NC-SA: zamienić na nagłówek PolyForm NC / Small Business / Commercial z linkiem do `LICENSE.md`. Lista: `grep -rl "CC BY-NC-SA" src/`.
@@ -109,7 +109,7 @@ Decyzja: model EPPlus/QuestPDF w łagodnym wariancie:
 
 ### 5.7 Kolejność wdrożenia
 1. Wybór platformy i założenie konta (weryfikacja KYC trwa – zacząć najwcześniej).
-2. Pliki licencji + `LICENSE-COMMERCIAL.md` (przegląd prawny).
+2. Pliki licencji + `licenses/Commercial.md` (przegląd prawny).
 3. Zmiany w kodzie (§5.2–5.5), build, testy.
 4. README/CHANGELOG, strona produktu (GitHub Pages wystarczy: cennik, polityka zwrotów, kontakt).
 5. Wznowienie JDG.
@@ -132,8 +132,8 @@ Skala AvroConvert: 5,3 M pobrań (~1 % ImageSharp), jedna niszowa biblioteka, je
 | Tier | Dla kogo | Cena roczna |
 |---|---|---|
 | Community | non-commercial, firmy < 100 osób i < 1 M USD | 0 |
-| Business | bez limitu developerów, priorytetowy triage | **189 USD** |
-| Enterprise | + e-mail support 2 dni rob., faktura/PO, umowa | **1 299 USD** |
+| Business | bez limitu developerów, priorytetowy triage | **199 USD** |
+| Enterprise | + e-mail support 2 dni rob., faktura/PO, umowa | **1 499 USD** |
 
 Decyzja właściciela (07.10.2026): trzy tiery, bez pośredniego „Team”. Perpetual fallback w każdym płatnym tierze. Rozważyć zniżkę migracyjną dla klientów Xabe. Ceny wdrożone w `sol-technology.github.io/src/config.ts`.
 
@@ -141,7 +141,7 @@ Dwa pliki licencji darmowych są potrzebne: PolyForm Small Business 1.0.0 zawier
 
 ## 7. Otwarte pytania
 
-- Treść `LICENSE-COMMERCIAL.md` – prawnik czy szablon (np. wzorowany na ImageSharp Commercial License / Duende)?
+- Treść `licenses/Commercial.md` – prawnik czy szablon (np. wzorowany na ImageSharp Commercial License / Duende)?
 - Czy ostrzeżenie bez klucza ma być możliwe do wyciszenia (np. dla tierów darmowych flagą `AvroLicense.DeclareNoncommercialUse()`)? Zmniejsza irytację małych firm, nie osłabia egzekucji.
 - Domena produktu: własna (zalecane, patrz §8.2) czy `adrianstrugala.github.io/AvroConvert`.
 

@@ -47,9 +47,9 @@
 	<ItemGroup>
 		<None Include="..\..\README.md" Pack="true" PackagePath="\" />
 		<None Include="..\..\LICENSE.md" Pack="true" PackagePath="\" />
-		<None Include="..\..\LICENSE-NONCOMMERCIAL.md" Pack="true" PackagePath="\" />
-		<None Include="..\..\LICENSE-SMALL-BUSINESS.md" Pack="true" PackagePath="\" />
-		<None Include="..\..\LICENSE-COMMERCIAL.md" Pack="true" PackagePath="\" />
+		<None Include="..\..\licenses\PolyForm-Noncommercial-1.0.0.md" Pack="true" PackagePath="licenses\" />
+		<None Include="..\..\licenses\PolyForm-Small-Business-1.0.0.md" Pack="true" PackagePath="licenses\" />
+		<None Include="..\..\licenses\Commercial.md" Pack="true" PackagePath="licenses\" />
 		<None Include="NOTICE" Pack="true" PackagePath="\" />
 		<None Include="..\..\docs\avroconvert-icon.png" Pack="true" Visible="false" PackagePath="\" />
 	</ItemGroup>

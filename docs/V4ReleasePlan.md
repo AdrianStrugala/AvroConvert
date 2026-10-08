@@ -160,7 +160,7 @@ Stan 08.10.2026: kod, testy (1134 + 47 + 27), licencje, dokumentacja i CHANGELOG
 1. **Preview** (można od razu): `scripts/pack.sh` (lub `pack.ps1`) → `artifacts/*.nupkg` → `dotnet nuget push artifacts/*.nupkg --source https://api.nuget.org/v3/index.json --api-key $NUGET_API_KEY`. Preview na nuget.org nie jest pokazywane jako „latest”, więc nikt nie dostanie go przez przypadek.
 2. Zebrać feedback z preview (tydzień–dwa): issue na GitHubie „4.0 preview – breaking changes” z linkiem do CHANGELOG i §5.
 3. Przed stabilnym 4.0.0:
-   - przegląd prawny `LICENSE-COMMERCIAL.md`, realna nazwa prawna JDG w pliku i w `config.ts` strony;
+   - przegląd prawny `licenses/Commercial.md`, realna nazwa prawna JDG w pliku i w `config.ts` strony;
    - Paddle: produkt + ceny (0 / 189 / 1299), Domain Review zaliczony, checkout na soltechnology.dev działa; webhook → e-mail z certyfikatem licencji (PDF) – do zbudowania;
    - wznowienie JDG (CEIDG) – dopiero gdy checkout gotowy;
    - `<Version>4.0.0</Version>` w trzech csproj, `docs/CHANGELOG.md` – data; tag `v4.0.0`;

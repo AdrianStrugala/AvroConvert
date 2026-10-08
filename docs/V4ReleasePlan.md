@@ -67,7 +67,7 @@ Legenda: **4.0** – wchodzi do wydania; **4.x** – po 4.0 bez łamania API; **
 | [112](https://github.com/AdrianStrugala/AvroConvert/issues/112) | `ExpandoObject` – pełne wsparcie | feature | **4.x** | Zostaje na ścieżce fallback; sprawdzić AC (headless, 2Json, kodeki) i domknąć |
 | [107](https://github.com/AdrianStrugala/AvroConvert/issues/107) | Headless deserializacja do `dynamic`/`ExpandoObject` | issue | **4.x** | Razem z #112 |
 | [103](https://github.com/AdrianStrugala/AvroConvert/issues/103) | .NET Framework: `FileNotFoundException` dla `SolTechnology.Avro` | bug, help wanted | **zamknąć** | 4.x nie wspiera .NET Framework (tylko net10.0). Odpowiedź: używać 3.4.x (netstandard2.0) z `AutoGenerateBindingRedirects`/`PackageReference`; sekcja w docs |
-| [100](https://github.com/AdrianStrugala/AvroConvert/issues/100) | Redukcja zależności (BrotliSharpLib, FastMember, IronSnappy, Newtonsoft) | issue, V4 candidate | **4.0 w całości** | Na net10.0: `BrotliSharpLib` → `System.IO.Compression.Brotli`; `Portable.System.DateTimeOnly` i `Microsoft.CSharp` → zbędne; FastMember → `UnsafeAccessor` + Expression trees, projekt usunięty; Newtonsoft → `System.Text.Json` (`JObject` w API → `JsonNode`; to i tak major). Zostaje tylko `IronSnappy` (+ `ZstdSharp.Port` dla S10) |
+| [100](https://github.com/AdrianStrugala/AvroConvert/issues/100) | Redukcja zależności (BrotliSharpLib, FastMember, IronSnappy, Newtonsoft) | issue, V4 candidate | **4.0 w całości** | Na net10.0: `BrotliSharpLib` → `System.IO.Compression.Brotli`; `Portable.System.DateTimeOnly` i `Microsoft.CSharp` → zbędne; FastMember → `UnsafeAccessor` + Expression trees, projekt usunięty; Newtonsoft **zostaje** (decyzja 08.10.2026). Zostają `Newtonsoft.Json` i `IronSnappy` (+ `ZstdSharp.Port` dla S10) |
 | [87](https://github.com/AdrianStrugala/AvroConvert/issues/87) | Brak błędu dla pól obowiązkowych | bug, V4 candidate | **4.0** | = S4. Pole czytelnika bez `default`, nieobecne u pisarza → `AvroTypeMismatchException`; opcja `AvroConvertOptions.MissingFieldHandling = Throw | UseDefault` (domyślnie `Throw` zgodnie ze spec; w 3.x było `UseDefault`) |
 | [73](https://github.com/AdrianStrugala/AvroConvert/issues/73) | `CompareSchema()` | feature | **4.0** | Na bazie S13 (Parsing Canonical Form): `SchemaConvert.Compare(a, b)` → lista różnic + flaga "czytelne wg reguł resolution" |
 | [69](https://github.com/AdrianStrugala/AvroConvert/issues/69) | BigQuery: `Logical Type: datetime` nieznany; wiele wierszy w `DeserializeHeadless` | learning | **4.0** | = S2 (ignorować nieznany logicalType → typ bazowy). Wiele wierszy: `DeserializeHeadless<IEnumerable<T>>` / `OpenHeadlessDeserializer<T>` czytający do końca bufora |
@@ -97,7 +97,7 @@ Lokalnie zainstalowane SDK: 8.0.416, **10.0.100**. .NET 10 to LTS (listopad 2025
 
 | Pakiet | Dziś | 4.0 |
 |---|---|---|
-| `Newtonsoft.Json` | parser schematu, `JObject` w API, `Avro2Json`/`Json2Avro` | **usunięty** → `System.Text.Json` (`Utf8JsonReader` do parsowania schematu, `JsonNode` w API publicznym) |
+| `Newtonsoft.Json` | parser schematu, `JObject` w API, `Avro2Json`/`Json2Avro` | **zostaje** (decyzja 08.10.2026) – poza gorącą ścieżką po fazie 2 |
 | `BrotliSharpLib` | kodek brotli | **usunięty** → `System.IO.Compression.BrotliEncoder/Decoder` |
 | `Portable.System.DateTimeOnly` | ns2.0 polyfill | **usunięty** |
 | `Microsoft.CSharp` | `dynamic` na ns2.0 | **usunięty** (w shared framework) |
@@ -123,7 +123,7 @@ Wynik: dwie zależności zewnętrzne zamiast pięciu, oba kodeki managed.
 - `UnsafeAccessor` – dostęp do prywatnych pól/właściwości bez refleksji i IL-emit, działa pod AOT → zamyka issue #51 bez kosztu.
 - `Span<T>`/`ReadOnlySpan<T>`, `params ReadOnlySpan<T>`, `SearchValues<byte>`, `Utf8.TryWrite`, `IUtf8SpanFormattable` – warstwa binarna bez alokacji.
 - `ArrayPool`, `ArrayBufferWriter`, `IBufferWriter<byte>`, `System.IO.Pipelines` – bufory.
-- `System.Text.Json` (`Utf8JsonReader`, `JsonNode`) – parser schematu i API JSON bez Newtonsoft.
+- ~~`System.Text.Json` (`Utf8JsonReader`, `JsonNode`) – parser schematu i API JSON bez Newtonsoft.~~ Wycofane – Newtonsoft zostaje.
 - `System.IO.Compression.Brotli` wbudowany.
 - `[GeneratedRegex]`, `Random.Shared`, `string.Create`, `IAsyncEnumerable<T>`.
 - C# 14 `field`, extension members – kosmetyka.
@@ -135,7 +135,7 @@ Wynik: dwie zależności zewnętrzne zamiast pięciu, oba kodeki managed.
 2. Dodać `tests/AvroConvertInteropTests` (Apache.Avro 1.12.x) – baza do walidacji §2.
 3. Faza 1 perf (szybkie wygrane) + poprawki S1–S4.
 4. Faza 2 perf (typowany rdzeń, `UnsafeAccessor`, usunięcie FastMember) – w nim S5, S7–S9, S15, #51, #135, #118, #87.
-5. Newtonsoft → System.Text.Json (parser schematu, `Avro2Json`/`Json2Avro`, `JObject` → `JsonNode`).
+5. ~~Newtonsoft → System.Text.Json~~ – wycofane (08.10.2026).
 6. S10 (zstd), S12–S13 (single-object, fingerprint, `CompareSchema`), #174, #156, #69.
 7. Licencja + klucz (wg `LicensingMigrationPlan.md` §5), CHANGELOG z sekcją "Breaking changes", publikacja.
 
@@ -143,7 +143,7 @@ Wynik: dwie zależności zewnętrzne zamiast pięciu, oba kodeki managed.
 
 - Licencja: CC BY-NC-SA 3.0 → PolyForm NC / Small Business / Commercial.
 - **Tylko `net10.0`.** Usunięte `netstandard2.0` i `net6.0`; .NET Framework / .NET 6–9 → pozostać na 3.4.x.
-- `Newtonsoft.Json.Linq.JObject` w API publicznym (`Serialize(JObject)`, `Json2Avro`, `Avro2Json`, konwertery) → `System.Text.Json.Nodes.JsonNode`.
+- ~~`Newtonsoft.Json.Linq.JObject` → `System.Text.Json.Nodes.JsonNode`~~ – **wycofane (08.10.2026)**: Newtonsoft zostaje zależnością i w API publicznym; po fazie 2 nie dotyka gorącej ścieżki (schemat parsowany raz per tekst, JSON schematu liczony raz per instancja). Ewentualne przeciążenia na `JsonNode` obok `JObject` – kandydat na 4.x bez łamania API.
 - Usunięty pakiet `SolTechnology.FastMember` (był pakowany do AvroConvert jako zależność wewnętrzna – brak wpływu na użytkowników, chyba że ktoś referował go bezpośrednio).
 - Kolekcja top-level serializowana jako N obiektów w kontenerze zamiast jednego rekordu `array` (#118). Dotyczy `List<T>`, `T[]`, `HashSet<T>`, `IEnumerable<T>` itp. z konkretnym typem elementu (nie `object`, nie słowniki). Pliki 3.x (`array`) nadal się czytają. Opcja przywracająca: `AvroConvertOptions.CollectionMode = SingleArray`. Konsekwencja: plik z samym nagłówkiem (0 wpisów) deserializuje się do pustej kolekcji zamiast `null`.
 - Brak pola obowiązkowego u pisarza → wyjątek zamiast `default(T)` (#87, S4). Dotyczy tylko pól, które nie mogą przyjąć `null` (typy wartościowe bez `Nullable<>`, bez `[DefaultValue]`, bez unii z `null`); `string`, klasy i `Nullable<T>` dostają `null` jak w 3.x. Opcja przywracająca: `AvroConvertOptions.MissingFieldHandling = UseDefault`.

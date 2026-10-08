@@ -151,3 +151,31 @@ var expectedAvro = AvroConvert.Serialize(user);
 Assert.Equal(expectedAvro, resultAvro);
 
 ```
+
+### Licence declaration
+
+AvroConvert is free for noncommercial use and for companies under 100 people / 1,000,000 USD revenue; other
+organisations need a commercial licence (see [LICENSE.md](../LICENSE.md)). Declare which licence your application
+relies on — the declaration is informational (nothing is validated, functionality is never restricted) and
+silences the one-time `Trace` warning emitted when no licence is declared:
+
+```csharp
+AvroConvert.License = AvroLicense.NonCommercial;
+AvroConvert.License = AvroLicense.SmallBusiness;
+AvroConvert.License = AvroLicense.Commercial("Your Company Ltd.");   // the name on the invoice
+```
+
+The same can be done without code changes through the `AVROCONVERT_LICENSE` environment variable:
+`NonCommercial`, `SmallBusiness` or `Commercial:Your Company Ltd.`.
+
+### Options reference (4.0)
+
+| Option | Default | Description |
+|---|---|---|
+| `Codec` | `Null` | Container codec: `Null`, `Deflate`, `Snappy`, `GZip`, `Brotli` (the last two are AvroConvert extensions, not portable) |
+| `CollectionMode` | `Entries` | Top-level collection written as one container entry per element (like other Avro tools) or as a single `array` (`SingleArray`, 3.x layout) |
+| `MissingFieldHandling` | `Throw` | Reader field absent from the writer and without default: throw (spec) or leave the CLR default (`UseDefault`). Fields that can hold `null` always resolve to `null` |
+| `NumberHandling` | `Strict` | Decimal scale overflow: `Strict`, `Truncate`, `Rounding` |
+| `IncludeOnlyDataContractMembers` | `false` | Serialize only members marked with `[DataMember]` |
+| `NamingPolicy` | – | Custom member/enum naming |
+| `AvroConverters` | – | Custom `IAvroConverter` implementations |

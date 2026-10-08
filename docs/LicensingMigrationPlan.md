@@ -17,8 +17,8 @@ Status: **plan, nic nie jest jeszcze wdrożone w kodzie.** Dokument roboczy. Zak
 | Model | Płatny rdzeń; darmowe użycie niekomercyjne i dla małych firm |
 | Licencja darmowa | PolyForm Noncommercial 1.0.0 + PolyForm Small Business 1.0.0 |
 | Próg darmowego użycia komercyjnego | firma < 100 osób i < 1 mln USD przychodu rocznie (zgodnie z PolyForm Small Business) |
-| Licencja komercyjna | roczna, per organizacja, z perpetual fallback (klucz działa bezterminowo dla wersji wydanych przed datą wygaśnięcia) |
-| Egzekucja w kodzie | miękka: bez klucza pełna funkcjonalność, jedno ostrzeżenie na proces |
+| Licencja komercyjna | roczna, per organizacja, z perpetual fallback (wersje wydane przed końcem okresu – bezterminowo) |
+| Egzekucja w kodzie | **brak klucza i walidacji** (decyzja 08.10.2026 po przeglądzie rynku – patrz §5.4). Deklaracja licencji w kodzie (`AvroConvert.License`, model EPPlus/QuestPDF), bez deklaracji jedno ostrzeżenie `Trace` na proces, pełna funkcjonalność |
 | Wersja | 4.0.0 (major) – zmiana licencji **oraz** przepisanie rdzenia pod wydajność (fazy 0–2 z `PerformanceRewriteAnalysis.md`) |
 | Platforma sprzedaży | **Paddle** (decyzja 06.10.2026; porównanie w §3) |
 
@@ -82,31 +82,29 @@ Nie jest to porada prawna – do potwierdzenia z księgową/doradcą.
 - `Version` → `4.0.0`.
 - Usunąć `PackageLicenseUrl` (deprecated), dodać `PackageLicenseFile=LICENSE.md` i spakować wszystkie pliki licencji.
 - `PackageProjectUrl` → GitHub lub strona sklepu (zamiast Xabe).
-- Dodać `AssemblyMetadata ReleaseDate` (yyyy-MM-dd) obok `Version` – używane do perpetual fallback.
-- `scripts/pack.ps1` – aktualizować też `ReleaseDate`; `scripts/version.txt` → 4.0.0.
+- `scripts/version.txt` → 4.0.0 (bez `ReleaseDate` – perpetual fallback jest zapisem umownym w `LICENSE-COMMERCIAL.md`, nie mechanizmem w kodzie).
 
 ### 5.3 Nagłówki `.cs`
 - 27 plików z CC BY-NC-SA: zamienić na nagłówek PolyForm NC / Small Business / Commercial z linkiem do `LICENSE.md`. Lista: `grep -rl "CC BY-NC-SA" src/`.
 - Pliki z nagłówkiem Apache 2.0 – bez zmian.
 
-### 5.4 Mechanizm klucza licencyjnego (miękki)
-- Nowa klasa `SolTechnology.Avro.AvroLicense` (statyczna):
-  - `SetKey(string key)` oraz odczyt zmiennej środowiskowej `AVROCONVERT_LICENSE_KEY`.
-  - Format klucza: `base64url(payloadJson).base64url(signature)`; payload: `licensee`, `plan`, `expires` (yyyy-MM-dd), opcjonalnie `seats`.
-  - Podpis: **Ed25519** (`System.Security.Cryptography` na net10.0; 64-bajtowy podpis → krótki klucz licencyjny). Klucz publiczny zaszyty w kodzie. (Wcześniejszy wybór RSA wynikał z ograniczeń netstandard2.0 – nieaktualny po decyzji o samym net10.0.)
-  - Walidacja: podpis poprawny **i** `ReleaseDate` biblioteki ≤ `expires` (perpetual fallback). Bieżąca data nie ma znaczenia.
-  - `AvroLicense.Status` (Valid / Missing / Invalid / ExpiredForThisVersion) dostępny publicznie, do diagnostyki.
-- Hook: statyczny konstruktor partial class `AvroConvert` → `AvroLicense.EnsureChecked()`. Bez ważnego klucza jedna linijka na `Console.Error` + `Trace.TraceWarning`, raz na proces. Funkcjonalność nie jest ograniczana.
-- Klucz prywatny: generowany lokalnie, przechowywany poza repo (menedżer haseł / plik poza workspace). Nigdy nie commitować.
-- Narzędzie do wystawiania kluczy: mały projekt konsolowy `tools/LicenseKeyGenerator` (czyta klucz prywatny ze ścieżki/env, wypisuje klucz licencyjny). Docelowo: webhook z platformy → automatyczne generowanie (Azure Function / Cloudflare Worker) – etap 2.
+### 5.4 Deklaracja licencji zamiast klucza (zrealizowane 08.10.2026)
+
+Przegląd rynku (.NET): ImageSharp / FluentAssertions 8 – czysto prawne; **EPPlus** (PolyForm NC, `ExcelPackage.LicenseContext` / `License.SetNonCommercialPersonal`) i **QuestPDF** (`Settings.License`) – deklaracja bez walidacji; AutoMapper/MediatR, Duende – miękki klucz podpisany; NServiceBus, Syncfusion – twardy klucz/trial; Hangfire Pro – prywatny feed. Antyprzykład: Moq + SponsorLink (telemetria → exodus użytkowników).
+
+Decyzja: model EPPlus/QuestPDF w łagodnym wariancie:
+- `AvroConvert.License = AvroLicense.NonCommercial | SmallBusiness | Commercial("nazwa z faktury")` albo zmienna `AVROCONVERT_LICENSE` (`NonCommercial`, `SmallBusiness`, `Commercial:Nazwa`).
+- Bez deklaracji: jedno `Trace.TraceWarning` na proces (przy pierwszym tworzeniu/parsowaniu schematu), zero ograniczeń. W 5.0 do rozważenia: deklaracja obowiązkowa (wyjątek), jeśli konwersja będzie słaba.
+- Zero kryptografii, generatora kluczy, wygasania, telemetrii. „Dowód” licencji komercyjnej = nazwa w kodzie zgodna z nazwą na fakturze Paddle + certyfikat PDF wysyłany po zakupie.
+- Widoczność (model prawny): `PackageLicenseFile`, pliki licencji i `NOTICE` w paczce, opis i release notes w NuGet, sekcja i badge w README, nagłówki `.cs` z `Required Notice`.
 
 ### 5.5 Testy
-- `tests/AvroConvertUnitTests/LicenseTests.cs`: poprawny klucz, zły podpis, zmieniony payload, `expires` przed `ReleaseDate` (fallback), brak klucza, odczyt z env.
+- `tests/AvroConvertUnitTests/LicenseTests.cs`: parsowanie zmiennej środowiskowej, walidacja nazwy licencjobiorcy, brak wpływu deklaracji na serializację.
 
 ### 5.6 Dokumentacja
 - README: sekcja License (trzy ścieżki, próg, link do zakupu, jak ustawić klucz), usunąć link Xabe.
 - `docs/CHANGELOG.md`: wpis 4.0.0 – zmiana licencji, mechanizm klucza, przepisanie rdzenia (wyniki benchmarków przed/po), nowe przeciążenia API (`IBufferWriter<byte>`, `ReadOnlySpan<byte>`), brak zmian w istniejącym API.
-- `docs/Documentation.md`: podsekcja o `AvroLicense`.
+- `docs/Documentation.md`: podsekcja o deklaracji `AvroConvert.License`.
 - Pakiety Http/Kafka: zaktualizować `PackageLicenseUrl`/`PackageProjectUrl` w csproj przy następnym wydaniu (bez zmiany modelu – zależą od `AvroConvert`).
 
 ### 5.7 Kolejność wdrożenia

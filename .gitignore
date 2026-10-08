@@ -65,3 +65,7 @@ docs/AvroAPIArticle.synctex.gz
 .vscode/tasks.json
 /.idea
 artifacts/
+
+# VersionsBenchmark inputs/outputs
+tests/VersionsBenchmark/local-packages/
+tests/VersionsBenchmark/artifacts/

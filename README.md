@@ -131,6 +131,14 @@ using (var reader = AvroConvert.OpenDeserializer<CustomClass>(new MemoryStream(a
 
 
 
+## Performance
+
+4.0 compiles serializers per (schema, type); compared with earlier releases on the same machine (BenchmarkDotNet, .NET 10, log scale):
+
+![AvroConvert releases – execution time](docs/benchmarks/versions-time.png)
+
+Full numbers and memory chart: [docs/benchmarks](docs/benchmarks/2026-10-08-versions-2.7.1-to-4.0.md).
+
 ## License
 
 AvroConvert is source-available and **free for noncommercial use and for small companies**:

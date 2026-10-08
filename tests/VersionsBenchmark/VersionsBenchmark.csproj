@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Compares AvroConvert releases: BenchmarkDotNet builds one process per job with the given package version.
+       4.0.0-preview.1 comes from ./local-packages (run scripts/pack.sh with OUTPUT=tests/VersionsBenchmark/local-packages). -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.15.*" />
+    <!-- Lowest benchmarked version: the runtime binder accepts higher assembly versions than referenced, not lower. -->
+    <PackageReference Include="AvroConvert" Version="2.7.1" />
+  </ItemGroup>
+
+</Project>

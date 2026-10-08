@@ -28,6 +28,15 @@ CustomClass deserializedObject = AvroConvert.Deserialize(byte[] avroObject, type
 dynamic deserializedObject = AvroConvert.Deserialize<dynamic>(byte[] avroObject);
 ```
 
+Records read into `dynamic`, `ExpandoObject` or an `object` member become `ExpandoObject`, unless a loaded class matches the record's namespace **and** name. For a union of records in a typed model, list the alternatives explicitly – they are matched by class name:
+```csharp
+public class Envelope
+{
+    [AvroUnion(typeof(OrderCreated), typeof(OrderCancelled))]
+    public object Payload { get; set; }
+}
+```
+
 Deserialization when a property value is null, but schema contains information about default value
 ```csharp
 //Model used for serialization

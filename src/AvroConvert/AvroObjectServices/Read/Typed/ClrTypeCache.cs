@@ -8,7 +8,8 @@ using SolTechnology.Avro.AvroObjectServices.Schemas;
 namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 {
     /// <summary>
-    /// For dynamic deserialization: finds a loaded CLR type whose full name (or simple name) matches a record schema.
+    /// For dynamic deserialization: finds a loaded CLR type whose namespace and name match a record schema.
+    /// Nested types match on their outer namespace (so `Ns.Outer+Inner` serves `Ns.Inner`); a bare name never matches a namespaced type.
     /// </summary>
     internal static class ClrTypeCache
     {
@@ -26,7 +27,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             {
                 var types = assemblies.Where(a => a != null).SelectMany(SafeGetTypes).ToList();
                 return types.FirstOrDefault(t => t.FullName == schema.FullName)
-                       ?? types.FirstOrDefault(t => t.Name == schema.Name);
+                       ?? types.FirstOrDefault(t => t.Name == schema.Name && (t.Namespace ?? string.Empty) == (schema.Namespace ?? string.Empty));
             }
 
             static IEnumerable<Type> SafeGetTypes(Assembly assembly)

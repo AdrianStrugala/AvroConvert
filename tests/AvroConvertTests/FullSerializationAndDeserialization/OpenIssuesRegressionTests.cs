@@ -74,6 +74,27 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             ((string)dyn.UnionField.B).Should().Be("b");
         }
 
+        [Fact]
+        public void Issue174_AvroUnion_alternatives_win_over_same_named_classes_in_other_namespaces()
+        {
+            // Registry-style schema: namespace matches neither this test class nor AvroGen.ObjA / AvroGen.ObjB
+            var schema = "{\"type\":\"record\",\"name\":\"TypeWithUnionAvro\",\"namespace\":\"com.example.events\",\"fields\":[" +
+                         "{\"name\":\"TopLevelField\",\"type\":\"string\"}," +
+                         "{\"name\":\"UnionField\",\"type\":[{\"type\":\"record\",\"name\":\"ObjA\",\"fields\":[{\"name\":\"FieldA\",\"type\":\"string\"}]}," +
+                         "{\"type\":\"record\",\"name\":\"ObjB\",\"fields\":[{\"name\":\"FieldB\",\"type\":\"int\"}]}]}]}";
+            var item = new AvroConvertComponentTests.TypeWithUnionAvro { TopLevelField = "x", UnionField = new AvroConvertComponentTests.ObjB { FieldB = 7 } };
+            var bytes = AvroConvert.SerializeHeadless(item, schema);
+
+            var typed = AvroConvert.DeserializeHeadless<AvroConvertComponentTests.TypeWithUnionAvro>(bytes, schema);
+            var generated = AvroConvert.DeserializeHeadless<AvroGen.TypeWithUnionAvro>(bytes, schema);
+            dynamic dyn = AvroConvert.DeserializeHeadless<dynamic>(bytes, schema);
+
+            typed.UnionField.Should().BeOfType<AvroConvertComponentTests.ObjB>().Which.FieldB.Should().Be(7);
+            generated.UnionField.Should().BeOfType<AvroGen.ObjB>().Which.FieldB.Should().Be(7);
+            ((object)dyn.UnionField).Should().BeOfType<ExpandoObject>();
+            ((int)dyn.UnionField.FieldB).Should().Be(7);
+        }
+
         // https://github.com/AdrianStrugala/AvroConvert/issues/112
         [Fact]
         public void Issue112_ExpandoObject_default_flow()

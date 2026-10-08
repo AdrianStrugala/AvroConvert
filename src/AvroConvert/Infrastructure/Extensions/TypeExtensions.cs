@@ -31,11 +31,6 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
 {
     internal static class TypeExtensions
     {
-        internal static bool HasParameterlessConstructor(this Type type)
-        {
-            //return type.GetTypeInfo().GetConstructor(BindingFlags.Instance | BindingFlags.internal | BindingFlags.Noninternal, null, Type.EmptyTypes, null) != null;
-            return type.GetConstructor(Type.EmptyTypes) != null;
-        }
 
         internal static bool IsUnsupported(this Type type)
         {
@@ -196,7 +191,6 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
             return result;
         }
 
-
         private static bool FilterMembers(MemberInfo member)
         {
             if (member.IsDefined(typeof(CompilerGeneratedAttribute), false))
@@ -294,7 +288,6 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
             return underlyingType != null;
         }
 
-
         internal static bool IsKeyValuePair(this Type type)
         {
             return type.IsGenericType() && type.GetGenericTypeDefinition() == typeof(KeyValuePair<,>);
@@ -336,7 +329,6 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
                 .Select(a => a.Type);
         }
 
-
         internal static void CheckPropertyGetters(IEnumerable<PropertyInfo> properties)
         {
             var missingGetter = properties.FirstOrDefault(p => p.GetGetMethod(true) == null);
@@ -367,12 +359,6 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
             }
 
             return result;
-        }
-
-        public static Type GetEnumeratedType(this Type type)
-        {
-            return type?.GetElementType() ?? type.GenericTypeArguments.FirstOrDefault();
-
         }
 
         public static Type FindEnumerableType(this Type type)
@@ -412,16 +398,6 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
             return type.GetTypeInfo().IsClass;
         }
 
-        internal static bool IsDictionary(this Type type)
-        {
-            return typeof(IDictionary).IsAssignableFrom(type);
-        }
-
-        internal static bool IsList(this Type type)
-        {
-            return typeof(IList).IsAssignableFrom(type);
-        }
-
         internal static bool IsEnumerable(this Type type)
         {
             return type.IsGenericType() && type.GetGenericTypeDefinition() == typeof(IEnumerable<>);
@@ -447,28 +423,5 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
             return type.GetTypeInfo().BaseType;
         }
 
-
-        internal static bool CanChangeTypeFrom(this Type type, object value)
-        {
-            if (value is null)
-            {
-                return !type.IsValueType || Nullable.GetUnderlyingType(type) != null;
-            }
-
-            if (type.IsInstanceOfType(value))
-            {
-                return true;
-            }
-
-            try
-            {
-                _ = Convert.ChangeType(value, type);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
     }
 }

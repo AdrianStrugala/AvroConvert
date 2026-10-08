@@ -18,6 +18,10 @@
 using System.IO;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Reflection;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.AvroObjectServices.Read.Typed;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
@@ -49,12 +53,21 @@ namespace SolTechnology.Avro
             using MemoryStream resultStream = new MemoryStream();
             using (var writer = new Encoder(schema, resultStream, codecType, options))
             {
-                foreach (var item in items)
-                {
-                    writer.Append(item);
-                }
+                EntryAppenders.GetOrAdd(itemType, CompileAppender)(writer, items);
             }
             return resultStream.ToArray();
+        }
+
+        private static readonly ConcurrentDictionary<Type, Action<Encoder, IEnumerable>> EntryAppenders = new();
+
+        /// <summary>(encoder, items) => encoder.AppendAll&lt;T&gt;((IEnumerable&lt;T&gt;)items) for the runtime element type.</summary>
+        private static Action<Encoder, IEnumerable> CompileAppender(Type itemType)
+        {
+            var encoder = Expression.Parameter(typeof(Encoder), "encoder");
+            var items = Expression.Parameter(typeof(IEnumerable), "items");
+            var method = typeof(Encoder).GetMethod(nameof(Encoder.AppendAll), BindingFlags.Instance | BindingFlags.NonPublic)!.MakeGenericMethod(itemType);
+            var call = Expression.Call(encoder, method, Expression.Convert(items, typeof(IEnumerable<>).MakeGenericType(itemType)));
+            return Expression.Lambda<Action<Encoder, IEnumerable>>(call, encoder, items).Compile();
         }
 
         /// <summary>Element type of a generic collection suitable for entry-wise serialization; null otherwise.</summary>

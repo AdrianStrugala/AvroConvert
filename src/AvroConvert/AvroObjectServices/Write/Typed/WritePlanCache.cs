@@ -13,7 +13,26 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
     internal static class WritePlanCache
     {
         private static readonly ConcurrentDictionary<(TypeSchema Schema, Type Type, OptionsKey Options), Encoder.WriteItem> Plans = new();
+        private static readonly ConcurrentDictionary<(TypeSchema Schema, Type Type, OptionsKey Options), Delegate> TypedPlans = new();
         private const int Limit = 1024;
+
+        /// <summary>Strongly typed writer for values whose static type is exactly T (no boxing of the root value).</summary>
+        internal static Action<IWriter, T> GetTyped<T>(TypeSchema schema, AvroConvertOptions options)
+        {
+            var key = (schema, typeof(T), OptionsKey.From(options));
+            if (TypedPlans.TryGetValue(key, out var cached))
+            {
+                return (Action<IWriter, T>)cached;
+            }
+
+            var plan = new WriteCompiler(options).CompileTyped<T>(schema);
+            if (TypedPlans.Count >= Limit)
+            {
+                TypedPlans.Clear();
+            }
+            TypedPlans.TryAdd(key, plan);
+            return plan;
+        }
 
         internal static Encoder.WriteItem Get(TypeSchema schema, Type type, AvroConvertOptions options)
         {

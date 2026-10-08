@@ -21,6 +21,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using SolTechnology.Avro.AvroObjectServices.FileHeader;
 using SolTechnology.Avro.AvroObjectServices.FileHeader.Codec;
@@ -42,7 +43,6 @@ namespace SolTechnology.Avro.Features.Serialize
         private readonly MemoryStream _compressedChunk;
         private readonly Writer _chunkWriter;
 
-        private WriteItem _writeItem;
         private readonly TypeSchema _schema;
         private readonly AvroConvertOptions _options;
         private Type _typedRootType;
@@ -84,8 +84,7 @@ namespace SolTechnology.Avro.Features.Serialize
         {
             if (datum == null)
             {
-                _writeItem ??= new WriteResolver(_options).ResolveWriter(_schema);
-                _writeItem(datum, _chunkWriter);
+                WriteHelpers.WriteNullValue(_schema, _chunkWriter);
             }
             else
             {
@@ -105,6 +104,22 @@ namespace SolTechnology.Avro.Features.Serialize
             if (_memoryChunk.Position >= _syncInterval)
             {
                 WriteBuffer();
+            }
+        }
+
+        /// <summary>Appends every element as its own container entry using a typed writer (no boxing per element).</summary>
+        internal void AppendAll<T>(IEnumerable<T> items)
+        {
+            var write = WritePlanCache.GetTyped<T>(_schema, _options);
+            foreach (var item in items)
+            {
+                write(_chunkWriter, item);
+                _blockCount++;
+
+                if (_memoryChunk.Position >= _syncInterval)
+                {
+                    WriteBuffer();
+                }
             }
         }
 

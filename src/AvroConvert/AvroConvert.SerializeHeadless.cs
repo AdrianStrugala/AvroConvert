@@ -61,7 +61,7 @@ namespace SolTechnology.Avro
 
         private static Encoder.WriteItem ResolveWriter(TypeSchema schema, object obj, AvroConvertOptions options) =>
             obj == null
-                ? new WriteResolver(options).ResolveWriter(schema)
+                ? (_, writer) => WriteHelpers.WriteNullValue(schema, writer)
                 : WritePlanCache.Get(schema, obj.GetType(), options);
     }
 }

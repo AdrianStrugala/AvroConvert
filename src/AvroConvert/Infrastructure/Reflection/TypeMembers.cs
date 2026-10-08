@@ -7,29 +7,28 @@ using System.Runtime.Serialization;
 
 namespace SolTechnology.Avro.Infrastructure.Reflection
 {
-    /// <summary>A readable/writable instance member with compiled, boxed accessors.</summary>
+    /// <summary>An instance member taking part in Avro (de)serialization; writes are emitted directly by the compilers.</summary>
     internal sealed class MemberAccessor
     {
         internal string Name { get; }
         internal Type Type { get; }
         internal MemberInfo Info { get; }
         internal bool CanRead => Get != null;
-        internal bool CanWrite => Set != null;
+        internal bool CanWrite { get; }
         internal Func<object, object> Get { get; }
-        internal Action<object, object> Set { get; }
 
-        internal MemberAccessor(MemberInfo info, Type type, Func<object, object> get, Action<object, object> set)
+        internal MemberAccessor(MemberInfo info, Type type, Func<object, object> get, bool canWrite)
         {
             Info = info;
             Name = info.Name;
             Type = type;
             Get = get;
-            Set = set;
+            CanWrite = canWrite;
         }
     }
 
     /// <summary>
-    /// Replacement for FastMember: compiled getters/setters for the members that take part in Avro (de)serialization –
+    /// Compiled getters and metadata for the members that take part in Avro (de)serialization –
     /// public properties and fields, plus non-public ones marked with <see cref="DataMemberAttribute"/>.
     /// </summary>
     internal sealed class TypeMembers
@@ -73,7 +72,7 @@ namespace SolTechnology.Avro.Infrastructure.Reflection
                         property,
                         property.PropertyType,
                         property.GetMethod != null ? CompileGetter(type, property) : null,
-                        property.SetMethod != null ? CompileSetter(type, property) : null));
+                        property.SetMethod != null));
                 }
 
                 foreach (var field in t.GetFields(all | BindingFlags.DeclaredOnly))
@@ -88,7 +87,7 @@ namespace SolTechnology.Avro.Infrastructure.Reflection
                         field,
                         field.FieldType,
                         CompileGetter(type, field),
-                        field.IsInitOnly ? null : CompileSetter(type, field)));
+                        !field.IsInitOnly));
                 }
             }
 
@@ -115,16 +114,5 @@ namespace SolTechnology.Avro.Infrastructure.Reflection
             return Expression.Lambda<Func<object, object>>(body, instance).Compile();
         }
 
-        private static Action<object, object> CompileSetter(Type type, MemberInfo member)
-        {
-            var instance = Expression.Parameter(typeof(object), "instance");
-            var value = Expression.Parameter(typeof(object), "value");
-            var memberType = member is PropertyInfo p ? p.PropertyType : ((FieldInfo)member).FieldType;
-
-            // Unbox (not Convert) so that assignments on boxed structs mutate the box itself.
-            Expression target = type.IsValueType ? Expression.Unbox(instance, type) : Expression.Convert(instance, type);
-            var body = Expression.Assign(Expression.MakeMemberAccess(target, member), Expression.Convert(value, memberType));
-            return Expression.Lambda<Action<object, object>>(body, instance, value).Compile();
-        }
     }
 }

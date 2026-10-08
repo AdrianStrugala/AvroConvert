@@ -51,6 +51,59 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             return result;
         }
 
+        /// <summary>Map whose string keys are converted to <typeparamref name="TKey"/> (Uri, Guid, ...).</summary>
+        internal static Dictionary<TKey, TValue> ReadMapKeyed<TKey, TValue>(IReader reader, Func<IReader, TKey> readKey, Func<IReader, TValue> readValue)
+        {
+            var result = new Dictionary<TKey, TValue>();
+            for (long n = reader.ReadMapStart(); n != 0; n = reader.ReadMapNext())
+            {
+                for (long i = 0; i < n; i++)
+                {
+                    var key = readKey(reader);
+                    result[key] = readValue(reader);
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>Dictionary with arbitrary key type, encoded as an array of {Key, Value} records.</summary>
+        internal static Dictionary<TKey, TValue> ReadDictionary<TKey, TValue>(IReader reader, Func<IReader, TKey> readKey, Func<IReader, TValue> readValue)
+        {
+            var result = new Dictionary<TKey, TValue>();
+            for (long n = reader.ReadArrayStart(); n != 0; n = reader.ReadArrayNext())
+            {
+                for (long i = 0; i < n; i++)
+                {
+                    var key = readKey(reader);
+                    result.Add(key, readValue(reader));
+                }
+            }
+
+            return result;
+        }
+
+        internal static TCollection Fold<TCollection, T>(List<T> items, TCollection empty, Func<TCollection, T, TCollection> add)
+        {
+            var result = empty;
+            foreach (var item in items)
+            {
+                result = add(result, item);
+            }
+
+            return result;
+        }
+
+        internal static TCollection AddAll<TCollection, T>(TCollection collection, List<T> items, Action<TCollection, T> add)
+        {
+            foreach (var item in items)
+            {
+                add(collection, item);
+            }
+
+            return collection;
+        }
+
         internal static Exception UnionIndexOutOfRange(int index, int count) =>
             new ArgumentOutOfRangeException("index", $"Cannot get union member of index [{index}]. Union size: [{count}]");
     }

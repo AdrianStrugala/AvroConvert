@@ -41,7 +41,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                 return (ReadPlan<T>)cached;
             }
 
-            var compiler = new ReadCompiler(writerSchema, readerSchema, options);
+            var compiler = new ReadCompiler(options);
             var blocks = compiler.CompileMany<T>(writerSchema, readerSchema);
             var plan = new ReadPlan<T>
             {

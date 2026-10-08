@@ -16,26 +16,20 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using SolTechnology.Avro.AvroObjectServices.Schemas;
-using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.AvroObjectServices.Read.Typed;
-using SolTechnology.Avro.AvroObjectServices.Skip;
+using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Infrastructure.Exceptions;
-using SolTechnology.Avro.Policies;
 
 namespace SolTechnology.Avro.AvroObjectServices.Read
 {
-    internal partial class Resolver
+    /// <summary>
+    /// Entry point for decoding values of a (writer schema, reader schema) pair into T. All work is done by compiled
+    /// read plans (<see cref="ReadCompiler"/>); this type only carries the schemas/options and wraps failures.
+    /// </summary>
+    internal sealed class Resolver
     {
-        private readonly Skipper _skipper;
         private readonly TypeSchema _readerSchema;
         private readonly TypeSchema _writerSchema;
-        private readonly bool _hasCustomConverters;
-        private readonly Dictionary<Type, Func<IReader, object>> _customDeserializerMapping;
-        private readonly IAvroNamingPolicy _namingPolicy;
-        private readonly AvroMissingFieldHandling _missingFieldHandling;
         private readonly AvroConvertOptions _options;
 
         internal Resolver(TypeSchema writerSchema, TypeSchema readerSchema, AvroConvertOptions options = null)
@@ -43,15 +37,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             _readerSchema = readerSchema;
             _writerSchema = writerSchema;
             _options = options;
-
-            _skipper = new Skipper();
-
-            _hasCustomConverters = (options?.AvroConverters.Any()).GetValueOrDefault();
-            _customDeserializerMapping = options?.AvroConverters.ToDictionary(
-                x => x.TypeSchema.RuntimeType,
-                y => (Func<IReader, object>)y.Deserialize);
-            _namingPolicy = options?.NamingPolicy;
-            _missingFieldHandling = options?.MissingFieldHandling ?? AvroMissingFieldHandling.Throw;
         }
 
         internal ReadPlan<T> GetPlan<T>() => ReadPlanCache.Get<T>(_writerSchema, _readerSchema, _options);
@@ -64,12 +49,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 
                 if (itemsCount > 1)
                 {
-                    if (plan.Many != null)
+                    if (plan.Many == null)
                     {
-                        return plan.Many(reader, itemsCount);
+                        throw new AvroTypeMismatchException($"The data contains {itemsCount} entries but [{typeof(T)}] is not a collection type");
                     }
 
-                    return (T)ResolveArray(_writerSchema, _readerSchema, reader, typeof(T), itemsCount);
+                    return plan.Many(reader, itemsCount);
                 }
 
                 return plan.One(reader);
@@ -82,81 +67,5 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 
         internal AvroTypeMismatchException WrapFailure<T>(Exception e) =>
             new($"Unable to deserialize [{_writerSchema.Name}] of schema [{_writerSchema.Type}] to the target type [{typeof(T)}]. Inner exception:", e);
-
-        internal object Resolve(
-            TypeSchema writerSchema,
-            TypeSchema readerSchema,
-            IReader reader,
-            Type type)
-        {
-            try
-            {
-                if (_hasCustomConverters)
-                {
-                    if (_customDeserializerMapping.TryGetValue(type, out var deserializer))
-                    {
-                        return deserializer(reader);
-                    }
-                }
-
-                switch (writerSchema.Type)
-                {
-                    case AvroType.Null:
-                        return null;
-                    case AvroType.Boolean:
-                        return reader.ReadBoolean();
-                    case AvroType.Int:
-                        return ResolveInt(type, reader);
-                    case AvroType.Long:
-                        return ResolveLong(type, reader);
-                    case AvroType.Float:
-                        return ResolveFloat(type, reader);
-                    case AvroType.Double:
-                        return ResolveDouble(type, reader);
-                    case AvroType.String:
-                        return ResolveString(type, reader);
-                    case AvroType.Bytes:
-                        return reader.ReadBytes();
-                    case AvroType.Logical:
-                        readerSchema = FindBranchReaderSchema(writerSchema, readerSchema);
-                        return ResolveLogical((LogicalTypeSchema)writerSchema, readerSchema, reader, type);
-                    case AvroType.Error:
-                    case AvroType.Record:
-                        readerSchema = FindBranchReaderSchema(writerSchema, readerSchema);
-                        return ResolveRecord((RecordSchema)writerSchema, (RecordSchema)readerSchema, reader, type);
-                    case AvroType.Enum:
-                        readerSchema = FindBranchReaderSchema(writerSchema, readerSchema);
-                        return ResolveEnum((EnumSchema)writerSchema, readerSchema, reader, type);
-                    case AvroType.Fixed:
-                        readerSchema = FindBranchReaderSchema(writerSchema, readerSchema);
-                        return ResolveFixed((FixedSchema)writerSchema, readerSchema, reader, type);
-                    case AvroType.Array:
-                        readerSchema = FindBranchReaderSchema(writerSchema, readerSchema);
-                        return ResolveArray(writerSchema, readerSchema, reader, type);
-                    case AvroType.Map:
-                        readerSchema = FindBranchReaderSchema(writerSchema, readerSchema);
-                        return ResolveMap((MapSchema)writerSchema, readerSchema, reader, type);
-                    case AvroType.Union:
-                        readerSchema = FindBranchReaderSchema(writerSchema, readerSchema);
-                        return ResolveUnion((UnionSchema)writerSchema, readerSchema, reader, type);
-                    default:
-                        throw new AvroException("Unknown schema type: " + writerSchema);
-                }
-            }
-            catch (Exception e)
-            {
-                throw new AvroTypeMismatchException($"Unable to deserialize [{writerSchema.Name}] of schema [{writerSchema.Type}] to the target type [{type}]. Inner exception:", e);
-            }
-        }
-
-        private TypeSchema FindBranchReaderSchema(TypeSchema writerSchema, TypeSchema readerSchema)
-        {
-            if (readerSchema.Type == AvroType.Union && writerSchema.Type != AvroType.Union)
-            {
-                readerSchema = FindBranch(readerSchema as UnionSchema, writerSchema);
-            }
-
-            return readerSchema;
-        }
     }
 }

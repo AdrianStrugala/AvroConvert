@@ -1,18 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
-using Newtonsoft.Json.Linq;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.AvroObjectServices.Skip;
 using SolTechnology.Avro.Infrastructure.Exceptions;
-using SolTechnology.Avro.Infrastructure.Extensions;
 using SolTechnology.Avro.Infrastructure.Reflection;
 using SolTechnology.Avro.Policies;
 
@@ -20,10 +17,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 {
     /// <summary>
     /// Compiles a (writerSchema, readerSchema, T) triple into a strongly typed <c>Func&lt;IReader, T&gt;</c>.
-    /// Schema resolution, member lookup and union branch mapping are decided once at compile time; the produced
-    /// delegate performs no boxing for primitives and no per-value schema dispatch.
-    /// Anything the compiler does not specialise (dynamic targets, JObject, exotic conversions) is delegated to the
-    /// classic <see cref="Resolver"/>, so behaviour stays identical for those cases.
+    /// Schema resolution, member lookup, union branch mapping and conversions are decided once at compile time; the
+    /// produced delegate performs no boxing for primitives and no per-value schema dispatch. Dynamic targets
+    /// (<c>object</c>) materialise as ExpandoObject / List&lt;object&gt; / Dictionary&lt;string, object&gt;, or as a CLR type
+    /// whose name matches the record schema.
     /// </summary>
     internal sealed class ReadCompiler
     {
@@ -38,24 +35,30 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         private static readonly MethodInfo ReadUnionIndexMethod = typeof(IReader).GetMethod(nameof(IReader.ReadUnionIndex))!;
         private static readonly MethodInfo ReadFixedMethod = typeof(IReader).GetMethod(nameof(IReader.ReadFixed), new[] { typeof(byte[]) })!;
         private static readonly MethodInfo SkipMethod = typeof(Skipper).GetMethod(nameof(Skipper.Skip), BindingFlags.Instance | BindingFlags.NonPublic)!;
-        private static readonly MethodInfo FallbackResolveMethod = typeof(Resolver).GetMethod(nameof(Resolver.Resolve), BindingFlags.Instance | BindingFlags.NonPublic, new[] { typeof(TypeSchema), typeof(TypeSchema), typeof(IReader), typeof(Type) })!;
         private static readonly MethodInfo ConvertToLogicalMethod = typeof(LogicalTypeSchema).GetMethod(nameof(LogicalTypeSchema.ConvertToLogicalValue), BindingFlags.Instance | BindingFlags.NonPublic)!;
         private static readonly MethodInfo GetUninitializedObjectMethod = typeof(RuntimeHelpers).GetMethod(nameof(RuntimeHelpers.GetUninitializedObject))!;
-        private static readonly MethodInfo ReadListMethod = typeof(ReadHelpers).GetMethod(nameof(ReadHelpers.ReadList), BindingFlags.Static | BindingFlags.NonPublic)!;
-        private static readonly MethodInfo ReadCountIntoMethod = typeof(ReadHelpers).GetMethod(nameof(ReadHelpers.ReadCountInto), BindingFlags.Static | BindingFlags.NonPublic)!;
-        private static readonly MethodInfo ReadMapMethod = typeof(ReadHelpers).GetMethod(nameof(ReadHelpers.ReadMap), BindingFlags.Static | BindingFlags.NonPublic)!;
-        private static readonly MethodInfo UnionIndexOutOfRangeMethod = typeof(ReadHelpers).GetMethod(nameof(ReadHelpers.UnionIndexOutOfRange), BindingFlags.Static | BindingFlags.NonPublic)!;
+        private static readonly MethodInfo ReadListMethod = Helper(nameof(ReadHelpers.ReadList));
+        private static readonly MethodInfo ReadCountIntoMethod = Helper(nameof(ReadHelpers.ReadCountInto));
+        private static readonly MethodInfo ReadMapMethod = Helper(nameof(ReadHelpers.ReadMap));
+        private static readonly MethodInfo ReadMapKeyedMethod = Helper(nameof(ReadHelpers.ReadMapKeyed));
+        private static readonly MethodInfo ReadDictionaryMethod = Helper(nameof(ReadHelpers.ReadDictionary));
+        private static readonly MethodInfo FoldMethod = Helper(nameof(ReadHelpers.Fold));
+        private static readonly MethodInfo AddAllMethod = Helper(nameof(ReadHelpers.AddAll));
+        private static readonly MethodInfo UnionIndexOutOfRangeMethod = Helper(nameof(ReadHelpers.UnionIndexOutOfRange));
+        private static readonly MethodInfo ExpandoAddMethod = typeof(IDictionary<string, object>).GetMethod(nameof(IDictionary<string, object>.Add))!;
 
-        private readonly Resolver _fallback;
+        private static MethodInfo Helper(string name) => typeof(ReadHelpers).GetMethod(name, BindingFlags.Static | BindingFlags.NonPublic)!;
+
         private readonly Skipper _skipper = new();
-        private readonly AvroConvertOptions _options;
+        private readonly IAvroNamingPolicy _namingPolicy;
+        private readonly AvroMissingFieldHandling _missingFieldHandling;
         private readonly Dictionary<Type, Func<IReader, object>> _converters;
         private readonly Dictionary<(TypeSchema, TypeSchema, Type), object> _recordHolders = new();
 
-        internal ReadCompiler(TypeSchema writerSchema, TypeSchema readerSchema, AvroConvertOptions options)
+        internal ReadCompiler(AvroConvertOptions options)
         {
-            _options = options;
-            _fallback = new Resolver(writerSchema, readerSchema, options);
+            _namingPolicy = options?.NamingPolicy;
+            _missingFieldHandling = options?.MissingFieldHandling ?? AvroMissingFieldHandling.Throw;
             _converters = options?.AvroConverters.Count > 0
                 ? options.AvroConverters.ToDictionary(c => c.TypeSchema.RuntimeType, c => (Func<IReader, object>)c.Deserialize)
                 : null;
@@ -144,7 +147,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                         return BuildLogical((LogicalTypeSchema)ws, rs, target, reader);
                     case AvroType.Record:
                     case AvroType.Error:
-                        return BuildRecord((RecordSchema)ws, rs as RecordSchema, target, reader);
+                        if (rs is not RecordSchema readerRecord)
+                        {
+                            throw new NotSupportedException($"Schema mismatch: reader schema [{rs.Type}] cannot read a record");
+                        }
+                        return BuildRecord((RecordSchema)ws, readerRecord, target, reader);
                     case AvroType.Enum:
                         return BuildEnum((EnumSchema)ws, target, reader);
                     case AvroType.Fixed:
@@ -156,20 +163,15 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                     case AvroType.Union:
                         return BuildUnion((UnionSchema)ws, rs, target, reader);
                     default:
-                        return Fallback(ws, rs, target, reader);
+                        throw new NotSupportedException($"Unknown schema type {ws.Type}");
                 }
             }
-            catch (NotSupportedException)
+            catch (NotSupportedException e)
             {
-                return Fallback(ws, rs, target, reader);
+                // Compile-time decision: reading this value cannot succeed, so the plan fails exactly where the data is.
+                return Expression.Throw(Expression.Constant(new AvroTypeMismatchException(
+                    $"Unable to deserialize [{ws.Name}] of schema [{ws.Type}] to the target type [{target}]. {e.Message}")), target);
             }
-        }
-
-        private Expression Fallback(TypeSchema ws, TypeSchema rs, Type target, ParameterExpression reader)
-        {
-            var call = Expression.Call(Expression.Constant(_fallback), FallbackResolveMethod,
-                Expression.Constant(ws, typeof(TypeSchema)), Expression.Constant(rs, typeof(TypeSchema)), reader, Expression.Constant(target));
-            return target == typeof(object) ? call : Expression.Convert(call, target);
         }
 
         private Expression Skip(TypeSchema schema, ParameterExpression reader) =>
@@ -207,7 +209,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                 return Expression.Convert(value, target);
             }
 
-            throw new NotSupportedException($"No typed conversion from {value.Type} to {target}");
+            throw new NotSupportedException($"No conversion from {value.Type} to {target}");
         }
 
         private static Expression BuildString(ParameterExpression reader, Type target)
@@ -236,7 +238,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                 return Expression.New(typeof(Uri).GetConstructor(new[] { typeof(string) })!, read);
             }
 
-            throw new NotSupportedException();
+            throw new NotSupportedException($"No conversion from string to {target}");
         }
 
         private Expression BuildLogical(LogicalTypeSchema ws, TypeSchema rs, Type target, ParameterExpression reader)
@@ -244,34 +246,40 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             var baseRs = rs is LogicalTypeSchema logicalRs ? logicalRs.BaseTypeSchema : rs;
             var baseValue = Build(ws.BaseTypeSchema, baseRs, typeof(object), reader);
 
-            // Same conversion the classic resolver performs; the only boxing left is the base value itself.
             var converted = Expression.Call(Expression.Constant(ws), ConvertToLogicalMethod, baseValue, Expression.Constant(ws), Expression.Constant(target));
             return target == typeof(object) ? converted : Expression.Convert(converted, target);
         }
 
         private Expression BuildEnum(EnumSchema ws, Type target, ParameterExpression reader)
         {
-            var enumType = Nullable.GetUnderlyingType(target) ?? target;
-            if (!enumType.IsEnum)
-            {
-                throw new NotSupportedException();
-            }
-
             var index = Expression.Call(reader, ReadEnumMethod);
+            var enumType = Nullable.GetUnderlyingType(target) ?? target;
             var cases = new List<SwitchCase>(ws.Symbols.Count);
+
             for (int i = 0; i < ws.Symbols.Count; i++)
             {
                 Expression value;
-                try
+                if (enumType.IsEnum)
                 {
-                    value = Expression.Constant(EnumParser.Parse(enumType, ws.Symbols[i], _options?.NamingPolicy), enumType);
+                    try
+                    {
+                        value = Expression.Convert(Expression.Constant(EnumParser.Parse(enumType, ws.Symbols[i], _namingPolicy), enumType), target);
+                    }
+                    catch (KeyNotFoundException)
+                    {
+                        value = Expression.Throw(Expression.Constant(new AvroTypeMismatchException($"Enum symbol '{ws.Symbols[i]}' is not defined on {enumType}")), target);
+                    }
                 }
-                catch (KeyNotFoundException)
+                else if (target == typeof(string) || target == typeof(object))
                 {
-                    value = Expression.Throw(Expression.Constant(new AvroTypeMismatchException($"Enum symbol '{ws.Symbols[i]}' is not defined on {enumType}")), enumType);
+                    value = Expression.Constant(ws.Symbols[i], target);
+                }
+                else
+                {
+                    throw new NotSupportedException($"Enum cannot be read as {target}");
                 }
 
-                cases.Add(Expression.SwitchCase(Expression.Convert(value, target), Expression.Constant(i)));
+                cases.Add(Expression.SwitchCase(value, Expression.Constant(i)));
             }
 
             var outOfRange = Expression.Throw(Expression.Constant(new AvroTypeMismatchException($"Enum position out of range for {ws.FullName}")), target);
@@ -280,65 +288,72 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 
         private static Expression BuildFixed(FixedSchema ws, Type target, ParameterExpression reader)
         {
-            if (target != typeof(byte[]) && target != typeof(Guid) && target != typeof(object))
+            if (target != typeof(byte[]) && target != typeof(Guid) && target != typeof(Guid?) && target != typeof(object))
             {
-                throw new NotSupportedException();
+                throw new NotSupportedException($"Fixed cannot be read as {target}");
             }
 
             var buffer = Expression.Variable(typeof(byte[]), "fixed");
-            var fill = Expression.Call(reader, ReadFixedMethod, buffer);
-            Expression result = target == typeof(Guid)
-                ? Expression.New(typeof(Guid).GetConstructor(new[] { typeof(byte[]) })!, buffer)
+            Expression result = target == typeof(Guid) || target == typeof(Guid?)
+                ? Expression.Convert(Expression.New(typeof(Guid).GetConstructor(new[] { typeof(byte[]) })!, buffer), target)
                 : Expression.Convert(buffer, target);
 
             return Expression.Block(target, new[] { buffer },
                 Expression.Assign(buffer, Expression.NewArrayBounds(typeof(byte), Expression.Constant(ws.Size))),
-                fill,
+                Expression.Call(reader, ReadFixedMethod, buffer),
                 result);
         }
 
         private Expression BuildArray(ArraySchema ws, TypeSchema rs, Type target, ParameterExpression reader)
         {
-            if (target == typeof(object) || target.IsDictionary())
-            {
-                throw new NotSupportedException();
-            }
-
-            var itemType = CollectionItemType(target) ?? throw new NotSupportedException();
             var itemRs = rs is ArraySchema ras ? ras.ItemSchema : rs;
             if (itemRs.IsEmpty())
             {
                 itemRs = ws.ItemSchema;
             }
 
+            // Dictionaries with non-string keys are encoded as an array of {Key, Value} records.
+            if (DictionaryArguments(target) is { } kv && ws.ItemSchema is RecordSchema itemRecord
+                && itemRecord.TryGetField("Key", out var keyField) && itemRecord.TryGetField("Value", out var valueField))
+            {
+                var readerRecord = itemRs as RecordSchema ?? itemRecord;
+                readerRecord.TryGetField("Key", out var readerKey);
+                readerRecord.TryGetField("Value", out var readerValue);
+
+                var keyFn = CompileItem(keyField.TypeSchema, readerKey?.TypeSchema ?? keyField.TypeSchema, kv.Key);
+                var valueFn = CompileItem(valueField.TypeSchema, readerValue?.TypeSchema ?? valueField.TypeSchema, kv.Value);
+                var dictionary = Expression.Call(ReadDictionaryMethod.MakeGenericMethod(kv.Key, kv.Value), reader, Expression.Constant(keyFn), Expression.Constant(valueFn));
+                return Expression.Convert(dictionary, target);
+            }
+
+            var itemType = target == typeof(object) ? typeof(object) : CollectionItemType(target) ?? throw new NotSupportedException($"Array cannot be read as {target}");
             var itemFn = CompileItem(ws.ItemSchema, itemRs, itemType);
             var list = Expression.Call(ReadListMethod.MakeGenericMethod(itemType), reader, Expression.Constant(itemFn));
-            return AdaptCollection(list, itemType, target) ?? throw new NotSupportedException();
+            return AdaptCollection(list, itemType, target) ?? throw new NotSupportedException($"Array cannot be read as {target}");
         }
 
         private Expression BuildMap(MapSchema ws, TypeSchema rs, Type target, ParameterExpression reader)
         {
-            if (!target.IsGenericType)
-            {
-                throw new NotSupportedException();
-            }
-
-            var args = target.GetGenericArguments();
-            if (args.Length != 2 || args[0] != typeof(string))
-            {
-                throw new NotSupportedException();
-            }
-
-            var valueType = args[1];
-            var definition = target.GetGenericTypeDefinition();
-            if (definition != typeof(Dictionary<,>) && definition != typeof(IDictionary<,>) && definition != typeof(IReadOnlyDictionary<,>))
-            {
-                throw new NotSupportedException();
-            }
-
             var valueRs = rs is MapSchema mrs ? mrs.ValueSchema : rs;
-            var valueFn = CompileItem(ws.ValueSchema, valueRs, valueType);
-            var map = Expression.Call(ReadMapMethod.MakeGenericMethod(valueType), reader, Expression.Constant(valueFn));
+
+            if (target == typeof(object))
+            {
+                var dynamicValueFn = CompileItem(ws.ValueSchema, valueRs, typeof(object));
+                return Expression.Convert(Expression.Call(ReadMapMethod.MakeGenericMethod(typeof(object)), reader, Expression.Constant(dynamicValueFn)), typeof(object));
+            }
+
+            var kv = DictionaryArguments(target) ?? throw new NotSupportedException($"Map cannot be read as {target}");
+            var valueFn = CompileItem(ws.ValueSchema, valueRs, kv.Value);
+
+            if (kv.Key == typeof(string))
+            {
+                return Expression.Convert(Expression.Call(ReadMapMethod.MakeGenericMethod(kv.Value), reader, Expression.Constant(valueFn)), target);
+            }
+
+            // Non-string key type: convert each string key the same way a string value would be converted.
+            var keyReader = Expression.Parameter(typeof(IReader), "reader");
+            var keyFn = Expression.Lambda(typeof(Func<,>).MakeGenericType(typeof(IReader), kv.Key), BuildString(keyReader, kv.Key), keyReader).Compile();
+            var map = Expression.Call(ReadMapKeyedMethod.MakeGenericMethod(kv.Key, kv.Value), reader, Expression.Constant(keyFn), Expression.Constant(valueFn));
             return Expression.Convert(map, target);
         }
 
@@ -369,12 +384,30 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             return Expression.Switch(index, outOfRange, cases.ToArray());
         }
 
+        // ------------------------------------------------------------------ records
+
         private Expression BuildRecord(RecordSchema ws, RecordSchema rs, Type target, ParameterExpression reader)
         {
-            if (rs == null || target == typeof(object) || target == typeof(ExpandoObject) || typeof(JToken).IsAssignableFrom(target)
-                || target.IsAbstract || target.IsInterface || target.IsPrimitive || target == typeof(string))
+            if (target == typeof(object))
             {
-                throw new NotSupportedException();
+                var clrType = ClrTypeCache.Find(rs);
+                if (clrType != null)
+                {
+                    return Expression.Convert(BuildRecord(ws, rs, clrType, reader), typeof(object));
+                }
+
+                return BuildExpando(ws, rs, reader);
+            }
+
+            if (target == typeof(ExpandoObject) || typeof(IDictionary<string, object>) == target)
+            {
+                return Expression.Convert(BuildExpando(ws, rs, reader), target);
+            }
+
+            if (target.IsAbstract || target.IsInterface || target.IsPrimitive || target == typeof(string) || target.IsArray || target.IsEnum
+                || DictionaryArguments(target) != null || CollectionItemType(target) != null)
+            {
+                throw new NotSupportedException($"Record cannot be read as {target}");
             }
 
             // Records are compiled into their own delegates (via a holder) so recursive schemas terminate.
@@ -419,9 +452,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                 Expression value = Build(wf.TypeSchema, rf.TypeSchema, member.Type, reader);
                 if (wf.HasDefaultValue && wf.DefaultValue != null && (!member.Type.IsValueType || Nullable.GetUnderlyingType(member.Type) != null))
                 {
-                    // Classic behaviour: a null read for a field with a writer default yields that default.
+                    // A null read for a field with a writer default yields that default.
                     object fallbackDefault = null;
-                    try { fallbackDefault = _fallback.FormatDefaultValue(wf.DefaultValue, member); }
+                    try { fallbackDefault = FormatDefaultValue(wf.DefaultValue, member.Type); }
                     catch (Exception) { /* default not representable as the member type – keep the raw value */ }
 
                     if (fallbackDefault != null)
@@ -433,14 +466,123 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                 body.Add(Expression.Assign(Expression.MakeMemberAccess(instance, member.Info), value));
             }
 
-            foreach (var (member, value) in _fallback.ResolveMissingReaderFields(ws, rs, members))
+            foreach (var rf in rs.Fields)
             {
+                if (ws.TryGetField(rf.Name, out _))
+                {
+                    continue;
+                }
+
+                var member = members.Find(rf.GetAliasOrDefault() ?? rf.Name);
+                if (member is not { CanWrite: true })
+                {
+                    continue;
+                }
+
+                bool clrNullable = !member.Type.IsValueType || Nullable.GetUnderlyingType(member.Type) != null;
+                var value = ResolveMissingReaderField(rs, rf, member.Type, clrNullable);
+                if (value == null && !clrNullable)
+                {
+                    // UseDefault on a non-nullable value type: leave the CLR default rather than assigning null.
+                    continue;
+                }
+
                 body.Add(Expression.Assign(Expression.MakeMemberAccess(instance, member.Info), Expression.Constant(value, member.Type)));
             }
 
             body.Add(instance);
             var lambda = Expression.Lambda(typeof(Func<,>).MakeGenericType(typeof(IReader), target), Expression.Block(target, new[] { instance }, body), reader);
             return lambda.Compile();
+        }
+
+        /// <summary>Dynamic record: an ExpandoObject with one entry per reader field (arrays as List&lt;object&gt;).</summary>
+        private Expression BuildExpando(RecordSchema ws, RecordSchema rs, ParameterExpression reader)
+        {
+            var dictionary = Expression.Variable(typeof(IDictionary<string, object>), "expando");
+            var body = new List<Expression>
+            {
+                Expression.Assign(dictionary, Expression.Convert(Expression.New(typeof(ExpandoObject)), typeof(IDictionary<string, object>)))
+            };
+
+            foreach (var wf in ws.Fields)
+            {
+                if (!rs.TryGetField(wf.Name, out var rf))
+                {
+                    body.Add(Skip(wf.TypeSchema, reader));
+                    continue;
+                }
+
+                string name = rf.Aliases.FirstOrDefault() ?? wf.Name;
+                var targetType = wf.TypeSchema.Type == AvroType.Array ? typeof(List<object>) : typeof(object);
+                Expression value = Expression.Convert(Build(wf.TypeSchema, rf.TypeSchema, targetType, reader), typeof(object));
+                if (wf.DefaultValue != null)
+                {
+                    value = Expression.Coalesce(value, Expression.Constant(wf.DefaultValue, typeof(object)));
+                }
+
+                body.Add(Expression.Call(dictionary, ExpandoAddMethod, Expression.Constant(name), value));
+            }
+
+            foreach (var rf in rs.Fields)
+            {
+                if (ws.TryGetField(rf.Name, out _))
+                {
+                    continue;
+                }
+
+                string name = rf.Aliases.FirstOrDefault() ?? rf.Name;
+                var value = ResolveMissingReaderField(rs, rf, typeof(object), clrNullable: true);
+                body.Add(Expression.Call(dictionary, ExpandoAddMethod, Expression.Constant(name), Expression.Constant(value, typeof(object))));
+            }
+
+            body.Add(Expression.Convert(dictionary, typeof(object)));
+            return Expression.Block(typeof(object), new[] { dictionary }, body);
+        }
+
+        /// <summary>
+        /// Avro schema resolution for a reader field absent from the writer: the reader's default; otherwise null for
+        /// fields that can hold null, or an error governed by MissingFieldHandling.
+        /// </summary>
+        private object ResolveMissingReaderField(RecordSchema readerSchema, RecordFieldSchema rf, Type memberType, bool clrNullable)
+        {
+            if (rf.HasDefaultValue)
+            {
+                return rf.DefaultValue == null ? null : FormatDefaultValue(rf.DefaultValue, memberType);
+            }
+
+            bool nullable = clrNullable ||
+                            rf.TypeSchema.Type == AvroType.Null ||
+                            rf.TypeSchema is UnionSchema union && union.Schemas.Any(s => s.Type == AvroType.Null);
+            if (nullable || _missingFieldHandling == AvroMissingFieldHandling.UseDefault)
+            {
+                return null;
+            }
+
+            throw new SerializationException(
+                $"Field '{rf.Name}' of record '{readerSchema.FullName}' is not present in the writer schema and has no default value. " +
+                $"Add a [DefaultValue] / \"default\" to the field, make it nullable, or set {nameof(AvroConvertOptions)}.{nameof(AvroConvertOptions.MissingFieldHandling)} = {nameof(AvroMissingFieldHandling.UseDefault)}.");
+        }
+
+        private object FormatDefaultValue(object defaultValue, Type memberType)
+        {
+            if (defaultValue == null || memberType == typeof(object))
+            {
+                return defaultValue;
+            }
+
+            var t = Nullable.GetUnderlyingType(memberType) ?? memberType;
+            if (defaultValue.GetType() == t)
+            {
+                return defaultValue;
+            }
+
+            if (t.IsEnum)
+            {
+                return EnumParser.Parse(t, (string)defaultValue, _namingPolicy);
+            }
+
+            // Map and record defaults (Dictionary<string, object>) are not translated to CLR types.
+            return System.Convert.ChangeType(defaultValue, t);
         }
 
         private Delegate CompileItem(TypeSchema ws, TypeSchema rs, Type itemType)
@@ -468,7 +610,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         /// <summary>Element type for arrays, generic collections and their common interfaces; null when not a collection.</summary>
         internal static Type CollectionItemType(Type type)
         {
-            if (type == typeof(string) || type == typeof(byte[]) || type == typeof(object))
+            if (type == typeof(string) || type == typeof(byte[]) || type == typeof(object) || DictionaryArguments(type) != null)
             {
                 return null;
             }
@@ -478,25 +620,48 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                 return type.GetElementType();
             }
 
-            if (type.IsGenericType)
+            if (type.IsGenericType && type.GetGenericArguments().Length == 1)
             {
-                var definition = type.GetGenericTypeDefinition();
-                if (definition == typeof(List<>) || definition == typeof(IList<>) || definition == typeof(ICollection<>) ||
-                    definition == typeof(IEnumerable<>) || definition == typeof(IReadOnlyList<>) || definition == typeof(IReadOnlyCollection<>) ||
-                    definition == typeof(HashSet<>) || definition == typeof(ISet<>) || definition == typeof(IReadOnlySet<>) ||
-                    definition == typeof(Collection<>) || definition == typeof(ReadOnlyCollection<>))
+                var itemType = type.GetGenericArguments()[0];
+                var enumerable = typeof(IEnumerable<>).MakeGenericType(itemType);
+                if (enumerable.IsAssignableFrom(type))
                 {
-                    return type.GetGenericArguments()[0];
+                    return itemType;
                 }
             }
 
             return null;
         }
 
+        /// <summary>(Key, Value) for generic dictionary types and interfaces; null otherwise.</summary>
+        internal static (Type Key, Type Value)? DictionaryArguments(Type type)
+        {
+            if (!type.IsGenericType)
+            {
+                return null;
+            }
+
+            var args = type.GetGenericArguments();
+            if (args.Length != 2)
+            {
+                return null;
+            }
+
+            var readOnly = typeof(IReadOnlyDictionary<,>).MakeGenericType(args);
+            var mutable = typeof(IDictionary<,>).MakeGenericType(args);
+            return readOnly.IsAssignableFrom(type) || mutable.IsAssignableFrom(type) ? (args[0], args[1]) : null;
+        }
+
         /// <summary>Turns a <c>List&lt;TItem&gt;</c> expression into the requested collection type; null when unsupported.</summary>
         private static Expression AdaptCollection(Expression list, Type itemType, Type target)
         {
             var listType = typeof(List<>).MakeGenericType(itemType);
+            var enumerableType = typeof(IEnumerable<>).MakeGenericType(itemType);
+
+            if (target == typeof(object))
+            {
+                return Expression.Convert(list, typeof(object));
+            }
 
             if (target.IsArray)
             {
@@ -508,18 +673,54 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                 return target == listType ? list : Expression.Convert(list, target);
             }
 
-            var definition = target.IsGenericType ? target.GetGenericTypeDefinition() : null;
-            if (definition == typeof(HashSet<>) || definition == typeof(ISet<>) || definition == typeof(IReadOnlySet<>))
+            if (target.IsInterface)
             {
-                var hashSetType = typeof(HashSet<>).MakeGenericType(itemType);
-                var ctor = hashSetType.GetConstructor(new[] { typeof(IEnumerable<>).MakeGenericType(itemType) })!;
-                return Expression.Convert(Expression.New(ctor, list), target);
+                // ISet<T>, IReadOnlySet<T>, IImmutableSet<T>, IImmutableList<T> ...: pick a concrete type that implements it.
+                var definition = target.GetGenericTypeDefinition();
+                Type concrete = definition == typeof(ISet<>) || definition == typeof(IReadOnlySet<>)
+                    ? typeof(HashSet<>).MakeGenericType(itemType)
+                    : definition.Name.Contains("Set")
+                        ? Type.GetType("System.Collections.Immutable.ImmutableHashSet`1, System.Collections.Immutable")?.MakeGenericType(itemType)
+                        : Type.GetType("System.Collections.Immutable.ImmutableList`1, System.Collections.Immutable")?.MakeGenericType(itemType);
+
+                return concrete != null && target.IsAssignableFrom(concrete)
+                    ? Expression.Convert(AdaptCollection(list, itemType, concrete), target)
+                    : null;
             }
 
-            if (definition == typeof(Collection<>) || definition == typeof(ReadOnlyCollection<>))
+            // Collections constructible from IEnumerable<T>: HashSet, Queue, Stack, LinkedList, SortedSet, ConcurrentBag, ObservableCollection, ...
+            var fromEnumerable = target.GetConstructor(new[] { enumerableType });
+            if (fromEnumerable != null)
             {
-                var ctor = target.GetConstructor(new[] { typeof(IList<>).MakeGenericType(itemType) })!;
-                return Expression.New(ctor, list);
+                return Expression.New(fromEnumerable, list);
+            }
+
+            var fromList = target.GetConstructor(new[] { typeof(IList<>).MakeGenericType(itemType) });
+            if (fromList != null)
+            {
+                return Expression.New(fromList, list);
+            }
+
+            // Immutable collections: static Empty + Add(T) returning a new instance.
+            var empty = target.GetField("Empty", BindingFlags.Public | BindingFlags.Static) as MemberInfo
+                        ?? target.GetProperty("Empty", BindingFlags.Public | BindingFlags.Static);
+            var add = target.GetMethod("Add", new[] { itemType });
+            if (empty != null && add != null && add.ReturnType == target)
+            {
+                var folder = typeof(Func<,,>).MakeGenericType(target, itemType, target);
+                var accumulator = Expression.Parameter(target, "acc");
+                var item = Expression.Parameter(itemType, "item");
+                var addFn = Expression.Lambda(folder, Expression.Call(accumulator, add, item), accumulator, item);
+                return Expression.Call(FoldMethod.MakeGenericMethod(target, itemType), list, Expression.MakeMemberAccess(null, empty), addFn);
+            }
+
+            // Mutable collections with a parameterless constructor and void Add(T).
+            if (target.GetConstructor(Type.EmptyTypes) != null && add != null && add.ReturnType == typeof(void))
+            {
+                var collection = Expression.Parameter(target, "collection");
+                var item = Expression.Parameter(itemType, "item");
+                var addFn = Expression.Lambda(typeof(Action<,>).MakeGenericType(target, itemType), Expression.Call(collection, add, item), collection, item);
+                return Expression.Call(AddAllMethod.MakeGenericMethod(target, itemType), Expression.New(target), list, addFn);
             }
 
             return null;

@@ -3,7 +3,7 @@
 - Target framework net10.0 only; netstandard2.0 and net6.0 dropped
 - Dependencies reduced to Newtonsoft.Json and IronSnappy; FastMember.dll no longer shipped
 - Serialization and deserialization compiled per schema and type; multiple times faster with a fraction of allocations
-- Top-level collections written as one container entry per element (#118); `CollectionMode = SingleArray` keeps the previous layout
+- Top-level collections written as one container entry per element (#118); `CollectionMode = SingleArray` keeps the previous layout; a one-element collection reads back as a collection
 - Reader fields missing in writer schema: default value, null for nullable, otherwise an error (#87); `MissingFieldHandling = UseDefault` keeps the previous behaviour
 - Header-only file deserializes to an empty collection instead of null
 - Unknown logical types fall back to the underlying type (#69)

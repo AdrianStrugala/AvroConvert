@@ -17,6 +17,7 @@
 
 using System;
 using SolTechnology.Avro.AvroObjectServices.Read.Typed;
+using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
@@ -55,6 +56,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                     }
 
                     return plan.Many(reader, itemsCount);
+                }
+
+                // One entry whose schema is the collection item (entries mode, single element): still a collection of one.
+                if (itemsCount == 1 && plan.Many != null && _writerSchema.Type != AvroType.Array)
+                {
+                    return plan.Many(reader, 1);
                 }
 
                 return plan.One(reader);

@@ -35,27 +35,34 @@ dotnet add package AvroConvert
 
 ## Benefits
 
-**Avro format combines readability of JSON and data compression of binary serialization.**
+**Avro combines the self-describing schema of JSON with the size and speed of binary serialization.** AvroConvert brings it to .NET the way you already serialize JSON: plain C# objects in, `byte[]` out – no code generation, no `.avsc` files.
 
-|                                                               | AvroConvert                                | Apache.Avro | Newtonsoft.Json |
-|---------------------------------------------------------------|:------------------------------------------:|:-----------:|:---------------:|
-| Rapid serialization                                            |                      ✔️                     |      ✔️      |        ✔️        |                       
-| Low memory allocation                                         |                      ✔️                     |      ✔️      |        ✔️        |
-| Readable schema of data structure                                      |                      ✔️                     |      ✔️      |        ✔️        |
-| Support for C# native objects (Dictionary, List, DateTime...) |                      ✔️                     |      ❌      |        ✔️        |
-| Built-in data encryption                                          |                      ✔️                     |      ✔️      |        ❌        |
-| Support for compression codecs                                | Deflate<br/>  Snappy<br/> GZip<br/> Brotli |   Deflate   |        ❌        |
+|                                                                         |                 AvroConvert                 |               Apache.Avro                | Newtonsoft.Json |
+|-------------------------------------------------------------------------|:-------------------------------------------:|:----------------------------------------:|:---------------:|
+| Works on plain C# classes – no generated code or schema files           |                     ✔️                      |                    ❌                     |       ✔️        |
+| Native .NET types (`Dictionary`, `List`, `DateTime`, `Guid`, `decimal`…) |                     ✔️                      |                    ❌                     |       ✔️        |
+| Compact binary payload                                                  |                     ✔️                      |                    ✔️                     |       ❌        |
+| Schema travels with the data – readable, versionable, evolvable         |                     ✔️                      |                    ✔️                     |       ❌        |
+| Compression codecs                                                      | Deflate · Snappy · GZip · Brotli (built-in) |      Deflate (others via add-ons)       |       ❌        |
+| Avro ⇄ JSON conversion, schema and C# model generation                  |                     ✔️                      |                    ❌                     |       ❌        |
 
-Introducing Avro to the projects brings three main benefits:
-* Reduction of data size and storage cost
-* Decrease of the communication time and the network traffic between microservices
-* Increased security - the data is not visible in plain text format
+What it means for your services:
+* **Smaller data** – a 1 000-record payload is 2.9× smaller than JSON before compression, and codecs shrink it further → lower storage and network cost
+* **Faster round trips** – less time spent in serialization and on the wire between microservices
+* **Safer by default** – binary on the wire is not readable in plain text, and the embedded schema protects against silent shape drift
 
+### Performance
 
-Article describing Avro format specification and Avro API idea: https://www.c-sharpcorner.com/blogs/avro-rest-api-as-the-evolution-of-json-based-communication-between-mic
+Same POCO dataset, same machine, each library used as intended (AvroConvert · [Apache.Avro](https://www.nuget.org/packages/Apache.Avro) 1.12 with `Avro.Reflect` · [Newtonsoft.Json](https://www.nuget.org/packages/Newtonsoft.Json) 13):
 
-**Conclusion:**
-Using Avro for communication between your services significantly reduces data size and network traffic. Additionally choosing encoding (compression algorithm) can improve the results even further.
+![AvroConvert vs Apache.Avro vs Newtonsoft.Json – time and memory](docs/benchmarks/libraries.png)
+
+* **vs Apache.Avro** – 3–7× faster serialization, 4–18× faster deserialization, 2–11× less memory allocated
+* **vs Newtonsoft.Json** – 2–6× faster serialization, 2–8× faster deserialization, up to 4× less memory – with a 2.9× smaller payload
+
+Full tables: [libraries comparison](docs/benchmarks/2026-10-08-libraries-avroconvert-vs-apache-vs-newtonsoft.md) · [4.0 vs earlier AvroConvert releases](docs/benchmarks/2026-10-08-versions-2.7.1-to-4.0.md). Reproduce with `tests/LibrariesBenchmark`.
+
+Background on the format and the Avro-over-HTTP idea: [Avro REST API as the evolution of JSON-based communication between microservices](https://www.c-sharpcorner.com/blogs/avro-rest-api-as-the-evolution-of-json-based-communication-between-mic).
 
 
 ## Features
@@ -126,14 +133,6 @@ using (var reader = AvroConvert.OpenDeserializer<CustomClass>(new MemoryStream(a
 
 [Full documentation](https://github.com/AdrianStrugala/AvroConvert/tree/master/docs)
 
-
-## Performance
-
-4.0 compiles serializers per (schema, type); compared with earlier releases on the same machine (BenchmarkDotNet, .NET 10, log scale):
-
-![AvroConvert releases – execution time](docs/benchmarks/versions-time.png)
-
-Full numbers and memory chart: [docs/benchmarks](docs/benchmarks/2026-10-08-versions-2.7.1-to-4.0.md).
 
 ## License
 

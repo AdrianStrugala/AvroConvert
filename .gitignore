@@ -69,3 +69,5 @@ artifacts/
 # VersionsBenchmark inputs/outputs
 tests/VersionsBenchmark/local-packages/
 tests/VersionsBenchmark/artifacts/
+tests/LibrariesBenchmark/artifacts/
+.venv/

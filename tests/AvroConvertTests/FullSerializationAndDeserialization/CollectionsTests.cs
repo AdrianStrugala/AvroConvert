@@ -29,6 +29,21 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
         }
 
         [Theory]
+        [MemberData(nameof(TestEngine.DefaultOnly), MemberType = typeof(TestEngine))]
+        public void List_with_single_item(Func<object, Type, dynamic> engine)
+        {
+            //Arrange
+            var oneItem = new List<BaseTestClass> { _fixture.Create<BaseTestClass>() };
+
+            //Act
+            var deserialized = engine.Invoke(oneItem, typeof(List<BaseTestClass>));
+
+            //Assert
+            Assert.NotNull(deserialized);
+            Assert.Equal(oneItem, deserialized);
+        }
+
+        [Theory]
         [Trait("Fix", "https://github.com/AdrianStrugala/AvroConvert/issues/146")]
         [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
         public void IEnumerable_of_class(Func<object, Type, dynamic> engine)

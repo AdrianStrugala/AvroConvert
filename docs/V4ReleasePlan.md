@@ -1,7 +1,7 @@
 # AvroConvert 4.0 – zakres wydania
 
 Dokument zbiorczy. Szczegóły w:
-- `LicensingMigrationPlan.md` – zmiana licencji, Paddle, klucz licencyjny, formalności.
+- `LicensingMigrationPlan.md` (repo strony, prywatne) – zmiana licencji, Paddle, klucz licencyjny, formalności.
 - `PerformanceRewriteAnalysis.md` – przepisanie rdzenia (fazy 0–2).
 
 Stan: plan (06.10.2026), nic nie jest jeszcze wdrożone.
@@ -10,7 +10,7 @@ Stan: plan (06.10.2026), nic nie jest jeszcze wdrożone.
 
 | Obszar | Zakres | Źródło |
 |---|---|---|
-| Licencja | PolyForm NC + Small Business, licencja komercyjna przez Paddle, miękki klucz | `LicensingMigrationPlan.md` |
+| Licencja | PolyForm NC + Small Business, licencja komercyjna przez Paddle, miękki klucz | `LicensingMigrationPlan.md` (repo strony) |
 | Wydajność | Typowany rdzeń, `Span`/`IBufferWriter`, strumieniowy decoder | `PerformanceRewriteAnalysis.md` §5 fazy 0–2 |
 | Zgodność ze specyfikacją Avro 1.12 | §2 poniżej | spec 1.12.0 |
 | Otwarte issues GitHub | §3 poniżej | 17 otwartych (stan 06.10.2026) |
@@ -137,7 +137,7 @@ Wynik: dwie zależności zewnętrzne zamiast pięciu, oba kodeki managed.
 4. Faza 2 perf (typowany rdzeń, `UnsafeAccessor`, usunięcie FastMember) – w nim S5, S7–S9, S15, #51, #135, #118, #87.
 5. ~~Newtonsoft → System.Text.Json~~ – wycofane (08.10.2026).
 6. S10 (zstd), S12–S13 (single-object, fingerprint, `CompareSchema`), #174, #156, #69.
-7. Licencja + klucz (wg `LicensingMigrationPlan.md` §5), CHANGELOG z sekcją "Breaking changes", publikacja.
+7. Licencja + klucz (wg `LicensingMigrationPlan.md` §5 w repo strony), CHANGELOG z sekcją "Breaking changes", publikacja.
 
 ## 5. Zmiany łamiące w 4.0 (do CHANGELOG)
 

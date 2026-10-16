@@ -2,7 +2,7 @@
 
 Stan: analiza (06.10.2026), bez zmian w kodzie. Dotyczy `src/AvroConvert` + `src/SolTechnology.FastMember`, targety `netstandard2.0;net6.0`.
 
-**Decyzja (06.10.2026): przepisanie wchodzi do wydania 4.0.0** razem ze zmianą licencji (patrz `LicensingMigrationPlan.md`). Zakres: fazy 0–2 z §5. **4.0 targetuje wyłącznie `net10.0`** – wzmianki o netstandard2.0 poniżej opisują stan obecny, nie cel. Source generator jako 4.x. Pełny zakres 4.0 (zgodność ze spec, issues, .NET 10): `V4ReleasePlan.md`.
+**Decyzja (06.10.2026): przepisanie wchodzi do wydania 4.0.0** razem ze zmianą licencji (plan licencyjny w repo strony). Zakres: fazy 0–2 z §5. **4.0 targetuje wyłącznie `net10.0`** – wzmianki o netstandard2.0 poniżej opisują stan obecny, nie cel. Source generator jako 4.x. Pełny zakres 4.0 (zgodność ze spec, issues, .NET 10): `V4ReleasePlan.md`.
 
 ## 1. Podsumowanie
 

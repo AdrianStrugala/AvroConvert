@@ -264,6 +264,7 @@ namespace AvroConvertComponentTests.Specification
             result.Should().BeEquivalentTo(value);
             schema.Should().Contain(@"{""name"":""OtherDuration"",""type"":""a.duration""}");
             schema.Should().Contain(@"""namespace"":""b"",""type"":""record"",""fields"":[{""name"":""Duration"",""type"":{""type"":""fixed"",""size"":12,""name"":""duration""");
+            AvroSchema.Parse(schema).CanonicalForm.Should().Contain(@"{""name"":""b.duration"",""type"":""fixed"",""size"":12}");
         }
 
         [Fact]
@@ -312,6 +313,29 @@ namespace AvroConvertComponentTests.Specification
             //Assert
             result.Should().BeOfType(expected.GetType());
             result.Should().BeEquivalentTo(expected);
+        }
+
+        private static T ReadMissingFieldDefault<T>(string fieldType, string defaultJson)
+        {
+            var writer = @"{""type"":""record"",""name"":""Holder"",""fields"":[]}";
+            var reader = $@"{{""type"":""record"",""name"":""Holder"",""fields"":[{{""name"":""X"",""type"":{fieldType},""default"":{defaultJson}}}]}}";
+            return AvroConvert.DeserializeHeadless<Holder<T>>(Array.Empty<byte>(), AvroSchema.Parse(writer), AvroSchema.Parse(reader)).X;
+        }
+
+        [Fact]
+        public void LogicalDefault_IsReadIntoAnyMemberTypeLikeData()
+        {
+            const string nanos = @"{""type"":""long"",""logicalType"":""timestamp-nanos""}";
+            const string millis = @"{""type"":""long"",""logicalType"":""timestamp-millis""}";
+
+            ReadMissingFieldDefault<long>(nanos, "1700000000123456789").Should().Be(1700000000123456789L);
+            ReadMissingFieldDefault<long?>(nanos, "1700000000123456789").Should().Be(1700000000123456789L);
+            ReadMissingFieldDefault<DateTime>(nanos, "1700000000123456789").Should().Be(DateTime.UnixEpoch.AddTicks(17000000001234567L));
+            ReadMissingFieldDefault<long>(millis, "1500").Should().Be(1500L);
+            ReadMissingFieldDefault<DateTimeOffset>(millis, "1500").Should().Be(DateTimeOffset.FromUnixTimeMilliseconds(1500));
+            ReadMissingFieldDefault<TimeOnly>(@"{""type"":""long"",""logicalType"":""time-micros""}", "1000").Should().Be(new TimeOnly(10_000));
+            ReadMissingFieldDefault<string>(@"[""null"",""string""]", "null").Should().BeNull();
+            ReadMissingFieldDefault<int>(@"[""int"",""null""]", "7").Should().Be(7);
         }
 
         [Fact]

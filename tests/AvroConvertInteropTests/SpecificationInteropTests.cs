@@ -85,6 +85,57 @@ public class JsonEncodingInteropTests
     }
 }
 
+public class CanonicalFormInteropTests
+{
+    private const string RichSchema = """
+        {"type":"record","name":"Order","namespace":"com.acme","doc":"An order","aliases":["OldOrder"],"fields":[
+          {"name":"id","type":{"type":"string","logicalType":"uuid"},"doc":"identifier"},
+          {"name":"placed","type":{"type":"long","logicalType":"timestamp-millis"},"order":"descending"},
+          {"name":"status","type":{"type":"enum","name":"Status","symbols":["NEW","PAID"],"default":"NEW"}},
+          {"name":"lines","type":{"type":"array","items":{"type":"record","name":"Line","namespace":"com.acme.lines","fields":[
+             {"name":"sku","type":"string"},
+             {"name":"price","type":{"type":"bytes","logicalType":"decimal","precision":10,"scale":2}},
+             {"name":"hash","type":{"type":"fixed","name":"Md5","size":16}}]}}},
+          {"name":"tags","type":{"type":"map","values":{"type":"int"}},"default":{}},
+          {"name":"next","type":["null","Order"],"default":null},
+          {"name":"previousHash","type":["null","com.acme.lines.Md5"],"default":null}
+        ]}
+        """;
+
+    public static TheoryData<string> Schemas => new()
+    {
+        RichSchema,
+        AvroConvert.GenerateSchema(typeof(InteropRecord)),
+        AvroConvert.GenerateSchema(typeof(List<InteropChild>)),
+        // Not compared: logical types on fixed (e.g. TimeSpan -> duration). Apache.Avro 1.12.2 writes only the fixed's
+        // name instead of its definition there; see ParsingCanonicalForm tests in AvroConvertUnitTests.
+        """{"type":"int"}""",
+        """["null","string",{"type":"fixed","name":"x.y.Z","size":3}]"""
+    };
+
+    [Theory]
+    [MemberData(nameof(Schemas))]
+    public void ParsingCanonicalForm_MatchesApache(string schemaJson)
+    {
+        var expected = SchemaNormalization.ToParsingForm(Schema.Parse(schemaJson));
+
+        Assert.Equal(expected, AvroSchema.Parse(schemaJson).CanonicalForm);
+    }
+
+    [Theory]
+    [MemberData(nameof(Schemas))]
+    public void Fingerprints_MatchApache(string schemaJson)
+    {
+        var schema = Schema.Parse(schemaJson);
+
+        var avroSchema = AvroSchema.Parse(schemaJson);
+        Assert.Equal(SchemaNormalization.ParsingFingerprint64(schema), avroSchema.Fingerprint);
+        Assert.Equal(SchemaNormalization.ParsingFingerprint("CRC-64-AVRO", schema), avroSchema.GetFingerprint(AvroFingerprintAlgorithm.Crc64Avro));
+        Assert.Equal(SchemaNormalization.ParsingFingerprint("MD5", schema), avroSchema.GetFingerprint(AvroFingerprintAlgorithm.Md5));
+        Assert.Equal(SchemaNormalization.ParsingFingerprint("SHA-256", schema), avroSchema.GetFingerprint(AvroFingerprintAlgorithm.Sha256));
+    }
+}
+
 public class LogicalTypeInteropTests
 {
     public class Timestamps

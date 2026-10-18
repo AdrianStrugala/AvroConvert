@@ -41,7 +41,13 @@ namespace SolTechnology.Avro
         /// </summary>
         public static string Avro2JsonEncoding(byte[] avro, string avroSchema)
         {
-            return new JsonEncodingWriter().Convert(avro, Schema.Parse(avroSchema));
+            return Avro2JsonEncoding(avro, AvroSchema.Parse(avroSchema));
+        }
+
+        /// <inheritdoc cref="Avro2JsonEncoding(byte[], string)"/>
+        public static string Avro2JsonEncoding(byte[] avro, AvroSchema avroSchema)
+        {
+            return new JsonEncodingWriter().Convert(avro, avroSchema.TypeSchema);
         }
 
         /// <summary>
@@ -60,7 +66,19 @@ namespace SolTechnology.Avro
         /// </summary>
         public static byte[] JsonEncoding2Avro(string json, string avroSchema, CodecType codecType)
         {
-            return new JsonEncodingReader().Convert(json, Schema.Parse(avroSchema), codecType);
+            return JsonEncoding2Avro(json, AvroSchema.Parse(avroSchema), codecType);
+        }
+
+        /// <inheritdoc cref="JsonEncoding2Avro(string, string)"/>
+        public static byte[] JsonEncoding2Avro(string json, AvroSchema avroSchema)
+        {
+            return JsonEncoding2Avro(json, avroSchema, CodecType.Null);
+        }
+
+        /// <inheritdoc cref="JsonEncoding2Avro(string, string, CodecType)"/>
+        public static byte[] JsonEncoding2Avro(string json, AvroSchema avroSchema, CodecType codecType)
+        {
+            return new JsonEncodingReader().Convert(json, avroSchema.TypeSchema, codecType);
         }
     }
 }

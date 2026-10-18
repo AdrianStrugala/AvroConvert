@@ -59,6 +59,17 @@ namespace SolTechnology.Avro
             return result;
         }
 
+        /// <summary>
+        /// Serializes given object to Avro format - <c>excluding</c> header
+        /// </summary>
+        public static byte[] SerializeHeadless(object obj, AvroSchema schema, AvroConvertOptions options = null)
+        {
+            MemoryStream resultStream = new MemoryStream();
+            var encoder = new Writer(resultStream);
+            ResolveWriter(schema.TypeSchema, obj, options)(obj, encoder);
+            return resultStream.ToArray();
+        }
+
         private static Encoder.WriteItem ResolveWriter(TypeSchema schema, object obj, AvroConvertOptions options) =>
             obj == null
                 ? (_, writer) => WriteHelpers.WriteNullValue(schema, writer)

@@ -33,6 +33,14 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Generates C# .NET classes from given AVRO schema
         /// </summary>
+        public static string GenerateModel(AvroSchema schema)
+        {
+            return GenerateModel(schema.Json);
+        }
+
+        /// <summary>
+        /// Generates C# .NET classes from given AVRO schema
+        /// </summary>
         public static string GenerateModel(string schema)
         {
             var generateClassHandler = new GenerateModel();

@@ -117,6 +117,23 @@ namespace SolTechnology.Avro
         }
 
 
+        /// <summary>
+        /// Deserializes Avro object, which does not contain header, written with <paramref name="writerSchema"/> to .NET type
+        /// </summary>
+        public static T DeserializeHeadless<T>(byte[] avroBytes, AvroSchema writerSchema)
+        {
+            return DeserializeHeadless<T>(avroBytes, writerSchema.TypeSchema, BuildSchema(typeof(T)), 1);
+        }
+
+        /// <summary>
+        /// Deserializes Avro object, which does not contain header, written with <paramref name="writerSchema"/> and resolved
+        /// against <paramref name="readerSchema"/> (schema evolution), to .NET type
+        /// </summary>
+        public static T DeserializeHeadless<T>(byte[] avroBytes, AvroSchema writerSchema, AvroSchema readerSchema)
+        {
+            return DeserializeHeadless<T>(avroBytes, writerSchema.TypeSchema, readerSchema.TypeSchema, 1);
+        }
+
         private static T DeserializeHeadless<T>(byte[] avroBytes, TypeSchema writeSchema, TypeSchema readSchema, int numberOfRows)
         {
             var reader = new Reader(avroBytes);

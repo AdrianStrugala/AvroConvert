@@ -43,10 +43,18 @@ namespace SolTechnology.Avro
         /// </summary>
         public static string Avro2Json(byte[] avro, string avroSchema)
         {
+            return Avro2Json(avro, AvroSchema.Parse(avroSchema));
+        }
+
+        /// <summary>
+        /// Converts Avro object compatible with given <paramref name="avroSchema"/> directly to JSON format
+        /// </summary>
+        public static string Avro2Json(byte[] avro, AvroSchema avroSchema)
+        {
             using (var stream = new MemoryStream(avro))
             {
                 var decoder = new Decoder();
-                var deserialized = decoder.Decode(stream, Schema.Parse(avroSchema));
+                var deserialized = decoder.Decode(stream, avroSchema.TypeSchema);
                 var json = JsonConvert.SerializeObject(deserialized);
 
                 return json;

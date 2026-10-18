@@ -4,15 +4,16 @@ using AutoFixture;
 using AutoFixture.Kernel;
 using FluentAssertions;
 using Newtonsoft.Json;
+using SolTechnology.Avro;
 using Xunit;
 
-namespace AvroConvertComponentTests.SchemaConvert
+namespace AvroConvertComponentTests.Schemas
 {
-    public class GenerateFromJsonTests
+    public class InferFromJsonTests
     {
         private readonly Fixture _fixture;
 
-        public GenerateFromJsonTests()
+        public InferFromJsonTests()
         {
             _fixture = new Fixture();
         }
@@ -29,7 +30,7 @@ namespace AvroConvertComponentTests.SchemaConvert
 
 
             //Act
-            var result = SolTechnology.Avro.SchemaConvert.GenerateFromJson(json);
+            var result = AvroSchema.InferFromJson(json).Json;
 
 
             //Assert
@@ -48,7 +49,7 @@ namespace AvroConvertComponentTests.SchemaConvert
 
 
             //Act
-            var result = SolTechnology.Avro.SchemaConvert.GenerateFromJson(json);
+            var result = AvroSchema.InferFromJson(json).Json;
 
 
             //Assert
@@ -68,7 +69,7 @@ namespace AvroConvertComponentTests.SchemaConvert
 
 
             //Act
-            var result = SolTechnology.Avro.SchemaConvert.GenerateFromJson(json);
+            var result = AvroSchema.InferFromJson(json).Json;
 
 
             //Assert
@@ -84,7 +85,7 @@ namespace AvroConvertComponentTests.SchemaConvert
             var json = JsonConvert.SerializeObject(underTest);
 
             //Act
-            var result = SolTechnology.Avro.SchemaConvert.GenerateFromJson(json);
+            var result = AvroSchema.InferFromJson(json).Json;
 
 
             //Assert
@@ -100,7 +101,7 @@ namespace AvroConvertComponentTests.SchemaConvert
 
 
             //Act
-            var result = SolTechnology.Avro.SchemaConvert.GenerateFromJson(json);
+            var result = AvroSchema.InferFromJson(json).Json;
 
             //Assert
             result.Should().StartWith("{\"name\":\"UnknownObject\",\"type\":\"record\",\"fields\":");

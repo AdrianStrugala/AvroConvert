@@ -49,6 +49,7 @@ Punkt odniesienia: specyfikacja **1.12.0** (najnowsza opublikowana; strona docs 
 
 - Dodać projekt `tests/AvroConvertInteropTests` z `Apache.Avro` 1.12.x jako wyrocznią: round-trip AvroConvert → Apache.Avro → AvroConvert dla każdego typu logicznego, każdego kodeka (w tym snappy z walidacją CRC), unii, aliasów, defaultów.
 - Zestaw plików referencyjnych z `apache/avro/share/test/data` (interop.avro w każdym kodeku) jako testy odczytu.
+- **Stan (18.10.2026):** `tests/AvroConvertInteropTests` – InteropRecord we wszystkich kodekach w obie strony, JSON Encoding, canonical form; `ReferenceData/` z `share/test/data` (release-1.12.0): wektory canonical form / fingerprint z `schema-tests.txt`, pliki `weather*.avro` z Javy + `weather.json`, `syncInMeta.avro`; macierz typów logicznych na poziomie binarnym w obie strony (oczekiwane wartości ze wzorów specyfikacji, Apache.Avro tylko jako koder typu bazowego). `interop.avro` nie jest w repo Apache (generują go testy międzyjęzykowe) – pominięty.
 
 ## 3. Otwarte issues GitHub (stan 06.10.2026)
 
@@ -91,7 +92,7 @@ Lokalnie zainstalowane SDK: 8.0.416, **10.0.100**. .NET 10 to LTS (listopad 2025
 | `SolTechnology.Avro.Http` | `net6.0` | `net10.0` | `Microsoft.AspNetCore.Mvc.Core` 2.3.0 → `<FrameworkReference Include="Microsoft.AspNetCore.App" />` |
 | `SolTechnology.Avro.Kafka` | `netstandard2.0` | `net10.0` | `Confluent.Kafka` 1.9.3 → 2.x; `Apache.Avro` 1.12.x; `Confluent.Apache.Avro` 1.7.7.7 (martwy fork) → usunąć |
 | `AvroConvertOnline` (Blazor WASM) | `net6.0` | `net10.0` | `Expression.Compile()` pod WASM działa w interpreterze – dla konwertera schemat→model to bez znaczenia (nie serializuje danych), ale jeśli online ma pokazywać Avro↔JSON, potrzebny source generator albo akceptacja wolniejszej ścieżki |
-| Testy (10 projektów) | `net6.0`, `netcoreapp3.1` (KafkaApp) | `net10.0` | xunit → xunit.v3, `Microsoft.NET.Test.Sdk` / BenchmarkDotNet → aktualne; `FodyWeavers` w testach komponentowych – sprawdzić, czy nadal potrzebne |
+| Testy (10 projektów) | `net6.0`, `netcoreapp3.1` (KafkaApp) | `net10.0` | **Zrobione (18.10.2026):** NUnit + AwesomeAssertions (FluentAssertions 8 jest płatny w użyciu komercyjnym); `TestEngine` (delegaty `Func<…, dynamic>`) zastąpiony typowanym `RoundTrip` + enumem `Format`, każdy przypadek jest osobnym testem; Fody/Equals.Fody, NSubstitute usunięte; testy równoległe. Układ: `tests/` (Unit, Component, Interop), `benchmarks/`, `samples/` |
 
 ### 4.2 Zależności po migracji
 

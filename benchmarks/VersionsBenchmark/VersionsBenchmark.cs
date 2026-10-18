@@ -5,9 +5,9 @@ using BenchmarkDotNet.Jobs;
 using SolTechnology.Avro;
 
 // Compares released AvroConvert versions. 4.0 is resolved from ./local-packages (gitignored) – regenerate it with:
-//   SKIP_TESTS=1 OUTPUT=tests/VersionsBenchmark/local-packages ./scripts/pack.sh
+//   SKIP_TESTS=1 OUTPUT=benchmarks/VersionsBenchmark/local-packages ./scripts/pack.sh
 // Run:  dotnet run -c Release -- --filter '*AvroConvertVersions*' --artifacts ./artifacts
-// Plot: python3 scripts/plot-versions.py tests/VersionsBenchmark/artifacts/results/VersionsBenchmark.AvroConvertVersions-report.csv
+// Plot: python3 scripts/plot-versions.py benchmarks/VersionsBenchmark/artifacts/results/VersionsBenchmark.AvroConvertVersions-report.csv
 
 namespace VersionsBenchmark;
 

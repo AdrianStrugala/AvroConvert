@@ -15,7 +15,7 @@ using SolTechnology.Avro;
 
 // AvroConvert vs Apache.Avro (Avro.Reflect, container file) vs Newtonsoft.Json (UTF-8 bytes) on the same POCOs.
 // Run:  dotnet run -c Release -- --filter '*Libraries*' --artifacts ./artifacts
-// Plot: python3 scripts/plot-libraries.py tests/LibrariesBenchmark/artifacts/results/LibrariesBenchmark.Libraries-report.csv
+// Plot: python3 scripts/plot-libraries.py benchmarks/LibrariesBenchmark/artifacts/results/LibrariesBenchmark.Libraries-report.csv
 
 namespace LibrariesBenchmark;
 

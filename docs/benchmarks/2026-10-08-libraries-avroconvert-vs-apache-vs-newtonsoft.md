@@ -1,6 +1,6 @@
 # AvroConvert 4.0 vs Apache.Avro vs Newtonsoft.Json
 
-Same POCO dataset (`User` with nested `Contact` and two `Offering`s) serialized to / deserialized from a `byte[]` by each library. Source: `tests/LibrariesBenchmark`, chart: `libraries.png`, re-render with `scripts/plot-libraries.py`.
+Same POCO dataset (`User` with nested `Contact` and two `Offering`s) serialized to / deserialized from a `byte[]` by each library. Source: `benchmarks/LibrariesBenchmark`, chart: `libraries.png`, re-render with `scripts/plot-libraries.py`.
 
 How each library is driven:
 

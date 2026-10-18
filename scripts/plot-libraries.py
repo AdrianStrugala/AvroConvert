@@ -1,6 +1,6 @@
 """Renders docs/benchmarks/libraries.png from the LibrariesBenchmark CSV report.
 
-Usage: python3 scripts/plot-libraries.py tests/LibrariesBenchmark/artifacts/results/LibrariesBenchmark.Libraries-report.csv
+Usage: python3 scripts/plot-libraries.py benchmarks/LibrariesBenchmark/artifacts/results/LibrariesBenchmark.Libraries-report.csv
 Requires matplotlib (e.g. in a venv: python3 -m venv .venv && .venv/bin/pip install matplotlib).
 """
 import csv

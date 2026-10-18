@@ -67,7 +67,7 @@ docs/AvroAPIArticle.synctex.gz
 artifacts/
 
 # VersionsBenchmark inputs/outputs
-tests/VersionsBenchmark/local-packages/
-tests/VersionsBenchmark/artifacts/
-tests/LibrariesBenchmark/artifacts/
+benchmarks/VersionsBenchmark/local-packages/
+benchmarks/VersionsBenchmark/artifacts/
+benchmarks/LibrariesBenchmark/artifacts/
 .venv/

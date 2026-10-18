@@ -1,6 +1,6 @@
 """Renders docs/benchmarks/versions-*.png from the VersionsBenchmark CSV report.
 
-Usage: python3 scripts/plot-versions.py tests/VersionsBenchmark/artifacts/results/VersionsBenchmark.AvroConvertVersions-report.csv
+Usage: python3 scripts/plot-versions.py benchmarks/VersionsBenchmark/artifacts/results/VersionsBenchmark.AvroConvertVersions-report.csv
 Requires matplotlib (e.g. in a venv: python3 -m venv .venv && .venv/bin/pip install matplotlib).
 """
 import csv

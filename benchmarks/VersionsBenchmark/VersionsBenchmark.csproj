@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!-- Compares AvroConvert releases: BenchmarkDotNet builds one process per job with the given package version.
-       4.0.0-preview.1 comes from ./local-packages (run scripts/pack.sh with OUTPUT=tests/VersionsBenchmark/local-packages). -->
+       4.0.0-preview.1 comes from ./local-packages (run scripts/pack.sh with OUTPUT=benchmarks/VersionsBenchmark/local-packages). -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>

@@ -10,7 +10,7 @@ namespace SolTechnology.PerformanceBenchmark
 {
     /// <summary>
     /// Scenarios from docs/PerformanceRewriteAnalysis.md §5 (phase 0 baseline).
-    /// Run: dotnet run -c Release --project tests/PerformanceBenchmark -- --filter *CoreScenarios*
+    /// Run: dotnet run -c Release --project benchmarks/PerformanceBenchmark -- --filter *CoreScenarios*
     /// </summary>
     [MemoryDiagnoser]
     [SimpleJob(RuntimeMoniker.Net10_0, warmupCount: 3, iterationCount: 10)]

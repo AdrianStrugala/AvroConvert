@@ -73,7 +73,7 @@ flowchart LR
 - `FormatterServices.GetUninitializedObject` do tworzenia instancji.
 - `stackalloc`/`ArrayPool` dla stringów ≤512 B na net6.0.
 - `OpenDeserializer<T>` (DeserializeByLine) – model strumieniowy bez `Array.Resize`.
-- Istniejące benchmarki (`tests/CoreBenchmarks`, `tests/PerformanceBenchmark`) z `MemoryDiagnoser`.
+- Istniejące benchmarki (`benchmarks/CoreBenchmarks`, `benchmarks/PerformanceBenchmark`) z `MemoryDiagnoser`.
 
 ## 4. Docelowa architektura
 
@@ -202,7 +202,7 @@ Headless (`SerializeHeadless`/`DeserializeHeadless`) korzysta z tych samych `Wri
 ## 5. Plan wdrożenia
 
 ### Faza 0 – pomiar (przed zmianami)
-- Rozszerzyć `tests/PerformanceBenchmark` o scenariusze: płaski rekord z prymitywami; rekord z listą 1 k elementów; słownik; zagnieżdżone rekordy 3 poziomy; plik 100 bloków. Baseline zmierzyć na obecnym kodzie **po** migracji na net10.0 (ta sama platforma przed i po przepisaniu).
+- Rozszerzyć `benchmarks/PerformanceBenchmark` o scenariusze: płaski rekord z prymitywami; rekord z listą 1 k elementów; słownik; zagnieżdżone rekordy 3 poziomy; plik 100 bloków. Baseline zmierzyć na obecnym kodzie **po** migracji na net10.0 (ta sama platforma przed i po przepisaniu).
 - Zapisać baseline (`Mean`, `Allocated`, `Gen0/1/2`) do `docs/benchmarks/`.
 - Profil alokacji (dotMemory / `dotnet-counters` + `dotnet-trace`) na scenariuszu z GrandeBenchmark, żeby potwierdzić udział boxingu vs kopii buforów.
 
@@ -235,7 +235,7 @@ Oczekiwany efekt łącznie: 3–5× mniej alokacji, 2–4× szybciej na rekordac
 
 ## 6. Ryzyka i kompatybilność
 
-- **Semantyka `null`/union/nullable** – obecny kod ma sporo przypadków brzegowych (aliasy, `AvroUnionAttribute`, `NullableSchemaAttribute`, naming policy, `AvroNumberHandling`). Testy komponentowe w `tests/AvroConvertTests` muszą przejść w 100 % przed i po każdej fazie; warto dołożyć testy round-trip z Apache.Avro jako wyrocznią binarną.
+- **Semantyka `null`/union/nullable** – obecny kod ma sporo przypadków brzegowych (aliasy, `AvroUnionAttribute`, `NullableSchemaAttribute`, naming policy, `AvroNumberHandling`). Testy komponentowe w `tests/AvroConvertComponentTests` muszą przejść w 100 % przed i po każdej fazie; warto dołożyć testy round-trip z Apache.Avro jako wyrocznią binarną.
 - **`dynamic` / `ExpandoObject` / `JObject`** – pozostają na starej ścieżce; nie optymalizować.
 - **Konwertery użytkownika (`IAvroConverter`)** – API operuje na `IWriter`/`IReader`; `ref struct` nie da się przekazać przez interfejs klasowy → potrzebny adapter lub nowy interfejs generyczny `IAvroConverter<T>` z metodami na `ref AvroWriter`. Stary interfejs zostaje jako wolniejsza ścieżka.
 - **`Convert.ChangeType` w `Write<S>`** toleruje dziś niezgodności typów (np. `int` do schematu `long`). Typowane delegaty muszą te konwersje wyznaczyć w czasie budowy (jawnie wspierana lista promocji Avro: int→long→float→double), inaczej regresja funkcjonalna.

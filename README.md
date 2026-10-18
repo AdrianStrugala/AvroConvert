@@ -60,7 +60,7 @@ Same POCO dataset, same machine, each library used as intended (AvroConvert · [
 * **vs Apache.Avro** – 3–7× faster serialization, 4–18× faster deserialization, 2–11× less memory allocated
 * **vs Newtonsoft.Json** – 2–6× faster serialization, 2–8× faster deserialization, up to 4× less memory – with a 2.9× smaller payload
 
-Full tables: [libraries comparison](docs/benchmarks/2026-10-08-libraries-avroconvert-vs-apache-vs-newtonsoft.md) · [4.0 vs earlier AvroConvert releases](docs/benchmarks/2026-10-08-versions-2.7.1-to-4.0.md). Reproduce with `tests/LibrariesBenchmark`.
+Full tables: [libraries comparison](docs/benchmarks/2026-10-08-libraries-avroconvert-vs-apache-vs-newtonsoft.md) · [4.0 vs earlier AvroConvert releases](docs/benchmarks/2026-10-08-versions-2.7.1-to-4.0.md). Reproduce with `benchmarks/LibrariesBenchmark`.
 
 Background on the format and the Avro-over-HTTP idea: [Avro REST API as the evolution of JSON-based communication between microservices](https://www.c-sharpcorner.com/blogs/avro-rest-api-as-the-evolution-of-json-based-communication-between-mic).
 

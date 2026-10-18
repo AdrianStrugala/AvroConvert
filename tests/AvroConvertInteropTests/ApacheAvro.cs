@@ -2,8 +2,10 @@ using System.Numerics;
 using Avro;
 using Avro.File;
 using Avro.File.Snappy;
+using Avro.File.Zstandard;
 using Avro.Generic;
 using Avro.IO;
+using Xunit;
 
 namespace AvroConvertInteropTests;
 
@@ -12,7 +14,12 @@ internal static class ApacheAvro
 {
     static ApacheAvro()
     {
-        Codec.RegisterResolver(name => name == "snappy" ? new SnappyCodec() : null);
+        Codec.RegisterResolver(name => name switch
+        {
+            "snappy" => new SnappyCodec(),
+            "zstandard" => new ZstandardCodec(),
+            _ => null
+        });
     }
 
     internal static Codec CreateCodec(string name) => name switch
@@ -20,8 +27,22 @@ internal static class ApacheAvro
         "null" => Codec.CreateCodec(Codec.Type.Null),
         "deflate" => Codec.CreateCodec(Codec.Type.Deflate),
         "snappy" => new SnappyCodec(),
+        "zstandard" => new ZstandardCodec(),
         _ => throw new ArgumentOutOfRangeException(nameof(name), name, null)
     };
+
+    /// <summary>Apache's zstandard codec needs the native libzstd; without it the reference implementation cannot be used.</summary>
+    internal static void SkipIfCodecUnavailable(string name)
+    {
+        try
+        {
+            CreateCodec(name).Compress(new byte[] { 1, 2, 3 });
+        }
+        catch (DllNotFoundException e)
+        {
+            Skip.If(true, $"Apache.Avro codec '{name}' is unavailable: {e.Message.Split('.')[0]}");
+        }
+    }
 
     internal static byte[] WriteContainer(Schema schema, Codec codec, params GenericRecord[] records)
     {

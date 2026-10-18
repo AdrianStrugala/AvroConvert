@@ -17,12 +17,22 @@
 
 namespace SolTechnology.Avro
 {
+    /// <summary>
+    /// Compression codec of an Avro object container file.
+    /// </summary>
     public enum CodecType
     {
+        /// <summary>No compression.</summary>
         Null = 0,
+        /// <summary>Deflate compression.</summary>
         Deflate = 1,
+        /// <summary>Snappy compression.</summary>
         Snappy = 2,
+        /// <summary>GZip compression. Non-standard codec, possibly not supported outside AvroConvert.</summary>
         GZip = 3,
-        Brotli = 4
+        /// <summary>Brotli compression. Non-standard codec, possibly not supported outside AvroConvert.</summary>
+        Brotli = 4,
+        /// <summary>Zstandard compression.</summary>
+        Zstandard = 5
     }
 }

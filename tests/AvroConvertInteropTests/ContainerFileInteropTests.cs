@@ -12,14 +12,15 @@ public class ContainerFileInteropTests
     {
         { "null", CodecType.Null },
         { "deflate", CodecType.Deflate },
-        { "snappy", CodecType.Snappy }
+        { "snappy", CodecType.Snappy },
+        { "zstandard", CodecType.Zstandard }
     };
 
-    [Theory]
+    [SkippableTheory]
     [MemberData(nameof(Codecs))]
     public void AvroConvertWrites_ApacheReads(string apacheCodec, CodecType codec)
     {
-        _ = apacheCodec;
+        ApacheAvro.SkipIfCodecUnavailable(apacheCodec);
         var expected = InteropRecord.Sample();
 
         var bytes = AvroConvert.Serialize(expected, codec);
@@ -30,11 +31,12 @@ public class ContainerFileInteropTests
         InteropAssert.Equivalent(expected, record);
     }
 
-    [Theory]
+    [SkippableTheory]
     [MemberData(nameof(Codecs))]
     public void ApacheWrites_AvroConvertReads(string apacheCodec, CodecType codec)
     {
         _ = codec;
+        ApacheAvro.SkipIfCodecUnavailable(apacheCodec);
         var expected = InteropRecord.Sample();
         var schema = (RecordSchema)Schema.Parse(AvroConvert.GenerateSchema(typeof(InteropRecord)));
 

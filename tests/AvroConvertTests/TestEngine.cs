@@ -25,6 +25,8 @@ public static class TestEngine
 
         yield return Gzip;
 
+        yield return Zstandard;
+
         // yield return Json;
     }
 
@@ -225,6 +227,20 @@ public static class TestEngine
             var @default = new Func<object, Type, dynamic>((input, type) =>
             {
                 var serialized = AvroConvert.Serialize(input, CodecType.GZip);
+                return AvroConvert.Deserialize(serialized, type);
+            });
+
+            return new object[] { @default };
+        }
+    }
+
+    private static object[] Zstandard
+    {
+        get
+        {
+            var @default = new Func<object, Type, dynamic>((input, type) =>
+            {
+                var serialized = AvroConvert.Serialize(input, CodecType.Zstandard);
                 return AvroConvert.Deserialize(serialized, type);
             });
 

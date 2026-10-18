@@ -41,6 +41,8 @@ namespace SolTechnology.Avro.AvroObjectServices.FileHeader.Codec
                     return new GZipCodec();
                 case CodecType.Brotli:
                     return new BrotliCodec();
+                case CodecType.Zstandard:
+                    return new ZstandardCodec();
                 default:
                     return new NullCodec();
             }

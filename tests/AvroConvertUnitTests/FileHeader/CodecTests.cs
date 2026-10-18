@@ -24,6 +24,27 @@ namespace AvroConvertUnitTests.FileHeader
         }
 
         [Fact]
+        public void Zstandard_RoundTrip_UsesSpecName()
+        {
+            //Arrange
+            var payload = Encoding.UTF8.GetBytes(string.Concat(System.Linq.Enumerable.Repeat("zstandard avro block ", 200)));
+
+
+            //Act
+            var codec = AbstractCodec.CreateCodecFromString("zstandard");
+            using var output = new MemoryStream();
+            codec.Compress(payload, output);
+
+
+            //Assert
+            Assert.IsType<ZstandardCodec>(codec);
+            Assert.Equal("zstandard", codec.Name);
+            Assert.True(output.Length < payload.Length);
+            Assert.Equal(new byte[] { 0x28, 0xB5, 0x2F, 0xFD }, output.ToArray()[..4]); // zstd frame magic
+            Assert.Equal(payload, codec.Decompress(output.ToArray()));
+        }
+
+        [Fact]
         public void Crc32_KnownVector_MatchesIeee()
         {
             // Standard CRC-32 check value for "123456789"

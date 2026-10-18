@@ -266,6 +266,25 @@ namespace AvroConvertComponentTests.Specification
             schema.Should().Contain(@"""namespace"":""b"",""type"":""record"",""fields"":[{""name"":""Duration"",""type"":{""type"":""fixed"",""size"":12,""name"":""duration""");
         }
 
+        [Fact]
+        public void LogicalTypeDefault_IsWrittenBackAsDeclared()
+        {
+            //Arrange
+            const string uuidDefault = @"\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\u0008\u0009\u000a\u000b\u000c\u000d\u000e\u000f";
+            const string schema = @"{""type"":""record"",""name"":""D"",""fields"":[{""name"":""a"",""type"":""int""}," +
+                                  @"{""name"":""t"",""type"":{""type"":""long"",""logicalType"":""timestamp-millis""},""default"":1000}," +
+                                  @"{""name"":""u"",""type"":{""type"":""fixed"",""name"":""U"",""size"":16,""logicalType"":""uuid""},""default"":""" + uuidDefault + @"""}]}";
+
+
+            //Act
+            var avro = AvroConvert.JsonEncoding2Avro(@"{""a"":1}", schema);
+
+
+            //Assert
+            AvroConvert.GetSchema(avro).Should().Contain(@"""default"":1000");
+            AvroConvert.Avro2JsonEncoding(avro).Should().Be(
+                @"{""a"":1,""t"":1000,""u"":""\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\b\t\n\u000b\f\r\u000e\u000f""}");
+        }
     }
 
     public class ReviewRegressionTests
@@ -295,6 +314,35 @@ namespace AvroConvertComponentTests.Specification
             result.Should().BeEquivalentTo(expected);
         }
 
+        [Fact]
+        public void JsonEncoding2Avro_MissingFields_UseSchemaDefaultsExactly()
+        {
+            //Arrange
+            const string schema = @"{""type"":""record"",""name"":""D"",""fields"":[
+                {""name"":""n"",""type"":{""type"":""long"",""logicalType"":""timestamp-nanos""},""default"":1700000000123456789},
+                {""name"":""d"",""type"":{""type"":""fixed"",""name"":""Dur"",""size"":12,""logicalType"":""duration""},""default"":""\u0001\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0003\u0000\u0000\u0000""},
+                {""name"":""t"",""type"":{""type"":""long"",""logicalType"":""time-micros""},""default"":1000},
+                {""name"":""r"",""type"":{""type"":""record"",""name"":""Inner"",""fields"":[{""name"":""a"",""type"":""int""},{""name"":""b"",""type"":""string"",""default"":""q""}]},""default"":{""a"":1}}]}";
+
+
+            //Act
+            var json = AvroConvert.Avro2JsonEncoding(AvroConvert.JsonEncoding2Avro("{}", schema));
+
+
+            //Assert
+            json.Should().Be(@"{""n"":1700000000123456789,""d"":""\u0001\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0003\u0000\u0000\u0000"",""t"":1000,""r"":{""a"":1,""b"":""q""}}");
+        }
+
+        [Fact]
+        public void JsonEncoding2Avro_NestedDefaultMissingRequiredField_Throws()
+        {
+            const string schema = @"{""type"":""record"",""name"":""E"",""fields"":[
+                {""name"":""r"",""type"":{""type"":""record"",""name"":""In"",""fields"":[{""name"":""a"",""type"":""int""},{""name"":""b"",""type"":""string""}]},""default"":{""a"":1}}]}";
+
+            var act = () => AvroConvert.JsonEncoding2Avro("{}", schema);
+
+            act.Should().Throw<Exception>().Which.Message.Should().Contain("'b'");
+        }
     }
 
     public class SchemaResolutionTests

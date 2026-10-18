@@ -7,6 +7,84 @@ using Xunit;
 
 namespace AvroConvertInteropTests;
 
+public class JsonEncodingInteropTests
+{
+    private static InteropRecord SampleWithUnionValue()
+    {
+        var sample = InteropRecord.Sample();
+        sample.NullableInt = 7;
+        return sample;
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void AvroConvertJsonEncoding_ApacheJsonDecoder(bool unionHasValue)
+    {
+        var expected = unionHasValue ? SampleWithUnionValue() : InteropRecord.Sample();
+        var schemaJson = AvroConvert.GenerateSchema(typeof(InteropRecord));
+        var schema = Schema.Parse(schemaJson);
+
+        var json = AvroConvert.Avro2JsonEncoding(AvroConvert.SerializeHeadless(expected, schemaJson), schemaJson);
+        var record = new GenericDatumReader<GenericRecord>(schema, schema).Read(null!, new JsonDecoder(schema, json));
+
+        InteropAssert.Equivalent(expected, record);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void ApacheJsonEncoder_AvroConvertJsonEncoding(bool unionHasValue)
+    {
+        var expected = unionHasValue ? SampleWithUnionValue() : InteropRecord.Sample();
+        var schemaJson = AvroConvert.GenerateSchema(typeof(InteropRecord));
+        var schema = (RecordSchema)Schema.Parse(schemaJson);
+
+        using var stream = new MemoryStream();
+        var encoder = new JsonEncoder(schema, stream);
+        new GenericDatumWriter<GenericRecord>(schema).Write(ApacheAvro.ToGenericRecord(expected, schema), encoder);
+        encoder.Flush();
+        var json = System.Text.Encoding.UTF8.GetString(stream.ToArray());
+
+        var actual = AvroConvert.Deserialize<InteropRecord>(AvroConvert.JsonEncoding2Avro(json, schemaJson));
+
+        InteropAssert.Equivalent(expected, actual);
+    }
+
+    [Fact]
+    public void AvroConvertJsonEncoding_EqualsApacheJsonEncoderOutput_ForUnionsAndBytes()
+    {
+        const string schemaJson = """
+            {"type":"record","name":"R","namespace":"ns","fields":[
+              {"name":"opt","type":["null","string"]},
+              {"name":"none","type":["null","long"]},
+              {"name":"child","type":["null",{"type":"record","name":"C","fields":[{"name":"b","type":"bytes"}]}]},
+              {"name":"f","type":{"type":"fixed","name":"F","size":2}}
+            ]}
+            """;
+        var schema = (RecordSchema)Schema.Parse(schemaJson);
+        var child = new GenericRecord((RecordSchema)((UnionSchema)schema["child"].Schema).Schemas[1]);
+        child.Add("b", new byte[] { 0x00, 0x41, 0xFF });
+        var record = new GenericRecord(schema);
+        record.Add("opt", "x");
+        record.Add("none", null);
+        record.Add("child", child);
+        record.Add("f", new GenericFixed((FixedSchema)schema["f"].Schema, new byte[] { 0x7F, 0x80 }));
+
+        using var stream = new MemoryStream();
+        var encoder = new JsonEncoder(schema, stream);
+        new GenericDatumWriter<GenericRecord>(schema).Write(record, encoder);
+        encoder.Flush();
+        var apacheJson = System.Text.Encoding.UTF8.GetString(stream.ToArray());
+
+        var avroConvertJson = AvroConvert.Avro2JsonEncoding(ApacheAvro.WriteBinary(schema, record), schemaJson);
+
+        Assert.True(Newtonsoft.Json.Linq.JToken.DeepEquals(
+            Newtonsoft.Json.Linq.JToken.Parse(apacheJson),
+            Newtonsoft.Json.Linq.JToken.Parse(avroConvertJson)), $"Apache: {apacheJson}\nAvroConvert: {avroConvertJson}");
+    }
+}
+
 public class LogicalTypeInteropTests
 {
     public class Timestamps

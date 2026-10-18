@@ -27,6 +27,8 @@ public static class TestEngine
 
         yield return Zstandard;
 
+        yield return JsonEncoding;
+
         // yield return Json;
     }
 
@@ -242,6 +244,24 @@ public static class TestEngine
             {
                 var serialized = AvroConvert.Serialize(input, CodecType.Zstandard);
                 return AvroConvert.Deserialize(serialized, type);
+            });
+
+            return new object[] { @default };
+        }
+    }
+
+    /// <summary>Avro -> spec JSON Encoding -> Avro must be lossless.</summary>
+    private static object[] JsonEncoding
+    {
+        get
+        {
+            var @default = new Func<object, Type, dynamic>((input, type) =>
+            {
+                var serialized = AvroConvert.Serialize(input);
+                var schema = AvroConvert.GetSchema(serialized);
+                var json = AvroConvert.Avro2JsonEncoding(serialized);
+                var avro = AvroConvert.JsonEncoding2Avro(json, schema);
+                return AvroConvert.Deserialize(avro, type);
             });
 
             return new object[] { @default };

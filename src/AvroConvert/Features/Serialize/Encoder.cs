@@ -107,6 +107,18 @@ namespace SolTechnology.Avro.Features.Serialize
             }
         }
 
+        /// <summary>Appends one container entry encoded directly by <paramref name="write"/>.</summary>
+        internal void AppendEncoded(Action<IWriter> write)
+        {
+            write(_chunkWriter);
+            _blockCount++;
+
+            if (_memoryChunk.Position >= _syncInterval)
+            {
+                WriteBuffer();
+            }
+        }
+
         /// <summary>Appends every element as its own container entry using a typed writer (no boxing per element).</summary>
         internal void AppendAll<T>(IEnumerable<T> items)
         {

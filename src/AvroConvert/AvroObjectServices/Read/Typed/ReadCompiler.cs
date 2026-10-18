@@ -10,6 +10,7 @@ using System.Text;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.AvroObjectServices.Skip;
+using SolTechnology.Avro.Features.JsonEncoding;
 using SolTechnology.Avro.Infrastructure.Attributes;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 using SolTechnology.Avro.Infrastructure.Reflection;
@@ -642,6 +643,18 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         /// </summary>
         private object ResolveMissingReaderField(RecordSchema readerSchema, RecordFieldSchema rf, Type memberType, bool clrNullable)
         {
+            if (rf.DefaultJson != null)
+            {
+                try
+                {
+                    return ReadDefault(rf, memberType);
+                }
+                catch (Exception)
+                {
+                    // Not readable into this member type through the data path – fall back to the converted CLR default below.
+                }
+            }
+
             if (rf.HasDefaultValue)
             {
                 return rf.DefaultValue == null ? null : FormatDefaultValue(rf.DefaultValue, memberType);
@@ -658,6 +671,17 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             throw new SerializationException(
                 $"Field '{rf.Name}' of record '{readerSchema.FullName}' is not present in the writer schema and has no default value. " +
                 $"Add a [DefaultValue] / \"default\" to the field, make it nullable, or set {nameof(AvroConvertOptions)}.{nameof(AvroConvertOptions.MissingFieldHandling)} = {nameof(AvroMissingFieldHandling.UseDefault)}.");
+        }
+
+        /// <summary>
+        /// A default declared in a parsed schema is encoded to Avro binary and read with the same plan as data, so it
+        /// converts to the member type exactly like a value on the wire would (e.g. timestamp-nanos into long or DateTime).
+        /// </summary>
+        private object ReadDefault(RecordFieldSchema rf, Type memberType)
+        {
+            var encoded = JsonEncodingReader.EncodeDefault(rf.TypeSchema, rf.DefaultJson);
+            var read = CompileItem(rf.TypeSchema, rf.TypeSchema, memberType);
+            return read.DynamicInvoke(new Reader(encoded));
         }
 
         private object FormatDefaultValue(object defaultValue, Type memberType)

@@ -29,21 +29,21 @@ Punkt odniesienia: specyfikacja **1.12.0** (najnowsza opublikowana; strona docs 
 | S3 | **Snappy: CRC32 liczony z danych skompresowanych i zapisany little-endian.** Spec: CRC32 danych **nieskompresowanych**, **big-endian**. | [SnappyCodec.cs](../src/AvroConvert/AvroObjectServices/FileHeader/Codec/SnappyCodec.cs#L33) | Pliki Snappy z AvroConvert nie przechodzą walidacji w Javie/Pythonie; odczyt cudzych plików działa tylko dlatego, że CRC jest ignorowane |
 | S4 | **Schema resolution: brak obsługi pola, które jest w schemacie czytelnika, a nie ma go u pisarza.** Spec: użyć `default` czytelnika, a bez `default` → błąd. Dziś iterowane są tylko pola pisarza, a jako default używany jest `wf.DefaultValue` (pisarza) zamiast `rf.DefaultValue`. | [Read/Record.cs](../src/AvroConvert/AvroObjectServices/Read/Resolvers/Record.cs#L55) | Brakujące pola dostają `default(T)` zamiast wartości ze schematu; brak błędu dla pól obowiązkowych – issue #87 |
 | S5 | **Nazwy typów generycznych** – `Field<string>` i `Field<int>` dają ten sam `name: "Field1"` → duplikat nazwy w jednym schemacie (spec: fullname musi być unikalny). | `AvroContractResolver.ResolveType` | Schema Registry (Azure, Confluent) odrzuca schemat – issue #159 |
-| S6 | **Avro2Json nie stosuje JSON Encoding dla unii** (`{"string": "x"}` zamiast `"x"`). | `Features/AvroToJson` | Niezgodne z sekcją "JSON Encoding"; issue #156 |
+| S6 | **Brak JSON Encoding wg spec.** `Avro2Json` zwraca JSON w kształcie modelu .NET (unia jako `"x"`), a spec wymaga `{"string": "x"}`. | `Features/AvroToJson` | Brak wymiany JSON z avro-tools / Java / Pythonem; issue #156. **Wdrożone (18.10.2026):** osobne API `Avro2JsonEncoding` / `JsonEncoding2Avro` (`Features/JsonEncoding`); `Avro2Json` bez zmian – zmiana niełamiąca |
 
 ### 2.2 Brakujące elementy specyfikacji (dodać w 4.0)
 
 | # | Element | Uwagi |
 |---|---|---|
-| S7 | Typy logiczne: `timestamp-nanos`, `local-timestamp-millis`, `local-timestamp-micros`, `local-timestamp-nanos` | Mapowanie: `timestamp-*` ↔ `DateTime`(Utc)/`DateTimeOffset`; `local-timestamp-*` ↔ `DateTime`(Unspecified). Wybór precyzji przez atrybut (`[AvroLogicalType(...)]`) – zamyka issue #153 |
-| S8 | `uuid` na `fixed(16)` (od 1.12) | Dziś tylko `string`; odczyt obu, zapis konfigurowalny |
-| S9 | `big-decimal` (bytes, skala w wartości) | Spec oznacza jako "currently only Java and Rust" – odczyt tak, zapis opcjonalnie |
-| S10 | Kodek `zstandard` | Najpopularniejszy kodek w ekosystemie (Kafka, Spark). `ZstdSharp.Port` (managed) lub `ZstdNet`. `bzip2`/`xz` – pominąć |
-| S11 | Kodek `brotli` **nie jest w specyfikacji** | Zostawić jako rozszerzenie, ale ostrzec w docs, że pliki nie są przenośne; nie używać jako domyślnego |
-| S12 | Single-object encoding (`C3 01` + CRC-64-AVRO fingerprint + payload) | Standard dla Kafka bez Schema Registry; `SerializeSingleObject`/`DeserializeSingleObject` + rejestr schematów po fingerprincie. Zamyka część #118 (ADX) |
-| S13 | Parsing Canonical Form + fingerprint (CRC-64-AVRO, MD5, SHA-256) | Potrzebne do S12, do klucza cache serializerów (perf §4.4) i do `CompareSchema()` – issue #73 |
-| S14 | `order` w polach rekordu i `default` dla `enum` | Parsowanie i zachowanie w round-trip schematu (dziś gubione); sort order samych danych – poza zakresem |
-| S15 | Pełna lista promocji typów przy resolution (`int→long→float→double`, `string↔bytes`) jako jawna tabela | Dziś tolerowane przez `Convert.ChangeType`; w typowanym rdzeniu musi być jawne |
+| S7 | Typy logiczne: `timestamp-nanos`, `local-timestamp-millis`, `local-timestamp-micros`, `local-timestamp-nanos` | **Wdrożone (18.10.2026).** `local-timestamp-*` czytane jako `DateTime`(Unspecified). Wybór przez istniejący `[AvroType(AvroTypeRepresentation.TimestampNanoseconds / LocalTimestamp…)]` – zamyka #153. `*-nanos` z dokładnością do 100 ns (tick .NET) |
+| S8 | `uuid` na `fixed(16)` (od 1.12) | **Wdrożone (18.10.2026).** Odczyt obu; zapis `fixed` przez `[AvroType(AvroTypeRepresentation.UuidFixed)]`; bajty w kolejności RFC 4122 (big-endian) |
+| S9 | `big-decimal` (bytes, skala w wartości) | **Wdrożone (18.10.2026).** Odczyt zawsze, zapis przez `[AvroType(AvroTypeRepresentation.BigDecimal)]`; układ jak w Javie (bytes unscaled + int scale) |
+| S10 | Kodek `zstandard` | **Wdrożone (18.10.2026).** `CodecType.Zstandard` na `ZstdSharp.Port` (managed). Zweryfikowane z fastavro (libzstd) w obie strony; test interop z Apache.Avro pomijany, gdy brak natywnego `libzstd`. `bzip2`/`xz` – pominięte |
+| S11 | Kodek `brotli` **nie jest w specyfikacji** | **Wdrożone (18.10.2026):** ostrzeżenie w XML-doc `CodecType` i w docs (dotyczy też `GZip`) |
+| S12 | Single-object encoding (`C3 01` + CRC-64-AVRO fingerprint + payload) | **Odrzucone (18.10.2026).** Przypadek użycia (pojedyncze wiadomości z identyfikacją wersji schematu) pokrywa format Confluent w `SolTechnology.Avro.Kafka`. Wrócić, gdy ktoś poprosi o interop z Java `toByteBuffer()` / `fromByteBuffer()`; fingerprint jest już w `AvroSchema.Fingerprint` |
+| S13 | Parsing Canonical Form + fingerprint (CRC-64-AVRO, MD5, SHA-256) | **Wdrożone (18.10.2026)** jako nowy typ `AvroSchema` (`CanonicalForm`, `Fingerprint`, `GetFingerprint(algorithm)`, równość po canonical form); `SchemaConvert` usunięty. Zgodne z Apache.Avro poza typem logicznym na `fixed`, gdzie Apache 1.12.2 ma błąd (pisze samą nazwę) |
+| S14 | `order` w polach rekordu i `default` dla `enum` | **Wdrożone (18.10.2026).** Parsowanie z walidacją i zachowanie w round-trip; `default` enuma używany przy odczycie, gdy czytelnik nie zna symbolu pisarza. Sort order samych danych – poza zakresem |
+| S15 | Pełna lista promocji typów przy resolution (`int→long→float→double`, `string↔bytes`) jako jawna tabela | **Wdrożone (18.10.2026).** `SchemaPromotion` (tabela ze spec + jawnie oznaczone rozszerzenia z 3.x: `long→int`, `null→string`); `string↔bytes` jako UTF-8; w `dynamic` wartość dostaje typ czytelnika |
 
 ### 2.3 Test zgodności
 
@@ -59,8 +59,8 @@ Legenda: **4.0** – wchodzi do wydania; **4.x** – po 4.0 bez łamania API; **
 | [174](https://github.com/AdrianStrugala/AvroConvert/issues/174) | Union dwóch lub więcej rekordów – `GenerateModel` daje `object`, deserializacja pusta | bug, V4 candidate | **4.0** | Generator modelu emituje typ bazowy/interfejs + `[AvroUnion(typeof(ObjA), typeof(ObjB))]`; `OpenDeserializer<T>` z przeciążeniem przyjmującym schemat czytelnika. 23 komentarze – najgłośniejszy issue |
 | [163](https://github.com/AdrianStrugala/AvroConvert/issues/163) | `SerializeHeadless` – brak `using` na `MemoryStream` | issue | **4.0** | Znika w przepisaniu (pooled bufor); do tego czasu `using` |
 | [159](https://github.com/AdrianStrugala/AvroConvert/issues/159) | Schemat dla typów generycznych – duplikat nazwy | issue | **4.0** | = S5. Nazwa `Field_String`, `Field_Int32` (argumenty generyczne w nazwie, bez znaków spoza `[A-Za-z0-9_]`) |
-| [156](https://github.com/AdrianStrugala/AvroConvert/issues/156) | Avro2Json nie stosuje JSON Encoding dla unii | feature | **4.0** | = S6. Opcja `AvroConvertOptions.JsonEncoding = Spec | Simplified`, domyślnie Spec w 4.0 (zmiana łamiąca → major) |
-| [153](https://github.com/AdrianStrugala/AvroConvert/issues/153) | Wybór `timestamp-millis` vs `micros` dla `DateTime` | add docs | **4.0** | = S7. `[AvroLogicalType(AvroLogicalType.TimestampMillis)]` + opcja globalna w `AvroConvertOptions` |
+| [156](https://github.com/AdrianStrugala/AvroConvert/issues/156) | Avro2Json nie stosuje JSON Encoding dla unii | feature | **4.0** | = S6. **Zmiana decyzji (18.10.2026):** zamiast opcji – osobne API `Avro2JsonEncoding` / `JsonEncoding2Avro`; `Avro2Json` zostaje JSON-em w kształcie modelu .NET (udokumentowany kontrakt, round-trip z `Json2Avro`). Niełamiące. Wdrożone |
+| [153](https://github.com/AdrianStrugala/AvroConvert/issues/153) | Wybór `timestamp-millis` vs `micros` dla `DateTime` | add docs | **4.0** | = S7. Istniejący `[AvroType(AvroTypeRepresentation.TimestampMilliseconds)]` rozszerzony o nanos / local; opisane w `Documentation.Schema.md#logical-types`. Opcja globalna w `AvroConvertOptions` – jeszcze nie |
 | [135](https://github.com/AdrianStrugala/AvroConvert/issues/135) | Usunąć boxing w Record writer | feature | **4.0** | = perf §3.1 #1. Autor issue podał gotowy szkic Expression tree – zbieżny z planem |
 | [119](https://github.com/AdrianStrugala/AvroConvert/pull/119) | PR: `SerializeContainer`/`DeserializeContainer` | PR | **zamknąć** z podziękowaniem | Zakres pokryty przez nowe API strumieniowe (`IAsyncEnumerable<T>`, `IBufferWriter<byte>`) i S12; PR z 2023 nie zmerguje się na nowy rdzeń |
 | [118](https://github.com/AdrianStrugala/AvroConvert/issues/118) | Azure Data Explorer nie przyjmuje pliku z tablicą | feature, V4 candidate | **4.0** | ADX oczekuje kontenera z N rekordami (po jednym na obiekt), a nie jednego rekordu typu `array`. `Serialize(IEnumerable<T>)` ma zapisywać N obiektów w blokach (zgodnie ze spec OCF), `Deserialize<List<T>>` czytać je z powrotem. To zmiana łamiąca format dla kolekcji top-level → major. Dla zachowania starego zachowania: `AvroConvertOptions.TopLevelCollectionAsSingleRecord = true` |
@@ -69,7 +69,7 @@ Legenda: **4.0** – wchodzi do wydania; **4.x** – po 4.0 bez łamania API; **
 | [103](https://github.com/AdrianStrugala/AvroConvert/issues/103) | .NET Framework: `FileNotFoundException` dla `SolTechnology.Avro` | bug, help wanted | **zamknąć** | 4.x nie wspiera .NET Framework (tylko net10.0). Odpowiedź: używać 3.4.x (netstandard2.0) z `AutoGenerateBindingRedirects`/`PackageReference`; sekcja w docs |
 | [100](https://github.com/AdrianStrugala/AvroConvert/issues/100) | Redukcja zależności (BrotliSharpLib, FastMember, IronSnappy, Newtonsoft) | issue, V4 candidate | **4.0 w całości** | Na net10.0: `BrotliSharpLib` → `System.IO.Compression.Brotli`; `Portable.System.DateTimeOnly` i `Microsoft.CSharp` → zbędne; FastMember → `UnsafeAccessor` + Expression trees, projekt usunięty; Newtonsoft **zostaje** (decyzja 08.10.2026). Zostają `Newtonsoft.Json` i `IronSnappy` (+ `ZstdSharp.Port` dla S10) |
 | [87](https://github.com/AdrianStrugala/AvroConvert/issues/87) | Brak błędu dla pól obowiązkowych | bug, V4 candidate | **4.0** | = S4. Pole czytelnika bez `default`, nieobecne u pisarza → `AvroTypeMismatchException`; opcja `AvroConvertOptions.MissingFieldHandling = Throw | UseDefault` (domyślnie `Throw` zgodnie ze spec; w 3.x było `UseDefault`) |
-| [73](https://github.com/AdrianStrugala/AvroConvert/issues/73) | `CompareSchema()` | feature | **4.0** | Na bazie S13 (Parsing Canonical Form): `SchemaConvert.Compare(a, b)` → lista różnic + flaga "czytelne wg reguł resolution" |
+| [73](https://github.com/AdrianStrugala/AvroConvert/issues/73) | `CompareSchema()` | feature | **4.0** | **Wdrożone (18.10.2026):** `AvroSchema.Compare(writer, reader)` → `CanRead`, `AreEquivalent`, różnice ze ścieżkami wg reguł schema resolution; `AvroSchema.CheckCompatibility` z trybami Backward / Forward / Full (+ Transitive) jak w Schema Registry |
 | [69](https://github.com/AdrianStrugala/AvroConvert/issues/69) | BigQuery: `Logical Type: datetime` nieznany; wiele wierszy w `DeserializeHeadless` | learning | **4.0** | = S2 (ignorować nieznany logicalType → typ bazowy). Wiele wierszy: `DeserializeHeadless<IEnumerable<T>>` / `OpenHeadlessDeserializer<T>` czytający do końca bufora |
 | [51](https://github.com/AdrianStrugala/AvroConvert/issues/51) | Prywatne pola z `[DataMember]` ignorowane | help wanted, issue | **4.0** | W typowanym rdzeniu dostęp do prywatnych pól to `Expression.Field` / `UnsafeAccessor` (net8+) – zero narzutu w runtime, argument o wydajności z 2021 przestaje obowiązywać |
 | [26](https://github.com/AdrianStrugala/AvroConvert/issues/26) | Tablice wielowymiarowe `int[,,]` | feature | **4.x** | Avro nie ma typu wielowymiarowego; mapować na `array<array<...>>` + metadane kształtu. Niska wartość, niski priorytet |
@@ -136,7 +136,7 @@ Wynik: dwie zależności zewnętrzne zamiast pięciu, oba kodeki managed.
 3. Faza 1 perf (szybkie wygrane) + poprawki S1–S4.
 4. Faza 2 perf (typowany rdzeń, `UnsafeAccessor`, usunięcie FastMember) – w nim S5, S7–S9, S15, #51, #135, #118, #87.
 5. ~~Newtonsoft → System.Text.Json~~ – wycofane (08.10.2026).
-6. S10 (zstd), S12–S13 (single-object, fingerprint, `CompareSchema`), #174, #156, #69.
+6. S10 (zstd), S13 (`AvroSchema`: canonical form, fingerprint, `Compare`, `CheckCompatibility`), #174, #156, #69. S12 odrzucone.
 7. Licencja + klucz (wg `LicensingMigrationPlan.md` §5 w repo strony), CHANGELOG z sekcją "Breaking changes", publikacja.
 
 ## 5. Zmiany łamiące w 4.0 (do CHANGELOG)
@@ -147,11 +147,12 @@ Wynik: dwie zależności zewnętrzne zamiast pięciu, oba kodeki managed.
 - Usunięty pakiet `SolTechnology.FastMember` (był pakowany do AvroConvert jako zależność wewnętrzna – brak wpływu na użytkowników, chyba że ktoś referował go bezpośrednio).
 - Kolekcja top-level serializowana jako N obiektów w kontenerze zamiast jednego rekordu `array` (#118). Dotyczy `List<T>`, `T[]`, `HashSet<T>`, `IEnumerable<T>` itp. z konkretnym typem elementu (nie `object`, nie słowniki). Pliki 3.x (`array`) nadal się czytają. Opcja przywracająca: `AvroConvertOptions.CollectionMode = SingleArray`. Konsekwencja: plik z samym nagłówkiem (0 wpisów) deserializuje się do pustej kolekcji zamiast `null`.
 - Brak pola obowiązkowego u pisarza → wyjątek zamiast `default(T)` (#87, S4). Dotyczy tylko pól, które nie mogą przyjąć `null` (typy wartościowe bez `Nullable<>`, bez `[DefaultValue]`, bez unii z `null`); `string`, klasy i `Nullable<T>` dostają `null` jak w 3.x. Opcja przywracająca: `AvroConvertOptions.MissingFieldHandling = UseDefault`.
-- Avro2Json: JSON Encoding wg spec dla unii (#156, S6) – opcja przywracająca.
+- ~~Avro2Json: JSON Encoding wg spec dla unii (#156, S6)~~ – **nie jest zmianą łamiącą (18.10.2026)**: osobne API `Avro2JsonEncoding` / `JsonEncoding2Avro`, `Avro2Json` bez zmian.
 - Nazwy typów generycznych w schemacie zawierają argumenty generyczne (#159, S5) – schematy wygenerowane w 3.x dla typów generycznych nie są tekstowo identyczne; dane binarne pozostają kompatybilne, bo nazwy rekordów nie wpływają na encoding, ale Schema Registry zobaczy nową wersję.
 - `time-micros` bez spacji (S1) – jw., tylko tekst schematu.
 - Snappy: poprawny CRC (S3) – pliki z 3.x nadal się czytają (CRC nie jest walidowane przy odczycie; opcjonalnie `ValidateSnappyCrc = false` dla starych plików).
 - Nieznany `logicalType` nie rzuca wyjątku (S2).
+- `SchemaConvert` usunięty na rzecz `AvroSchema` (S13, #73): `SchemaConvert.GenerateFromJson(json)` → `AvroSchema.InferFromJson(json).Json`.
 
 ## 6. Publikacja 4.0.0 – checklista
 

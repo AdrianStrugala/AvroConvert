@@ -19,6 +19,16 @@
 - Closed generic types get distinct record names, e.g. `Field_String`, `Field_Int32` (#159)
 - Multidimensional arrays are rejected with an explicit error instead of being flattened (#26)
 - SolTechnology.Avro.Http and SolTechnology.Avro.Kafka moved to net10.0; Kafka on Confluent 2.x
+- `Avro2JsonEncoding` / `JsonEncoding2Avro`: JSON as defined by the Avro specification (unions as `{"type": value}`, avro-tools compatible); `Avro2Json` / `Json2Avro` unchanged (#156)
+- `AvroSchema`: parsed schema with `CanonicalForm` (Parsing Canonical Form), `Fingerprint` (CRC-64-AVRO), MD5 / SHA-256 fingerprints and equality by canonical form; `AvroConvert` overloads accept it next to schema strings
+- `AvroSchema.Compare` (differences with paths, breaking or not, per the schema resolution rules) and `AvroSchema.CheckCompatibility` (Backward / Forward / Full, transitive) (#73)
+- `SchemaConvert` removed: `SchemaConvert.GenerateFromJson(json)` → `AvroSchema.InferFromJson(json).Json`
+- Logical types `timestamp-nanos`, `local-timestamp-millis`, `local-timestamp-micros`, `local-timestamp-nanos`, `big-decimal`, `uuid` on `fixed(16)`; selected with `[AvroType(...)]` (#153); a `long` member keeps the raw timestamp value (exact nanoseconds)
+- `decimal` on `fixed`: correct schema and encoding (no length prefix); logical types on an unsupported underlying type fall back to that type
+- `zstandard` codec (`CodecType.Zstandard`); GZip and Brotli documented as non-standard codecs
+- Field `order` and enum `default` preserved in schemas; an enum symbol unknown to the reader resolves to the reader's default
+- Schema resolution promotes `string` ↔ `bytes`; `int`/`long` written as `long`/`float`/`double` in the reader schema take the reader type in `dynamic`
+- Defaults of logical-type fields (e.g. `timestamp-millis`) are parsed instead of failing; parsed defaults are written back unchanged
 
 \
 **v. 3.4.17 (14.07.26)**

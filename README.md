@@ -43,7 +43,7 @@ dotnet add package AvroConvert
 | Native .NET types (`Dictionary`, `List`, `DateTime`, `Guid`, `decimal`…) |                     ✔️                      |                    ❌                     |       ✔️        |
 | Compact binary payload                                                  |                     ✔️                      |                    ✔️                     |       ❌        |
 | Schema travels with the data – readable, versionable, evolvable         |                     ✔️                      |                    ✔️                     |       ❌        |
-| Compression codecs                                                      | Deflate · Snappy · GZip · Brotli (built-in) |      Deflate (others via add-ons)       |       ❌        |
+| Compression codecs                                                      | Deflate · Snappy · Zstandard · GZip · Brotli (built-in) |      Deflate (others via add-ons)       |       ❌        |
 | Avro ⇄ JSON conversion, schema and C# model generation                  |                     ✔️                      |                    ❌                     |       ❌        |
 
 What it means for your services:
@@ -124,11 +124,14 @@ using (var reader = AvroConvert.OpenDeserializer<CustomClass>(new MemoryStream(a
    - [Merge Avro objects](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#merge)
    - [JSON to Avro conversion](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#json2avro)
    - [Avro to JSON conversion](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#avro2json)
+   - [Avro JSON Encoding (spec format, avro-tools compatible)](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#avro-json-encoding)
 4. Schema related
    - [Get schema from Avro data](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#reading-avro-schema-from-avro-encoded-object)
    - [Generate schema from .NET object](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#generating-avro-schema-for-c-classes)
    - [Generate .NET model from Avro data or schema](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#generate-model)
-   - [Generate Avro schema for JSON data](https://github.com/AdrianStrugala/AvroConvert/blob/master/src/AvroConvert/SchemaConvert.GenerateFromJson.cs)
+   - [Generate Avro schema for JSON data](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#avroschema)
+   - [Logical types](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#logical-types)
+   - [AvroSchema: canonical form, fingerprints, comparison and compatibility checks](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#avroschema)
 
 
 [Full documentation](https://github.com/AdrianStrugala/AvroConvert/tree/master/docs)

@@ -11,8 +11,9 @@ Supported encoding types:
 - Null (default)
 - Deflate
 - Snappy
-- GZip
-- Brotli
+- Zstandard
+- GZip (non-standard, possibly not supported outside AvroConvert)
+- Brotli (non-standard, possibly not supported outside AvroConvert)
 
 
 ### Deserialization
@@ -114,11 +115,13 @@ var deserializedResult = AvroConvert.Deserialize<List<User>>(result);
 
 ### Avro2Json
 
-Converts Avro serialized object directly to JSON format. Useful for a minimal API approach
+Converts Avro serialized object directly to JSON format. Useful for a minimal API approach.
+The JSON has the shape of the .NET model (as produced by `JsonConvert.SerializeObject`), e.g. a nullable field is
+`"MyField": "x"`. For the JSON format defined by the Avro specification see [Avro JSON Encoding](#avro-json-encoding).
 
 ```csharp
 
-string resultJson = AvroConvert.Json2Avro(byte[] avroData);
+string resultJson = AvroConvert.Avro2Json(byte[] avroData);
 
 
 example:
@@ -161,6 +164,31 @@ Assert.Equal(expectedAvro, resultAvro);
 
 ```
 
+### Avro JSON Encoding
+
+`Avro2JsonEncoding` and `JsonEncoding2Avro` read and write JSON as defined in the "JSON Encoding" section of the Avro
+specification – the format of avro-tools `tojson`/`fromjson` and of the JSON encoders in Java, Python and Apache.Avro.
+It differs from `Avro2Json`/`Json2Avro` (plain JSON shaped like the .NET model):
+
+| | `Avro2Json` | `Avro2JsonEncoding` |
+|---|---|---|
+| Union `["null","string"]` | `"x"` | `{"string": "x"}` (`null` stays `null`) |
+| Union with a record | `{...}` | `{"com.acme.Address": {...}}` (full name of the branch) |
+| `bytes`, `fixed` | Base64 | string of code points 0–255 (`"\u0000Aÿ"`) |
+| Logical types | .NET value (`"2024-05-06T07:08:09Z"`) | underlying type (`timestamp-millis`: `1714979289000`) |
+| Several container entries | JSON array | one JSON value per line |
+
+```csharp
+string json = AvroConvert.Avro2JsonEncoding(byte[] avroFile);                 // object container file, schema from the header
+string json = AvroConvert.Avro2JsonEncoding(byte[] headlessAvro, string schema);
+
+byte[] avroFile = AvroConvert.JsonEncoding2Avro(string json, string schema);   // one entry per JSON value
+byte[] avroFile = AvroConvert.JsonEncoding2Avro(string json, string schema, CodecType.Zstandard);
+```
+
+`JsonEncoding2Avro` requires the schema: JSON alone does not tell e.g. `int` from `long`. Record fields missing from the
+JSON take the schema default; unknown properties are ignored. A named union branch may also be given by its short name.
+
 ### Licence declaration
 
 AvroConvert is free for noncommercial use and for companies under 100 people / 1,000,000 USD revenue; other
@@ -187,7 +215,7 @@ and only produces a `Trace` warning (versions released during the subscription s
 
 | Option | Default | Description |
 |---|---|---|
-| `Codec` | `Null` | Container codec: `Null`, `Deflate`, `Snappy`, `GZip`, `Brotli` (the last two are AvroConvert extensions, not portable) |
+| `Codec` | `Null` | Container codec: `Null`, `Deflate`, `Snappy`, `Zstandard`, `GZip`, `Brotli` (the last two are non-standard, possibly not supported outside AvroConvert) |
 | `CollectionMode` | `Entries` | Top-level collection written as one container entry per element (like other Avro tools) or as a single `array` (`SingleArray`, 3.x layout) |
 | `MissingFieldHandling` | `Throw` | Reader field absent from the writer and without default: throw (spec) or leave the CLR default (`UseDefault`). Fields that can hold `null` always resolve to `null` |
 | `NumberHandling` | `Strict` | Decimal scale overflow: `Strict`, `Truncate`, `Rounding` |

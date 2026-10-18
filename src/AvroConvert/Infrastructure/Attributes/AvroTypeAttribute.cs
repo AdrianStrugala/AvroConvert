@@ -31,7 +31,19 @@ namespace SolTechnology.Avro.Infrastructure.Attributes
         Duration,
         TimeMilliseconds,
         TimeMicroseconds,
-        Date
+        Date,
+        /// <summary><c>timestamp-nanos</c> (long, nanoseconds since the Unix epoch, UTC).</summary>
+        TimestampNanoseconds,
+        /// <summary><c>local-timestamp-millis</c> (long, milliseconds since 1970-01-01T00:00:00, wall-clock time without time zone).</summary>
+        LocalTimestampMilliseconds,
+        /// <summary><c>local-timestamp-micros</c> (long, microseconds since 1970-01-01T00:00:00, wall-clock time without time zone).</summary>
+        LocalTimestampMicroseconds,
+        /// <summary><c>local-timestamp-nanos</c> (long, nanoseconds since 1970-01-01T00:00:00, wall-clock time without time zone).</summary>
+        LocalTimestampNanoseconds,
+        /// <summary><c>uuid</c> on <c>fixed(16)</c> (RFC 4122 byte order) instead of the default <c>string</c>.</summary>
+        UuidFixed,
+        /// <summary><c>big-decimal</c> (bytes; the scale is stored with every value).</summary>
+        BigDecimal
     }
 }
 

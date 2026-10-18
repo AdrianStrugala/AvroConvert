@@ -55,6 +55,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
         private static readonly MethodInfo WriteDurationMethod = typeof(LogicalWriters).GetMethod(nameof(LogicalWriters.WriteDuration), BindingFlags.Static | BindingFlags.NonPublic)!;
         private static readonly MethodInfo WriteTimeMicrosMethod = typeof(LogicalWriters).GetMethod(nameof(LogicalWriters.WriteTimeMicros), BindingFlags.Static | BindingFlags.NonPublic)!;
         private static readonly MethodInfo WriteTimeMillisMethod = typeof(LogicalWriters).GetMethod(nameof(LogicalWriters.WriteTimeMillis), BindingFlags.Static | BindingFlags.NonPublic)!;
+        private static readonly MethodInfo WriteBigDecimalMethod = typeof(LogicalWriters).GetMethod(nameof(LogicalWriters.WriteBigDecimal), BindingFlags.Static | BindingFlags.NonPublic)!;
+        private static readonly MethodInfo WriteUuidFixedMethod = typeof(LogicalWriters).GetMethod(nameof(LogicalWriters.WriteUuidFixed), BindingFlags.Static | BindingFlags.NonPublic)!;
+        private static readonly MethodInfo WriteTimestampMethod = typeof(LogicalWriters).GetMethod(nameof(LogicalWriters.WriteTimestamp), BindingFlags.Static | BindingFlags.NonPublic)!;
+        private static readonly MethodInfo GuidParseMethod = typeof(Guid).GetMethod(nameof(Guid.Parse), new[] { typeof(string) })!;
         private static readonly MethodInfo WriteAvroFixedMethod = typeof(LogicalWriters).GetMethod(nameof(LogicalWriters.WriteFixed), BindingFlags.Static | BindingFlags.NonPublic)!;
         private static readonly MethodInfo WriteDynamicMethod = typeof(WriteCompiler).GetMethod(nameof(WriteDynamic), BindingFlags.Instance | BindingFlags.NonPublic)!;
         private static readonly PropertyInfo DateTimeTicks = typeof(DateTime).GetProperty(nameof(DateTime.Ticks))!;
@@ -248,10 +252,18 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
 
             switch (schema.LogicalTypeName)
             {
+                case LogicalTypeSchema.LogicalTypeEnum.Uuid when schema.BaseTypeSchema.Type == AvroType.Fixed && type == typeof(Guid):
+                    return Expression.Call(WriteUuidFixedMethod, writer, value);
+                case LogicalTypeSchema.LogicalTypeEnum.Uuid when schema.BaseTypeSchema.Type == AvroType.Fixed && type == typeof(string):
+                    return Expression.Call(WriteUuidFixedMethod, writer, Expression.Call(GuidParseMethod, value));
                 case LogicalTypeSchema.LogicalTypeEnum.Uuid when type == typeof(Guid):
                     return Expression.Call(writer, WriteStringMethod, Expression.Call(value, typeof(Guid).GetMethod(nameof(Guid.ToString), Type.EmptyTypes)!));
                 case LogicalTypeSchema.LogicalTypeEnum.Uuid when type == typeof(string):
                     return Expression.Call(writer, WriteStringMethod, AsString(type, value));
+
+                case var _ when IsTimestamp(schema.LogicalTypeName) && type == typeof(long):
+                    // A long member holds the raw count since the epoch and is written as is.
+                    return Expression.Call(writer, WriteLongMethod, value);
 
                 case LogicalTypeSchema.LogicalTypeEnum.TimestampMicroseconds when schema.BaseTypeSchema.Type == AvroType.Long && (type == typeof(DateTime) || type == typeof(DateTimeOffset)):
                     return Expression.Call(writer, WriteLongMethod, Expression.Divide(TicksSinceEpoch(type, value), Expression.Constant(10L)));
@@ -261,6 +273,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                 case LogicalTypeSchema.LogicalTypeEnum.Date when type == typeof(DateOnly) && schema.BaseTypeSchema.Type == AvroType.Int:
                     return Expression.Call(writer, WriteIntMethod,
                         Expression.Subtract(Expression.Property(value, DateOnlyDayNumber), Expression.Constant(DateTimeExtensions.UnixEpochDate.DayNumber)));
+
+                case var _ when schema is TimestampSchema timestampSchema && (type == typeof(DateTime) || type == typeof(DateTimeOffset)):
+                    return Expression.Call(WriteTimestampMethod, writer, TicksSinceEpoch(type, value), Expression.Constant(timestampSchema));
+
+                case LogicalTypeSchema.LogicalTypeEnum.BigDecimal when type == typeof(decimal) || type.IsPrimitive && type != typeof(bool):
+                    return Expression.Call(WriteBigDecimalMethod, writer, Convert(value, typeof(decimal)));
 
                 case LogicalTypeSchema.LogicalTypeEnum.Decimal when type == typeof(decimal) || type.IsPrimitive && type != typeof(bool):
                     return Expression.Call(WriteDecimalMethod, writer, Convert(value, typeof(decimal)), Expression.Constant(schema), Expression.Constant(_numberHandling));
@@ -276,8 +294,13 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                 case LogicalTypeSchema.LogicalTypeEnum.Uuid:
                 case LogicalTypeSchema.LogicalTypeEnum.TimestampMicroseconds:
                 case LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds:
+                case LogicalTypeSchema.LogicalTypeEnum.TimestampNanoseconds:
+                case LogicalTypeSchema.LogicalTypeEnum.LocalTimestampMilliseconds:
+                case LogicalTypeSchema.LogicalTypeEnum.LocalTimestampMicroseconds:
+                case LogicalTypeSchema.LogicalTypeEnum.LocalTimestampNanoseconds:
                 case LogicalTypeSchema.LogicalTypeEnum.Date:
                 case LogicalTypeSchema.LogicalTypeEnum.Decimal:
+                case LogicalTypeSchema.LogicalTypeEnum.BigDecimal:
                 case LogicalTypeSchema.LogicalTypeEnum.Duration:
                 case LogicalTypeSchema.LogicalTypeEnum.TimeMicrosecond:
                 case LogicalTypeSchema.LogicalTypeEnum.TimeMilliseconds:
@@ -288,6 +311,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                     return Build(schema.BaseTypeSchema, type, value, writer);
             }
         }
+
+        private static bool IsTimestamp(string logicalTypeName) =>
+            logicalTypeName is LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds or LogicalTypeSchema.LogicalTypeEnum.TimestampMicroseconds
+                || TimestampSchema.Handles(logicalTypeName);
 
         private static Expression TicksSinceEpoch(Type type, Expression value)
         {
@@ -599,8 +626,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                     return ((LogicalTypeSchema)branch).LogicalTypeName switch
                     {
                         LogicalTypeSchema.LogicalTypeEnum.Uuid => type == typeof(Guid) || type == typeof(string),
-                        LogicalTypeSchema.LogicalTypeEnum.Decimal => type == typeof(decimal) || type.IsPrimitive && type != typeof(bool),
-                        LogicalTypeSchema.LogicalTypeEnum.TimestampMicroseconds or LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds => type == typeof(DateTime) || type == typeof(DateTimeOffset),
+                        LogicalTypeSchema.LogicalTypeEnum.Decimal or LogicalTypeSchema.LogicalTypeEnum.BigDecimal => type == typeof(decimal) || type.IsPrimitive && type != typeof(bool),
+                        LogicalTypeSchema.LogicalTypeEnum.TimestampMicroseconds or LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds
+                            or LogicalTypeSchema.LogicalTypeEnum.TimestampNanoseconds or LogicalTypeSchema.LogicalTypeEnum.LocalTimestampMilliseconds
+                            or LogicalTypeSchema.LogicalTypeEnum.LocalTimestampMicroseconds or LogicalTypeSchema.LogicalTypeEnum.LocalTimestampNanoseconds => type == typeof(DateTime) || type == typeof(DateTimeOffset) || type == typeof(long),
                         LogicalTypeSchema.LogicalTypeEnum.Date => type == typeof(DateOnly),
                         LogicalTypeSchema.LogicalTypeEnum.TimeMicrosecond or LogicalTypeSchema.LogicalTypeEnum.TimeMilliseconds => type == typeof(TimeOnly),
                         LogicalTypeSchema.LogicalTypeEnum.Duration => type == typeof(TimeSpan),

@@ -10,7 +10,11 @@ namespace AvroConvertUnitTests.BuildSchemaTests
     {
         [Theory]
         [InlineData(@"{""type"":""string"",""logicalType"":""datetime""}", AvroType.String)]
-        [InlineData(@"{""type"":""long"",""logicalType"":""timestamp-nanos""}", AvroType.Long)]
+        [InlineData(@"{""type"":""long"",""logicalType"":""timestamp-picos""}", AvroType.Long)]
+        [InlineData(@"{""type"":""string"",""logicalType"":""timestamp-millis""}", AvroType.String)]
+        [InlineData(@"{""type"":""int"",""logicalType"":""uuid""}", AvroType.Int)]
+        [InlineData(@"{""type"":""fixed"",""name"":""f"",""size"":8,""logicalType"":""uuid""}", AvroType.Fixed)]
+        [InlineData(@"{""type"":""string"",""logicalType"":""big-decimal""}", AvroType.String)]
         [InlineData(@"{""type"":""bytes"",""logicalType"":""geography_wkb""}", AvroType.Bytes)]
         public void Parse_UnknownLogicalType_FallsBackToUnderlyingType(string json, AvroType expected)
         {

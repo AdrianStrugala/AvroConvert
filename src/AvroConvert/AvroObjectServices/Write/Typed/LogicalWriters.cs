@@ -67,7 +67,24 @@ Consider adding following attribute to your property:
             int offset = size - buffer.Length;
             padded.Slice(0, offset).Fill(avroDecimal.Sign < 0 ? (byte)0xFF : (byte)0x00);
             buffer.CopyTo(padded.Slice(offset));
-            writer.WriteBytes(padded);
+            writer.WriteFixed(padded);
+        }
+
+        internal static void WriteBigDecimal(IWriter writer, decimal value)
+        {
+            writer.WriteBytes(BigDecimalSchema.Encode(value));
+        }
+
+        internal static void WriteUuidFixed(IWriter writer, Guid value)
+        {
+            Span<byte> buffer = stackalloc byte[16];
+            value.TryWriteBytes(buffer, bigEndian: true, out _);
+            writer.WriteFixed(buffer);
+        }
+
+        internal static void WriteTimestamp(IWriter writer, long ticksSinceEpoch, TimestampSchema schema)
+        {
+            writer.WriteLong(schema.FromTicks(ticksSinceEpoch));
         }
 
         internal static void WriteDuration(IWriter writer, TimeSpan duration, DurationSchema schema)

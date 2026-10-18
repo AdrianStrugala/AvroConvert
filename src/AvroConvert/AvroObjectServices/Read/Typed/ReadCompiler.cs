@@ -6,6 +6,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
+using System.Text;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.AvroObjectServices.Skip;
@@ -36,6 +37,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         private static readonly MethodInfo ReadUnionIndexMethod = typeof(IReader).GetMethod(nameof(IReader.ReadUnionIndex))!;
         private static readonly MethodInfo ReadFixedMethod = typeof(IReader).GetMethod(nameof(IReader.ReadFixed), new[] { typeof(byte[]) })!;
         private static readonly MethodInfo SkipMethod = typeof(Skipper).GetMethod(nameof(Skipper.Skip), BindingFlags.Instance | BindingFlags.NonPublic)!;
+        private static readonly MethodInfo Utf8GetStringMethod = typeof(Encoding).GetMethod(nameof(Encoding.GetString), new[] { typeof(byte[]) })!;
+        private static readonly MethodInfo Utf8GetBytesMethod = typeof(Encoding).GetMethod(nameof(Encoding.GetBytes), new[] { typeof(string) })!;
         private static readonly MethodInfo ConvertToLogicalMethod = typeof(LogicalTypeSchema).GetMethod(nameof(LogicalTypeSchema.ConvertToLogicalValue), BindingFlags.Instance | BindingFlags.NonPublic)!;
         private static readonly MethodInfo GetUninitializedObjectMethod = typeof(RuntimeHelpers).GetMethod(nameof(RuntimeHelpers.GetUninitializedObject))!;
         private static readonly MethodInfo ReadListMethod = Helper(nameof(ReadHelpers.ReadList));
@@ -124,6 +127,13 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                 rs = FindBranch(readerUnion, ws) ?? rs;
             }
 
+            if (target == typeof(object) && ws is PrimitiveTypeSchema && rs is PrimitiveTypeSchema && ws.Type != rs.Type
+                && SchemaPromotion.IsSpecPromotion(ws.Type, rs.Type) && SchemaPromotion.ClrType(rs.Type) is { } promoted)
+            {
+                // No CLR type to guide the conversion: the value takes the reader schema's type (e.g. int written, long read).
+                return Expression.Convert(Build(ws, ws, promoted, reader), typeof(object));
+            }
+
             try
             {
                 switch (ws.Type)
@@ -143,6 +153,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                     case AvroType.String:
                         return BuildString(reader, target);
                     case AvroType.Bytes:
+                        if (target == typeof(string))
+                        {
+                            // bytes -> string promotion (UTF-8).
+                            return Expression.Call(Expression.Constant(Encoding.UTF8), Utf8GetStringMethod, Expression.Call(reader, ReadBytesMethod));
+                        }
                         return Convert(Expression.Call(reader, ReadBytesMethod), target);
                     case AvroType.Logical:
                         return BuildLogical((LogicalTypeSchema)ws, rs, target, reader);
@@ -154,7 +169,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                         }
                         return BuildRecord((RecordSchema)ws, readerRecord, target, reader, candidates);
                     case AvroType.Enum:
-                        return BuildEnum((EnumSchema)ws, target, reader);
+                        return BuildEnum((EnumSchema)ws, rs, target, reader);
                     case AvroType.Fixed:
                         return BuildFixed((FixedSchema)ws, target, reader);
                     case AvroType.Array:
@@ -222,6 +237,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             {
                 return Convert(read, target);
             }
+            if (target == typeof(byte[]))
+            {
+                // string -> bytes promotion (UTF-8).
+                return Expression.Call(Expression.Constant(Encoding.UTF8), Utf8GetBytesMethod, read);
+            }
             if (underlying == typeof(decimal))
             {
                 return Expression.Convert(Expression.Call(typeof(decimal).GetMethod(nameof(decimal.Parse), new[] { typeof(string) })!, read), target);
@@ -244,6 +264,13 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 
         private Expression BuildLogical(LogicalTypeSchema ws, TypeSchema rs, Type target, ParameterExpression reader)
         {
+            var typed = BuildTypedLogical(ws, Nullable.GetUnderlyingType(target) ?? target, reader);
+            if (typed != null)
+            {
+                return typed.Type == target ? typed : Expression.Convert(typed, target);
+            }
+
+            // Remaining logical types (decimal, duration, big-decimal) and untyped targets go through the schema's converter.
             var baseRs = rs is LogicalTypeSchema logicalRs ? logicalRs.BaseTypeSchema : rs;
             var baseValue = Build(ws.BaseTypeSchema, baseRs, typeof(object), reader);
 
@@ -251,29 +278,79 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             return target == typeof(object) ? converted : Expression.Convert(converted, target);
         }
 
-        private Expression BuildEnum(EnumSchema ws, Type target, ParameterExpression reader)
+        /// <summary>Unboxed decoding of time and uuid logical types into their CLR type; null when there is no typed path.</summary>
+        private static Expression BuildTypedLogical(LogicalTypeSchema ws, Type type, ParameterExpression reader)
         {
+            var nanosecondsPerUnit = LogicalReaders.NanosecondsPerUnit(ws);
+            if (nanosecondsPerUnit > 0)
+            {
+                var unit = Expression.Constant(nanosecondsPerUnit);
+                if (type == typeof(long))
+                {
+                    return Expression.Call(reader, ReadLongMethod);
+                }
+                if (type == typeof(DateTime))
+                {
+                    var kind = Expression.Constant(LogicalReaders.IsLocalTimestamp(ws) ? DateTimeKind.Unspecified : DateTimeKind.Utc);
+                    return Expression.Call(LogicalReader(nameof(LogicalReaders.ReadDateTime)), reader, unit, kind);
+                }
+                if (type == typeof(DateTimeOffset))
+                {
+                    return Expression.Call(LogicalReader(nameof(LogicalReaders.ReadDateTimeOffset)), reader, unit);
+                }
+                if (type == typeof(DateOnly))
+                {
+                    return Expression.Call(LogicalReader(nameof(LogicalReaders.ReadDateOnlyFromTimestamp)), reader, unit);
+                }
+                return null;
+            }
+
+            return ws switch
+            {
+                DateSchema when type == typeof(DateOnly) => Expression.Call(LogicalReader(nameof(LogicalReaders.ReadDate)), reader),
+                TimeMillisecondsSchema when type == typeof(TimeOnly) => Expression.Call(LogicalReader(nameof(LogicalReaders.ReadTimeMillis)), reader),
+                TimeMicrosecondsSchema when type == typeof(TimeOnly) => Expression.Call(LogicalReader(nameof(LogicalReaders.ReadTimeMicros)), reader),
+                TimeMicrosecondsSchema when type == typeof(TimeSpan) => Expression.Call(LogicalReader(nameof(LogicalReaders.ReadTimeMicrosAsTimeSpan)), reader),
+                UuidSchema when type == typeof(Guid) => Expression.Call(
+                    LogicalReader(ws.BaseTypeSchema.Type == AvroType.Fixed ? nameof(LogicalReaders.ReadUuidFixed) : nameof(LogicalReaders.ReadUuidString)), reader),
+                _ => null
+            };
+        }
+
+        private static MethodInfo LogicalReader(string name) =>
+            typeof(LogicalReaders).GetMethod(name, BindingFlags.Static | BindingFlags.NonPublic)!;
+
+        private Expression BuildEnum(EnumSchema ws, TypeSchema rs, Type target, ParameterExpression reader)
+        {
+            var readerEnum = rs as EnumSchema;
             var index = Expression.Call(reader, ReadEnumMethod);
             var enumType = Nullable.GetUnderlyingType(target) ?? target;
             var cases = new List<SwitchCase>(ws.Symbols.Count);
 
             for (int i = 0; i < ws.Symbols.Count; i++)
             {
+                // Schema resolution: a writer symbol unknown to the reader resolves to the reader's enum default.
+                var symbol = ws.Symbols[i];
+                if (readerEnum?.Default != null && readerEnum.GetSymbolPosition(symbol) < 0)
+                {
+                    symbol = readerEnum.Default;
+                }
+
                 Expression value;
                 if (enumType.IsEnum)
                 {
                     try
                     {
-                        value = Expression.Convert(Expression.Constant(EnumParser.Parse(enumType, ws.Symbols[i], _namingPolicy), enumType), target);
+                        value = Expression.Convert(Expression.Constant(EnumParser.Parse(enumType, symbol, _namingPolicy), enumType), target);
                     }
                     catch (KeyNotFoundException)
                     {
-                        value = Expression.Throw(Expression.Constant(new AvroTypeMismatchException($"Enum symbol '{ws.Symbols[i]}' is not defined on {enumType}")), target);
+                        value = Expression.Throw(Expression.Constant(new AvroTypeMismatchException($"Enum symbol '{symbol}' is not defined on {enumType}")), target);
                     }
                 }
                 else if (target == typeof(string) || target == typeof(object))
                 {
-                    value = Expression.Constant(ws.Symbols[i], target);
+                    value = Expression.Constant(symbol, target);
                 }
                 else
                 {
@@ -614,8 +691,17 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 
         // ------------------------------------------------------------------ helpers
 
+        /// <summary>The reader branch of the same type (and name) as the writer's, otherwise the first one that can read it.</summary>
         private static TypeSchema FindBranch(UnionSchema readerUnion, TypeSchema writerSchema)
         {
+            foreach (var candidate in readerUnion.Schemas)
+            {
+                if (IsSameType(candidate, writerSchema))
+                {
+                    return candidate;
+                }
+            }
+
             foreach (var candidate in readerUnion.Schemas)
             {
                 if (candidate.CanRead(writerSchema))
@@ -626,6 +712,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 
             return null;
         }
+
+        private static bool IsSameType(TypeSchema reader, TypeSchema writer) =>
+            reader.Type == writer.Type
+            && (reader is not NamedSchema readerNamed || writer is NamedSchema writerNamed && readerNamed.Name == writerNamed.Name)
+            && (reader is not LogicalTypeSchema readerLogical || writer is LogicalTypeSchema writerLogical && readerLogical.LogicalTypeName == writerLogical.LogicalTypeName);
 
         /// <summary>Element type for arrays, generic collections and their common interfaces; null when not a collection.</summary>
         internal static Type CollectionItemType(Type type)

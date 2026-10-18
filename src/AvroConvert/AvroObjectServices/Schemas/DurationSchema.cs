@@ -45,20 +45,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         internal override TypeSchema BaseTypeSchema { get; set; }
         internal override string LogicalTypeName => "duration";
 
-        internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
-        {
-            var baseSchema = (FixedSchema)BaseTypeSchema;
-            writer.WriteStartObject();
-            writer.WriteProperty("type", baseSchema.Type.ToString().ToLowerInvariant());
-            writer.WriteProperty("size", baseSchema.Size);
-            writer.WriteProperty("name", baseSchema.Name);
-            writer.WriteProperty("logicalType", LogicalTypeName);
-            writer.WriteEndObject();
-        }
-
         internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type readType)
         {
-            byte[] baseBytes = (byte[])baseValue;
+            byte[] baseBytes = baseValue as byte[] ?? ((AvroTypes.AvroFixed)baseValue).Value;
             if (!BitConverter.IsLittleEndian)
                 Array.Reverse(baseBytes); //reverse it so we get big endian.
 

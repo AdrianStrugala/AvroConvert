@@ -72,6 +72,13 @@ internal sealed class DefaultValueResolver
     /// <returns>The object.</returns>
     internal object Parse(TypeSchema schema, string json)
     {
+        if (schema is LogicalTypeSchema logical
+            && (!this.parsersWithoutSchema.ContainsKey(schema.GetType()) || logical.BaseTypeSchema.Type == AvroType.Fixed))
+        {
+            // Defaults of logical types are written in the JSON form of the underlying type.
+            return logical.ConvertToLogicalValue(this.Parse(logical.BaseTypeSchema, json), logical, logical.RuntimeType);
+        }
+
         if (this.parsersWithoutSchema.ContainsKey(schema.GetType()))
         {
             return this.parsersWithoutSchema[schema.GetType()](json);

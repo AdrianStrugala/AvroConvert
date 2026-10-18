@@ -45,7 +45,8 @@ namespace SolTechnology.Avro.AvroObjectServices.FileHeader
             AvroKeywords.Namespace,
             AvroKeywords.Doc,
             AvroKeywords.Aliases,
-            AvroKeywords.Symbols
+            AvroKeywords.Symbols,
+            AvroKeywords.Default
         };
     }
 }

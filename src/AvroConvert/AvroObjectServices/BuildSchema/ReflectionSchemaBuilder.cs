@@ -92,6 +92,12 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 { AvroTypeRepresentation.TimeMilliseconds, type => new TimeMillisecondsSchema(type) },
                 { AvroTypeRepresentation.TimeMicroseconds, type => new TimeMicrosecondsSchema(type) },
                 { AvroTypeRepresentation.Date, type => new DateSchema(type) },
+                { AvroTypeRepresentation.TimestampNanoseconds, type => new TimestampSchema(LogicalTypeSchema.LogicalTypeEnum.TimestampNanoseconds, type) },
+                { AvroTypeRepresentation.LocalTimestampMilliseconds, type => new TimestampSchema(LogicalTypeSchema.LogicalTypeEnum.LocalTimestampMilliseconds, type) },
+                { AvroTypeRepresentation.LocalTimestampMicroseconds, type => new TimestampSchema(LogicalTypeSchema.LogicalTypeEnum.LocalTimestampMicroseconds, type) },
+                { AvroTypeRepresentation.LocalTimestampNanoseconds, type => new TimestampSchema(LogicalTypeSchema.LogicalTypeEnum.LocalTimestampNanoseconds, type) },
+                { AvroTypeRepresentation.UuidFixed, type => new UuidSchema(type, UuidSchema.CreateFixedBase()) },
+                { AvroTypeRepresentation.BigDecimal, type => new BigDecimalSchema(type) },
             };
 
         private readonly AvroConvertOptions _options;

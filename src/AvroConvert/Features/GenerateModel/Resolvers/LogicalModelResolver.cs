@@ -29,8 +29,13 @@ namespace SolTechnology.Avro.Features.GenerateModel.Resolvers
                 case LogicalTypeSchema.LogicalTypeEnum.Date:
                 case LogicalTypeSchema.LogicalTypeEnum.TimestampMicroseconds:
                 case LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds:
+                case LogicalTypeSchema.LogicalTypeEnum.TimestampNanoseconds:
+                case LogicalTypeSchema.LogicalTypeEnum.LocalTimestampMilliseconds:
+                case LogicalTypeSchema.LogicalTypeEnum.LocalTimestampMicroseconds:
+                case LogicalTypeSchema.LogicalTypeEnum.LocalTimestampNanoseconds:
                     return "DateTime";
                 case LogicalTypeSchema.LogicalTypeEnum.Decimal:
+                case LogicalTypeSchema.LogicalTypeEnum.BigDecimal:
                     return "decimal";
                 case LogicalTypeSchema.LogicalTypeEnum.Duration:
                 case LogicalTypeSchema.LogicalTypeEnum.TimeMicrosecond:

@@ -40,6 +40,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
 
         internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type readType)
         {
+            if (readType == typeof(long) || readType == typeof(long?))
+            {
+                return baseValue;
+            }
+
             var noMicroseconds = (long)baseValue;
             var noTicks = noMicroseconds * 10;
             var result = DateTimeExtensions.UnixEpochDateTime.AddTicks(noTicks);

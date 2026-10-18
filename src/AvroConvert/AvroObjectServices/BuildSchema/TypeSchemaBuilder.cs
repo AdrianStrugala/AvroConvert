@@ -48,6 +48,9 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             { "string", () => new StringSchema() },
         };
 
+        /// <summary>Named types (fixed) carrying a logical type, so that a later reference by name keeps the logical type.</summary>
+        private readonly Dictionary<string, LogicalTypeSchema> _logicalNamedSchemas = new();
+
 
         /// <summary>
         ///     Parses the JSON schema.
@@ -93,6 +96,12 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             if (token.Type == JTokenType.String)
             {
                 var t = (string)token;
+                if (_logicalNamedSchemas.TryGetValue(t, out var logicalNamed)
+                    || parent != null && _logicalNamedSchemas.TryGetValue(parent.Namespace + "." + t, out logicalNamed))
+                {
+                    return logicalNamed;
+                }
+
                 if (namedSchemas.ContainsKey(t))
                 {
                     return namedSchemas[t];
@@ -137,36 +146,23 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 var logicalType = token.OptionalProperty<string>(AvroKeywords.LogicalType);
                 if (logicalType != null)
                 {
-                    var logicalSchema = this.ParseLogicalType(token, logicalType);
-                    if (logicalSchema != null)
+                    var baseSchema = this.ParseTypedObject(token, type, parent, namedSchemas);
+                    var logicalSchema = this.ParseLogicalType(token, logicalType, baseSchema);
+                    if (logicalSchema == null)
                     {
-                        return logicalSchema;
+                        // Unknown logical type, or one annotating a type it does not support: the spec requires the underlying type.
+                        return baseSchema;
                     }
+
+                    if (baseSchema is FixedSchema fixedBase)
+                    {
+                        _logicalNamedSchemas[fixedBase.FullName] = logicalSchema;
+                    }
+
+                    return logicalSchema;
                 }
 
-                switch (type)
-                {
-                    case AvroType.Record:
-                        return this.ParseRecordType(token, parent, namedSchemas);
-                    case AvroType.Enum:
-                        return this.ParseEnumType(token, parent, namedSchemas);
-                    case AvroType.Array:
-                        return this.ParseArrayType(token, parent, namedSchemas);
-                    case AvroType.Map:
-                        return this.ParseMapType(token, parent, namedSchemas);
-                    case AvroType.Fixed:
-                        return this.ParseFixedType(token, parent);
-                    default:
-                        {
-                            if (PrimitiveRuntimeType.ContainsKey(type.ToString()))
-                            {
-                                return this.ParsePrimitiveTypeFromObject(token);
-                            }
-
-                            throw new SerializationException(
-                            string.Format(CultureInfo.InvariantCulture, "Invalid type specified: '{0}'.", type));
-                        }
-                }
+                return this.ParseTypedObject(token, type, parent, namedSchemas);
             }
 
             if (tokenType.Type == JTokenType.Array)
@@ -176,6 +172,31 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
             throw new SerializationException(
                 string.Format(CultureInfo.InvariantCulture, "Invalid type specified: '{0}'.", tokenType));
+        }
+
+        private TypeSchema ParseTypedObject(JObject token, AvroType type, NamedSchema parent, Dictionary<string, NamedSchema> namedSchemas)
+        {
+            switch (type)
+            {
+                case AvroType.Record:
+                    return this.ParseRecordType(token, parent, namedSchemas);
+                case AvroType.Enum:
+                    return this.ParseEnumType(token, parent, namedSchemas);
+                case AvroType.Array:
+                    return this.ParseArrayType(token, parent, namedSchemas);
+                case AvroType.Map:
+                    return this.ParseMapType(token, parent, namedSchemas);
+                case AvroType.Fixed:
+                    return this.ParseFixedType(token, parent, namedSchemas);
+                default:
+                    if (PrimitiveRuntimeType.ContainsKey(type.ToString()))
+                    {
+                        return this.ParsePrimitiveTypeFromObject(token);
+                    }
+
+                    throw new SerializationException(
+                        string.Format(CultureInfo.InvariantCulture, "Invalid type specified: '{0}'.", type));
+            }
         }
 
         /// <summary>
@@ -252,6 +273,15 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             var result = new EnumSchema(attributes, typeof(Enum), customAttributes);
             namedSchemas.Add(result.FullName, result);
             symbols.ForEach(result.AddSymbol);
+
+            var defaultSymbol = enumeration.OptionalProperty<string>(AvroKeywords.Default);
+            if (defaultSymbol != null && !symbols.Contains(defaultSymbol))
+            {
+                throw new SerializationException(
+                    string.Format(CultureInfo.InvariantCulture, "Enum default '{0}' is not one of the symbols of '{1}'.", defaultSymbol, result.FullName));
+            }
+
+            result.Default = defaultSymbol;
             return result;
         }
 
@@ -302,29 +332,37 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         }
 
         /// <summary>
-        /// Returns null for an unknown logical type; per the Avro spec readers must then fall back to the underlying type.
+        /// Returns null for an unknown logical type or one annotating an unsupported underlying type;
+        /// per the Avro spec readers must then fall back to the underlying type.
         /// </summary>
-        private TypeSchema ParseLogicalType(JObject token, string logicalType)
+        private LogicalTypeSchema ParseLogicalType(JObject token, string logicalType, TypeSchema baseSchema)
         {
+            var baseType = baseSchema.Type;
             switch (logicalType)
             {
-                case LogicalTypeSchema.LogicalTypeEnum.Uuid:
+                case LogicalTypeSchema.LogicalTypeEnum.Uuid when baseType == AvroType.String:
                     return new UuidSchema();
-                case LogicalTypeSchema.LogicalTypeEnum.Decimal:
+                case LogicalTypeSchema.LogicalTypeEnum.Uuid when baseSchema is FixedSchema { Size: 16 } uuidFixed:
+                    return new UuidSchema(typeof(Guid), uuidFixed);
+                case LogicalTypeSchema.LogicalTypeEnum.Decimal when baseType is AvroType.Bytes or AvroType.Fixed:
                     var scale = token.OptionalProperty<int>(nameof(DecimalSchema.Scale).ToLower());
                     var precision = token.RequiredProperty<int>(nameof(DecimalSchema.Precision).ToLower());
-                    return new DecimalSchema(typeof(decimal), precision, scale);
-                case LogicalTypeSchema.LogicalTypeEnum.Duration:
-                    return new DurationSchema();
-                case LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds:
+                    return new DecimalSchema(typeof(decimal), precision, scale) { BaseTypeSchema = baseSchema };
+                case LogicalTypeSchema.LogicalTypeEnum.BigDecimal when baseType == AvroType.Bytes:
+                    return new BigDecimalSchema();
+                case LogicalTypeSchema.LogicalTypeEnum.Duration when baseSchema is FixedSchema { Size: 12 }:
+                    return new DurationSchema { BaseTypeSchema = baseSchema };
+                case LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds when baseType == AvroType.Long:
                     return new TimestampMillisecondsSchema();
-                case LogicalTypeSchema.LogicalTypeEnum.TimestampMicroseconds:
+                case LogicalTypeSchema.LogicalTypeEnum.TimestampMicroseconds when baseType == AvroType.Long:
                     return new TimestampMicrosecondsSchema();
-                case LogicalTypeSchema.LogicalTypeEnum.TimeMilliseconds:
+                case var timestamp when TimestampSchema.Handles(timestamp) && baseType == AvroType.Long:
+                    return new TimestampSchema(timestamp);
+                case LogicalTypeSchema.LogicalTypeEnum.TimeMilliseconds when baseType == AvroType.Int:
                     return new TimeMillisecondsSchema();
-                case LogicalTypeSchema.LogicalTypeEnum.TimeMicrosecond:
+                case LogicalTypeSchema.LogicalTypeEnum.TimeMicrosecond when baseType == AvroType.Long:
                     return new TimeMicrosecondsSchema();
-                case LogicalTypeSchema.LogicalTypeEnum.Date:
+                case LogicalTypeSchema.LogicalTypeEnum.Date when baseType == AvroType.Int:
                     return new DateSchema();
                 default:
                     return null;
@@ -391,6 +429,11 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             var name = field.RequiredProperty<string>(AvroKeywords.Name);
             var doc = field.OptionalProperty<string>(AvroKeywords.Doc);
             var order = field.OptionalProperty<string>(AvroKeywords.Order);
+            if (order != null && order != "ascending" && order != "descending" && order != "ignore")
+            {
+                throw new SerializationException(
+                    string.Format(CultureInfo.InvariantCulture, "Field '{0}' has invalid order '{1}'; expected ascending, descending or ignore.", name, order));
+            }
             var aliases = this.GetAliases(field, parent.FullName);
             var fieldType = field[AvroKeywords.Type];
             if (fieldType == null)
@@ -411,7 +454,11 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             var fieldName = new SchemaName(name);
             var attributes = new NamedEntityAttributes(fieldName, aliases, doc);
 
-            return new RecordFieldSchema(attributes, type, hasDefaultValue, defaultValue, position);
+            return new RecordFieldSchema(attributes, type, hasDefaultValue, defaultValue, position)
+            {
+                Order = order,
+                DefaultJson = hasDefaultValue ? field[AvroKeywords.Default].DeepClone() : null
+            };
         }
 
         /// <summary>
@@ -457,7 +504,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             return result;
         }
 
-        private FixedSchema ParseFixedType(JObject type, NamedSchema parent)
+        private FixedSchema ParseFixedType(JObject type, NamedSchema parent, Dictionary<string, NamedSchema> namedSchemas)
         {
             var name = type.RequiredProperty<string>(AvroKeywords.Name);
             var nspace = this.GetNamespace(type, parent, name);
@@ -475,6 +522,19 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
             var customAttributes = type.GetAttributesNotIn(StandardProperties.Record);
             var result = new FixedSchema(attributes, size, typeof(byte[]), customAttributes);
+            if (namedSchemas.TryGetValue(result.FullName, out var existing))
+            {
+                // Tolerate a repeated identical definition (older AvroConvert versions inlined e.g. "duration" per field).
+                if (existing is FixedSchema existingFixed && existingFixed.Size == size)
+                {
+                    return existingFixed;
+                }
+
+                throw new SerializationException(
+                    string.Format(CultureInfo.InvariantCulture, "Named type '{0}' is defined more than once with different definitions.", result.FullName));
+            }
+
+            namedSchemas[result.FullName] = result;
             return result;
         }
 

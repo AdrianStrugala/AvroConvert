@@ -67,7 +67,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             using (var result = new StringWriter(CultureInfo.InvariantCulture))
             {
                 var writer = new JsonTextWriter(result);
-                this.ToJson(writer, new HashSet<NamedSchema>());
+                this.ToJson(writer, new SchemaWriteContext());
                 return result.ToString();
             }
         }

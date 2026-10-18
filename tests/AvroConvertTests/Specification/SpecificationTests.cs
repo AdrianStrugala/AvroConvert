@@ -1,0 +1,374 @@
+using System;
+using System.Collections.Generic;
+using System.Runtime.Serialization;
+using FluentAssertions;
+using SolTechnology.Avro;
+using SolTechnology.Avro.Infrastructure.Attributes;
+using SolTechnology.Avro.Infrastructure.Exceptions;
+using Xunit;
+
+namespace AvroConvertComponentTests.Specification
+{
+    public class SpecificationLogicalTypeTests
+    {
+        public class Timestamps
+        {
+            [AvroType(AvroTypeRepresentation.TimestampNanoseconds)]
+            public DateTime Nanos { get; set; }
+
+            [AvroType(AvroTypeRepresentation.LocalTimestampMilliseconds)]
+            public DateTime LocalMillis { get; set; }
+
+            [AvroType(AvroTypeRepresentation.LocalTimestampMicroseconds)]
+            public DateTime? LocalMicros { get; set; }
+
+            [AvroType(AvroTypeRepresentation.LocalTimestampNanoseconds)]
+            public DateTimeOffset LocalNanos { get; set; }
+        }
+
+        public class Identifiers
+        {
+            [AvroType(AvroTypeRepresentation.UuidFixed)]
+            public Guid Id { get; set; }
+
+            [AvroType(AvroTypeRepresentation.UuidFixed)]
+            public Guid? OtherId { get; set; }
+        }
+
+        public class Amounts
+        {
+            [AvroType(AvroTypeRepresentation.BigDecimal)]
+            public decimal Amount { get; set; }
+        }
+
+        [Fact]
+        public void Timestamps_RoundTripWithUnitPrecision()
+        {
+            //Arrange
+            var instant = new DateTime(2024, 5, 6, 7, 8, 9, DateTimeKind.Utc).AddTicks(1_234_567);
+            var value = new Timestamps
+            {
+                Nanos = instant,
+                LocalMillis = instant,
+                LocalMicros = instant,
+                LocalNanos = new DateTimeOffset(instant.Ticks, TimeSpan.Zero)
+            };
+
+
+            //Act
+            var result = AvroConvert.Deserialize<Timestamps>(AvroConvert.Serialize(value));
+
+
+            //Assert
+            result.Nanos.Should().Be(instant);
+            result.Nanos.Kind.Should().Be(DateTimeKind.Utc);
+            result.LocalMillis.Should().Be(new DateTime(instant.Ticks - instant.Ticks % TimeSpan.TicksPerMillisecond));
+            result.LocalMillis.Kind.Should().Be(DateTimeKind.Unspecified);
+            result.LocalMicros.Should().Be(new DateTime(instant.Ticks - instant.Ticks % 10));
+            result.LocalNanos.Should().Be(value.LocalNanos);
+        }
+
+        [Fact]
+        public void Timestamps_GeneratedSchema_UsesRequestedLogicalTypes()
+        {
+            //Act
+            var schema = AvroConvert.GenerateSchema(typeof(Timestamps));
+
+
+            //Assert
+            schema.Should().Contain(@"{""name"":""Nanos"",""type"":{""type"":""long"",""logicalType"":""timestamp-nanos""}}");
+            schema.Should().Contain(@"{""type"":""long"",""logicalType"":""local-timestamp-millis""}");
+            schema.Should().Contain(@"[""null"",{""type"":""long"",""logicalType"":""local-timestamp-micros""}]");
+            schema.Should().Contain(@"{""type"":""long"",""logicalType"":""local-timestamp-nanos""}");
+        }
+
+        [Fact]
+        public void UuidFixed_RoundTrips_AndSchemaDefinesFixedOnce()
+        {
+            //Arrange
+            var value = new Identifiers { Id = Guid.NewGuid(), OtherId = Guid.NewGuid() };
+
+
+            //Act
+            var schema = AvroConvert.GenerateSchema(typeof(Identifiers));
+            var result = AvroConvert.Deserialize<Identifiers>(AvroConvert.Serialize(value));
+
+
+            //Assert
+            result.Should().BeEquivalentTo(value);
+            schema.Should().EndWith(
+                @"""fields"":[" +
+                @"{""name"":""Id"",""type"":{""type"":""fixed"",""size"":16,""name"":""uuid"",""logicalType"":""uuid""}}," +
+                @"{""name"":""OtherId"",""type"":[""null"",""AvroConvertComponentTests.Specification.uuid""]}]}");
+        }
+
+        [Fact]
+        public void UuidFixed_ReadsIntoStringAndGuid()
+        {
+            //Arrange
+            const string schema = @"{""type"":""fixed"",""name"":""u"",""size"":16,""logicalType"":""uuid""}";
+            var guid = Guid.Parse("00112233-4455-6677-8899-aabbccddeeff");
+            var avro = AvroConvert.SerializeHeadless(guid, schema);
+
+
+            //Act & Assert
+            avro.Should().Equal(Convert.FromHexString("00112233445566778899aabbccddeeff"));
+            AvroConvert.DeserializeHeadless<Guid>(avro, schema).Should().Be(guid);
+            AvroConvert.Avro2Json(avro, schema).Should().Be(@"""00112233-4455-6677-8899-aabbccddeeff""");
+        }
+
+        [Theory]
+        [InlineData("123.45")]
+        [InlineData("-0.0001")]
+        [InlineData("0")]
+        [InlineData("79228162514264337593543950335")]
+        [InlineData("-1234567890.123456789012345678")]
+        public void BigDecimal_RoundTripsWithItsOwnScale(string text)
+        {
+            //Arrange
+            var value = new Amounts { Amount = decimal.Parse(text, System.Globalization.CultureInfo.InvariantCulture) };
+
+
+            //Act
+            var result = AvroConvert.Deserialize<Amounts>(AvroConvert.Serialize(value));
+
+
+            //Assert
+            result.Amount.Should().Be(value.Amount);
+            result.Amount.Scale.Should().Be(value.Amount.Scale);
+        }
+
+        public class RawNanos
+        {
+            [AvroType(AvroTypeRepresentation.TimestampNanoseconds)]
+            public long At { get; set; }
+
+            [AvroType(AvroTypeRepresentation.LocalTimestampNanoseconds)]
+            public long? LocalAt { get; set; }
+        }
+
+        [Fact]
+        public void TimestampAsLong_KeepsExactNanoseconds()
+        {
+            //Arrange
+            var value = new RawNanos { At = 1_700_000_000_123_456_789L, LocalAt = -5L };
+
+
+            //Act
+            var avro = AvroConvert.Serialize(value);
+            var result = AvroConvert.Deserialize<RawNanos>(avro);
+
+
+            //Assert
+            result.Should().BeEquivalentTo(value);
+            AvroConvert.GenerateSchema(typeof(RawNanos)).Should().Contain(@"{""type"":""long"",""logicalType"":""timestamp-nanos""}");
+        }
+
+        [Fact]
+        public void TimestampNanos_OutOfRange_Throws()
+        {
+            var act = () => AvroConvert.Serialize(new Timestamps { Nanos = new DateTime(2300, 1, 1) });
+
+            act.Should().Throw<ArgumentOutOfRangeException>().Which.Message.Should().Contain("2262-04-11");
+        }
+
+        [Theory]
+        [InlineData(new byte[] { 0x02, 0x01, 0x05 }, "1000")]                  // unscaled 1, scale -3 (Java 1E+3)
+        [InlineData(new byte[] { 0x02, 0x01, 0x50 }, "0.0000000000000000000000000000")] // unscaled 1, scale 40: below decimal resolution
+        [InlineData(new byte[] { 0x02, 0x0F, 0x3A }, "0.0000000000000000000000000002")] // unscaled 15, scale 29: rounded half away from zero
+        public void BigDecimal_JavaScales_AreRead(byte[] payload, string expected)
+        {
+            //Arrange
+            const string schema = @"{""type"":""bytes"",""logicalType"":""big-decimal""}";
+            var avro = new byte[payload.Length + 1];
+            avro[0] = (byte)(payload.Length * 2);
+            payload.CopyTo(avro, 1);
+
+
+            //Act
+            var result = AvroConvert.DeserializeHeadless<decimal>(avro, schema);
+
+
+            //Assert
+            result.Should().Be(decimal.Parse(expected, System.Globalization.CultureInfo.InvariantCulture));
+        }
+
+        [Fact]
+        public void BigDecimal_UsesJavaLayout()
+        {
+            //Arrange: unscaled 12345 (0x3039) and scale 2, each Avro-encoded, wrapped in Avro bytes
+            const string schema = @"{""type"":""bytes"",""logicalType"":""big-decimal""}";
+
+
+            //Act
+            var avro = AvroConvert.SerializeHeadless(123.45m, schema);
+
+
+            //Assert
+            avro.Should().Equal(0x08, 0x04, 0x30, 0x39, 0x04);
+            AvroConvert.DeserializeHeadless<decimal>(avro, schema).Should().Be(123.45m);
+        }
+
+        [Fact]
+        public void DecimalOnFixed_RoundTrips()
+        {
+            //Arrange
+            const string schema = @"{""type"":""fixed"",""name"":""Money"",""size"":8,""logicalType"":""decimal"",""precision"":12,""scale"":2}";
+
+
+            //Act
+            var avro = AvroConvert.SerializeHeadless(-12.5m, schema);
+
+
+            //Assert
+            avro.Should().HaveCount(8);
+            AvroConvert.DeserializeHeadless<decimal>(avro, schema).Should().Be(-12.5m);
+        }
+    }
+
+    public class NamedTypesAcrossNamespacesTests
+    {
+        [DataContract(Name = "Outer", Namespace = "a")]
+        public class Outer
+        {
+            [DataMember] public TimeSpan Duration { get; set; }
+            [DataMember, AvroType(AvroTypeRepresentation.UuidFixed)] public Guid Id { get; set; }
+            [DataMember] public Inner Inner { get; set; }
+            [DataMember] public TimeSpan OtherDuration { get; set; }
+        }
+
+        [DataContract(Name = "Inner", Namespace = "b")]
+        public class Inner
+        {
+            [DataMember] public TimeSpan Duration { get; set; }
+            [DataMember, AvroType(AvroTypeRepresentation.UuidFixed)] public Guid Id { get; set; }
+        }
+
+        [Fact]
+        public void LogicalFixed_ReusedInOtherNamespace_IsDefinedThereOrReferencedByFullName()
+        {
+            //Arrange
+            var value = new Outer
+            {
+                Duration = TimeSpan.FromHours(1), Id = Guid.NewGuid(), OtherDuration = TimeSpan.FromSeconds(3),
+                Inner = new Inner { Duration = TimeSpan.FromMinutes(2), Id = Guid.NewGuid() }
+            };
+
+
+            //Act
+            var schema = AvroConvert.GenerateSchema(typeof(Outer));
+            var result = AvroConvert.Deserialize<Outer>(AvroConvert.Serialize(value));
+
+
+            //Assert
+            result.Should().BeEquivalentTo(value);
+            schema.Should().Contain(@"{""name"":""OtherDuration"",""type"":""a.duration""}");
+            schema.Should().Contain(@"""namespace"":""b"",""type"":""record"",""fields"":[{""name"":""Duration"",""type"":{""type"":""fixed"",""size"":12,""name"":""duration""");
+        }
+
+    }
+
+    public class ReviewRegressionTests
+    {
+        public class Holder<T>
+        {
+            public T X { get; set; }
+        }
+
+        public static TheoryData<string, byte[], object> UnionBranches => new()
+        {
+            { @"[""null"",""string"",""bytes""]", new byte[] { 0x04, 0x04, 0xFF, 0xFE }, new byte[] { 0xFF, 0xFE } },
+            { @"[""null"",""bytes"",""string""]", new byte[] { 0x04, 0x0A, 0x68, 0x65, 0x6C, 0x6C, 0x6F }, "hello" },
+            { @"[""null"",""long"",""int""]", new byte[] { 0x04, 0x0A }, 5 }
+        };
+
+        [Theory]
+        [MemberData(nameof(UnionBranches))]
+        public void UnionIntoDynamic_KeepsTheWrittenBranchType(string schema, byte[] avro, object expected)
+        {
+            //Act (branch index 2 in every case)
+            object result = AvroConvert.DeserializeHeadless(avro, schema, typeof(object));
+
+
+            //Assert
+            result.Should().BeOfType(expected.GetType());
+            result.Should().BeEquivalentTo(expected);
+        }
+
+    }
+
+    public class SchemaResolutionTests
+    {
+        public class WithBytes
+        {
+            public byte[] Value { get; set; }
+        }
+
+        public class WithString
+        {
+            public string Value { get; set; }
+        }
+
+        [Fact]
+        public void IntWrittenLongRead_DynamicTakesReaderType()
+        {
+            //Arrange
+            var avro = AvroConvert.SerializeHeadless(5, @"""int""");
+
+
+            //Act
+            object result = AvroConvert.DeserializeHeadless(avro, @"""int""", @"""long""", typeof(object));
+
+
+            //Assert
+            result.Should().BeOfType<long>().Which.Should().Be(5L);
+        }
+
+        [Fact]
+        public void StringWrittenBytesRead_IsUtf8()
+        {
+            //Arrange
+            var avro = AvroConvert.Serialize(new WithString { Value = "zażółć" });
+
+
+            //Act
+            var result = AvroConvert.Deserialize<WithBytes>(avro);
+
+
+            //Assert
+            result.Value.Should().Equal(System.Text.Encoding.UTF8.GetBytes("zażółć"));
+        }
+
+        [Fact]
+        public void BytesWrittenStringRead_IsUtf8()
+        {
+            //Arrange
+            var avro = AvroConvert.Serialize(new WithBytes { Value = System.Text.Encoding.UTF8.GetBytes("zażółć") });
+
+
+            //Act
+            var result = AvroConvert.Deserialize<WithString>(avro);
+
+
+            //Assert
+            result.Value.Should().Be("zażółć");
+        }
+
+        [Fact]
+        public void EnumSymbolUnknownToReader_ResolvesToReaderDefault()
+        {
+            //Arrange
+            const string writer = @"{""type"":""enum"",""name"":""Color"",""symbols"":[""RED"",""GREEN"",""BLUE""]}";
+            const string reader = @"{""type"":""enum"",""name"":""Color"",""symbols"":[""RED"",""GREEN""],""default"":""RED""}";
+            var avro = AvroConvert.SerializeHeadless("BLUE", writer);
+
+
+            //Act
+            var result = AvroConvert.DeserializeHeadless<string>(avro, writer, reader, 1);
+
+
+            //Assert
+            result.Should().Be("RED");
+        }
+    }
+}

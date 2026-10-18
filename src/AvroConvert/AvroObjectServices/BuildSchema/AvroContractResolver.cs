@@ -190,7 +190,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 BindingFlags.DeclaredOnly);
 
             // add members that are explicitly marked with DataMember attribute
-            var privateMembers = type.GetFieldsAndProperties(BindingFlags.NonPublic);
+            var privateMembers = type.GetFieldsAndProperties(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
             foreach (var privateMember in privateMembers)
             {
                 if (privateMember.GetCustomAttribute<DataMemberAttribute>() != null)

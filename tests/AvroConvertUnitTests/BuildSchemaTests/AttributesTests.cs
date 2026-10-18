@@ -1,16 +1,17 @@
-﻿using System;
+﻿using AwesomeAssertions;
+using System;
 using System.Linq;
 using SolTechnology.Avro;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertUnitTests.BuildSchemaTests
 {
     public class AttributesTests
     {
-        [Fact]
+        [Test]
         public void BuildSchema_RecordWithAttributes_AttributesAreAppliedToSchema()
         {
             //Arrange
@@ -22,29 +23,29 @@ namespace AvroConvertUnitTests.BuildSchemaTests
 
 
             //Assert
-            Assert.IsType<RecordSchema>(schema);
+            schema.Should().BeOfType<RecordSchema>();
             var resultSchema = (RecordSchema)schema;
             
-            Assert.NotNull(resultSchema);
-            Assert.Equal("This is Doc of User Class", resultSchema.Doc);
-            Assert.Equal("User", resultSchema.Name);
-            Assert.Equal("userspace", resultSchema.Namespace);
+            resultSchema.Should().NotBeNull();
+            resultSchema.Doc.Should().Be("This is Doc of User Class");
+            resultSchema.Name.Should().Be("User");
+            resultSchema.Namespace.Should().Be("userspace");
 
             var stringField = resultSchema.Fields.SingleOrDefault(f => f.Name == "name");
-            Assert.NotNull(stringField);
-            Assert.Equal("This is Doc of record field", stringField.Doc);
+            stringField.Should().NotBeNull();
+            stringField.Doc.Should().Be("This is Doc of record field");
 
             var intField = resultSchema.Fields.SingleOrDefault(f => f.Name == "favorite_number");
-            Assert.NotNull(intField);
-            Assert.True(intField.HasDefaultValue);
-            Assert.Equal(2137, intField.DefaultValue);
+            intField.Should().NotBeNull();
+            intField.HasDefaultValue.Should().BeTrue();
+            intField.DefaultValue.Should().Be(2137);
 
 
             var decimalField = resultSchema.Fields.SingleOrDefault(f => f.Name == nameof(AttributeClass.AvroDecimal));
-            Assert.IsType<DecimalSchema>(decimalField.TypeSchema);
+            decimalField.TypeSchema.Should().BeOfType<DecimalSchema>();
             var decimalSchema = (DecimalSchema)decimalField.TypeSchema;
-            Assert.Equal(2, decimalSchema.Scale);
-            Assert.Equal(4, decimalSchema.Precision);
+            decimalSchema.Scale.Should().Be(2);
+            decimalSchema.Precision.Should().Be(4);
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 using AutoFixture;
-using FluentAssertions;
-using Xunit;
+using AwesomeAssertions;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 {
@@ -10,9 +10,8 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
         private readonly Fixture _fixture = new();
 
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Class_without_constructor(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Class_without_constructor([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             ClassWithoutDefaultConstructor testClass =
@@ -20,16 +19,15 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
 
             //Act
-            var deserialized = (ClassWithoutDefaultConstructor)engine.Invoke(testClass, typeof(ClassWithoutDefaultConstructor));
+            var deserialized = RoundTrip.Run<ClassWithoutDefaultConstructor>(testClass, format);
 
 
             //Assert
             deserialized.Should().BeEquivalentTo(testClass);
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Nested_class_without_constructor(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Nested_class_without_constructor([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             VeryComplexClassWithoutDefaultConstructor testClass =
@@ -37,7 +35,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
 
             //Act
-            var deserialized = (VeryComplexClassWithoutDefaultConstructor)engine.Invoke(testClass, typeof(VeryComplexClassWithoutDefaultConstructor));
+            var deserialized = RoundTrip.Run<VeryComplexClassWithoutDefaultConstructor>(testClass, format);
 
 
             //Assert

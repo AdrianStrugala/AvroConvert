@@ -1,8 +1,8 @@
 ﻿using AutoFixture;
-using FluentAssertions;
+using AwesomeAssertions;
 using Newtonsoft.Json;
 using SolTechnology.Avro;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.Json2AvroOnly
 {
@@ -10,7 +10,7 @@ namespace AvroConvertComponentTests.Json2AvroOnly
     {
         private readonly Fixture _fixture = new();
 
-        [Fact]
+        [Test]
         public void JsonToAvro_ClassWithDictionary_ThrowsNotSupportedException()
         {
             //Arrange
@@ -25,7 +25,7 @@ namespace AvroConvertComponentTests.Json2AvroOnly
 
             //Assert
             resultAvro.Should().NotBeNull();
-            var exception = Record.Exception(() => AvroConvert.Deserialize<ExtendedBaseTestClass>(resultAvro));
+            var exception = Recorded.Exception(() => AvroConvert.Deserialize<ExtendedBaseTestClass>(resultAvro));
             exception.Message.Should().Contain("Unable to deserialize [UnknownObject] of schema [Record] to the target type [AvroConvertComponentTests.ExtendedBaseTestClass].");
             exception.InnerException.Message.Should().Contain("Unable to deserialize [AvroMap] of schema [Record] to the target type [System.Collections.Generic.Dictionary`2[System.String,System.Int32]]");
         }

@@ -1,12 +1,13 @@
-﻿using SolTechnology.Avro;
-using Xunit;
+﻿using AwesomeAssertions;
+using SolTechnology.Avro;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.FilesDeserialization.Headless
 {
     public class HeadlessProtoFileTest
     {
-        [Fact]
-        [Trait("Fix", "https://github.com/AdrianStrugala/AvroConvert/issues/95")]
+        [Test]
+        [Property("Fix", "https://github.com/AdrianStrugala/AvroConvert/issues/95")]
         public void Component_SerializeHeadlessBiggerObjectAndReadSmaller_NoError()
         {
             //Arrange
@@ -28,9 +29,9 @@ namespace AvroConvertComponentTests.FilesDeserialization.Headless
             var deserialized = AvroConvert.DeserializeHeadless<SampleProtoGeneratedClass>(serialized, schemaString);
 
             //Assert
-            Assert.NotNull(serialized);
-            Assert.NotNull(deserialized);
-            Assert.Equal(value, deserialized);
+            serialized.Should().NotBeNull();
+            deserialized.Should().NotBeNull();
+            deserialized.Should().BeEquivalentTo(value);
         }
     }
 }

@@ -1,6 +1,7 @@
+using AwesomeAssertions;
 using Avro;
 using Avro.Generic;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertInteropTests;
 
@@ -9,54 +10,52 @@ internal static class InteropAssert
     /// <summary>Compares an AvroConvert-side object with what Apache.Avro read back.</summary>
     internal static void Equivalent(InteropRecord expected, GenericRecord actual)
     {
-        Assert.Equal(expected.IntValue, actual[nameof(expected.IntValue)]);
-        Assert.Equal(expected.LongValue, actual[nameof(expected.LongValue)]);
-        Assert.Equal(expected.FloatValue, actual[nameof(expected.FloatValue)]);
-        Assert.Equal(expected.DoubleValue, actual[nameof(expected.DoubleValue)]);
-        Assert.Equal(expected.BoolValue, actual[nameof(expected.BoolValue)]);
-        Assert.Equal(expected.StringValue, actual[nameof(expected.StringValue)]);
-        Assert.Equal(expected.BytesValue, (byte[])actual[nameof(expected.BytesValue)]);
-        Assert.Equal(expected.IntList, ((object[])actual[nameof(expected.IntList)]).Cast<int>());
-        Assert.Equal(
-            expected.StringMap,
-            ((IDictionary<string, object>)actual[nameof(expected.StringMap)]).ToDictionary(kv => kv.Key, kv => (string)kv.Value));
+        actual[nameof(expected.IntValue)].Should().Be(expected.IntValue);
+        actual[nameof(expected.LongValue)].Should().Be(expected.LongValue);
+        actual[nameof(expected.FloatValue)].Should().Be(expected.FloatValue);
+        actual[nameof(expected.DoubleValue)].Should().Be(expected.DoubleValue);
+        actual[nameof(expected.BoolValue)].Should().Be(expected.BoolValue);
+        actual[nameof(expected.StringValue)].Should().Be(expected.StringValue);
+        ((byte[])actual[nameof(expected.BytesValue)]).Should().Equal(expected.BytesValue);
+        ((object[])actual[nameof(expected.IntList)]).Cast<int>().Should().Equal(expected.IntList);
+        ((IDictionary<string, object>)actual[nameof(expected.StringMap)]).ToDictionary(kv => kv.Key, kv => (string)kv.Value).Should().BeEquivalentTo(expected.StringMap);
 
         var child = (GenericRecord)actual[nameof(expected.Child)];
-        Assert.Equal(expected.Child.Name, child[nameof(expected.Child.Name)]);
-        Assert.Equal(expected.Child.Amount, child[nameof(expected.Child.Amount)]);
+        child[nameof(expected.Child.Name)].Should().Be(expected.Child.Name);
+        child[nameof(expected.Child.Amount)].Should().Be(expected.Child.Amount);
 
-        Assert.Equal(expected.Color.ToString(), ((GenericEnum)actual[nameof(expected.Color)]).Value);
-        Assert.Equal(expected.NullableInt, (int?)actual[nameof(expected.NullableInt)]);
-        Assert.Equal(expected.DecimalValue, (decimal)(AvroDecimal)actual[nameof(expected.DecimalValue)]);
+        ((GenericEnum)actual[nameof(expected.Color)]).Value.Should().Be(expected.Color.ToString());
+        ((int?)actual[nameof(expected.NullableInt)]).Should().Be(expected.NullableInt);
+        ((decimal)(AvroDecimal)actual[nameof(expected.DecimalValue)]).Should().Be(expected.DecimalValue);
 
         var timestamp = (DateTime)actual[nameof(expected.Timestamp)];
-        Assert.Equal(DateTimeKind.Utc, timestamp.Kind);
-        Assert.Equal(expected.Timestamp.Ticks, timestamp.Ticks);
+        timestamp.Kind.Should().Be(DateTimeKind.Utc);
+        timestamp.Ticks.Should().Be(expected.Timestamp.Ticks);
 
-        Assert.Equal(expected.Id, (Guid)actual[nameof(expected.Id)]);
-        Assert.Equal(expected.Date, DateOnly.FromDateTime((DateTime)actual[nameof(expected.Date)]));
-        Assert.Equal(expected.Time.ToTimeSpan(), (TimeSpan)actual[nameof(expected.Time)]);
+        ((Guid)actual[nameof(expected.Id)]).Should().Be(expected.Id);
+        DateOnly.FromDateTime((DateTime)actual[nameof(expected.Date)]).Should().Be(expected.Date);
+        ((TimeSpan)actual[nameof(expected.Time)]).Should().Be(expected.Time.ToTimeSpan());
     }
 
     internal static void Equivalent(InteropRecord expected, InteropRecord actual)
     {
-        Assert.Equal(expected.IntValue, actual.IntValue);
-        Assert.Equal(expected.LongValue, actual.LongValue);
-        Assert.Equal(expected.FloatValue, actual.FloatValue);
-        Assert.Equal(expected.DoubleValue, actual.DoubleValue);
-        Assert.Equal(expected.BoolValue, actual.BoolValue);
-        Assert.Equal(expected.StringValue, actual.StringValue);
-        Assert.Equal(expected.BytesValue, actual.BytesValue);
-        Assert.Equal(expected.IntList, actual.IntList);
-        Assert.Equal(expected.StringMap, actual.StringMap);
-        Assert.Equal(expected.Child.Name, actual.Child.Name);
-        Assert.Equal(expected.Child.Amount, actual.Child.Amount);
-        Assert.Equal(expected.Color, actual.Color);
-        Assert.Equal(expected.NullableInt, actual.NullableInt);
-        Assert.Equal(expected.DecimalValue, actual.DecimalValue);
-        Assert.Equal(expected.Timestamp.Ticks, actual.Timestamp.Ticks);
-        Assert.Equal(expected.Id, actual.Id);
-        Assert.Equal(expected.Date, actual.Date);
-        Assert.Equal(expected.Time, actual.Time);
+        actual.IntValue.Should().Be(expected.IntValue);
+        actual.LongValue.Should().Be(expected.LongValue);
+        actual.FloatValue.Should().Be(expected.FloatValue);
+        actual.DoubleValue.Should().Be(expected.DoubleValue);
+        actual.BoolValue.Should().Be(expected.BoolValue);
+        actual.StringValue.Should().Be(expected.StringValue);
+        actual.BytesValue.Should().Equal(expected.BytesValue);
+        actual.IntList.Should().Equal(expected.IntList);
+        actual.StringMap.Should().BeEquivalentTo(expected.StringMap);
+        actual.Child.Name.Should().Be(expected.Child.Name);
+        actual.Child.Amount.Should().Be(expected.Child.Amount);
+        actual.Color.Should().Be(expected.Color);
+        actual.NullableInt.Should().Be(expected.NullableInt);
+        actual.DecimalValue.Should().Be(expected.DecimalValue);
+        actual.Timestamp.Ticks.Should().Be(expected.Timestamp.Ticks);
+        actual.Id.Should().Be(expected.Id);
+        actual.Date.Should().Be(expected.Date);
+        actual.Time.Should().Be(expected.Time);
     }
 }

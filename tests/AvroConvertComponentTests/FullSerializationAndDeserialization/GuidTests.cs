@@ -1,6 +1,7 @@
-﻿using System;
+﻿using AwesomeAssertions;
+using System;
 using AutoFixture;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 {
@@ -8,47 +9,44 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
     {
         private readonly Fixture _fixture = new();
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Random_Guid(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Random_Guid([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             Guid testClass = _fixture.Create<Guid>();
 
             //Act
-            var deserialized = engine.Invoke(testClass, typeof(Guid));
+            var deserialized = RoundTrip.Run<Guid>(testClass, format);
 
             //Assert
-            Assert.Equal(testClass, deserialized);
+            deserialized.Should().Be(testClass);
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Empty_Guid(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Empty_Guid([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             Guid testClass = Guid.Empty;
 
             //Act
-            var deserialized = engine.Invoke(testClass, typeof(Guid));
+            var deserialized = RoundTrip.Run<Guid>(testClass, format);
 
             //Assert
-            Assert.Equal(testClass, deserialized);
+            deserialized.Should().Be(testClass);
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Class_with_Guid(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Class_with_Guid([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             ClassWithGuid testClass = _fixture.Create<ClassWithGuid>();
 
             //Act
-            var deserialized = engine.Invoke(testClass, typeof(ClassWithGuid));
+            var deserialized = RoundTrip.Run<ClassWithGuid>(testClass, format);
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(testClass.theGuid, deserialized.theGuid);
+            deserialized.Should().NotBeNull();
+            deserialized.theGuid.Should().Be(testClass.theGuid);
         }
     }
 }

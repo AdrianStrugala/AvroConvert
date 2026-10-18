@@ -1,3 +1,4 @@
+using AwesomeAssertions;
 using System;
 using System.Runtime.Serialization;
 using SolTechnology.Avro;
@@ -5,17 +6,16 @@ using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.AvroObjectServices.Read;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertUnitTests.BuildSchemaTests
 {
     public class SpecificationSchemaTests
     {
-        [Theory]
-        [InlineData("timestamp-nanos", false, 1L)]
-        [InlineData("local-timestamp-millis", true, 1_000_000L)]
-        [InlineData("local-timestamp-micros", true, 1_000L)]
-        [InlineData("local-timestamp-nanos", true, 1L)]
+        [TestCase("timestamp-nanos", false, 1L)]
+        [TestCase("local-timestamp-millis", true, 1_000_000L)]
+        [TestCase("local-timestamp-micros", true, 1_000L)]
+        [TestCase("local-timestamp-nanos", true, 1L)]
         public void Parse_TimestampLogicalTypes_AreRecognised(string logicalType, bool local, long nanosecondsPerUnit)
         {
             //Act
@@ -23,14 +23,14 @@ namespace AvroConvertUnitTests.BuildSchemaTests
 
 
             //Assert
-            var timestamp = Assert.IsType<TimestampSchema>(schema);
-            Assert.Equal(logicalType, timestamp.LogicalTypeName);
-            Assert.Equal(local, timestamp.IsLocal);
-            Assert.Equal(nanosecondsPerUnit, timestamp.NanosecondsPerUnit);
-            Assert.Equal($@"{{""type"":""long"",""logicalType"":""{logicalType}""}}", schema.ToString());
+            var timestamp = schema.Should().BeOfType<TimestampSchema>().Subject;
+            timestamp.LogicalTypeName.Should().Be(logicalType);
+            timestamp.IsLocal.Should().Be(local);
+            timestamp.NanosecondsPerUnit.Should().Be(nanosecondsPerUnit);
+            schema.ToString().Should().Be($@"{{""type"":""long"",""logicalType"":""{logicalType}""}}");
         }
 
-        [Fact]
+        [Test]
         public void Parse_UuidOnFixed16_KeepsFixedBase()
         {
             //Act
@@ -38,14 +38,14 @@ namespace AvroConvertUnitTests.BuildSchemaTests
 
 
             //Assert
-            var uuid = Assert.IsType<UuidSchema>(schema);
-            var fixedBase = Assert.IsType<FixedSchema>(uuid.BaseTypeSchema);
-            Assert.Equal("ns.Id", fixedBase.FullName);
-            Assert.Equal(16, fixedBase.Size);
-            Assert.Equal(@"{""type"":""fixed"",""size"":16,""name"":""Id"",""namespace"":""ns"",""logicalType"":""uuid""}", schema.ToString());
+            var uuid = schema.Should().BeOfType<UuidSchema>().Subject;
+            var fixedBase = uuid.BaseTypeSchema.Should().BeOfType<FixedSchema>().Subject;
+            fixedBase.FullName.Should().Be("ns.Id");
+            fixedBase.Size.Should().Be(16);
+            schema.ToString().Should().Be(@"{""type"":""fixed"",""size"":16,""name"":""Id"",""namespace"":""ns"",""logicalType"":""uuid""}");
         }
 
-        [Fact]
+        [Test]
         public void Parse_DecimalOnFixed_KeepsFixedBase()
         {
             //Act
@@ -53,14 +53,14 @@ namespace AvroConvertUnitTests.BuildSchemaTests
 
 
             //Assert
-            var decimalSchema = Assert.IsType<DecimalSchema>(schema);
-            Assert.Equal(AvroType.Fixed, decimalSchema.BaseTypeSchema.Type);
-            Assert.Equal(12, decimalSchema.Precision);
-            Assert.Equal(2, decimalSchema.Scale);
-            Assert.Equal(@"{""type"":""fixed"",""size"":8,""name"":""Money"",""logicalType"":""decimal"",""precision"":12,""scale"":2}", schema.ToString());
+            var decimalSchema = schema.Should().BeOfType<DecimalSchema>().Subject;
+            decimalSchema.BaseTypeSchema.Type.Should().Be(AvroType.Fixed);
+            decimalSchema.Precision.Should().Be(12);
+            decimalSchema.Scale.Should().Be(2);
+            schema.ToString().Should().Be(@"{""type"":""fixed"",""size"":8,""name"":""Money"",""logicalType"":""decimal"",""precision"":12,""scale"":2}");
         }
 
-        [Fact]
+        [Test]
         public void Parse_BigDecimal_IsRecognised()
         {
             //Act
@@ -68,11 +68,11 @@ namespace AvroConvertUnitTests.BuildSchemaTests
 
 
             //Assert
-            Assert.IsType<BigDecimalSchema>(schema);
-            Assert.Equal(@"{""type"":""bytes"",""logicalType"":""big-decimal""}", schema.ToString());
+            schema.Should().BeOfType<BigDecimalSchema>();
+            schema.ToString().Should().Be(@"{""type"":""bytes"",""logicalType"":""big-decimal""}");
         }
 
-        [Fact]
+        [Test]
         public void Parse_FixedWithLogicalTypeReferencedByName_KeepsLogicalType()
         {
             //Arrange
@@ -86,14 +86,12 @@ namespace AvroConvertUnitTests.BuildSchemaTests
 
 
             //Assert
-            Assert.IsType<UuidSchema>(schema.GetField("a").TypeSchema);
-            Assert.Same(schema.GetField("a").TypeSchema, schema.GetField("b").TypeSchema);
-            Assert.Equal(
-                @"{""name"":""R"",""type"":""record"",""fields"":[{""name"":""a"",""type"":{""type"":""fixed"",""size"":16,""name"":""Uid"",""logicalType"":""uuid""}},{""name"":""b"",""type"":""Uid""}]}",
-                schema.ToString());
+            schema.GetField("a").TypeSchema.Should().BeOfType<UuidSchema>();
+            schema.GetField("b").TypeSchema.Should().BeSameAs(schema.GetField("a").TypeSchema);
+            schema.ToString().Should().Be(@"{""name"":""R"",""type"":""record"",""fields"":[{""name"":""a"",""type"":{""type"":""fixed"",""size"":16,""name"":""Uid"",""logicalType"":""uuid""}},{""name"":""b"",""type"":""Uid""}]}");
         }
 
-        [Fact]
+        [Test]
         public void Parse_RepeatedIdenticalFixedDefinition_IsTolerated()
         {
             //Arrange: AvroConvert 3.x inlined the "duration" fixed for every TimeSpan member
@@ -106,21 +104,21 @@ namespace AvroConvertUnitTests.BuildSchemaTests
 
 
             //Assert
-            Assert.IsType<DurationSchema>(schema.GetField("a").TypeSchema);
-            Assert.IsType<DurationSchema>(schema.GetField("b").TypeSchema);
+            schema.GetField("a").TypeSchema.Should().BeOfType<DurationSchema>();
+            schema.GetField("b").TypeSchema.Should().BeOfType<DurationSchema>();
         }
 
-        [Fact]
+        [Test]
         public void Parse_ConflictingFixedRedefinition_Throws()
         {
             var json = @"{""type"":""record"",""name"":""Dup"",""fields"":[
                 {""name"":""a"",""type"":{""type"":""fixed"",""name"":""F"",""size"":2}},
                 {""name"":""b"",""type"":{""type"":""fixed"",""name"":""F"",""size"":4}}]}";
 
-            Assert.Throws<SerializationException>(() => Schema.Parse(json));
+            FluentActions.Invoking(() => Schema.Parse(json)).Should().ThrowExactly<SerializationException>();
         }
 
-        [Fact]
+        [Test]
         public void Parse_FieldOrder_IsPreserved()
         {
             //Arrange
@@ -132,19 +130,19 @@ namespace AvroConvertUnitTests.BuildSchemaTests
 
 
             //Assert
-            Assert.Equal("descending", schema.GetField("a").Order);
-            Assert.Null(schema.GetField("b").Order);
-            Assert.Equal(json, schema.ToString());
+            schema.GetField("a").Order.Should().Be("descending");
+            schema.GetField("b").Order.Should().BeNull();
+            schema.ToString().Should().Be(json);
         }
 
-        [Fact]
+        [Test]
         public void Parse_InvalidFieldOrder_Throws()
         {
-            Assert.Throws<SerializationException>(() =>
-                Schema.Parse(@"{""name"":""R2"",""type"":""record"",""fields"":[{""name"":""a"",""type"":""int"",""order"":""sideways""}]}"));
+            FluentActions.Invoking(() =>
+                Schema.Parse(@"{""name"":""R2"",""type"":""record"",""fields"":[{""name"":""a"",""type"":""int"",""order"":""sideways""}]}")).Should().ThrowExactly<SerializationException>();
         }
 
-        [Fact]
+        [Test]
         public void Parse_EnumDefault_IsPreserved()
         {
             //Arrange
@@ -156,20 +154,20 @@ namespace AvroConvertUnitTests.BuildSchemaTests
 
 
             //Assert
-            var enumSchema = Assert.IsType<EnumSchema>(schema);
-            Assert.Equal("GREEN", enumSchema.Default);
-            Assert.Empty(enumSchema.Attributes);
-            Assert.Equal(json, schema.ToString());
+            var enumSchema = schema.Should().BeOfType<EnumSchema>().Subject;
+            enumSchema.Default.Should().Be("GREEN");
+            enumSchema.Attributes.Should().BeEmpty();
+            schema.ToString().Should().Be(json);
         }
 
-        [Fact]
+        [Test]
         public void Parse_EnumDefaultNotASymbol_Throws()
         {
-            Assert.Throws<SerializationException>(() =>
-                Schema.Parse(@"{""type"":""enum"",""name"":""Color2"",""symbols"":[""RED""],""default"":""BLUE""}"));
+            FluentActions.Invoking(() =>
+                Schema.Parse(@"{""type"":""enum"",""name"":""Color2"",""symbols"":[""RED""],""default"":""BLUE""}")).Should().ThrowExactly<SerializationException>();
         }
 
-        [Fact]
+        [Test]
         public void TimestampField_DefaultValue_IsConvertedToDateTime()
         {
             //Act
@@ -178,37 +176,36 @@ namespace AvroConvertUnitTests.BuildSchemaTests
 
 
             //Assert
-            Assert.Equal(DateTime.UnixEpoch.AddSeconds(1), schema.GetField("t").DefaultValue);
+            schema.GetField("t").DefaultValue.Should().Be(DateTime.UnixEpoch.AddSeconds(1));
         }
     }
 
     public class SchemaPromotionTests
     {
-        [Theory]
-        [InlineData(AvroType.Int, AvroType.Long, true)]
-        [InlineData(AvroType.Int, AvroType.Float, true)]
-        [InlineData(AvroType.Int, AvroType.Double, true)]
-        [InlineData(AvroType.Long, AvroType.Float, true)]
-        [InlineData(AvroType.Long, AvroType.Double, true)]
-        [InlineData(AvroType.Float, AvroType.Double, true)]
-        [InlineData(AvroType.String, AvroType.Bytes, true)]
-        [InlineData(AvroType.Bytes, AvroType.String, true)]
-        [InlineData(AvroType.Long, AvroType.Int, false)]
-        [InlineData(AvroType.Double, AvroType.Float, false)]
-        [InlineData(AvroType.Int, AvroType.String, false)]
-        [InlineData(AvroType.Boolean, AvroType.Int, false)]
+        [TestCase(AvroType.Int, AvroType.Long, true)]
+        [TestCase(AvroType.Int, AvroType.Float, true)]
+        [TestCase(AvroType.Int, AvroType.Double, true)]
+        [TestCase(AvroType.Long, AvroType.Float, true)]
+        [TestCase(AvroType.Long, AvroType.Double, true)]
+        [TestCase(AvroType.Float, AvroType.Double, true)]
+        [TestCase(AvroType.String, AvroType.Bytes, true)]
+        [TestCase(AvroType.Bytes, AvroType.String, true)]
+        [TestCase(AvroType.Long, AvroType.Int, false)]
+        [TestCase(AvroType.Double, AvroType.Float, false)]
+        [TestCase(AvroType.Int, AvroType.String, false)]
+        [TestCase(AvroType.Boolean, AvroType.Int, false)]
         public void IsSpecPromotion_FollowsSpecification(AvroType writer, AvroType reader, bool expected)
         {
-            Assert.Equal(expected, SchemaPromotion.IsSpecPromotion(writer, reader));
+            SchemaPromotion.IsSpecPromotion(writer, reader).Should().Be(expected);
         }
 
-        [Fact]
+        [Test]
         public void PrimitiveCanRead_IncludesStringBytesPromotion()
         {
-            Assert.True(new BytesSchema().CanRead(new StringSchema()));
-            Assert.True(new StringSchema().CanRead(new BytesSchema()));
-            Assert.True(new IntSchema().CanRead(new LongSchema())); // AvroConvert extension (narrowing), kept from 3.x
-            Assert.False(new IntSchema().CanRead(new StringSchema()));
+            new BytesSchema().CanRead(new StringSchema()).Should().BeTrue();
+            new StringSchema().CanRead(new BytesSchema()).Should().BeTrue();
+            new IntSchema().CanRead(new LongSchema()).Should().BeTrue(); // AvroConvert extension (narrowing), kept from 3.x
+            new IntSchema().CanRead(new StringSchema()).Should().BeFalse();
         }
     }
 }

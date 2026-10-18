@@ -1,9 +1,10 @@
+using AwesomeAssertions;
 using Avro;
 using Avro.Generic;
 using Avro.IO;
 using SolTechnology.Avro;
 using SolTechnology.Avro.Infrastructure.Attributes;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertInteropTests;
 
@@ -16,9 +17,8 @@ public class JsonEncodingInteropTests
         return sample;
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
+    [TestCase(true)]
+    [TestCase(false)]
     public void AvroConvertJsonEncoding_ApacheJsonDecoder(bool unionHasValue)
     {
         var expected = unionHasValue ? SampleWithUnionValue() : InteropRecord.Sample();
@@ -31,9 +31,8 @@ public class JsonEncodingInteropTests
         InteropAssert.Equivalent(expected, record);
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
+    [TestCase(true)]
+    [TestCase(false)]
     public void ApacheJsonEncoder_AvroConvertJsonEncoding(bool unionHasValue)
     {
         var expected = unionHasValue ? SampleWithUnionValue() : InteropRecord.Sample();
@@ -51,7 +50,7 @@ public class JsonEncodingInteropTests
         InteropAssert.Equivalent(expected, actual);
     }
 
-    [Fact]
+    [Test]
     public void AvroConvertJsonEncoding_EqualsApacheJsonEncoderOutput_ForUnionsAndBytes()
     {
         const string schemaJson = """
@@ -79,9 +78,9 @@ public class JsonEncodingInteropTests
 
         var avroConvertJson = AvroConvert.Avro2JsonEncoding(ApacheAvro.WriteBinary(schema, record), schemaJson);
 
-        Assert.True(Newtonsoft.Json.Linq.JToken.DeepEquals(
+        Newtonsoft.Json.Linq.JToken.DeepEquals(
             Newtonsoft.Json.Linq.JToken.Parse(apacheJson),
-            Newtonsoft.Json.Linq.JToken.Parse(avroConvertJson)), $"Apache: {apacheJson}\nAvroConvert: {avroConvertJson}");
+            Newtonsoft.Json.Linq.JToken.Parse(avroConvertJson)).Should().BeTrue($"Apache: {apacheJson}\nAvroConvert: {avroConvertJson}");
     }
 }
 
@@ -102,7 +101,7 @@ public class CanonicalFormInteropTests
         ]}
         """;
 
-    public static TheoryData<string> Schemas => new()
+    public static IEnumerable<string> Schemas => new[]
     {
         RichSchema,
         AvroConvert.GenerateSchema(typeof(InteropRecord)),
@@ -113,26 +112,24 @@ public class CanonicalFormInteropTests
         """["null","string",{"type":"fixed","name":"x.y.Z","size":3}]"""
     };
 
-    [Theory]
-    [MemberData(nameof(Schemas))]
+    [TestCaseSource(nameof(Schemas))]
     public void ParsingCanonicalForm_MatchesApache(string schemaJson)
     {
         var expected = SchemaNormalization.ToParsingForm(Schema.Parse(schemaJson));
 
-        Assert.Equal(expected, AvroSchema.Parse(schemaJson).CanonicalForm);
+        AvroSchema.Parse(schemaJson).CanonicalForm.Should().Be(expected);
     }
 
-    [Theory]
-    [MemberData(nameof(Schemas))]
+    [TestCaseSource(nameof(Schemas))]
     public void Fingerprints_MatchApache(string schemaJson)
     {
         var schema = Schema.Parse(schemaJson);
 
         var avroSchema = AvroSchema.Parse(schemaJson);
-        Assert.Equal(SchemaNormalization.ParsingFingerprint64(schema), avroSchema.Fingerprint);
-        Assert.Equal(SchemaNormalization.ParsingFingerprint("CRC-64-AVRO", schema), avroSchema.GetFingerprint(AvroFingerprintAlgorithm.Crc64Avro));
-        Assert.Equal(SchemaNormalization.ParsingFingerprint("MD5", schema), avroSchema.GetFingerprint(AvroFingerprintAlgorithm.Md5));
-        Assert.Equal(SchemaNormalization.ParsingFingerprint("SHA-256", schema), avroSchema.GetFingerprint(AvroFingerprintAlgorithm.Sha256));
+        avroSchema.Fingerprint.Should().Be(SchemaNormalization.ParsingFingerprint64(schema));
+        avroSchema.GetFingerprint(AvroFingerprintAlgorithm.Crc64Avro).Should().Equal(SchemaNormalization.ParsingFingerprint("CRC-64-AVRO", schema));
+        avroSchema.GetFingerprint(AvroFingerprintAlgorithm.Md5).Should().Equal(SchemaNormalization.ParsingFingerprint("MD5", schema));
+        avroSchema.GetFingerprint(AvroFingerprintAlgorithm.Sha256).Should().Equal(SchemaNormalization.ParsingFingerprint("SHA-256", schema));
     }
 }
 
@@ -159,7 +156,7 @@ public class LogicalTypeInteropTests
         public Guid Id { get; set; }
     }
 
-    [Fact]
+    [Test]
     public void Timestamps_SchemaIsAcceptedByApache_AndValuesAreUnitsSinceEpoch()
     {
         var wallClock = new DateTime(2000, 1, 1, 12, 0, 0, DateTimeKind.Unspecified).AddTicks(1_234_567);
@@ -168,10 +165,10 @@ public class LogicalTypeInteropTests
 
         // Apache.Avro 1.12.2 knows local-timestamp-millis/micros; *-nanos are unknown to it and read as long.
         var schema = (RecordSchema)Schema.Parse(schemaJson);
-        Assert.Equal("local-timestamp-millis", ((LogicalSchema)schema["LocalMillis"].Schema).LogicalTypeName);
-        Assert.Equal("local-timestamp-micros", ((LogicalSchema)schema["LocalMicros"].Schema).LogicalTypeName);
-        Assert.Contains(@"{""type"":""long"",""logicalType"":""timestamp-nanos""}", schemaJson);
-        Assert.Contains(@"{""type"":""long"",""logicalType"":""local-timestamp-nanos""}", schemaJson);
+        ((LogicalSchema)schema["LocalMillis"].Schema).LogicalTypeName.Should().Be("local-timestamp-millis");
+        ((LogicalSchema)schema["LocalMicros"].Schema).LogicalTypeName.Should().Be("local-timestamp-micros");
+        schemaJson.Should().Contain(@"{""type"":""long"",""logicalType"":""timestamp-nanos""}");
+        schemaJson.Should().Contain(@"{""type"":""long"",""logicalType"":""local-timestamp-nanos""}");
 
         // Read the raw longs: the spec defines them as units since 1970-01-01T00:00:00.
         var rawSchema = (RecordSchema)Schema.Parse("""
@@ -182,10 +179,10 @@ public class LogicalTypeInteropTests
         var record = ApacheAvro.ReadBinary(rawSchema, AvroConvert.SerializeHeadless(value, schemaJson));
 
         var ticks = wallClock.Ticks - DateTime.UnixEpoch.Ticks;
-        Assert.Equal(ticks * 100, record["Nanos"]);
-        Assert.Equal(ticks / TimeSpan.TicksPerMillisecond, record["LocalMillis"]);
-        Assert.Equal(ticks / 10, record["LocalMicros"]);
-        Assert.Equal(ticks * 100, record["LocalNanos"]);
+        record["Nanos"].Should().Be(ticks * 100);
+        record["LocalMillis"].Should().Be(ticks / TimeSpan.TicksPerMillisecond);
+        record["LocalMicros"].Should().Be(ticks / 10);
+        record["LocalNanos"].Should().Be(ticks * 100);
     }
 
     [System.Runtime.Serialization.DataContract(Name = "Outer", Namespace = "a")]
@@ -202,24 +199,24 @@ public class LogicalTypeInteropTests
         [System.Runtime.Serialization.DataMember] public TimeSpan Duration { get; set; }
     }
 
-    [Fact]
+    [Test]
     public void RepeatedDurationAcrossNamespaces_SchemaAndDataReadByApache()
     {
         var value = new Outer { First = TimeSpan.FromSeconds(1), Second = TimeSpan.FromSeconds(2), Inner = new Inner { Duration = TimeSpan.FromSeconds(3) } };
 
         var (schema, records) = ApacheAvro.ReadContainer(AvroConvert.Serialize(value));
 
-        var record = Assert.Single(records);
+        var record = records.Should().ContainSingle().Subject;
         // Apache resolves a by-name reference to the fixed itself (without the logical wrapper).
         static string FullName(Schema s) => s is LogicalSchema logical ? ((NamedSchema)logical.BaseSchema).Fullname : ((NamedSchema)s).Fullname;
         var outer = (RecordSchema)schema;
-        Assert.Equal("a.duration", FullName(outer["First"].Schema));
-        Assert.Equal("a.duration", FullName(outer["Second"].Schema));
-        Assert.Equal("b.duration", FullName(((RecordSchema)outer["Inner"].Schema)["Duration"].Schema));
-        Assert.NotNull(record["Inner"]);
+        FullName(outer["First"].Schema).Should().Be("a.duration");
+        FullName(outer["Second"].Schema).Should().Be("a.duration");
+        FullName(((RecordSchema)outer["Inner"].Schema)["Duration"].Schema).Should().Be("b.duration");
+        record["Inner"].Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void UuidOnFixed_IsWrittenInRfc4122ByteOrder()
     {
         var value = new UuidAsFixed { Id = Guid.Parse("00112233-4455-6677-8899-aabbccddeeff") };
@@ -228,7 +225,7 @@ public class LogicalTypeInteropTests
 
         var record = ApacheAvro.ReadBinary(rawSchema, AvroConvert.SerializeHeadless(value, schemaJson));
 
-        Assert.Equal(Convert.FromHexString("00112233445566778899aabbccddeeff"), ((GenericFixed)record["Id"]).Value);
-        Assert.Equal(value.Id, AvroConvert.DeserializeHeadless<UuidAsFixed>(AvroConvert.SerializeHeadless(value, schemaJson), schemaJson).Id);
+        ((GenericFixed)record["Id"]).Value.Should().Equal(Convert.FromHexString("00112233445566778899aabbccddeeff"));
+        AvroConvert.DeserializeHeadless<UuidAsFixed>(AvroConvert.SerializeHeadless(value, schemaJson), schemaJson).Id.Should().Be(value.Id);
     }
 }

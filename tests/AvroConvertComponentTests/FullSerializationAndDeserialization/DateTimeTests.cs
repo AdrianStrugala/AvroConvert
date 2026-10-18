@@ -1,8 +1,8 @@
 ﻿using System;
 using AutoFixture;
-using FluentAssertions;
-using FluentAssertions.Extensions;
-using Xunit;
+using AwesomeAssertions;
+using AwesomeAssertions.Extensions;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 {
@@ -17,16 +17,15 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             _fixture.Customize<TimeOnly>(composer => composer.FromFactory<DateTime>(TimeOnly.FromDateTime));
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Class_containing_date_time_and_dateTime_properties(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Class_containing_date_time_and_dateTime_properties([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             ClassWithDateTime toSerialize = _fixture.Create<ClassWithDateTime>();
 
 
             //Act
-            var deserialized = (ClassWithDateTime)engine.Invoke(toSerialize, typeof(ClassWithDateTime));
+            var deserialized = RoundTrip.Run<ClassWithDateTime>(toSerialize, format);
 
             //Assert
             deserialized.MyDate.Should().Be(toSerialize.MyDate);
@@ -35,9 +34,8 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
                 "According to the Avro documentation, the most accurate precision is microseconds");
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Class_containing_dateTime_which_has_default_value(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Class_containing_dateTime_which_has_default_value([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             ClassWithDateTime toSerialize = _fixture.Create<ClassWithDateTime>();
@@ -45,7 +43,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
 
             //Act
-            var deserialized = (ClassWithDateTime)engine.Invoke(toSerialize, typeof(ClassWithDateTime));
+            var deserialized = RoundTrip.Run<ClassWithDateTime>(toSerialize, format);
 
 
             //Assert
@@ -55,83 +53,79 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
                 "According to the Avro documentation, the most accurate precision is microseconds");
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Class_containing_dateTimeOffset(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Class_containing_dateTimeOffset([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             ClassWithDateTimeOffset toSerialize = _fixture.Create<ClassWithDateTimeOffset>();
 
 
             //Act
-            var deserialized = (ClassWithDateTimeOffset)engine.Invoke(toSerialize, typeof(ClassWithDateTimeOffset));
+            var deserialized = RoundTrip.Run<ClassWithDateTimeOffset>(toSerialize, format);
 
 
             //Assert
-            Assert.NotNull(deserialized);
+            deserialized.Should().NotBeNull();
             //the timezone is dropped
-            Assert.Equal(toSerialize.yeah.Microsecond(), deserialized.yeah.Microsecond());
-            Assert.Equal(toSerialize.yeah.Millisecond, deserialized.yeah.Millisecond);
-            Assert.Equal(toSerialize.yeah.Second, deserialized.yeah.Second);
-            Assert.Equal(toSerialize.yeah.Minute, deserialized.yeah.Minute);
-            Assert.Equal(toSerialize.yeah.Hour, deserialized.yeah.Hour);
-            Assert.Equal(toSerialize.yeah.Day, deserialized.yeah.Day);
-            Assert.Equal(toSerialize.yeah.Month, deserialized.yeah.Month);
-            Assert.Equal(toSerialize.yeah.Year, deserialized.yeah.Year);
+            deserialized.yeah.Microsecond().Should().Be(toSerialize.yeah.Microsecond());
+            deserialized.yeah.Millisecond.Should().Be(toSerialize.yeah.Millisecond);
+            deserialized.yeah.Second.Should().Be(toSerialize.yeah.Second);
+            deserialized.yeah.Minute.Should().Be(toSerialize.yeah.Minute);
+            deserialized.yeah.Hour.Should().Be(toSerialize.yeah.Hour);
+            deserialized.yeah.Day.Should().Be(toSerialize.yeah.Day);
+            deserialized.yeah.Month.Should().Be(toSerialize.yeah.Month);
+            deserialized.yeah.Year.Should().Be(toSerialize.yeah.Year);
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Nullable_DateTime(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Nullable_DateTime([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             DateTime? toSerialize = _fixture.Create<DateTime?>();
 
 
             //Act
-            var deserialized = (DateTime?)engine.Invoke(toSerialize, typeof(DateTime?));
+            var deserialized = RoundTrip.Run<DateTime?>(toSerialize, format);
 
 
             //Assert
-            Assert.NotNull(deserialized);
+            deserialized.Should().NotBeNull();
             deserialized.Value.Should().BeCloseTo(toSerialize!.Value, precision: TimeSpan.FromTicks(10),
                 "According to the Avro documentation, the most accurate precision is microseconds");
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Nullable_DateTimeOffset(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Nullable_DateTimeOffset([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             DateTimeOffset? toSerialize = _fixture.Create<DateTimeOffset?>();
 
 
             //Act
-            var deserialized = (DateTimeOffset?)engine.Invoke(toSerialize, typeof(DateTimeOffset?));
+            var deserialized = RoundTrip.Run<DateTimeOffset?>(toSerialize, format);
 
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(toSerialize.Value.Microsecond(), deserialized.Value.Microsecond());
-            Assert.Equal(toSerialize.Value.Millisecond, deserialized.Value.Millisecond);
-            Assert.Equal(toSerialize.Value.Second, deserialized.Value.Second);
-            Assert.Equal(toSerialize.Value.Minute, deserialized.Value.Minute);
-            Assert.Equal(toSerialize.Value.Hour, deserialized.Value.Hour);
-            Assert.Equal(toSerialize.Value.Day, deserialized.Value.Day);
-            Assert.Equal(toSerialize.Value.Month, deserialized.Value.Month);
-            Assert.Equal(toSerialize.Value.Year, deserialized.Value.Year);
+            deserialized.Should().NotBeNull();
+            deserialized.Value.Microsecond().Should().Be(toSerialize.Value.Microsecond());
+            deserialized.Value.Millisecond.Should().Be(toSerialize.Value.Millisecond);
+            deserialized.Value.Second.Should().Be(toSerialize.Value.Second);
+            deserialized.Value.Minute.Should().Be(toSerialize.Value.Minute);
+            deserialized.Value.Hour.Should().Be(toSerialize.Value.Hour);
+            deserialized.Value.Day.Should().Be(toSerialize.Value.Day);
+            deserialized.Value.Month.Should().Be(toSerialize.Value.Month);
+            deserialized.Value.Year.Should().Be(toSerialize.Value.Year);
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void TimeSpan_object(Func<object, Type, dynamic> engine)
+        [Test]
+        public void TimeSpan_object([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             TimeSpan toSerialize = DateTime.UtcNow.TimeOfDay;
 
 
             //Act
-            var deserialized = engine.Invoke(toSerialize, typeof(TimeSpan));
+            var deserialized = RoundTrip.Run<TimeSpan>(toSerialize, format);
 
 
             //Assert
@@ -139,55 +133,52 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
                 "Avro Duration supports at lowest milliseconds precision");
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Nullable_TimeSpan(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Nullable_TimeSpan([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             TimeSpan? toSerialize = _fixture.Create<TimeSpan?>();
 
 
             //Act
-            var deserialized = (TimeSpan?)engine.Invoke(toSerialize, typeof(TimeSpan?));
+            var deserialized = RoundTrip.Run<TimeSpan?>(toSerialize, format);
 
 
             //Assert
-            Assert.NotNull(deserialized);
+            deserialized.Should().NotBeNull();
             toSerialize!.Value.Should().BeCloseTo(deserialized.Value, TimeSpan.FromMilliseconds(1),
                 "Avro Duration supports at lowest milliseconds precision");
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Nullable_DateOnly(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Nullable_DateOnly([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             DateOnly? toSerialize = _fixture.Create<DateOnly?>();
 
 
             //Act
-            var deserialized = (DateOnly?)engine.Invoke(toSerialize, typeof(DateOnly?));
+            var deserialized = RoundTrip.Run<DateOnly?>(toSerialize, format);
 
 
             //Assert
-            Assert.NotNull(deserialized);
+            deserialized.Should().NotBeNull();
             toSerialize!.Value.Should().Be(deserialized.Value);
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Nullable_TimeOnly(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Nullable_TimeOnly([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             TimeOnly? toSerialize = _fixture.Create<TimeOnly?>();
 
 
             //Act
-            var deserialized = (TimeOnly?)engine.Invoke(toSerialize, typeof(TimeOnly?));
+            var deserialized = RoundTrip.Run<TimeOnly?>(toSerialize, format);
 
 
             //Assert
-            Assert.NotNull(deserialized);
+            deserialized.Should().NotBeNull();
             toSerialize!.Value.ToString().Should().Be(deserialized.Value.ToString());
         }
     }

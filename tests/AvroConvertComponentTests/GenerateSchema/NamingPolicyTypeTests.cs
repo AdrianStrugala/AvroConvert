@@ -1,12 +1,13 @@
-﻿using SolTechnology.Avro;
+﻿using AwesomeAssertions;
+using SolTechnology.Avro;
 using SolTechnology.Avro.Policies;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.GenerateSchema;
 
 public class NamingPolicyTypeTests
 {
-    [Fact]
+    [Test]
     public void GenerateSchema_UsingNamingPolicy_UsesCorrectTypeNames()
     {
         //Arrange
@@ -19,12 +20,12 @@ public class NamingPolicyTypeTests
         string schema = AvroConvert.GenerateSchema(typeof(BasicTypeWithProperties), options);
 
         //Assert
-        Assert.Contains("\"name\":\"BasicTypeWithProperties\",\"namespace\":\"com.company.product\"", schema);
-        Assert.Contains("\"name\":\"BaseClass\",\"namespace\":\"com.company.product\"", schema);
-        Assert.Contains("\"name\":\"EnumWithDifferentNames\",\"namespace\":\"com.company.product\"", schema);
+        schema.Should().Contain("\"name\":\"BasicTypeWithProperties\",\"namespace\":\"com.company.product\"");
+        schema.Should().Contain("\"name\":\"BaseClass\",\"namespace\":\"com.company.product\"");
+        schema.Should().Contain("\"name\":\"EnumWithDifferentNames\",\"namespace\":\"com.company.product\"");
     }
 
-    [Fact]
+    [Test]
     public void GenerateSchema_UsingNamingPolicy_UseCorrectMemberNames()
     {
         //Arrange
@@ -37,11 +38,11 @@ public class NamingPolicyTypeTests
         string schema = AvroConvert.GenerateSchema(typeof(BasicTypeWithProperties), options);
 
         //Assert
-        Assert.Contains("\"name\":\"propertyName\"", schema);
-        Assert.Contains("\"name\":\"enumValue\"", schema);
+        schema.Should().Contain("\"name\":\"propertyName\"");
+        schema.Should().Contain("\"name\":\"enumValue\"");
     }
 
-    [Fact]
+    [Test]
     public void GenerateSchema_UsingNamingPolicy_UseCorrectEnumSymbols()
     {
         //Arrange
@@ -54,6 +55,6 @@ public class NamingPolicyTypeTests
         string schema = AvroConvert.GenerateSchema(typeof(BasicTypeWithProperties), options);
 
         //Assert
-        Assert.Contains("\"symbols\":[\"NONE\",\"COMBINED_OPTION\",\"OPTION_1\",\"OPTION_23\",\"OPTION_1_WITH_SUFFIX\",\"OPTION_23_WITH_SUFFIX\"]", schema);
+        schema.Should().Contain("\"symbols\":[\"NONE\",\"COMBINED_OPTION\",\"OPTION_1\",\"OPTION_23\",\"OPTION_1_WITH_SUFFIX\",\"OPTION_23_WITH_SUFFIX\"]");
     }
 }

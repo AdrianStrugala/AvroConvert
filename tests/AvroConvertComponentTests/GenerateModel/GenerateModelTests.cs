@@ -1,8 +1,9 @@
-﻿using System;
+﻿using AwesomeAssertions;
+using System;
 using System.IO;
 using System.Threading;
 using SolTechnology.Avro;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.GenerateModel
 {
@@ -17,7 +18,7 @@ namespace AvroConvertComponentTests.GenerateModel
             _schemaOnlyAvroBytes = File.ReadAllBytes("header_only.avro");
         }
 
-        [Fact]
+        [Test]
         public void GenerateClass_UserClass_OutputIsEqualToExpected()
         {
             //Arrange
@@ -28,18 +29,16 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            Assert.Equal(
-                "public class User\r\n" +
+            resultClass.Should().Be("public class User\r\n" +
                 "{\r\n" +
                 "\tpublic string name { get; set; }\r\n" +
                 "\tpublic int? favorite_number { get; set; }\r\n" +
                 "\tpublic string? favorite_color { get; set; }\r\n" +
                 "}\r\n" +
-                "\r\n",
-                resultClass);
+                "\r\n");
         }
 
-        [Fact]
+        [Test]
         public void GenerateClass_SchemaOnlyAvroFile_OutputIsEqualToExpected()
         {
             //Arrange
@@ -50,19 +49,17 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            Assert.Equal(
-                "public class User\r\n" +
+            resultClass.Should().Be("public class User\r\n" +
                 "{\r\n" +
                 "\tpublic string name { get; set; }\r\n" +
                 "\tpublic int? favorite_number { get; set; }\r\n" +
                 "\tpublic string favorite_color { get; set; }\r\n" +
                 "}\r\n" +
-                "\r\n",
-                resultClass);
+                "\r\n");
         }
 
 
-        [Fact]
+        [Test]
         public void GenerateClass_NestedClass_OutputIsEqualToExpected()
         {
             //Arrange
@@ -73,8 +70,7 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            Assert.Equal(
-                "public class BaseTestClass\r\n" +
+            resultSchema.Should().Be("public class BaseTestClass\r\n" +
                 "{\r\n" +
                 "\tpublic string justSomeProperty { get; set; }\r\n" +
                 "\tpublic long andLongProperty { get; set; }\r\n" +
@@ -87,11 +83,10 @@ namespace AvroConvertComponentTests.GenerateModel
                 "\tpublic int? favorite_number { get; set; }\r\n" +
                 "\tpublic string favorite_color { get; set; }\r\n" +
                 "}\r\n" +
-                "\r\n",
-                resultSchema);
+                "\r\n");
         }
 
-        [Fact]
+        [Test]
         public void GenerateClass_ClassWithEnum_GeneratedModelIsAsExpected()
         {
             //Arrange
@@ -102,8 +97,7 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            Assert.Equal(
-                "public class ClassWithEnum\r\n" +
+            resultSchema.Should().Be("public class ClassWithEnum\r\n" +
                 "{\r\n" +
                 "\t[DefaultValue(1)]\r\n" +
                 "\tpublic TestEnum? EnumProp { get; set; }\r\n" +
@@ -118,11 +112,10 @@ namespace AvroConvertComponentTests.GenerateModel
                 "\tca,\r\n" +
                 "\tdlo\r\n" +
                 "}\r\n" +
-                "\r\n",
-                resultSchema);
+                "\r\n");
         }
 
-        [Fact]
+        [Test]
         public void GenerateClass_VeryComplexClass_OutputIsEqualToExpected()
         {
             //Arrange
@@ -133,8 +126,7 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            Assert.Equal(
-                "public class VeryComplexClass\r\n" +
+            resultSchema.Should().Be("public class VeryComplexClass\r\n" +
                 "{\r\n" +
                 "\tpublic ClassWithArray[] ClassesWithArray { get; set; }\r\n" +
                 "\tpublic ClassWithGuid[] ClassesWithGuid { get; set; }\r\n" +
@@ -182,12 +174,10 @@ namespace AvroConvertComponentTests.GenerateModel
                 "{\r\n" +
                 "\tpublic int[] someList { get; set; }\r\n" +
                 "}\r\n" +
-                "\r\n",
-
-                resultSchema);
+                "\r\n");
         }
 
-        [Fact]
+        [Test]
         public void GenerateClass_ClassWithLogicalTypes_OutputIsEqualToExpected()
         {
             //Arrange
@@ -198,8 +188,7 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            Assert.Equal(
-                "public class LogicalTypesClass\r\n" +
+            resultSchema.Should().Be("public class LogicalTypesClass\r\n" +
                 "{\r\n" +
                 "\tpublic decimal One { get; set; }\r\n" +
                 "\tpublic Guid? Two { get; set; }\r\n" +
@@ -207,11 +196,10 @@ namespace AvroConvertComponentTests.GenerateModel
                 "\tpublic DateTime? Four { get; set; }\r\n" +
                 "\tpublic DateTime Five { get; set; }\r\n" +
                 "}\r\n" +
-                "\r\n",
-                resultSchema);
+                "\r\n");
         }
 
-        [Fact]
+        [Test]
         public void GenerateClass_Enum_GeneratedModelIsAsExpected()
         {
             //Arrange
@@ -222,19 +210,17 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            Assert.Equal(
-                "public enum TestEnum\r\n" +
+            resultSchema.Should().Be("public enum TestEnum\r\n" +
                 "{\r\n" +
                 "\ta,\r\n" +
                 "\tbe,\r\n" +
                 "\tca,\r\n" +
                 "\tdlo\r\n" +
                 "}\r\n" +
-                "\r\n",
-                resultSchema);
+                "\r\n");
         }
 
-        [Fact]
+        [Test]
         public void GenerateClass_TwoClassesOfTheSameName_TheyAreGeneratedWithNamespaces()
         {
             //Arrange
@@ -288,8 +274,7 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            Assert.Equal(
-                "public class BaseTestClass\r\n" +
+            resultClass.Should().Be("public class BaseTestClass\r\n" +
                 "{\r\n" +
                 "\tpublic FakeUserUser fakeUserProperty { get; set; }\r\n" +
                 "\tpublic AvroConvertComponentTestsUser objectProperty { get; set; }\r\n" +
@@ -306,11 +291,10 @@ namespace AvroConvertComponentTests.GenerateModel
                 "\tpublic int? favorite_number { get; set; }\r\n" +
                 "\tpublic string favorite_color { get; set; }\r\n" +
                 "}\r\n" +
-                "\r\n",
-                resultClass);
+                "\r\n");
         }
 
-        [Fact]
+        [Test]
         public void GenerateClass_SameNameClassesOneFieldIsAnArray_TheyAreGeneratedWithNamespaces()
         {
             //Arrange
@@ -402,8 +386,7 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            Assert.Equal(
-                "public class Result\r\n" +
+            resultClass.Should().Be("public class Result\r\n" +
                 "{\r\n" +
                 "\tpublic module module { get; set; }\r\n" +
                 "\tpublic customerInfo customerInfo { get; set; }\r\n" +
@@ -428,11 +411,10 @@ namespace AvroConvertComponentTests.GenerateModel
                 "\tpublic string country { get; set; }\r\n" +
                 "\tpublic string customerNumber { get; set; }\r\n" +
                 "}\r\n" +
-                "\r\n",
-                resultClass);
+                "\r\n");
         }
 
-        [Fact]
+        [Test]
         public void GenerateClass_TheyAreGeneratedWithDocumentation()
         {
             //Arrange
@@ -474,8 +456,7 @@ namespace AvroConvertComponentTests.GenerateModel
             string resultClass = AvroConvert.GenerateModel(schema);
 
             //Assert
-            Assert.Equal(
-                "public class Result\r\n" +
+            resultClass.Should().Be("public class Result\r\n" +
                 "{\r\n" +
                 "\t/// <summary>\r\n" +
                 "\t/// This is a doc field\r\n" +
@@ -487,12 +468,11 @@ namespace AvroConvertComponentTests.GenerateModel
                 "\tpublic float testFloat { get; set; }\r\n" +
                 "\tpublic double testDouble { get; set; }\r\n" +
                 "}\r\n" +
-                "\r\n",
-                resultClass);
+                "\r\n");
         }
 
 
-        [Fact]
+        [Test]
         public void GenerateClass_TheyAreGeneratedWithDefaults()
         {
             //Arrange
@@ -538,8 +518,7 @@ namespace AvroConvertComponentTests.GenerateModel
             string resultClass = AvroConvert.GenerateModel(schema);
 
             //Assert
-            Assert.Equal(
-                "public class Result\r\n" +
+            resultClass.Should().Be("public class Result\r\n" +
                 "{\r\n" +
                 "\t[DefaultValue(\"Default String\")]\r\n" +
                 "\tpublic string testString { get; set; }\r\n" +
@@ -554,12 +533,11 @@ namespace AvroConvertComponentTests.GenerateModel
                 "\t[DefaultValue(1.23)]\r\n" +
                 "\tpublic double testDouble { get; set; }\r\n" +
                 "}\r\n" +
-                "\r\n",
-                resultClass);
+                "\r\n");
         }
 
 
-        [Fact]
+        [Test]
         public void GenerateClass_CommaNumberDecimalSeparator()
         {
             //Arrange
@@ -597,19 +575,17 @@ namespace AvroConvertComponentTests.GenerateModel
             }
 
             //Assert
-            Assert.Equal(
-                "public class Result\r\n" +
+            resultClass.Should().Be("public class Result\r\n" +
                 "{\r\n" +
                 "\t[DefaultValue(1.23)]\r\n" +
                 "\tpublic float testFloat { get; set; }\r\n" +
                 "\t[DefaultValue(1.23)]\r\n" +
                 "\tpublic double testDouble { get; set; }\r\n" +
                 "}\r\n" +
-                "\r\n",
-                resultClass);
+                "\r\n");
         }
 
-        [Fact]
+        [Test]
         public void GenerateClass_SchemaContainsMap_ItIsTranslatedToDictionary()
         {
             //Arrange
@@ -630,16 +606,14 @@ namespace AvroConvertComponentTests.GenerateModel
             string resultClass = AvroConvert.GenerateModel(schema);
 
             //Assert
-            Assert.Equal(
-                "public class exampleAvro\r\n" +
+            resultClass.Should().Be("public class exampleAvro\r\n" +
                 "{\r\n" +
                 "\tpublic Dictionary<string,int> mapdata { get; set; }\r\n" +
                 "}\r\n" +
-                "\r\n",
-                resultClass);
+                "\r\n");
         }
 
-        [Fact]
+        [Test]
         public void GenerateClass_SchemaContainsMapOfUnionValues_ItIsTranslatedToDictionaryOfObjects()
         {
             //Arrange
@@ -671,17 +645,15 @@ namespace AvroConvertComponentTests.GenerateModel
             string resultClass = AvroConvert.GenerateModel(schema);
 
             //Assert
-            Assert.Equal(
-                "public class EventData\r\n" +
+            resultClass.Should().Be("public class EventData\r\n" +
                 "{\r\n" +
                 "\tpublic Dictionary<string,object> SystemProperties { get; set; }\r\n" +
                 "\tpublic Dictionary<string,double?> Properties { get; set; }\r\n" +
                 "}\r\n" +
-                "\r\n",
-                resultClass);
+                "\r\n");
         }
 
-        [Fact]
+        [Test]
         public void GenerateClass_SchemaContainsFixed_ItIsTranslatedToByteArray()
         {
             //Arrange
@@ -702,16 +674,14 @@ namespace AvroConvertComponentTests.GenerateModel
             string resultClass = AvroConvert.GenerateModel(schema);
 
             //Assert
-            Assert.Equal(
-                "public class exampleAvro\r\n" +
+            resultClass.Should().Be("public class exampleAvro\r\n" +
                 "{\r\n" +
                 "\tpublic byte[] bdata { get; set; }\r\n" +
                 "}\r\n" +
-                "\r\n",
-                resultClass);
+                "\r\n");
         }
 
-        [Fact]
+        [Test]
         public void GenerateClass_SchemaContainsBytes_ItIsTranslatedToByteArray()
         {
             //Arrange
@@ -731,17 +701,15 @@ namespace AvroConvertComponentTests.GenerateModel
             string resultClass = AvroConvert.GenerateModel(schema);
 
             //Assert
-            Assert.Equal(
-                "public class exampleAvro\r\n" +
+            resultClass.Should().Be("public class exampleAvro\r\n" +
                 "{\r\n" +
                 "\tpublic byte[] bdata { get; set; }\r\n" +
                 "}\r\n" +
-                "\r\n",
-                resultClass);
+                "\r\n");
         }
 
 
-        [Fact]
+        [Test]
         public void GenerateClass_TypeIsArrayOfDifferentTypes_ItIsGeneralizedToObject()
         {
             //Arrange
@@ -830,8 +798,7 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            Assert.Equal(
-                "public class ClassWithMultipleTypesProperties\r\n" +
+            resultClass.Should().Be("public class ClassWithMultipleTypesProperties\r\n" +
                 "{\r\n" +
                 "\t/// <summary>\r\n" +
                 "\t/// Data:Switchable_PersonName\r\n" +
@@ -849,8 +816,7 @@ namespace AvroConvertComponentTests.GenerateModel
                 "\tpublic string? InformalName { get; set; }\r\n" +
                 "\tpublic string? Suffix { get; set; }\r\n" +
                 "}\r\n" +
-                "\r\n",
-                resultClass);
+                "\r\n");
         }
     }
 }

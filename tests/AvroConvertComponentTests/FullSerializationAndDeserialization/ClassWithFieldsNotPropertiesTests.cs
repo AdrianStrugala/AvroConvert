@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using AutoFixture;
-using FluentAssertions;
+using AwesomeAssertions;
 using SolTechnology.Avro;
 using SolTechnology.Avro.Infrastructure.Attributes;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 {
@@ -13,80 +13,75 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
     {
         private readonly Fixture _fixture = new();
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Simple_class_with_fields(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Simple_class_with_fields([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             ClassWithoutGetters toSerialize = _fixture.Create<ClassWithoutGetters>();
 
 
             //Act
-            var deserialized = engine.Invoke(toSerialize, typeof(ClassWithoutGetters));
+            var deserialized = RoundTrip.Run<ClassWithoutGetters>(toSerialize, format);
 
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(toSerialize.Count, deserialized.Count);
-            Assert.Equal(toSerialize.SomeString, deserialized.SomeString);
+            deserialized.Should().NotBeNull();
+            deserialized.Count.Should().Be(toSerialize.Count);
+            deserialized.SomeString.Should().Be(toSerialize.SomeString);
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Nested_class_with_fields(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Nested_class_with_fields([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             ComplexClassWithoutGetters toSerialize = _fixture.Create<ComplexClassWithoutGetters>();
 
 
             //Act
-            var deserialized = engine.Invoke(toSerialize, typeof(ComplexClassWithoutGetters));
+            var deserialized = RoundTrip.Run<ComplexClassWithoutGetters>(toSerialize, format);
 
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(toSerialize, deserialized);
+            deserialized.Should().NotBeNull();
+            deserialized.Should().BeEquivalentTo(toSerialize);
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Nested_class_with_fields_and_attributes(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Nested_class_with_fields_and_attributes([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             AttributeClassWithoutGetters toSerialize = _fixture.Create<AttributeClassWithoutGetters>();
 
 
             //Act
-            var deserialized = engine.Invoke(toSerialize, typeof(AttributeClassWithoutGetters));
+            var deserialized = RoundTrip.Run<AttributeClassWithoutGetters>(toSerialize, format);
 
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(toSerialize, deserialized);
+            deserialized.Should().NotBeNull();
+            deserialized.Should().BeEquivalentTo(toSerialize);
         }
 
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Class_with_read_only_properties(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Class_with_read_only_properties([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             var toSerialize = _fixture.Create<ClassWithReadOnlyProperties>();
 
 
             //Act
-            var deserialized = engine.Invoke(toSerialize, typeof(ClassWithReadOnlyProperties));
+            var deserialized = RoundTrip.Run<ClassWithReadOnlyProperties>(toSerialize, format);
 
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(toSerialize.ReadOnly, deserialized.ReadOnly);
-            Assert.Equal(toSerialize.NullableReadOnly, deserialized.NullableReadOnly);
+            deserialized.Should().NotBeNull();
+            deserialized.ReadOnly.Should().Be(toSerialize.ReadOnly);
+            deserialized.NullableReadOnly.Should().Be(toSerialize.NullableReadOnly);
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Collection_of_classes_with_read_only_properties(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Collection_of_classes_with_read_only_properties([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             var parent = new Parent()
@@ -115,7 +110,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             };
 
             //Act
-            var deserialized = (Parent)engine.Invoke(parent, typeof(Parent));
+            var deserialized = RoundTrip.Run<Parent>(parent, format);
 
             //Assert
             deserialized.Should().BeEquivalentTo(parent);

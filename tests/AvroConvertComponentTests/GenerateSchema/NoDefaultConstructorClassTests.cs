@@ -1,12 +1,13 @@
-﻿using SolTechnology.Avro;
-using Xunit;
+﻿using AwesomeAssertions;
+using SolTechnology.Avro;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.GenerateSchema
 {
     public class NoDefaultConstructorClassTests
     {
 
-        [Fact]
+        [Test]
         public void GenerateSchema_ClassContainsNoDefaultConstructor_SchemaIsGenerated()
         {
             //Arrange
@@ -17,7 +18,7 @@ namespace AvroConvertComponentTests.GenerateSchema
 
 
             //Assert
-            Assert.Equal(@"{""name"":""ClassWithoutDefaultConstructor"",""namespace"":""AvroConvertComponentTests"",""type"":""record"",""fields"":[{""name"":""Name"",""type"":""string""}]}", schema);
+            schema.Should().Be(@"{""name"":""ClassWithoutDefaultConstructor"",""namespace"":""AvroConvertComponentTests"",""type"":""record"",""fields"":[{""name"":""Name"",""type"":""string""}]}");
         }
 
     }

@@ -2,7 +2,6 @@
 
 namespace AvroConvertComponentTests.FilesDeserialization.Snappy.Twitter
 {
-    [Equals(DoNotAddEqualityOperators = true)]
     public class TwitterModel
     {
         [DataMember(Name = "username")]

@@ -2,9 +2,9 @@
 using System.IO;
 using System.Linq;
 using AutoFixture;
-using FluentAssertions;
+using AwesomeAssertions;
 using SolTechnology.Avro;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.DeserializeByLine
 {
@@ -19,7 +19,7 @@ namespace AvroConvertComponentTests.DeserializeByLine
             _fixture = new Fixture();
         }
 
-        [Fact]
+        [Test]
         public void DeserializeByLine_BlockData_ItIsCorrectlyDeserialized()
         {
             //Arrange
@@ -52,10 +52,10 @@ namespace AvroConvertComponentTests.DeserializeByLine
 
 
             //Assert
-            Assert.Equal(expectedResult, result);
+            result.Should().BeEquivalentTo(expectedResult, o => o.WithStrictOrdering());
         }
 
-        [Fact]
+        [Test]
         public void DeserializeByLine_ClassWithList_ListsAreEqual()
         {
             //Arrange
@@ -79,11 +79,11 @@ namespace AvroConvertComponentTests.DeserializeByLine
 
 
             //Assert
-            Assert.NotNull(result);
-            Assert.Equal(someTestClasses, result);
+            result.Should().NotBeNull();
+            result.Should().BeEquivalentTo(someTestClasses, o => o.WithStrictOrdering());
         }
 
-        [Fact]
+        [Test]
         public void DeserializeByLine_ObjectIsList_ResultIsTheSameAsInput()
         {
             //Arrange
@@ -107,12 +107,12 @@ namespace AvroConvertComponentTests.DeserializeByLine
 
 
             //Assert
-            Assert.NotNull(result);
-            Assert.NotNull(serialized);
-            Assert.Equal(list, result);
+            result.Should().NotBeNull();
+            serialized.Should().NotBeNull();
+            result.Should().Equal(list);
         }
 
-        [Fact]
+        [Test]
         public void DeserializeByLine_ObjectIsArray_ResultIsTheSameAsInput()
         {
             //Arrange
@@ -136,12 +136,12 @@ namespace AvroConvertComponentTests.DeserializeByLine
 
 
             //Assert
-            Assert.NotNull(result);
-            Assert.NotNull(serialized);
-            Assert.Equal(array, result);
+            result.Should().NotBeNull();
+            serialized.Should().NotBeNull();
+            result.Should().Equal(array);
         }
 
-        [Fact]
+        [Test]
         public void DeserializeByLine_ObjectIsHashSet_ResultIsTheSameAsInput()
         {
             //Arrange
@@ -164,12 +164,12 @@ namespace AvroConvertComponentTests.DeserializeByLine
             }
 
             //Assert
-            Assert.NotNull(result);
-            Assert.NotNull(serialized);
-            Assert.Equal(hashset, result);
+            result.Should().NotBeNull();
+            serialized.Should().NotBeNull();
+            result.Should().BeEquivalentTo(hashset);
         }
 
-        [Fact]
+        [Test]
         public void DeserializeByLine_HeadlessList_ResultIsTheSameAsInput()
         {
             //Arrange
@@ -194,14 +194,14 @@ namespace AvroConvertComponentTests.DeserializeByLine
 
 
             //Assert
-            Assert.NotNull(result);
-            Assert.NotNull(serialized);
-            Assert.Equal(list, result);
+            result.Should().NotBeNull();
+            serialized.Should().NotBeNull();
+            result.Should().Equal(list);
         }
 
 
 
-        [Fact]
+        [Test]
         public void DeserializeByLine_ReadFromFileStream_ResultIsAsExpected()
         {
             //Arrange
@@ -238,10 +238,10 @@ namespace AvroConvertComponentTests.DeserializeByLine
             }
 
             //Assert
-            Assert.Equal(expectedResult, result);
+            result.Should().BeEquivalentTo(expectedResult, o => o.WithStrictOrdering());
         }
 
-        [Fact]
+        [Test]
         public void DeserializeByLine_FileContainsBlocksOfArrays_ResultCountIsAsExpected()
         {
             //Arrange
@@ -268,7 +268,7 @@ namespace AvroConvertComponentTests.DeserializeByLine
             result.Should().HaveCount(1000);
         }
 
-        [Fact]
+        [Test]
         public void Deserialize_SingleItem_ItIsCorrectlyDeserialized()
         {
             //Arrange
@@ -294,7 +294,7 @@ namespace AvroConvertComponentTests.DeserializeByLine
             result.Should().ContainEquivalentOf(1);
         }
 
-        [Fact]
+        [Test]
         public void DeserializeByLine_FileContainsOnlyAvroHeader_NoExceptionIsThrown()
         {
             //Arrange
@@ -317,7 +317,7 @@ namespace AvroConvertComponentTests.DeserializeByLine
         }
         
                 
-        [Fact]
+        [Test]
         public void DeserializeByLine_CollectionWithUnionOfClasses_ResultIsTheSameAsInput()
         {
             //Arrange
@@ -357,7 +357,7 @@ namespace AvroConvertComponentTests.DeserializeByLine
             }
             
             //Assert
-            Assert.Equivalent(toSerialize, result);
+            result.Should().BeEquivalentTo(toSerialize);
         }
     
     }

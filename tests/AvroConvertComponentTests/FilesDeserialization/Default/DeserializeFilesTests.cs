@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using FluentAssertions;
+using AwesomeAssertions;
 using SolTechnology.Avro;
 using SolTechnology.Avro.Infrastructure.Exceptions;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.FilesDeserialization.Default
 {
@@ -14,15 +14,14 @@ namespace AvroConvertComponentTests.FilesDeserialization.Default
         private readonly byte[] _schemaOnlyAvroBytes = File.ReadAllBytes("header_only.avro");
 
 
-        [Theory]
-        [MemberData(nameof(TestEngine.DeserializeOnly), MemberType = typeof(TestEngine))]
-        public void Deserialize_FileContainsNoAvroData_NoExceptionIsThrown(Func<byte[], Type, dynamic> engine)
+        [Test]
+        public void Deserialize_FileContainsNoAvroData_NoExceptionIsThrown([ValueSource(typeof(Formats), nameof(Formats.Readers))] Format format)
         {
             //Arrange
 
 
             //Act
-            var result = (List<UserNameClass>)engine.Invoke(_schemaOnlyAvroBytes, typeof(List<UserNameClass>));
+            var result = RoundTrip.Read<List<UserNameClass>>(_schemaOnlyAvroBytes, format);
 
 
             //Assert
@@ -30,16 +29,15 @@ namespace AvroConvertComponentTests.FilesDeserialization.Default
         }
 
 
-        [Theory]
-        [MemberData(nameof(TestEngine.DeserializeOnly), MemberType = typeof(TestEngine))]
-        [Trait("Fix", "https://github.com/AdrianStrugala/AvroConvert/issues/152")]
-        public void Deserialize_FileWithMultipleBlocks_EveryItemIsRead(Func<byte[], Type, dynamic> engine)
+        [Test]
+        [Property("Fix", "https://github.com/AdrianStrugala/AvroConvert/issues/152")]
+        public void Deserialize_FileWithMultipleBlocks_EveryItemIsRead([ValueSource(typeof(Formats), nameof(Formats.Readers))] Format format)
         {
             //Arrange
 
 
             //Act
-            var result = (List<kylosample>)engine.Invoke(File.ReadAllBytes("userdata1.avro"), typeof(List<kylosample>));
+            var result = RoundTrip.Read<List<kylosample>>(File.ReadAllBytes("userdata1.avro"), format);
 
 
             //Assert
@@ -47,7 +45,7 @@ namespace AvroConvertComponentTests.FilesDeserialization.Default
         }
 
 
-        [Fact]
+        [Test]
         public void Deserialize_CustomSchema_OnlyValuesFromCustomSchemaAreReturned()
         {
             //Arrange
@@ -71,10 +69,10 @@ namespace AvroConvertComponentTests.FilesDeserialization.Default
 
 
             //Assert
-            Assert.Equal(expectedResult, result);
+            result.Should().BeEquivalentTo(expectedResult, o => o.WithStrictOrdering());
         }
 
-        [Fact]
+        [Test]
         public void Deserialize_NonGenericMethod_OnlyValuesFromCustomSchemaAreReturned()
         {
             //Arrange
@@ -97,7 +95,7 @@ namespace AvroConvertComponentTests.FilesDeserialization.Default
             result.Should().BeEquivalentTo(expectedResult);
         }
 
-        [Fact]
+        [Test]
         public void Deserialize_InvalidFile_InvalidAvroObjectExceptionIsThrown()
         {
             //Arrange
@@ -105,14 +103,14 @@ namespace AvroConvertComponentTests.FilesDeserialization.Default
 
 
             //Act
-            var result = Record.Exception(() => AvroConvert.Deserialize<int>(invalidBytes));
+            var result = Recorded.Exception(() => AvroConvert.Deserialize<int>(invalidBytes));
 
 
             //Assert
-            Assert.IsType<InvalidAvroObjectException>(result);
+            result.Should().BeOfType<InvalidAvroObjectException>();
         }
 
-        [Fact]
+        [Test]
         public void Deserialization_with_ReadOnlySpan_Works()
         {
             //Arrange
@@ -138,7 +136,7 @@ namespace AvroConvertComponentTests.FilesDeserialization.Default
 
 
             //Assert
-            Assert.Equal(expectedResult, result);
+            result.Should().BeEquivalentTo(expectedResult, o => o.WithStrictOrdering());
         }
     }
 }

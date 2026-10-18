@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using AwesomeAssertions;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using AutoFixture;
 using SolTechnology.Avro;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests
 {
@@ -20,7 +21,7 @@ namespace AvroConvertComponentTests
                 "{\"type\": \"record\", \"name\": \"User\", \"namespace\": \"example.avro\", \"fields\": [{\"type\": \"string\", \"name\": \"name\"}, {\"type\": [\"int\", \"null\"], \"name\": \"favorite_number\"}, {\"type\": [\"string\", \"null\"], \"name\": \"favorite_color\"}]}";
         }
 
-        [Fact]
+        [Test]
         public void GetSchemaAsString_ValidBytes_SchemaIsReturned()
         {
             //Arrange
@@ -29,10 +30,10 @@ namespace AvroConvertComponentTests
             string schema = AvroConvert.GetSchema(_avroBytes);
 
             //Assert
-            Assert.Equal(_example2schema, schema);
+            schema.Should().Be(_example2schema);
         }
 
-        [Fact]
+        [Test]
         public void GetSchemaAsString_ValidStream_SchemaIsReturned()
         {
             //Arrange
@@ -41,10 +42,10 @@ namespace AvroConvertComponentTests
             string schema = AvroConvert.GetSchema(new MemoryStream(_avroBytes));
 
             //Assert
-            Assert.Equal(_example2schema, schema);
+            schema.Should().Be(_example2schema);
         }
 
-        [Fact]
+        [Test]
         public void GetSchemaAsString_ValidFile_SchemaIsReturned()
         {
             //Arrange
@@ -53,7 +54,7 @@ namespace AvroConvertComponentTests
             string schema = AvroConvert.GetSchema("example.avro");
 
             //Assert
-            Assert.NotNull(schema);
+            schema.Should().NotBeNull();
         }
     }
 }

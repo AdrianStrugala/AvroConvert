@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using FluentAssertions;
+using AwesomeAssertions;
 using SolTechnology.Avro;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.JsonEncoding
 {
@@ -22,7 +22,7 @@ namespace AvroConvertComponentTests.JsonEncoding
             public int? Value { get; set; }
         }
 
-        [Fact]
+        [Test]
         public void Avro2JsonEncoding_UnionValue_IsWrappedInBranchName()
         {
             //Arrange (issue #156)
@@ -38,7 +38,7 @@ namespace AvroConvertComponentTests.JsonEncoding
             AvroConvert.Avro2Json(avro, OptionalFieldSchema).Should().Be(@"{""MyField"":""MyValue""}");
         }
 
-        [Fact]
+        [Test]
         public void Avro2JsonEncoding_NullUnion_IsJsonNull()
         {
             //Arrange
@@ -53,7 +53,7 @@ namespace AvroConvertComponentTests.JsonEncoding
             json.Should().Be(@"{""MyField"":null}");
         }
 
-        [Fact]
+        [Test]
         public void Avro2JsonEncoding_SpecialValues_FollowSpecification()
         {
             //Arrange
@@ -79,7 +79,7 @@ namespace AvroConvertComponentTests.JsonEncoding
             plain.Should().Contain(@"""t"":""1970-01-01T00:00:01.5Z""");
         }
 
-        [Fact]
+        [Test]
         public void Avro2JsonEncoding_ContainerWithManyEntries_WritesOneValuePerLine()
         {
             //Arrange
@@ -98,7 +98,7 @@ namespace AvroConvertComponentTests.JsonEncoding
                 @"{""Value"":{""int"":3}}");
         }
 
-        [Fact]
+        [Test]
         public void JsonEncoding2Avro_NewLineSeparatedValues_BecomeContainerEntries()
         {
             //Arrange
@@ -113,7 +113,7 @@ namespace AvroConvertComponentTests.JsonEncoding
             AvroConvert.Deserialize<List<Rec>>(avro).Select(r => r.MyField).Should().Equal("a", null);
         }
 
-        [Fact]
+        [Test]
         public void JsonEncoding_HeadlessValues_RoundTrip()
         {
             //Arrange
@@ -130,7 +130,7 @@ namespace AvroConvertComponentTests.JsonEncoding
             AvroConvert.Avro2JsonEncoding(new byte[] { 2, 4, 6 }, schema).Should().Be("1\n2\n3");
         }
 
-        [Fact]
+        [Test]
         public void JsonEncoding2Avro_MissingFieldWithDefault_UsesDefault()
         {
             //Arrange
@@ -148,7 +148,7 @@ namespace AvroConvertComponentTests.JsonEncoding
             AvroConvert.Avro2JsonEncoding(avro).Should().Be(@"{""a"":1,""b"":""x"",""c"":null}");
         }
 
-        [Fact]
+        [Test]
         public void JsonEncoding2Avro_NamedBranchByShortName_IsAccepted()
         {
             //Arrange
@@ -166,11 +166,10 @@ namespace AvroConvertComponentTests.JsonEncoding
             shortName.Should().Be(fullName);
         }
 
-        [Theory]
-        [InlineData(@"{""MyField"":""plain""}", "$.MyField")]
-        [InlineData(@"{""MyField"":{""int"":1}}", "'int' is not a branch")]
-        [InlineData(@"{}", "missing and has no default")]
-        [InlineData(@"{""MyField"":{""string"":1}}", "expected String")]
+        [TestCase(@"{""MyField"":""plain""}", "$.MyField")]
+        [TestCase(@"{""MyField"":{""int"":1}}", "'int' is not a branch")]
+        [TestCase(@"{}", "missing and has no default")]
+        [TestCase(@"{""MyField"":{""string"":1}}", "expected String")]
         public void JsonEncoding2Avro_InvalidJson_ThrowsWithPath(string json, string expectedMessagePart)
         {
             //Act
@@ -181,7 +180,7 @@ namespace AvroConvertComponentTests.JsonEncoding
             act.Should().Throw<Exception>().Which.Message.Should().Contain(expectedMessagePart);
         }
 
-        [Fact]
+        [Test]
         public void Avro2JsonEncoding_HeadlessWithoutSchema_Throws()
         {
             var act = () => AvroConvert.Avro2JsonEncoding(new byte[] { 2 });

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AwesomeAssertions;
+using System;
 using System.Collections.Generic;
 using AutoFixture;
 using SolTechnology.Avro;
@@ -7,7 +8,7 @@ using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.AvroObjectServices.Write;
 using SolTechnology.Avro.Converters;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.Converters
 {
@@ -15,7 +16,7 @@ namespace AvroConvertComponentTests.Converters
     {
 
 
-        [Fact]
+        [Test]
         public void Custom_converter_is_used_for_schema_generation_and_serialization_and_deserialization()
         {
             //Arrange
@@ -36,8 +37,8 @@ namespace AvroConvertComponentTests.Converters
 
 
             //Assert
-            Assert.NotNull(result);
-            Assert.NotEqual(underTest, deserialized);
+            result.Should().NotBeNull();
+            deserialized.Should().NotBe(underTest);
         }
     }
 

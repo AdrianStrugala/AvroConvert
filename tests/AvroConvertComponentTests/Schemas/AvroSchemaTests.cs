@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using FluentAssertions;
+using AwesomeAssertions;
 using SolTechnology.Avro;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.Schemas
 {
@@ -15,7 +15,7 @@ namespace AvroConvertComponentTests.Schemas
             public string Name { get; set; }
         }
 
-        [Fact]
+        [Test]
         public void Create_MatchesGenerateSchema()
         {
             //Act
@@ -28,7 +28,7 @@ namespace AvroConvertComponentTests.Schemas
             AvroSchema.Create(typeof(Order)).Should().Be(schema);
         }
 
-        [Fact]
+        [Test]
         public void FromAvro_ReadsHeaderSchema()
         {
             //Arrange
@@ -44,7 +44,7 @@ namespace AvroConvertComponentTests.Schemas
             schema.Json.Should().Be(AvroConvert.GetSchema(avro));
         }
 
-        [Fact]
+        [Test]
         public void Equality_IgnoresAttributesThatDoNotAffectData()
         {
             //Arrange
@@ -61,7 +61,7 @@ namespace AvroConvertComponentTests.Schemas
             plain.CanonicalForm.Should().Be(@"{""name"":""n.R"",""type"":""record"",""fields"":[{""name"":""a"",""type"":""int""}]}");
         }
 
-        [Fact]
+        [Test]
         public void AvroConvertOverloads_AcceptAvroSchema()
         {
             //Arrange
@@ -82,7 +82,7 @@ namespace AvroConvertComponentTests.Schemas
             AvroConvert.GenerateModel(schema).Should().Contain("public class Order");
         }
 
-        [Fact]
+        [Test]
         public void Parse_Empty_Throws()
         {
             var act = () => AvroSchema.Parse(" ");
@@ -98,7 +98,7 @@ namespace AvroConvertComponentTests.Schemas
 
         private const string Id = @"{""name"":""id"",""type"":""int""}";
 
-        [Fact]
+        [Test]
         public void Compare_SameSchema_IsEquivalent()
         {
             var comparison = AvroSchema.Compare(Record(Id), Record(Id));
@@ -108,7 +108,7 @@ namespace AvroConvertComponentTests.Schemas
             comparison.Differences.Should().BeEmpty();
         }
 
-        [Fact]
+        [Test]
         public void Compare_FieldAddedWithoutDefault_IsBreaking()
         {
             //Act
@@ -125,7 +125,7 @@ namespace AvroConvertComponentTests.Schemas
             difference.IsBreaking.Should().BeTrue();
         }
 
-        [Fact]
+        [Test]
         public void Compare_FieldAddedWithDefaultAndFieldRemoved_AreNotBreaking()
         {
             //Act
@@ -144,12 +144,11 @@ namespace AvroConvertComponentTests.Schemas
             });
         }
 
-        [Theory]
-        [InlineData("int", "long", SchemaDifferenceKind.TypePromoted, false)]
-        [InlineData("int", "double", SchemaDifferenceKind.TypePromoted, false)]
-        [InlineData("string", "bytes", SchemaDifferenceKind.TypePromoted, false)]
-        [InlineData("long", "int", SchemaDifferenceKind.TypeChanged, true)]
-        [InlineData("string", "int", SchemaDifferenceKind.TypeChanged, true)]
+        [TestCase("int", "long", SchemaDifferenceKind.TypePromoted, false)]
+        [TestCase("int", "double", SchemaDifferenceKind.TypePromoted, false)]
+        [TestCase("string", "bytes", SchemaDifferenceKind.TypePromoted, false)]
+        [TestCase("long", "int", SchemaDifferenceKind.TypeChanged, true)]
+        [TestCase("string", "int", SchemaDifferenceKind.TypeChanged, true)]
         public void Compare_PrimitiveChange_FollowsPromotionRules(string writerType, string readerType, SchemaDifferenceKind kind, bool breaking)
         {
             //Act
@@ -165,7 +164,7 @@ namespace AvroConvertComponentTests.Schemas
             difference.Path.Should().Be("Order.v");
         }
 
-        [Fact]
+        [Test]
         public void Compare_RenamedFieldWithAlias_IsReadable()
         {
             var comparison = AvroSchema.Compare(
@@ -176,7 +175,7 @@ namespace AvroConvertComponentTests.Schemas
             comparison.Differences.Should().BeEmpty();
         }
 
-        [Fact]
+        [Test]
         public void Compare_EnumSymbolRemoved_DependsOnReaderDefault()
         {
             //Arrange
@@ -192,7 +191,7 @@ namespace AvroConvertComponentTests.Schemas
                 .Should().ContainSingle(d => d.Kind == SchemaDifferenceKind.SymbolAdded && d.Path == "Order.s");
         }
 
-        [Fact]
+        [Test]
         public void Compare_Unions_AreMatchedBranchByBranch()
         {
             //Arrange
@@ -211,7 +210,7 @@ namespace AvroConvertComponentTests.Schemas
                 .Should().BeEquivalentTo(new[] { SchemaDifferenceKind.TypePromoted });
         }
 
-        [Fact]
+        [Test]
         public void Compare_NestedChanges_ReportPaths()
         {
             //Arrange
@@ -236,7 +235,7 @@ namespace AvroConvertComponentTests.Schemas
                 "Order.lines[].hash SizeChanged True");
         }
 
-        [Fact]
+        [Test]
         public void Compare_RecursiveRecord_Terminates()
         {
             var node = AvroSchema.Parse(@"{""type"":""record"",""name"":""Node"",""fields"":[{""name"":""next"",""type"":[""null"",""Node""]}]}");
@@ -244,7 +243,7 @@ namespace AvroConvertComponentTests.Schemas
             AvroSchema.Compare(node, node).CanRead.Should().BeTrue();
         }
 
-        [Fact]
+        [Test]
         public void Compare_LogicalTypeOnly_IsReportedButNotBreaking()
         {
             var comparison = AvroSchema.Compare(
@@ -255,7 +254,7 @@ namespace AvroConvertComponentTests.Schemas
             comparison.Differences.Should().ContainSingle(d => d.Kind == SchemaDifferenceKind.LogicalTypeChanged && !d.IsBreaking);
         }
 
-        [Fact]
+        [Test]
         public void Compare_RecordRenamed_IsBreakingUnlessAliased()
         {
             AvroSchema.Compare(Record(Id), Record(Id, "Purchase")).Differences
@@ -265,10 +264,9 @@ namespace AvroConvertComponentTests.Schemas
             AvroSchema.Compare(Record(Id), aliased).CanRead.Should().BeTrue();
         }
 
-        [Theory]
-        [InlineData(AvroCompatibilityMode.Backward, true)]
-        [InlineData(AvroCompatibilityMode.Forward, false)]
-        [InlineData(AvroCompatibilityMode.Full, false)]
+        [TestCase(AvroCompatibilityMode.Backward, true)]
+        [TestCase(AvroCompatibilityMode.Forward, false)]
+        [TestCase(AvroCompatibilityMode.Full, false)]
         public void CheckCompatibility_FieldAddedWithDefault(AvroCompatibilityMode mode, bool compatible)
         {
             //Arrange: next widens "id" to long and adds "note" with a default – it reads old data, but old readers cannot read long.
@@ -285,7 +283,7 @@ namespace AvroConvertComponentTests.Schemas
             result.Mode.Should().Be(mode);
         }
 
-        [Fact]
+        [Test]
         public void CheckCompatibility_Transitive_ChecksWholeHistory()
         {
             //Arrange: v2 dropped "legacy" (string); v3 re-adds it as int – fine against v2, but v1 data holds strings there.

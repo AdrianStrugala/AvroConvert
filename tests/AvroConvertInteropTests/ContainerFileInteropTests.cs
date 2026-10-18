@@ -1,23 +1,23 @@
+using AwesomeAssertions;
 using Avro;
 using Avro.Generic;
 using SolTechnology.Avro;
 using SolTechnology.Avro.Policies;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertInteropTests;
 
 public class ContainerFileInteropTests
 {
-    public static TheoryData<string, CodecType> Codecs => new()
+    public static IEnumerable<TestCaseData> Codecs => new[]
     {
-        { "null", CodecType.Null },
-        { "deflate", CodecType.Deflate },
-        { "snappy", CodecType.Snappy },
-        { "zstandard", CodecType.Zstandard }
+        new TestCaseData("null", CodecType.Null),
+        new TestCaseData("deflate", CodecType.Deflate),
+        new TestCaseData("snappy", CodecType.Snappy),
+        new TestCaseData("zstandard", CodecType.Zstandard)
     };
 
-    [SkippableTheory]
-    [MemberData(nameof(Codecs))]
+    [TestCaseSource(nameof(Codecs))]
     public void AvroConvertWrites_ApacheReads(string apacheCodec, CodecType codec)
     {
         ApacheAvro.SkipIfCodecUnavailable(apacheCodec);
@@ -26,13 +26,12 @@ public class ContainerFileInteropTests
         var bytes = AvroConvert.Serialize(expected, codec);
         var (schema, records) = ApacheAvro.ReadContainer(bytes);
 
-        Assert.Equal(Schema.Type.Record, schema.Tag);
-        var record = Assert.Single(records);
+        schema.Tag.Should().Be(Schema.Type.Record);
+        var record = records.Should().ContainSingle().Subject;
         InteropAssert.Equivalent(expected, record);
     }
 
-    [SkippableTheory]
-    [MemberData(nameof(Codecs))]
+    [TestCaseSource(nameof(Codecs))]
     public void ApacheWrites_AvroConvertReads(string apacheCodec, CodecType codec)
     {
         _ = codec;
@@ -46,7 +45,7 @@ public class ContainerFileInteropTests
         InteropAssert.Equivalent(expected, actual);
     }
 
-    [Fact]
+    [Test]
     public void AvroConvertWritesList_ApacheReadsAllEntries()
     {
         var expected = SampleList(50);
@@ -54,14 +53,14 @@ public class ContainerFileInteropTests
         var bytes = AvroConvert.Serialize(expected, CodecType.Snappy);
         var (_, records) = ApacheAvro.ReadContainer(bytes);
 
-        Assert.Equal(expected.Count, records.Count);
+        records.Count.Should().Be(expected.Count);
         for (int i = 0; i < expected.Count; i++)
         {
             InteropAssert.Equivalent(expected[i], records[i]);
         }
     }
 
-    [Fact]
+    [Test]
     public void AvroConvertWritesList_SingleArrayMode_ApacheReadsSingleArrayEntry()
     {
         var expected = SampleList(50);
@@ -70,9 +69,9 @@ public class ContainerFileInteropTests
         var bytes = AvroConvert.Serialize(expected, options);
         var (schema, items) = ApacheAvro.ReadContainer<object[]>(bytes);
 
-        Assert.Equal(Schema.Type.Array, schema.Tag);
-        var array = Assert.Single(items);
-        Assert.Equal(expected.Count, array.Length);
+        schema.Tag.Should().Be(Schema.Type.Array);
+        var array = items.Should().ContainSingle().Subject;
+        array.Length.Should().Be(expected.Count);
         for (int i = 0; i < expected.Count; i++)
         {
             InteropAssert.Equivalent(expected[i], (GenericRecord)array[i]);
@@ -88,7 +87,7 @@ public class ContainerFileInteropTests
             return r;
         }).ToList();
 
-    [Fact]
+    [Test]
     public void ApacheWritesMultipleBlocks_AvroConvertReadsAll()
     {
         var schema = (RecordSchema)Schema.Parse(AvroConvert.GenerateSchema(typeof(InteropRecord)));
@@ -102,14 +101,14 @@ public class ContainerFileInteropTests
         var bytes = ApacheAvro.WriteContainer(schema, ApacheAvro.CreateCodec("deflate"), expected.Select(r => ApacheAvro.ToGenericRecord(r, schema)).ToArray());
         var actual = AvroConvert.Deserialize<List<InteropRecord>>(bytes);
 
-        Assert.Equal(expected.Count, actual.Count);
+        actual.Count.Should().Be(expected.Count);
         for (int i = 0; i < expected.Count; i++)
         {
             InteropAssert.Equivalent(expected[i], actual[i]);
         }
     }
 
-    [Fact]
+    [Test]
     public void HeaderSchema_RoundTripsThroughApacheParser()
     {
         var bytes = AvroConvert.Serialize(InteropRecord.Sample());
@@ -117,6 +116,6 @@ public class ContainerFileInteropTests
         var fromHeader = AvroConvert.GetSchema(bytes);
         var apache = Schema.Parse(fromHeader);
 
-        Assert.Equal(Schema.Parse(AvroConvert.GenerateSchema(typeof(InteropRecord))), apache);
+        apache.Should().BeEquivalentTo(Schema.Parse(AvroConvert.GenerateSchema(typeof(InteropRecord))));
     }
 }

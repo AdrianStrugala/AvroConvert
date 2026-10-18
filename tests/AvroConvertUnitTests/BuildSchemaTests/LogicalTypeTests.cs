@@ -1,21 +1,21 @@
-﻿using System;
+﻿using AwesomeAssertions;
+using System;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertUnitTests.BuildSchemaTests
 {
     public class LogicalTypeTests
     {
-        [Theory]
-        [InlineData(@"{""type"":""string"",""logicalType"":""datetime""}", AvroType.String)]
-        [InlineData(@"{""type"":""long"",""logicalType"":""timestamp-picos""}", AvroType.Long)]
-        [InlineData(@"{""type"":""string"",""logicalType"":""timestamp-millis""}", AvroType.String)]
-        [InlineData(@"{""type"":""int"",""logicalType"":""uuid""}", AvroType.Int)]
-        [InlineData(@"{""type"":""fixed"",""name"":""f"",""size"":8,""logicalType"":""uuid""}", AvroType.Fixed)]
-        [InlineData(@"{""type"":""string"",""logicalType"":""big-decimal""}", AvroType.String)]
-        [InlineData(@"{""type"":""bytes"",""logicalType"":""geography_wkb""}", AvroType.Bytes)]
+        [TestCase(@"{""type"":""string"",""logicalType"":""datetime""}", AvroType.String)]
+        [TestCase(@"{""type"":""long"",""logicalType"":""timestamp-picos""}", AvroType.Long)]
+        [TestCase(@"{""type"":""string"",""logicalType"":""timestamp-millis""}", AvroType.String)]
+        [TestCase(@"{""type"":""int"",""logicalType"":""uuid""}", AvroType.Int)]
+        [TestCase(@"{""type"":""fixed"",""name"":""f"",""size"":8,""logicalType"":""uuid""}", AvroType.Fixed)]
+        [TestCase(@"{""type"":""string"",""logicalType"":""big-decimal""}", AvroType.String)]
+        [TestCase(@"{""type"":""bytes"",""logicalType"":""geography_wkb""}", AvroType.Bytes)]
         public void Parse_UnknownLogicalType_FallsBackToUnderlyingType(string json, AvroType expected)
         {
             //Act
@@ -23,10 +23,10 @@ namespace AvroConvertUnitTests.BuildSchemaTests
 
 
             //Assert
-            Assert.Equal(expected, schema.Type);
+            schema.Type.Should().Be(expected);
         }
 
-        [Fact]
+        [Test]
         public void Parse_TimeMicros_IsRecognised()
         {
             //Act
@@ -34,12 +34,11 @@ namespace AvroConvertUnitTests.BuildSchemaTests
 
 
             //Assert
-            Assert.IsType<TimeMicrosecondsSchema>(schema);
-            Assert.Equal("time-micros", ((LogicalTypeSchema)schema).LogicalTypeName);
+            schema.Should().BeOfType<TimeMicrosecondsSchema>();
+            ((LogicalTypeSchema)schema).LogicalTypeName.Should().Be("time-micros");
         }
 
-        [Theory]
-        [InlineData(typeof(decimal), 29, 14)]
+        [TestCase(typeof(decimal), 29, 14)]
         public void BuildDecimalSchema(Type type, int precision, int scale)
         {
             //Act
@@ -48,16 +47,15 @@ namespace AvroConvertUnitTests.BuildSchemaTests
 
 
             //Assert
-            Assert.IsType<DecimalSchema>(schema);
+            schema.Should().BeOfType<DecimalSchema>();
             var decimalSchema = (DecimalSchema)schema;
             
-            Assert.NotNull(schema);
-            Assert.Equal(precision, decimalSchema.Precision);
-            Assert.Equal(scale, decimalSchema.Scale);
+            schema.Should().NotBeNull();
+            decimalSchema.Precision.Should().Be(precision);
+            decimalSchema.Scale.Should().Be(scale);
         }
 
-        [Theory]
-        [InlineData(typeof(decimal?), 29, 14)]
+        [TestCase(typeof(decimal?), 29, 14)]
         public void BuildNullableDecimalSchema(Type type, int precision, int scale)
         {
             //Act
@@ -66,21 +64,20 @@ namespace AvroConvertUnitTests.BuildSchemaTests
 
 
             //Assert
-            Assert.IsType<UnionSchema>(schema);
+            schema.Should().BeOfType<UnionSchema>();
             var unionSchema = (UnionSchema)schema;
 
-            Assert.IsType<NullSchema>(unionSchema.Schemas[0]);
-            Assert.IsType<DecimalSchema>(unionSchema.Schemas[1]);
+            unionSchema.Schemas[0].Should().BeOfType<NullSchema>();
+            unionSchema.Schemas[1].Should().BeOfType<DecimalSchema>();
 
             var decimalSchema = (DecimalSchema)unionSchema.Schemas[1];
 
-            Assert.NotNull(schema);
-            Assert.Equal(precision, decimalSchema.Precision);
-            Assert.Equal(scale, decimalSchema.Scale);
+            schema.Should().NotBeNull();
+            decimalSchema.Precision.Should().Be(precision);
+            decimalSchema.Scale.Should().Be(scale);
         }
 
-        [Theory]
-        [InlineData(typeof(Guid))]
+        [TestCase(typeof(Guid))]
         public void BuildGuidSchema(Type type)
         {
             //Act
@@ -89,14 +86,13 @@ namespace AvroConvertUnitTests.BuildSchemaTests
 
 
             //Assert
-            Assert.IsType<UuidSchema>(schema);
+            schema.Should().BeOfType<UuidSchema>();
             var uuidSchema = (UuidSchema)schema;
 
-            Assert.NotNull(uuidSchema);
+            uuidSchema.Should().NotBeNull();
         }
 
-        [Theory]
-        [InlineData(typeof(Guid?))]
+        [TestCase(typeof(Guid?))]
         public void BuildNullableGuidSchema(Type type)
         {
             //Act
@@ -105,20 +101,19 @@ namespace AvroConvertUnitTests.BuildSchemaTests
 
 
             //Assert
-            Assert.IsType<UnionSchema>(schema);
+            schema.Should().BeOfType<UnionSchema>();
             var unionSchema = (UnionSchema)schema;
 
-            Assert.IsType<NullSchema>(unionSchema.Schemas[0]);
-            Assert.IsType<UuidSchema>(unionSchema.Schemas[1]);
+            unionSchema.Schemas[0].Should().BeOfType<NullSchema>();
+            unionSchema.Schemas[1].Should().BeOfType<UuidSchema>();
 
             var uuidSchema = (UuidSchema)unionSchema.Schemas[1];
 
-            Assert.NotNull(uuidSchema);
+            uuidSchema.Should().NotBeNull();
         }
 
-        [Theory]
-        [InlineData(typeof(DateTime))]
-        [InlineData(typeof(DateTimeOffset))]
+        [TestCase(typeof(DateTime))]
+        [TestCase(typeof(DateTimeOffset))]
         public void BuildDateTimeSchema(Type type)
         {
             //Act
@@ -127,15 +122,14 @@ namespace AvroConvertUnitTests.BuildSchemaTests
 
 
             //Assert
-            Assert.IsType<TimestampMicrosecondsSchema>(schema);
+            schema.Should().BeOfType<TimestampMicrosecondsSchema>();
             var resolvedSchema = (TimestampMicrosecondsSchema)schema;
 
-            Assert.NotNull(resolvedSchema);
+            resolvedSchema.Should().NotBeNull();
         }
 
-        [Theory]
-        [InlineData(typeof(DateTime?))]
-        [InlineData(typeof(DateTimeOffset?))]
+        [TestCase(typeof(DateTime?))]
+        [TestCase(typeof(DateTimeOffset?))]
         public void BuildNullableDateTimeSchema(Type type)
         {
             //Act
@@ -144,19 +138,18 @@ namespace AvroConvertUnitTests.BuildSchemaTests
 
 
             //Assert
-            Assert.IsType<UnionSchema>(schema);
+            schema.Should().BeOfType<UnionSchema>();
             var unionSchema = (UnionSchema)schema;
 
-            Assert.IsType<NullSchema>(unionSchema.Schemas[0]);
-            Assert.IsType<TimestampMicrosecondsSchema>(unionSchema.Schemas[1]);
+            unionSchema.Schemas[0].Should().BeOfType<NullSchema>();
+            unionSchema.Schemas[1].Should().BeOfType<TimestampMicrosecondsSchema>();
 
             var resolvedSchema = (TimestampMicrosecondsSchema)unionSchema.Schemas[1];
 
-            Assert.NotNull(resolvedSchema);
+            resolvedSchema.Should().NotBeNull();
         }
 
-        [Theory]
-        [InlineData(typeof(TimeSpan))]
+        [TestCase(typeof(TimeSpan))]
         public void BuildTimespanSchema(Type type)
         {
             //Act
@@ -165,14 +158,13 @@ namespace AvroConvertUnitTests.BuildSchemaTests
 
 
             //Assert
-            Assert.IsType<DurationSchema>(schema);
+            schema.Should().BeOfType<DurationSchema>();
             var resolvedSchema = (DurationSchema)schema;
 
-            Assert.NotNull(resolvedSchema);
+            resolvedSchema.Should().NotBeNull();
         }
 
-        [Theory]
-        [InlineData(typeof(TimeSpan?))]
+        [TestCase(typeof(TimeSpan?))]
         public void BuildTimeSpanSchema(Type type)
         {
             //Act
@@ -181,15 +173,15 @@ namespace AvroConvertUnitTests.BuildSchemaTests
 
 
             //Assert
-            Assert.IsType<UnionSchema>(schema);
+            schema.Should().BeOfType<UnionSchema>();
             var unionSchema = (UnionSchema)schema;
 
-            Assert.IsType<NullSchema>(unionSchema.Schemas[0]);
-            Assert.IsType<DurationSchema>(unionSchema.Schemas[1]);
+            unionSchema.Schemas[0].Should().BeOfType<NullSchema>();
+            unionSchema.Schemas[1].Should().BeOfType<DurationSchema>();
 
             var resolvedSchema = (DurationSchema)unionSchema.Schemas[1];
 
-            Assert.NotNull(resolvedSchema);
+            resolvedSchema.Should().NotBeNull();
         }
     }
 }

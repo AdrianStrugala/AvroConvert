@@ -1,8 +1,9 @@
-﻿using System;
+﻿using AwesomeAssertions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AutoFixture;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 {
@@ -10,107 +11,100 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
     {
         private readonly Fixture _fixture = new();
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Class_with_enum_property(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Class_with_enum_property([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             ClassWithEnum toSerialize = _fixture.Create<ClassWithEnum>();
 
 
             //Act
-            var deserialized = engine.Invoke(toSerialize, typeof(ClassWithEnum));
+            var deserialized = RoundTrip.Run<ClassWithEnum>(toSerialize, format);
 
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(toSerialize.EnumProp, deserialized.EnumProp);
-            Assert.Equal(toSerialize, deserialized);
+            deserialized.Should().NotBeNull();
+            deserialized.EnumProp.Should().Be(toSerialize.EnumProp);
+            deserialized.Should().BeEquivalentTo(toSerialize);
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Enum_object(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Enum_object([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             TestEnum toSerialize = _fixture.Create<TestEnum>();
 
 
             //Act
-            var deserialized = engine.Invoke(toSerialize, typeof(TestEnum));
+            var deserialized = RoundTrip.Run<TestEnum>(toSerialize, format);
 
 
             //Assert
-            Assert.Equal(toSerialize, deserialized);
+            deserialized.Should().Be(toSerialize);
         }
         
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Enum_with_flags_object(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Enum_with_flags_object([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             foreach (var toSerialize in Enum.GetValues<TestEnumWithFlags>())
             {
                 //Act
-                var deserialized = engine.Invoke(toSerialize, typeof(TestEnumWithFlags));
+                var deserialized = RoundTrip.Run<TestEnumWithFlags>(toSerialize, format);
 
                 //Assert
-                Assert.Equal(toSerialize, deserialized);
+                deserialized.Should().Be(toSerialize);
             }
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Nullable_enum(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Nullable_enum([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             TestEnum? toSerialize = _fixture.Create<TestEnum?>();
 
 
             //Act
-            var deserialized = engine.Invoke(toSerialize, typeof(TestEnum?));
+            var deserialized = RoundTrip.Run<TestEnum?>(toSerialize, format);
 
 
             //Assert
-            Assert.Equal(toSerialize, deserialized);
+            deserialized.Should().Be(toSerialize);
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void List_of_enums(Func<object, Type, dynamic> engine)
+        [Test]
+        public void List_of_enums([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             List<TestEnum> toSerialize = _fixture.CreateMany<TestEnum>(20).ToList();
 
 
             //Act
-            var deserialized = engine.Invoke(toSerialize, typeof(List<TestEnum>));
+            var deserialized = RoundTrip.Run<List<TestEnum>>(toSerialize, format);
 
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(toSerialize, deserialized);
+            deserialized.Should().NotBeNull();
+            deserialized.Should().Equal(toSerialize);
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.Core), MemberType = typeof(TestEngine))]
-        public void Dictionary_enum_key_and_value(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Dictionary_enum_key_and_value([ValueSource(typeof(Formats), nameof(Formats.Core))] Format format)
         {
             //Arrange
             Dictionary<TestEnum, TestEnum> toSerialize = _fixture.Create<Dictionary<TestEnum, TestEnum>>();
 
 
             //Act
-            var deserialized = engine.Invoke(toSerialize, typeof(Dictionary<TestEnum, TestEnum>));
+            var deserialized = RoundTrip.Run<Dictionary<TestEnum, TestEnum>>(toSerialize, format);
 
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(toSerialize, deserialized);
+            deserialized.Should().NotBeNull();
+            deserialized.Should().BeEquivalentTo(toSerialize);
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Class_with_enums_with_default_values(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Class_with_enums_with_default_values([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             ClassWithEnum toSerialize = _fixture.Create<ClassWithEnum>();
@@ -119,18 +113,17 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
 
             //Act
-            var deserialized = engine.Invoke(toSerialize, typeof(ClassWithEnum));
+            var deserialized = RoundTrip.Run<ClassWithEnum>(toSerialize, format);
 
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(TestEnum.be, deserialized.EnumProp);
-            Assert.Equal(TestEnum.ca, deserialized.SecondEnumProp);
+            deserialized.Should().NotBeNull();
+            deserialized.EnumProp.Should().Be(TestEnum.be);
+            deserialized.SecondEnumProp.Should().Be(TestEnum.ca);
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Class_with_enum_with_member_value_attributes(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Class_with_enum_with_member_value_attributes([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             ClassWithEnumDefiningMembers toSerialize = _fixture.Create<ClassWithEnumDefiningMembers>();
@@ -138,18 +131,17 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             toSerialize.EnumPropWithStringDefault = null;
 
             //Act
-            var deserialized = engine.Invoke(toSerialize, typeof(ClassWithEnumDefiningMembers));
+            var deserialized = RoundTrip.Run<ClassWithEnumDefiningMembers>(toSerialize, format);
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(TestEnumWithMembers.Positive, deserialized.EnumProp);
-            Assert.Equal(TestEnumWithMembers.Negative, deserialized.EnumPropWithDefault);
-            Assert.Equal(TestEnumWithMembers.Negative, deserialized.EnumPropWithStringDefault);
+            deserialized.Should().NotBeNull();
+            deserialized.EnumProp.Should().Be(TestEnumWithMembers.Positive);
+            deserialized.EnumPropWithDefault.Should().Be(TestEnumWithMembers.Negative);
+            deserialized.EnumPropWithStringDefault.Should().Be(TestEnumWithMembers.Negative);
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Enum_with_duplicate_values(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Enum_with_duplicate_values([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             var itemsToTest =
             new [] {
@@ -164,26 +156,25 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             foreach (var toSerialize in itemsToTest)
             {
                 //Act
-                var deserialized = engine.Invoke(toSerialize, typeof(TestDuplicateEnum));
+                var deserialized = RoundTrip.Run<TestDuplicateEnum>(toSerialize, format);
 
                 //Assert
-                Assert.Equal((int)toSerialize, (int)deserialized);
+                ((int)deserialized).Should().Be((int)toSerialize);
             }
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Class_with_enum_with_duplicate_value(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Class_with_enum_with_duplicate_value([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             ClassWithDuplicateEnums toSerialize = _fixture.Create<ClassWithDuplicateEnums>();
 
             //Act
-            var deserialized = engine.Invoke(toSerialize, typeof(ClassWithDuplicateEnums));
+            var deserialized = RoundTrip.Run<ClassWithDuplicateEnums>(toSerialize, format);
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(toSerialize, deserialized);
+            deserialized.Should().NotBeNull();
+            deserialized.Should().BeEquivalentTo(toSerialize);
         }
     }
 }

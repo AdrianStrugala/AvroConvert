@@ -8,20 +8,15 @@
 
         <ItemGroup>
                 <PackageReference Include="AutoFixture" Version="4.18.1" />
-                <PackageReference Include="Equals.Fody" Version="4.0.2" />
-                <PackageReference Include="FluentAssertions" Version="8.0.1" />
-                <PackageReference Include="Fody" Version="6.9.1">
-                        <PrivateAssets>all</PrivateAssets>
-                        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-                </PackageReference>
+                <PackageReference Include="AwesomeAssertions" Version="9.6.0" />
                 <PackageReference Include="Google.Protobuf" Version="3.29.3" />
                 <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
-                <PackageReference Include="NSubstitute" Version="5.3.0" />
-                <PackageReference Include="xunit" Version="2.9.3" />
-                <PackageReference Include="xunit.runner.visualstudio" Version="3.0.1">
-                        <PrivateAssets>all</PrivateAssets>
-                        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+                <PackageReference Include="NUnit" Version="5.0.0" />
+                <PackageReference Include="NUnit.Analyzers" Version="4.15.0">
+                  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+                  <PrivateAssets>all</PrivateAssets>
                 </PackageReference>
+                <PackageReference Include="NUnit3TestAdapter" Version="6.3.1" />
         </ItemGroup>
 
 	<ItemGroup>
@@ -29,45 +24,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Content Include="example.avro">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="example2.avro">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<Content Include="header_only.avro">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Content>
-		<None Update="FilesDeserialization\Default\AzureEventHub.avro">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="userdata1.avro">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="FodyWeavers.xml">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="FilesDeserialization\Snappy\Twitter\twitter.avro">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="FilesDeserialization\Snappy\Twitter\twitter.snappy.avro">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="FilesDeserialization\Snappy\UserData\userdata1.avro">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="FilesDeserialization\Snappy\UserData\userdata2.avro">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="FilesDeserialization\Snappy\UserData\userdata3.avro">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="FilesDeserialization\Snappy\UserData\userdata4.avro">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="FilesDeserialization\Snappy\UserData\userdata5.avro">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
+		<None Update="**/*.avro" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 </Project>

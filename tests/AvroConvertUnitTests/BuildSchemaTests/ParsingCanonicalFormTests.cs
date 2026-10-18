@@ -1,13 +1,14 @@
+using AwesomeAssertions;
 using System;
 using SolTechnology.Avro;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertUnitTests.BuildSchemaTests
 {
     public class ParsingCanonicalFormTests
     {
-        [Fact]
+        [Test]
         public void From_StripsAttributesUsesFullNamesAndOrdersProperties()
         {
             //Arrange
@@ -23,29 +24,27 @@ namespace AvroConvertUnitTests.BuildSchemaTests
 
 
             //Assert
-            Assert.Equal(
-                @"{""name"":""a.b.R"",""type"":""record"",""fields"":[{""name"":""i"",""type"":""int""},{""name"":""e"",""type"":{""name"":""a.b.E"",""type"":""enum"",""symbols"":[""A""]}},{""name"":""t"",""type"":""long""},{""name"":""again"",""type"":""a.b.E""}]}",
-                result);
+            result.Should().Be(@"{""name"":""a.b.R"",""type"":""record"",""fields"":[{""name"":""i"",""type"":""int""},{""name"":""e"",""type"":{""name"":""a.b.E"",""type"":""enum"",""symbols"":[""A""]}},{""name"":""t"",""type"":""long""},{""name"":""again"",""type"":""a.b.E""}]}");
         }
 
-        [Fact]
+        [Test]
         public void From_LogicalTypeOnFixed_WritesTheFixedDefinition()
         {
             var result = AvroSchema.Parse(@"{""type"":""fixed"",""size"":12,""name"":""duration"",""logicalType"":""duration""}").CanonicalForm;
 
-            Assert.Equal(@"{""name"":""duration"",""type"":""fixed"",""size"":12}", result);
+            result.Should().Be(@"{""name"":""duration"",""type"":""fixed"",""size"":12}");
         }
 
-        [Fact]
+        [Test]
         public void Fingerprints_HaveSpecifiedLengths()
         {
             var schema = AvroSchema.Parse(@"""int""");
-            Assert.Equal(8, schema.GetFingerprint(AvroFingerprintAlgorithm.Crc64Avro).Length);
-            Assert.Equal(16, schema.GetFingerprint(AvroFingerprintAlgorithm.Md5).Length);
-            Assert.Equal(32, schema.GetFingerprint(AvroFingerprintAlgorithm.Sha256).Length);
-            Assert.Equal(schema.Fingerprint, BitConverter.ToInt64(schema.GetFingerprint(AvroFingerprintAlgorithm.Crc64Avro)));
-            Assert.Equal(schema.Fingerprint, AvroSchema.Parse(@"{""type"":""int"",""doc"":""ignored""}").Fingerprint);
-            Assert.Equal(schema, AvroSchema.Parse(@"{""type"":""int""}"));
+            schema.GetFingerprint(AvroFingerprintAlgorithm.Crc64Avro).Length.Should().Be(8);
+            schema.GetFingerprint(AvroFingerprintAlgorithm.Md5).Length.Should().Be(16);
+            schema.GetFingerprint(AvroFingerprintAlgorithm.Sha256).Length.Should().Be(32);
+            BitConverter.ToInt64(schema.GetFingerprint(AvroFingerprintAlgorithm.Crc64Avro)).Should().Be(schema.Fingerprint);
+            AvroSchema.Parse(@"{""type"":""int"",""doc"":""ignored""}").Fingerprint.Should().Be(schema.Fingerprint);
+            AvroSchema.Parse(@"{""type"":""int""}").Should().BeEquivalentTo(schema);
         }
     }
 }

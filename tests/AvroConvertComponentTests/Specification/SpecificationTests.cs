@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using FluentAssertions;
+using AwesomeAssertions;
 using SolTechnology.Avro;
 using SolTechnology.Avro.Infrastructure.Attributes;
 using SolTechnology.Avro.Infrastructure.Exceptions;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.Specification
 {
@@ -41,7 +41,7 @@ namespace AvroConvertComponentTests.Specification
             public decimal Amount { get; set; }
         }
 
-        [Fact]
+        [Test]
         public void Timestamps_RoundTripWithUnitPrecision()
         {
             //Arrange
@@ -68,7 +68,7 @@ namespace AvroConvertComponentTests.Specification
             result.LocalNanos.Should().Be(value.LocalNanos);
         }
 
-        [Fact]
+        [Test]
         public void Timestamps_GeneratedSchema_UsesRequestedLogicalTypes()
         {
             //Act
@@ -82,7 +82,7 @@ namespace AvroConvertComponentTests.Specification
             schema.Should().Contain(@"{""type"":""long"",""logicalType"":""local-timestamp-nanos""}");
         }
 
-        [Fact]
+        [Test]
         public void UuidFixed_RoundTrips_AndSchemaDefinesFixedOnce()
         {
             //Arrange
@@ -102,7 +102,7 @@ namespace AvroConvertComponentTests.Specification
                 @"{""name"":""OtherId"",""type"":[""null"",""AvroConvertComponentTests.Specification.uuid""]}]}");
         }
 
-        [Fact]
+        [Test]
         public void UuidFixed_ReadsIntoStringAndGuid()
         {
             //Arrange
@@ -117,12 +117,11 @@ namespace AvroConvertComponentTests.Specification
             AvroConvert.Avro2Json(avro, schema).Should().Be(@"""00112233-4455-6677-8899-aabbccddeeff""");
         }
 
-        [Theory]
-        [InlineData("123.45")]
-        [InlineData("-0.0001")]
-        [InlineData("0")]
-        [InlineData("79228162514264337593543950335")]
-        [InlineData("-1234567890.123456789012345678")]
+        [TestCase("123.45")]
+        [TestCase("-0.0001")]
+        [TestCase("0")]
+        [TestCase("79228162514264337593543950335")]
+        [TestCase("-1234567890.123456789012345678")]
         public void BigDecimal_RoundTripsWithItsOwnScale(string text)
         {
             //Arrange
@@ -147,7 +146,7 @@ namespace AvroConvertComponentTests.Specification
             public long? LocalAt { get; set; }
         }
 
-        [Fact]
+        [Test]
         public void TimestampAsLong_KeepsExactNanoseconds()
         {
             //Arrange
@@ -164,7 +163,7 @@ namespace AvroConvertComponentTests.Specification
             AvroConvert.GenerateSchema(typeof(RawNanos)).Should().Contain(@"{""type"":""long"",""logicalType"":""timestamp-nanos""}");
         }
 
-        [Fact]
+        [Test]
         public void TimestampNanos_OutOfRange_Throws()
         {
             var act = () => AvroConvert.Serialize(new Timestamps { Nanos = new DateTime(2300, 1, 1) });
@@ -172,10 +171,9 @@ namespace AvroConvertComponentTests.Specification
             act.Should().Throw<ArgumentOutOfRangeException>().Which.Message.Should().Contain("2262-04-11");
         }
 
-        [Theory]
-        [InlineData(new byte[] { 0x02, 0x01, 0x05 }, "1000")]                  // unscaled 1, scale -3 (Java 1E+3)
-        [InlineData(new byte[] { 0x02, 0x01, 0x50 }, "0.0000000000000000000000000000")] // unscaled 1, scale 40: below decimal resolution
-        [InlineData(new byte[] { 0x02, 0x0F, 0x3A }, "0.0000000000000000000000000002")] // unscaled 15, scale 29: rounded half away from zero
+        [TestCase(new byte[] { 0x02, 0x01, 0x05 }, "1000")]                  // unscaled 1, scale -3 (Java 1E+3)
+        [TestCase(new byte[] { 0x02, 0x01, 0x50 }, "0.0000000000000000000000000000")] // unscaled 1, scale 40: below decimal resolution
+        [TestCase(new byte[] { 0x02, 0x0F, 0x3A }, "0.0000000000000000000000000002")] // unscaled 15, scale 29: rounded half away from zero
         public void BigDecimal_JavaScales_AreRead(byte[] payload, string expected)
         {
             //Arrange
@@ -193,7 +191,7 @@ namespace AvroConvertComponentTests.Specification
             result.Should().Be(decimal.Parse(expected, System.Globalization.CultureInfo.InvariantCulture));
         }
 
-        [Fact]
+        [Test]
         public void BigDecimal_UsesJavaLayout()
         {
             //Arrange: unscaled 12345 (0x3039) and scale 2, each Avro-encoded, wrapped in Avro bytes
@@ -209,7 +207,7 @@ namespace AvroConvertComponentTests.Specification
             AvroConvert.DeserializeHeadless<decimal>(avro, schema).Should().Be(123.45m);
         }
 
-        [Fact]
+        [Test]
         public void DecimalOnFixed_RoundTrips()
         {
             //Arrange
@@ -244,7 +242,7 @@ namespace AvroConvertComponentTests.Specification
             [DataMember, AvroType(AvroTypeRepresentation.UuidFixed)] public Guid Id { get; set; }
         }
 
-        [Fact]
+        [Test]
         public void LogicalFixed_ReusedInOtherNamespace_IsDefinedThereOrReferencedByFullName()
         {
             //Arrange
@@ -267,7 +265,7 @@ namespace AvroConvertComponentTests.Specification
             AvroSchema.Parse(schema).CanonicalForm.Should().Contain(@"{""name"":""b.duration"",""type"":""fixed"",""size"":12}");
         }
 
-        [Fact]
+        [Test]
         public void LogicalTypeDefault_IsWrittenBackAsDeclared()
         {
             //Arrange
@@ -295,15 +293,14 @@ namespace AvroConvertComponentTests.Specification
             public T X { get; set; }
         }
 
-        public static TheoryData<string, byte[], object> UnionBranches => new()
+        public static IEnumerable<TestCaseData> UnionBranches => new[]
         {
-            { @"[""null"",""string"",""bytes""]", new byte[] { 0x04, 0x04, 0xFF, 0xFE }, new byte[] { 0xFF, 0xFE } },
-            { @"[""null"",""bytes"",""string""]", new byte[] { 0x04, 0x0A, 0x68, 0x65, 0x6C, 0x6C, 0x6F }, "hello" },
-            { @"[""null"",""long"",""int""]", new byte[] { 0x04, 0x0A }, 5 }
+            new TestCaseData(@"[""null"",""string"",""bytes""]", new byte[] { 0x04, 0x04, 0xFF, 0xFE }, new byte[] { 0xFF, 0xFE }),
+            new TestCaseData(@"[""null"",""bytes"",""string""]", new byte[] { 0x04, 0x0A, 0x68, 0x65, 0x6C, 0x6C, 0x6F }, "hello"),
+            new TestCaseData(@"[""null"",""long"",""int""]", new byte[] { 0x04, 0x0A }, 5)
         };
 
-        [Theory]
-        [MemberData(nameof(UnionBranches))]
+        [TestCaseSource(nameof(UnionBranches))]
         public void UnionIntoDynamic_KeepsTheWrittenBranchType(string schema, byte[] avro, object expected)
         {
             //Act (branch index 2 in every case)
@@ -322,7 +319,7 @@ namespace AvroConvertComponentTests.Specification
             return AvroConvert.DeserializeHeadless<Holder<T>>(Array.Empty<byte>(), AvroSchema.Parse(writer), AvroSchema.Parse(reader)).X;
         }
 
-        [Fact]
+        [Test]
         public void LogicalDefault_IsReadIntoAnyMemberTypeLikeData()
         {
             const string nanos = @"{""type"":""long"",""logicalType"":""timestamp-nanos""}";
@@ -338,7 +335,7 @@ namespace AvroConvertComponentTests.Specification
             ReadMissingFieldDefault<int>(@"[""int"",""null""]", "7").Should().Be(7);
         }
 
-        [Fact]
+        [Test]
         public void JsonEncoding2Avro_MissingFields_UseSchemaDefaultsExactly()
         {
             //Arrange
@@ -357,7 +354,7 @@ namespace AvroConvertComponentTests.Specification
             json.Should().Be(@"{""n"":1700000000123456789,""d"":""\u0001\u0000\u0000\u0000\u0002\u0000\u0000\u0000\u0003\u0000\u0000\u0000"",""t"":1000,""r"":{""a"":1,""b"":""q""}}");
         }
 
-        [Fact]
+        [Test]
         public void JsonEncoding2Avro_NestedDefaultMissingRequiredField_Throws()
         {
             const string schema = @"{""type"":""record"",""name"":""E"",""fields"":[
@@ -381,7 +378,7 @@ namespace AvroConvertComponentTests.Specification
             public string Value { get; set; }
         }
 
-        [Fact]
+        [Test]
         public void IntWrittenLongRead_DynamicTakesReaderType()
         {
             //Arrange
@@ -396,7 +393,7 @@ namespace AvroConvertComponentTests.Specification
             result.Should().BeOfType<long>().Which.Should().Be(5L);
         }
 
-        [Fact]
+        [Test]
         public void StringWrittenBytesRead_IsUtf8()
         {
             //Arrange
@@ -411,7 +408,7 @@ namespace AvroConvertComponentTests.Specification
             result.Value.Should().Equal(System.Text.Encoding.UTF8.GetBytes("zażółć"));
         }
 
-        [Fact]
+        [Test]
         public void BytesWrittenStringRead_IsUtf8()
         {
             //Arrange
@@ -426,7 +423,7 @@ namespace AvroConvertComponentTests.Specification
             result.Value.Should().Be("zażółć");
         }
 
-        [Fact]
+        [Test]
         public void EnumSymbolUnknownToReader_ResolvesToReaderDefault()
         {
             //Arrange

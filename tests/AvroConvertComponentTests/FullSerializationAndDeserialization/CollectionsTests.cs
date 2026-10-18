@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using AutoFixture;
-using FluentAssertions;
+using AwesomeAssertions;
 using SolTechnology.Avro;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 {
@@ -13,196 +13,166 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
     {
         private readonly Fixture _fixture = new();
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void List_of_class(Func<object, Type, dynamic> engine)
+        [Test]
+        public void List_of_class([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             var someTestClasses = _fixture.CreateMany<BaseTestClass>().ToList();
 
             //Act
-            var deserialized = engine.Invoke(someTestClasses, typeof(List<BaseTestClass>));
+            var deserialized = RoundTrip.Run<List<BaseTestClass>>(someTestClasses, format);
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(someTestClasses, deserialized);
+            deserialized.Should().NotBeNull();
+            deserialized.Should().BeEquivalentTo(someTestClasses, o => o.WithStrictOrdering());
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.DefaultOnly), MemberType = typeof(TestEngine))]
-        public void List_with_single_item(Func<object, Type, dynamic> engine)
+        [Test]
+        public void List_with_single_item([ValueSource(typeof(Formats), nameof(Formats.ContainerOnly))] Format format)
         {
             //Arrange
             var oneItem = new List<BaseTestClass> { _fixture.Create<BaseTestClass>() };
 
             //Act
-            var deserialized = engine.Invoke(oneItem, typeof(List<BaseTestClass>));
+            var deserialized = RoundTrip.Run<List<BaseTestClass>>(oneItem, format);
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(oneItem, deserialized);
+            deserialized.Should().NotBeNull();
+            deserialized.Should().BeEquivalentTo(oneItem, o => o.WithStrictOrdering());
         }
 
-        [Theory]
-        [Trait("Fix", "https://github.com/AdrianStrugala/AvroConvert/issues/146")]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void IEnumerable_of_class(Func<object, Type, dynamic> engine)
+        [Test]
+        [Property("Fix", "https://github.com/AdrianStrugala/AvroConvert/issues/146")]
+        public void IEnumerable_of_class([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             var someTestClasses = _fixture.CreateMany<BaseTestClass>();
 
             //Act
-            var deserialized = engine.Invoke(someTestClasses, typeof(IEnumerable<BaseTestClass>));
+            var deserialized = RoundTrip.Run<IEnumerable<BaseTestClass>>(someTestClasses, format);
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(someTestClasses, deserialized);
+            deserialized.Should().NotBeNull();
+            deserialized.Should().BeEquivalentTo(someTestClasses, o => o.WithStrictOrdering());
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Class_with_list(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Class_with_list([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             ClassWithSimpleList testClass = _fixture.Create<ClassWithSimpleList>();
 
             //Act
-            var deserialized = (ClassWithSimpleList)engine.Invoke(testClass, typeof(ClassWithSimpleList));
+            var deserialized = RoundTrip.Run<ClassWithSimpleList>(testClass, format);
 
             //Assert
-            Assert.NotNull(deserialized);
+            deserialized.Should().NotBeNull();
             deserialized.Should().BeEquivalentTo(testClass);
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Class_with_list_of_classes(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Class_with_list_of_classes([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             ClassWithConstructorPopulatingProperty
                 testClass = _fixture.Create<ClassWithConstructorPopulatingProperty>();
 
             //Act
-            var deserialized = (ClassWithConstructorPopulatingProperty)engine.Invoke(testClass, typeof(ClassWithConstructorPopulatingProperty));
+            var deserialized = RoundTrip.Run<ClassWithConstructorPopulatingProperty>(testClass, format);
 
             //Assert
-            Assert.NotNull(deserialized);
+            deserialized.Should().NotBeNull();
             deserialized.Should().BeEquivalentTo(testClass);
 
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Class_with_array(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Class_with_array([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             ClassWithArray
                 testClass = _fixture.Create<ClassWithArray>();
 
             //Act
-            var deserialized = (ClassWithArray)engine.Invoke(testClass, typeof(ClassWithArray));
+            var deserialized = RoundTrip.Run<ClassWithArray>(testClass, format);
 
             //Assert
-            Assert.NotNull(deserialized);
+            deserialized.Should().NotBeNull();
             deserialized.Should().BeEquivalentTo(testClass);
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void List_of_int(Func<object, Type, dynamic> engine)
+        [Test]
+        public void List_of_int([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             List<int> toSerialize = _fixture.Create<List<int>>();
 
             //Act
-            var deserialized = (List<int>)engine.Invoke(toSerialize, typeof(List<int>));
+            var deserialized = RoundTrip.Run<List<int>>(toSerialize, format);
 
             //Assert
-            Assert.NotNull(deserialized);
+            deserialized.Should().NotBeNull();
             deserialized.Should().BeEquivalentTo(deserialized);
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Array_of_int(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Array_of_int([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             int[] array = _fixture.Create<int[]>();
 
             //Act
-            var deserialized = (List<int>)engine.Invoke(array, typeof(List<int>));
+            var deserialized = RoundTrip.Run<List<int>>(array, format);
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(array, deserialized);
+            deserialized.Should().NotBeNull();
+            deserialized.Should().Equal(array);
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void HashSet_of_int(Func<object, Type, dynamic> engine)
+        [Test]
+        public void HashSet_of_int([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             HashSet<int> hashset = _fixture.Create<HashSet<int>>();
 
             //Act
-            var deserialized = (HashSet<int>)engine.Invoke(hashset, typeof(HashSet<int>));
+            var deserialized = RoundTrip.Run<HashSet<int>>(hashset, format);
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(hashset, deserialized);
+            deserialized.Should().NotBeNull();
+            deserialized.Should().BeEquivalentTo(hashset);
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void IImmutableSet_of_class(Func<object, Type, dynamic> engine)
+        [Test]
+        public void IImmutableSet_of_class([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             IImmutableSet<BaseTestClass> set = _fixture.Create<IEnumerable<BaseTestClass>>().ToImmutableHashSet();
 
             //Act
-            var deserialized = (ImmutableHashSet<BaseTestClass>)engine.Invoke(set, typeof(ImmutableHashSet<BaseTestClass>));
+            var deserialized = RoundTrip.Run<ImmutableHashSet<BaseTestClass>>(set, format);
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(set, deserialized);
+            deserialized.Should().NotBeNull();
+            deserialized.Should().BeEquivalentTo(set);
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Class_with_empty_list(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Class_with_empty_list([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             ClassWithConstructorPopulatingProperty testClass = new ClassWithConstructorPopulatingProperty();
 
 
             //Act
-            var deserialized = (ClassWithConstructorPopulatingProperty)engine.Invoke(testClass, typeof(ClassWithConstructorPopulatingProperty));
+            var deserialized = RoundTrip.Run<ClassWithConstructorPopulatingProperty>(testClass, format);
 
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(testClass.anotherList, deserialized.anotherList);
-            Assert.Equal(testClass.nestedList, deserialized.nestedList);
+            deserialized.Should().NotBeNull();
+            deserialized.anotherList.Should().BeEquivalentTo(testClass.anotherList, o => o.WithStrictOrdering());
+            deserialized.nestedList.Should().BeEquivalentTo(testClass.nestedList, o => o.WithStrictOrdering());
             deserialized.stringProperty.Should().BeNullOrEmpty();
-        }
-
-        [Fact(Skip = "MultidimensionalArray is not supported yet")]
-        public void Component_MultidimensionalArray_ResultIsTheSameAsInput()
-        {
-            //Arrange
-            MultidimensionalArrayClass array = _fixture.Create<MultidimensionalArrayClass>();
-
-
-            //Act
-            var result = AvroConvert.Serialize(array);
-
-            var deserialized = AvroConvert.Deserialize<MultidimensionalArrayClass>(result);
-
-
-            //Assert
-            Assert.NotNull(result);
-            Assert.NotNull(deserialized);
-            Assert.Equal(array, deserialized);
         }
     }
 }

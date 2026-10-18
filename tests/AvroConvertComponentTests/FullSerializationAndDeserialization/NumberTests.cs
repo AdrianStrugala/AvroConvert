@@ -1,41 +1,42 @@
+using AwesomeAssertions;
 using System;
-using Xunit;
+using NUnit.Framework;
+using SolTechnology.Avro;
+using SolTechnology.Avro.Policies;
 
 namespace AvroConvertComponentTests.FullSerializationAndDeserialization;
 
 public class NumberTests
 {
-    [Theory]
-    [MemberData(nameof(TestEngine.Core), MemberType = typeof(TestEngine))]
-    public void Class_WithTooBigDecimal_ShouldThrow_ByDefault(Func<object, Type, dynamic> engine)
+    [Test]
+    public void Class_WithTooBigDecimal_ShouldThrow_ByDefault([ValueSource(typeof(Formats), nameof(Formats.Core))] Format format)
     {
         //Arrange
         var record = new LogicalTypesClass();
         record.One = 1.12345678901234567890m; // Default scale is 14
 
         //Act
-        var exception = Record.Exception(() => engine.Invoke(record, typeof(LogicalTypesClass)));
+        var exception = Recorded.Exception(() =>RoundTrip.Run<LogicalTypesClass>(record, format));
 
         //Assert
-        Assert.NotNull(exception);
+        exception.Should().NotBeNull();
     }
 
-    [Theory]
-    [MemberData(nameof(TestEngine.HeadlessUsingNumberHandling), MemberType = typeof(TestEngine))]
-    public void Class_WithTooBigDecimal_ShouldTruncateOrRound_UsingHandling(Func<object, Type, dynamic> engine)
+    [Test]
+    public void Class_WithTooBigDecimal_ShouldTruncateOrRound_UsingHandling([Values(AvroNumberHandling.Truncate, AvroNumberHandling.Rounding)] AvroNumberHandling numberHandling)
     {
         //Arrange
         var record = new LogicalTypesClass();
         record.One = 1.12345678901234567890m; // Default scale is 14
 
         //Act
-        var deserialized = engine.Invoke(record, typeof(LogicalTypesClass));
+        var deserialized = RoundTrip.Run<LogicalTypesClass>(record, Format.Headless, new AvroConvertOptions { NumberHandling = numberHandling });
         var value = (decimal)deserialized.One;
 
         //Assert
-        Assert.NotNull(deserialized);
-        Assert.Equal(14, GetScale(value));
-        Assert.True(value >= 1.12345678901234m && value <= 1.12345678901235m);
+        deserialized.Should().NotBeNull();
+        GetScale(value).Should().Be(14);
+        (value >= 1.12345678901234m && value <= 1.12345678901235m).Should().BeTrue();
     }
 
     private int GetScale(decimal value)

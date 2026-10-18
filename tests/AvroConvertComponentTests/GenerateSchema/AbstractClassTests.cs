@@ -1,13 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using AwesomeAssertions;
+using System.Collections.Generic;
 using SolTechnology.Avro;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.GenerateSchema
 {
     public class AbstractClassTests
     {
 
-        [Fact]
+        [Test]
         public void GenerateSchema_ClassIsChildOfAbstractClass_SchemaIsGenerated()
         {
             //Arrange
@@ -18,7 +19,7 @@ namespace AvroConvertComponentTests.GenerateSchema
 
 
             //Assert
-            Assert.Equal(@"{""name"":""Farm"",""namespace"":""AvroConvertComponentTests.GenerateSchema"",""type"":""record"",""fields"":[{""name"":""Name"",""type"":""string""},{""name"":""Animals"",""type"":{""type"":""array"",""items"":{""name"":""Animal"",""namespace"":""AvroConvertComponentTests.GenerateSchema"",""type"":""record"",""fields"":[{""name"":""IsOutside"",""type"":""boolean""}]}}},{""name"":""Plants"",""type"":{""type"":""array"",""items"":{""name"":""IPlant"",""namespace"":""AvroConvertComponentTests.GenerateSchema"",""type"":""record"",""fields"":[{""name"":""Color"",""type"":""string""}]}}}]}", schema);
+            schema.Should().Be(@"{""name"":""Farm"",""namespace"":""AvroConvertComponentTests.GenerateSchema"",""type"":""record"",""fields"":[{""name"":""Name"",""type"":""string""},{""name"":""Animals"",""type"":{""type"":""array"",""items"":{""name"":""Animal"",""namespace"":""AvroConvertComponentTests.GenerateSchema"",""type"":""record"",""fields"":[{""name"":""IsOutside"",""type"":""boolean""}]}}},{""name"":""Plants"",""type"":{""type"":""array"",""items"":{""name"":""IPlant"",""namespace"":""AvroConvertComponentTests.GenerateSchema"",""type"":""record"",""fields"":[{""name"":""Color"",""type"":""string""}]}}}]}");
         }
 
 

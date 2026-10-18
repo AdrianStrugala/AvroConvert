@@ -1,18 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
-using FluentAssertions;
+using AwesomeAssertions;
 using SolTechnology.Avro;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 {
     //from issue: https://github.com/AdrianStrugala/AvroConvert/issues/94
     public class AnonymousAndExpandoTypes
     {
-        [Theory]
-        [MemberData(nameof(TestEngine.CoreUsingSchema), MemberType = typeof(TestEngine))]
-        public void Anonymous_type(Func<object, Type, string, string, dynamic> engine)
+        [Test]
+        public void Anonymous_type([ValueSource(typeof(Formats), nameof(Formats.Evolution))] Format format)
         {
             //Arrange
             var valschema = @"
@@ -47,16 +46,15 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             var item = new { Value = new { KeyNested = "key1", ValueNested = "val1" } };
 
             //Act
-            var deserialized = (AnonymousLikeClass)engine.Invoke(item, typeof(AnonymousLikeClass), valschema, valschema);
+            var deserialized = RoundTrip.Evolve<AnonymousLikeClass>(item, format, valschema, valschema);
 
             //Assert
             deserialized.Should().BeEquivalentTo(item);
 
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.CoreUsingSchema), MemberType = typeof(TestEngine))]
-        public void Expando_object(Func<object, Type, string, string, dynamic> engine)
+        [Test]
+        public void Expando_object([ValueSource(typeof(Formats), nameof(Formats.Evolution))] Format format)
         {
             //Arrange
             var valSchema = @"
@@ -94,17 +92,16 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
 
             //Act
-            var deserialized = (AnonymousLikeClass)engine.Invoke(item, typeof(AnonymousLikeClass), valSchema, valSchema);
+            var deserialized = RoundTrip.Evolve<AnonymousLikeClass>(item, format, valSchema, valSchema);
 
 
             //Assert
-            deserialized.Should().BeEquivalentTo(new { Value = new { KeyNested = "key1", ValueNested = "val1" } });
+            ((object)deserialized).Should().BeEquivalentTo(new { Value = new { KeyNested = "key1", ValueNested = "val1" } });
 
         }
         
-        [Theory]
-        [MemberData(nameof(TestEngine.CoreUsingSchema), MemberType = typeof(TestEngine))]
-        public void DeserializeByLine_CollectionWithUnionOfClasses_ResultIsTheSameAsInput(Func<object, Type, string, string, dynamic> engine)
+        [Test]
+        public void DeserializeByLine_CollectionWithUnionOfClasses_ResultIsTheSameAsInput([ValueSource(typeof(Formats), nameof(Formats.Evolution))] Format format)
         {
           //Arrange
           var schema =
@@ -121,10 +118,10 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             };
             
           //Act
-          var deserialized = (TypeWithUnionAvro)engine.Invoke(toSerialize, typeof(TypeWithUnionAvro), schema, schema);
+          var deserialized = RoundTrip.Evolve<TypeWithUnionAvro>(toSerialize, format, schema, schema);
             
           //Assert
-          Assert.Equivalent(toSerialize, deserialized);
+          deserialized.Should().BeEquivalentTo(toSerialize);
         }
     }
 

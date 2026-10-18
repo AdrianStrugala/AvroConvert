@@ -1,18 +1,18 @@
-﻿using SolTechnology.Avro;
+﻿using AwesomeAssertions;
+using SolTechnology.Avro;
 using System;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.DefaultOnly
 {
     public class DifferentReadAndWriteNumberTypesTests
     {
-        [Theory]
-        [InlineData(typeof(int))]
-        [InlineData(typeof(long))]
-        [InlineData(typeof(short))]
-        [InlineData(typeof(decimal))]
-        [InlineData(typeof(double))]
-        [InlineData(typeof(float))]
+        [TestCase(typeof(int))]
+        [TestCase(typeof(long))]
+        [TestCase(typeof(short))]
+        [TestCase(typeof(decimal))]
+        [TestCase(typeof(double))]
+        [TestCase(typeof(float))]
         public void Int_Can_Be_Deserialized_To_Different_Number_Types(Type readType)
         {
             //Arrange
@@ -23,17 +23,16 @@ namespace AvroConvertComponentTests.DefaultOnly
             var deserialized = AvroConvert.Deserialize(result, readType);
 
             //Assert
-            Assert.NotNull(result);
-            Assert.Equal(value, deserialized);
+            result.Should().NotBeNull();
+            ((object)deserialized).Should().Be(value);
         }
 
-        [Theory]
-        [InlineData(typeof(int))]
-        [InlineData(typeof(long))]
-        [InlineData(typeof(short))]
-        [InlineData(typeof(decimal))]
-        [InlineData(typeof(double))]
-        [InlineData(typeof(float))]
+        [TestCase(typeof(int))]
+        [TestCase(typeof(long))]
+        [TestCase(typeof(short))]
+        [TestCase(typeof(decimal))]
+        [TestCase(typeof(double))]
+        [TestCase(typeof(float))]
         public void Long_Can_Be_Deserialized_To_Different_Number_Types(Type readType)
         {
             //Arrange
@@ -44,17 +43,16 @@ namespace AvroConvertComponentTests.DefaultOnly
             var deserialized = AvroConvert.Deserialize(result, readType);
 
             //Assert
-            Assert.NotNull(result);
-            Assert.Equal(value, deserialized);
+            result.Should().NotBeNull();
+            ((object)deserialized).Should().Be(value);
         }
 
-        [Theory]
-        [InlineData(typeof(int))]
-        [InlineData(typeof(long))]
-        [InlineData(typeof(short))]
-        [InlineData(typeof(decimal))]
-        [InlineData(typeof(double))]
-        [InlineData(typeof(float))]
+        [TestCase(typeof(int))]
+        [TestCase(typeof(long))]
+        [TestCase(typeof(short))]
+        [TestCase(typeof(decimal))]
+        [TestCase(typeof(double))]
+        [TestCase(typeof(float))]
         public void Short_Can_Be_Deserialized_To_Different_Number_Types(Type readType)
         {
             //Arrange
@@ -65,17 +63,16 @@ namespace AvroConvertComponentTests.DefaultOnly
             var deserialized = AvroConvert.Deserialize(result, readType);
 
             //Assert
-            Assert.NotNull(result);
-            Assert.Equal(value, deserialized);
+            result.Should().NotBeNull();
+            ((object)deserialized).Should().Be(value);
         }
 
-        [Theory]
-        [InlineData(typeof(int))]
-        [InlineData(typeof(long))]
-        [InlineData(typeof(short))]
-        [InlineData(typeof(decimal))]
-        [InlineData(typeof(double))]
-        [InlineData(typeof(float))]
+        [TestCase(typeof(int))]
+        [TestCase(typeof(long))]
+        [TestCase(typeof(short))]
+        [TestCase(typeof(decimal))]
+        [TestCase(typeof(double))]
+        [TestCase(typeof(float))]
         public void Float_Can_Be_Deserialized_To_Different_Number_Types(Type readType)
         {
             //Arrange
@@ -86,16 +83,15 @@ namespace AvroConvertComponentTests.DefaultOnly
             var deserialized = AvroConvert.Deserialize(result, readType);
 
             //Assert
-            Assert.Equal(value.ToString(), deserialized.ToString());
+            ((object)deserialized.ToString()).Should().Be(value.ToString());
         }
 
-        [Theory]
-        [InlineData(typeof(int))]
-        [InlineData(typeof(long))]
-        [InlineData(typeof(short))]
-        [InlineData(typeof(decimal))]
-        [InlineData(typeof(double))]
-        [InlineData(typeof(float))]
+        [TestCase(typeof(int))]
+        [TestCase(typeof(long))]
+        [TestCase(typeof(short))]
+        [TestCase(typeof(decimal))]
+        [TestCase(typeof(double))]
+        [TestCase(typeof(float))]
         public void Double_Can_Be_Deserialized_To_Different_Number_Types(Type readType)
         {
             //Arrange
@@ -106,17 +102,16 @@ namespace AvroConvertComponentTests.DefaultOnly
             var deserialized = AvroConvert.Deserialize(result, readType);
 
             //Assert
-            Assert.NotNull(result);
-            Assert.Equal(value.ToString(), deserialized.ToString());
+            result.Should().NotBeNull();
+            ((object)deserialized.ToString()).Should().Be(value.ToString());
         }
 
-        [Theory]
-        [InlineData(typeof(int))]
-        [InlineData(typeof(long))]
-        [InlineData(typeof(short))]
-        [InlineData(typeof(decimal))]
-        [InlineData(typeof(double))]
-        [InlineData(typeof(float))]
+        [TestCase(typeof(int))]
+        [TestCase(typeof(long))]
+        [TestCase(typeof(short))]
+        [TestCase(typeof(decimal))]
+        [TestCase(typeof(double))]
+        [TestCase(typeof(float))]
         public void Decimal_Can_Be_Deserialized_To_Different_Number_Types(Type readType)
         {
             //Arrange
@@ -127,9 +122,9 @@ namespace AvroConvertComponentTests.DefaultOnly
             var deserialized = AvroConvert.Deserialize(result, readType);
 
             //Assert
-            Assert.NotNull(result);
+            result.Should().NotBeNull();
 
-            Assert.Equal(0, value.CompareTo((decimal)deserialized));
+            value.CompareTo((decimal)deserialized).Should().Be(0);
         }
     }
 }

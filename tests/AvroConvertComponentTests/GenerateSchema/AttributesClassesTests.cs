@@ -1,12 +1,13 @@
-﻿using SolTechnology.Avro;
-using Xunit;
+﻿using AwesomeAssertions;
+using SolTechnology.Avro;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.GenerateSchema
 {
     public class AttributesClassesTests
     {
 
-        [Fact]
+        [Test]
         public void GenerateSchema_PropertiesAreDecoratedWithDefaultValueAttributes_SchemaContainsDefaultFieldForMembers()
         {
             //Arrange
@@ -15,12 +16,12 @@ namespace AvroConvertComponentTests.GenerateSchema
             string schema = AvroConvert.GenerateSchema(typeof(DefaultValueClass));
 
             //Assert
-            Assert.Contains("\"default\":\"Let's go\"", schema);
-            Assert.Contains("\"default\":9200000000000000007", schema);
-            Assert.Contains("\"default\":null", schema);
+            schema.Should().Contain("\"default\":\"Let's go\"");
+            schema.Should().Contain("\"default\":9200000000000000007");
+            schema.Should().Contain("\"default\":null");
         }
 
-        [Fact]
+        [Test]
         public void GenerateSchema_PropertiesAreDecoratedWithDefaultValueAttributes_SchemaPositionsNullTypeBeforeOtherInTheTypeArrayWhenDefaultIsNull()
         {
             //Arrange
@@ -29,10 +30,10 @@ namespace AvroConvertComponentTests.GenerateSchema
             string schema = AvroConvert.GenerateSchema(typeof(DefaultValueClass));
 
             //Assert
-            Assert.Contains("{\"name\":\"andNullProperty\",\"type\":[\"null\",\"long\"],\"default\":null}", schema);
+            schema.Should().Contain("{\"name\":\"andNullProperty\",\"type\":[\"null\",\"long\"],\"default\":null}");
         }
 
-        [Fact]
+        [Test]
         public void GenerateSchema_PropertiesIncludeNullableVersionsOfTypes_SchemaIncludesNullTypeInTypesArray()
         {
             //Arrange
@@ -41,10 +42,10 @@ namespace AvroConvertComponentTests.GenerateSchema
             string schema = AvroConvert.GenerateSchema(typeof(DefaultValueClass));
 
             //Assert
-            Assert.Contains("{\"name\":\"andLongProperty\",\"type\":[\"null\",\"long\"]", schema);
+            schema.Should().Contain("{\"name\":\"andLongProperty\",\"type\":[\"null\",\"long\"]");
         }
 
-        [Fact]
+        [Test]
         public void GenerateSchema_PropertiesAreDecoratedWithDefaultValueAttributes_SchemaPositionsNullTypeAfterOtherInTheTypeArrayWhenDefaultIsNotNull()
         {
             //Arrange
@@ -53,10 +54,10 @@ namespace AvroConvertComponentTests.GenerateSchema
             string schema = AvroConvert.GenerateSchema(typeof(DefaultValueClass));
 
             //Assert
-            Assert.Contains("{\"name\":\"andLongBigDefaultedProperty\",\"type\":[\"long\",\"null\"],\"default\":9200000000000000007}", schema);
+            schema.Should().Contain("{\"name\":\"andLongBigDefaultedProperty\",\"type\":[\"long\",\"null\"],\"default\":9200000000000000007}");
         }
 
-        [Fact]
+        [Test]
         public void GenerateSchema_PropertiesAreDecoratedWithDefaultValueAttributes_SchemaPositionsTypesEffectivelyRegardlessOfMismatchBetweenDefaultValueAndPropertyType()
         {
             //Arrange
@@ -66,10 +67,10 @@ namespace AvroConvertComponentTests.GenerateSchema
 
             // Assert - The DefaultValue is an int, (100)  but the property is a long, matching 
             // isn't necessary, all that's required is that the 'not null' type is first in the schema list
-            Assert.Contains("{\"name\":\"andLongSmallDefaultedProperty\",\"type\":[\"long\",\"null\"],\"default\":100}", schema);
+            schema.Should().Contain("{\"name\":\"andLongSmallDefaultedProperty\",\"type\":[\"long\",\"null\"],\"default\":100}");
         }
 
-        [Fact]
+        [Test]
         public void GenerateSchema_PropertiesAreDecoratedWithDefaultValueAttributes_SchemaPositionsOriginalTypeBeforeNullWhenDefaultIsNotNull()
         {
             //Arrange
@@ -78,10 +79,10 @@ namespace AvroConvertComponentTests.GenerateSchema
             string schema = AvroConvert.GenerateSchema(typeof(DefaultValueClass));
 
             //Assert
-            Assert.Contains("{\"name\":\"justSomeProperty\",\"type\":[\"string\",\"null\"],\"default\":\"Let's go\"}", schema);
+            schema.Should().Contain("{\"name\":\"justSomeProperty\",\"type\":[\"string\",\"null\"],\"default\":\"Let's go\"}");
         }
 
-        [Fact]
+        [Test]
         public void GenerateSchema_ClassWithMixedMembersAttributesAndNon_AfterIncludingOnlyMembersNonAttributedAreIgnored()
         {
             //Arrange
@@ -90,10 +91,10 @@ namespace AvroConvertComponentTests.GenerateSchema
             string schema = AvroConvert.GenerateSchema(typeof(MixedDataMembers), includeOnlyDataContractMembers: true);
 
             //Assert
-            Assert.Contains("{\"name\":\"MixedDataMembers\",\"namespace\":\"AvroConvertComponentTests\",\"type\":\"record\",\"fields\":[{\"name\":\"savedValues\",\"type\":{\"type\":\"array\",\"items\":\"int\"}},{\"name\":\"andAnother\",\"type\":[\"null\",\"long\"]}]}", schema);
+            schema.Should().Contain("{\"name\":\"MixedDataMembers\",\"namespace\":\"AvroConvertComponentTests\",\"type\":\"record\",\"fields\":[{\"name\":\"savedValues\",\"type\":{\"type\":\"array\",\"items\":\"int\"}},{\"name\":\"andAnother\",\"type\":[\"null\",\"long\"]}]}");
         }
 
-        [Fact]
+        [Test]
         public void GenerateSchema_Enum_SchemaIsCorrect()
         {
             //Arrange
@@ -102,10 +103,10 @@ namespace AvroConvertComponentTests.GenerateSchema
             string schema = AvroConvert.GenerateSchema(typeof(TestEnum));
 
             //Assert
-            Assert.Contains("{\"type\":\"enum\",\"name\":\"TestEnum\",\"namespace\":\"AvroConvertComponentTests\",\"symbols\":[\"a\",\"be\",\"ca\",\"dlo\"]}", schema);
+            schema.Should().Contain("{\"type\":\"enum\",\"name\":\"TestEnum\",\"namespace\":\"AvroConvertComponentTests\",\"symbols\":[\"a\",\"be\",\"ca\",\"dlo\"]}");
         }
 
-        [Fact]
+        [Test]
         public void GenerateSchema_PropertiesAreDecoratedWithNullableSchemaAttribute_SchemaIndicatesFieldIsNullable()
         {
             //Arrange
@@ -114,11 +115,10 @@ namespace AvroConvertComponentTests.GenerateSchema
             string schema = AvroConvert.GenerateSchema(typeof(AttributeClass));
 
             // Assert
-            Assert.Contains("{\"name\":\"favorite_number\",\"aliases\":[\"NullableIntProperty\"],\"type\":[\"null\",\"int\"]}",
-                schema);
+            schema.Should().Contain("{\"name\":\"favorite_number\",\"aliases\":[\"NullableIntProperty\"],\"type\":[\"null\",\"int\"]}");
         }
 
-        [Fact]
+        [Test]
         public void GenerateSchema_PropertiesAreSystemNullable_SchemaIndicatesFieldIsNullable()
         {
             //Arrange
@@ -127,10 +127,10 @@ namespace AvroConvertComponentTests.GenerateSchema
             string schema = AvroConvert.GenerateSchema(typeof(User));
 
             // Assert
-            Assert.Contains("{\"name\":\"favorite_number\",\"type\":[\"null\",\"int\"]}", schema);
+            schema.Should().Contain("{\"name\":\"favorite_number\",\"type\":[\"null\",\"int\"]}");
         }
 
-        [Fact]
+        [Test]
         public void GenerateSchema_PropertiesAreNullableReferenceTypes_SchemaIndicatesMembersAreNullable()
         {
             //Arrange
@@ -139,12 +139,12 @@ namespace AvroConvertComponentTests.GenerateSchema
             string schema = AvroConvert.GenerateSchema(typeof(ClassWithNullableMembers));
 
             // Assert
-            Assert.Contains("{\"name\":\"NullableStringProperty\",\"type\":[\"null\",\"string\"]}", schema);
-            Assert.Contains("{\"name\":\"NullableField\",\"type\":[\"null\",\"string\"]}", schema);
-            Assert.Contains("{\"name\":\"NullableRecord\",\"type\":[\"null\",{\"name\":\"UserNameClass\",\"namespace\":\"AvroConvertComponentTests\",\"type\":\"record\",\"fields\":[{\"name\":\"name\",\"type\":\"string\"}]}]}", schema);
+            schema.Should().Contain("{\"name\":\"NullableStringProperty\",\"type\":[\"null\",\"string\"]}");
+            schema.Should().Contain("{\"name\":\"NullableField\",\"type\":[\"null\",\"string\"]}");
+            schema.Should().Contain("{\"name\":\"NullableRecord\",\"type\":[\"null\",{\"name\":\"UserNameClass\",\"namespace\":\"AvroConvertComponentTests\",\"type\":\"record\",\"fields\":[{\"name\":\"name\",\"type\":\"string\"}]}]}");
         }
 
-        [Fact]
+        [Test]
         public void GenerateSchema_PropertiesWithDuplicateTypes_EmitsSingleRecord()
         {
             //Arrange
@@ -153,7 +153,7 @@ namespace AvroConvertComponentTests.GenerateSchema
             string schema = AvroConvert.GenerateSchema(typeof(ClassWithDuplicateTypes));
 
             // Assert
-            Assert.Contains("{\"name\":\"Property2\",\"type\":\"AvroConvertComponentTests.BaseClass\"}", schema);
+            schema.Should().Contain("{\"name\":\"Property2\",\"type\":\"AvroConvertComponentTests.BaseClass\"}");
         }
     }
 }

@@ -2,10 +2,10 @@
 using System.IO;
 using System.Linq;
 using AutoFixture;
-using FluentAssertions;
+using AwesomeAssertions;
 using SolTechnology.Avro;
 using SolTechnology.Avro.Infrastructure.Exceptions;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.Merge
 {
@@ -20,7 +20,7 @@ namespace AvroConvertComponentTests.Merge
             _fixture = new Fixture();
         }
 
-        [Fact]
+        [Test]
         public void Merge_SingleObject_ItIsConvertedToEnumerableWithSingleItem()
         {
             //Arrange
@@ -39,12 +39,12 @@ namespace AvroConvertComponentTests.Merge
 
             //Assert
             var deserializedResult = AvroConvert.Deserialize<List<User>>(result);
-            var deserializedUser = Assert.Single(deserializedResult);
-            Assert.Equal(user, deserializedUser);
+            var deserializedUser = deserializedResult.Should().ContainSingle().Subject;
+            deserializedUser.Should().BeEquivalentTo(user);
         }
 
 
-        [Fact]
+        [Test]
         public void Merge_FileWithHeaderOnly_DoesNotThrowException()
         {
             //Arrange
@@ -58,7 +58,7 @@ namespace AvroConvertComponentTests.Merge
             deserializedResult.Should().BeEmpty();
         }
 
-        [Fact]
+        [Test]
         public void Merge_MultipleObject_AllOfThemAreMerged()
         {
             //Arrange
@@ -73,18 +73,18 @@ namespace AvroConvertComponentTests.Merge
 
             //Assert
             var deserializedResult = AvroConvert.Deserialize<List<User>>(result);
-            Assert.NotNull(deserializedResult);
-            Assert.Equal(users.Count(), deserializedResult.Count);
+            deserializedResult.Should().NotBeNull();
+            deserializedResult.Count.Should().Be(users.Count());
 
             foreach (var user in users)
             {
                 var resultUser = deserializedResult.FirstOrDefault(r => r.name == user.name);
-                Assert.NotNull(resultUser);
-                Assert.Equal(user, resultUser);
+                resultUser.Should().NotBeNull();
+                resultUser.Should().BeEquivalentTo(user);
             }
         }
 
-        [Fact]
+        [Test]
         public void Merge_OnOfTheObjectsIsOfDifferentSchema_ExceptionIsThrown()
         {
             var users = _fixture.CreateMany<User>();
@@ -95,31 +95,31 @@ namespace AvroConvertComponentTests.Merge
 
 
             //Act 
-            var exception = Record.Exception(() => AvroConvert.Merge<User>(avroObjects));
+            var exception = Recorded.Exception(() => AvroConvert.Merge<User>(avroObjects));
 
 
             //Assert
-            Assert.NotNull(exception);
-            Assert.IsType<InvalidAvroObjectException>(exception);
-            Assert.Contains("1", exception.Message);
-            Assert.Contains(typeof(User).ToString(), exception.Message);
+            exception.Should().NotBeNull();
+            exception.Should().BeOfType<InvalidAvroObjectException>();
+            exception.Message.Should().Contain("1");
+            exception.Message.Should().Contain(typeof(User).ToString());
         }
 
-        [Fact]
+        [Test]
         public void Merge_NotAvroObject_ExceptionIsThrown()
         {
             var avroObjects = _fixture.CreateMany<byte[]>();
 
             //Act 
-            var exception = Record.Exception(() => AvroConvert.Merge<User>(avroObjects));
+            var exception = Recorded.Exception(() => AvroConvert.Merge<User>(avroObjects));
 
 
             //Assert
-            Assert.NotNull(exception);
-            Assert.IsType<InvalidAvroObjectException>(exception);
+            exception.Should().NotBeNull();
+            exception.Should().BeOfType<InvalidAvroObjectException>();
         }
 
-        [Fact]
+        [Test]
         public void Merge_TwoFilesWithMultipleBlocks_EveryItemIsMerged()
         {
             //Arrange

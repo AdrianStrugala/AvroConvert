@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using AutoFixture;
 using AutoFixture.Kernel;
-using FluentAssertions;
+using AwesomeAssertions;
 using Newtonsoft.Json;
 using SolTechnology.Avro;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.Schemas
 {
@@ -18,7 +18,7 @@ namespace AvroConvertComponentTests.Schemas
             _fixture = new Fixture();
         }
 
-        [Fact]
+        [Test]
         public void Generates_Avro_schema_from_class_serialized_to_json()
         {
             //Arrange
@@ -37,7 +37,7 @@ namespace AvroConvertComponentTests.Schemas
             result.Should().BeEquivalentTo(expected);
         }
 
-        [Fact]
+        [Test]
         public void Generates_Avro_schema_from_array_serialized_to_json()
         {
             //Arrange
@@ -57,10 +57,9 @@ namespace AvroConvertComponentTests.Schemas
         }
 
 
-        [Theory]
-        [InlineData(typeof(int), "\"long\"")]
-        [InlineData(typeof(string), "\"string\"")]
-        [InlineData(typeof(decimal), "\"double\"")]
+        [TestCase(typeof(int), "\"long\"")]
+        [TestCase(typeof(string), "\"string\"")]
+        [TestCase(typeof(decimal), "\"double\"")]
         public void Generates_Avro_schema_from_primitives_serialized_to_json(Type primitiveType, string expectedSchema)
         {
             //Arrange
@@ -77,7 +76,7 @@ namespace AvroConvertComponentTests.Schemas
         }
 
 
-        [Fact]
+        [Test]
         public void Generates_Avro_schema_from_dictionary_of_non_string_key_is_represented_as_record()
         {
             //Arrange
@@ -92,7 +91,7 @@ namespace AvroConvertComponentTests.Schemas
             result.Should().StartWith("{\"name\":\"UnknownObject\",\"type\":\"record\",\"fields\":");
         }
 
-        [Fact]
+        [Test]
         public void Generates_Avro_schema_from_dictionary_of_string_key_is_represented_as_record()
         {
             //Arrange

@@ -7,7 +7,6 @@ using SolTechnology.Avro.Infrastructure.Attributes;
 
 namespace AvroConvertComponentTests
 {
-    [Equals(DoNotAddEqualityOperators = true)]
     public class User
     {
         public string? name { get; set; }
@@ -15,7 +14,6 @@ namespace AvroConvertComponentTests
         public string favorite_color { get; set; }
     }
 
-    [Equals(DoNotAddEqualityOperators = true)]
     public class UserWithNonNullableProperties
     {
         public string name { get; set; }
@@ -24,13 +22,11 @@ namespace AvroConvertComponentTests
     }
 
 
-    [Equals(DoNotAddEqualityOperators = true)]
     public class UserNameClass
     {
         public string name { get; set; }
     }
 
-    [Equals(DoNotAddEqualityOperators = true)]
     public class BaseTestClass
     {
         public string justSomeProperty { get; set; }
@@ -38,7 +34,6 @@ namespace AvroConvertComponentTests
         public User objectProperty { get; set; }
     }
 
-    [Equals(DoNotAddEqualityOperators = true)]
     public class DifferentCaseBaseTestClass
     {
         public string JustSomeProperty { get; set; }
@@ -46,13 +41,11 @@ namespace AvroConvertComponentTests
         public User ObjectProperty { get; set; }
     }
 
-    [Equals(DoNotAddEqualityOperators = true)]
     public class ReducedBaseTestClass
     {
         public string justSomeProperty { get; set; }
     }
 
-    [Equals(DoNotAddEqualityOperators = true)]
     public class BaseTestClassWithDefaults
     {
         public string justSomeProperty { get; set; }
@@ -63,7 +56,6 @@ namespace AvroConvertComponentTests
         public User objectProperty { get; set; }
     }
 
-    [Equals(DoNotAddEqualityOperators = true)]
     public class ExtendedBaseTestClass
     {
         public string justSomeProperty { get; set; }
@@ -98,7 +90,6 @@ namespace AvroConvertComponentTests
     }
 
 
-    [Equals(DoNotAddEqualityOperators = true)]
     public class LogicalTypesClass
     {
         public decimal One { get; set; }
@@ -112,7 +103,6 @@ namespace AvroConvertComponentTests
         public DateTimeOffset Five { get; set; }
     }
 
-    [Equals(DoNotAddEqualityOperators = true)]
     public class ClassWithConstructorPopulatingProperty
     {
         public List<BaseTestClass> nestedList { get; set; }
@@ -126,7 +116,6 @@ namespace AvroConvertComponentTests
         }
 
     }
-    [Equals(DoNotAddEqualityOperators = true)]
     public class ClassWithSimpleList
     {
         public List<int> someList { get; set; }
@@ -137,20 +126,17 @@ namespace AvroConvertComponentTests
         }
     }
 
-    [Equals(DoNotAddEqualityOperators = true)]
     public class ClassWithArray
     {
         public int[] theArray { get; set; }
     }
 
-    [Equals(DoNotAddEqualityOperators = true)]
     public class ClassWithGuid
     {
         public Guid theGuid { get; set; }
     }
 
 
-    [Equals(DoNotAddEqualityOperators = true)]
     public class VeryComplexClass
     {
         public List<ClassWithArray> ClassesWithArray { get; set; }
@@ -165,7 +151,6 @@ namespace AvroConvertComponentTests
     }
 
 
-    [Equals(DoNotAddEqualityOperators = true)]
     [DataContract(Name = "User", Namespace = "user")]
     public class AttributeClass
     {
@@ -187,7 +172,6 @@ namespace AvroConvertComponentTests
         public string IgnoredProperty { get; set; }
     }
 
-    [Equals(DoNotAddEqualityOperators = true)]
     [DataContract(Name = "User", Namespace = "database")]
     public class SmallerAttributeClass
     {
@@ -200,7 +184,6 @@ namespace AvroConvertComponentTests
         public int? NullableIntProperty { get; set; }
     }
 
-    [Equals(DoNotAddEqualityOperators = true)]
     public class ClassWithDateTime
     {
         public string From { get; set; }
@@ -212,13 +195,11 @@ namespace AvroConvertComponentTests
         public TimeOnly MyTime { get; set; }
     }
 
-    [Equals(DoNotAddEqualityOperators = true)]
     public class ClassWithDateTimeOffset
     {
         public DateTimeOffset yeah { get; set; }
     }
 
-    [Equals(DoNotAddEqualityOperators = true)]
     public class ConcurrentBagClass
     {
         public ConcurrentBag<ComplexClassWithoutGetters> concurentBagField;
@@ -235,7 +216,6 @@ namespace AvroConvertComponentTests
         public int Count;
     }
 
-    [Equals(DoNotAddEqualityOperators = true)]
     public class ComplexClassWithoutGetters
     {
         public List<ClassWithArray> ClassesWithArray;
@@ -248,7 +228,6 @@ namespace AvroConvertComponentTests
         public float FloatProperty;
     }
 
-    [Equals(DoNotAddEqualityOperators = true)]
     [DataContract(Name = "User", Namespace = "user")]
     public class AttributeClassWithoutGetters
     {
@@ -298,14 +277,12 @@ namespace AvroConvertComponentTests
         }
     }
 
-    [Equals(DoNotAddEqualityOperators = true)]
     public class MultidimensionalArrayClass
     {
         public int[,,] ArrayField { get; set; }
     }
 
 
-    [Equals(DoNotAddEqualityOperators = true)]
     public class DefaultValueClass
     {
         [DefaultValue("Let's go")]
@@ -325,7 +302,6 @@ namespace AvroConvertComponentTests
     }
 
 
-    [Equals(DoNotAddEqualityOperators = true)]
     [DataContract]
     public struct MixedDataMembers
     {
@@ -378,7 +354,6 @@ namespace AvroConvertComponentTests
         Negative
     }
 
-    [Equals(DoNotAddEqualityOperators = true)]
     public class ClassWithEnum
     {
         [DefaultValue(TestEnum.be)]
@@ -397,7 +372,6 @@ namespace AvroConvertComponentTests
         TestLabel2 = 2
     }
 
-    [Equals(DoNotAddEqualityOperators = true)]
     public class ClassWithDuplicateEnums {
         [DefaultValue(TestDuplicateEnum.Fail)]
         public TestDuplicateEnum? EnumProp { get; set; }
@@ -424,7 +398,6 @@ namespace AvroConvertComponentTests
     }
 
 #nullable enable
-    [Equals(DoNotAddEqualityOperators = true)]
     public class ClassWithNullableMembers
     {
         public string? NullableStringProperty { get; set; }

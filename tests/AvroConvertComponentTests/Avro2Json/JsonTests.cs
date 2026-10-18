@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using AwesomeAssertions;
+using System.Collections.Generic;
 using Newtonsoft.Json;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.Avro2Json
 {
     public class JsonTests
     {
-        [Fact]
+        [Test]
         public void Json_SerializeObjectAndDictionaryWithItemsNamedLikeProperties_TheyAreEqual()
         {
             //Arrange
@@ -27,7 +28,7 @@ namespace AvroConvertComponentTests.Avro2Json
 
 
             //Assert
-            Assert.Equal(json1, json2);
+            json2.Should().Be(json1);
         }
     }
 }

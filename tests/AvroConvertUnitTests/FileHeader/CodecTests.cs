@@ -1,15 +1,16 @@
-﻿using System;
+﻿using AwesomeAssertions;
+using System;
 using System.Buffers.Binary;
 using System.IO;
 using System.Text;
 using SolTechnology.Avro.AvroObjectServices.FileHeader.Codec;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertUnitTests.FileHeader
 {
     public class CodecTests
     {
-        [Fact]
+        [Test]
         public void CreateCodecFromString_NonExistingString_DefaultCodecIsReturned()
         {
             //Arrange
@@ -20,10 +21,10 @@ namespace AvroConvertUnitTests.FileHeader
 
 
             //Assert
-            Assert.IsType<NullCodec>(result);
+            result.Should().BeOfType<NullCodec>();
         }
 
-        [Fact]
+        [Test]
         public void Zstandard_RoundTrip_UsesSpecName()
         {
             //Arrange
@@ -37,21 +38,21 @@ namespace AvroConvertUnitTests.FileHeader
 
 
             //Assert
-            Assert.IsType<ZstandardCodec>(codec);
-            Assert.Equal("zstandard", codec.Name);
-            Assert.True(output.Length < payload.Length);
-            Assert.Equal(new byte[] { 0x28, 0xB5, 0x2F, 0xFD }, output.ToArray()[..4]); // zstd frame magic
-            Assert.Equal(payload, codec.Decompress(output.ToArray()));
+            codec.Should().BeOfType<ZstandardCodec>();
+            codec.Name.Should().Be("zstandard");
+            (output.Length < payload.Length).Should().BeTrue();
+            output.ToArray()[..4].Should().Equal(new byte[] { 0x28, 0xB5, 0x2F, 0xFD }); // zstd frame magic
+            codec.Decompress(output.ToArray()).Should().Equal(payload);
         }
 
-        [Fact]
+        [Test]
         public void Crc32_KnownVector_MatchesIeee()
         {
             // Standard CRC-32 check value for "123456789"
-            Assert.Equal(0xCBF43926u, Crc32.Get(Encoding.ASCII.GetBytes("123456789")));
+            Crc32.Get(Encoding.ASCII.GetBytes("123456789")).Should().Be(0xCBF43926u);
         }
 
-        [Fact]
+        [Test]
         public void Snappy_Compress_AppendsBigEndianCrcOfUncompressedData()
         {
             //Arrange
@@ -67,8 +68,8 @@ namespace AvroConvertUnitTests.FileHeader
 
             //Assert
             var trailer = compressed.AsSpan(compressed.Length - 4);
-            Assert.Equal(Crc32.Get(payload), BinaryPrimitives.ReadUInt32BigEndian(trailer));
-            Assert.Equal(payload, codec.Decompress(compressed));
+            BinaryPrimitives.ReadUInt32BigEndian(trailer).Should().Be(Crc32.Get(payload));
+            codec.Decompress(compressed).Should().Equal(payload);
         }
     }
 }

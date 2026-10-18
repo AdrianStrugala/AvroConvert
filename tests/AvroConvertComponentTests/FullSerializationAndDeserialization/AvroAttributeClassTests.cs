@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using AutoFixture;
-using FluentAssertions;
+using AwesomeAssertions;
 using SolTechnology.Avro;
-using Xunit;
+using NUnit.Framework;
+using System.Runtime.Serialization;
 
 namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 {
@@ -13,9 +14,8 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
     {
         private readonly Fixture _fixture = new();
 
-        [Theory]
-        [MemberData(nameof(TestEngine.CoreUsingSchema), MemberType = typeof(TestEngine))]
-        public void Attribute_class_used_for_deserialization_overrides_property_names(Func<object, Type, string, string, dynamic> engine)
+        [Test]
+        public void Attribute_class_used_for_deserialization_overrides_property_names([ValueSource(typeof(Formats), nameof(Formats.Evolution))] Format format)
         {
             //Arrange
             User toSerialize = _fixture.Create<User>();
@@ -24,19 +24,18 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             //Act
             var writeSchema = AvroConvert.GenerateSchema(typeof(User));
             var readSchema = AvroConvert.GenerateSchema(typeof(AttributeClass));
-            var deserialized = (AttributeClass)engine.Invoke(toSerialize, typeof(AttributeClass), writeSchema, readSchema);
+            var deserialized = RoundTrip.Evolve<AttributeClass>(toSerialize, format, writeSchema, readSchema);
 
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(deserialized.NullableIntProperty, toSerialize.favorite_number);
-            Assert.Equal(deserialized.NullableStringProperty, toSerialize.name);
-            Assert.Equal(deserialized.AndAnotherString, toSerialize.favorite_color);
+            deserialized.Should().NotBeNull();
+            toSerialize.favorite_number.Should().Be(deserialized.NullableIntProperty);
+            toSerialize.name.Should().Be(deserialized.NullableStringProperty);
+            toSerialize.favorite_color.Should().Be(deserialized.AndAnotherString);
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.CoreUsingSchema), MemberType = typeof(TestEngine))]
-        public void Attribute_class_used_for_deserialization_overrides_fields_names(Func<object, Type, string, string, dynamic> engine)
+        [Test]
+        public void Attribute_class_used_for_deserialization_overrides_fields_names([ValueSource(typeof(Formats), nameof(Formats.Evolution))] Format format)
         {
             //Arrange
             User toSerialize = _fixture.Create<User>();
@@ -45,35 +44,33 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             //Act
             var writeSchema = AvroConvert.GenerateSchema(typeof(User));
             var readSchema = AvroConvert.GenerateSchema(typeof(AttributeClassWithoutGetters));
-            var deserialized = engine.Invoke(toSerialize, typeof(AttributeClassWithoutGetters), writeSchema, readSchema);
+            var deserialized = RoundTrip.Evolve<AttributeClassWithoutGetters>(toSerialize, format, writeSchema, readSchema);
 
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(deserialized.NullableIntProperty, toSerialize.favorite_number);
-            Assert.Equal(deserialized.StringProperty, toSerialize.name);
-            Assert.Equal(deserialized.AndAnotherString, toSerialize.favorite_color);
+            deserialized.Should().NotBeNull();
+            toSerialize.favorite_number.Should().Be(deserialized.NullableIntProperty);
+            toSerialize.name.Should().Be(deserialized.StringProperty);
+            toSerialize.favorite_color.Should().Be(deserialized.AndAnotherString);
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Struct_containing_property(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Struct_containing_property([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             ComplexStruct toSerialize = new ComplexStruct(_fixture.Create<List<int>>());
 
 
             //Act
-            var deserialized = (ComplexStruct)engine.Invoke(toSerialize, typeof(ComplexStruct));
+            var deserialized = RoundTrip.Run<ComplexStruct>(toSerialize, format);
 
 
             //Assert
             deserialized.Should().BeEquivalentTo(toSerialize, opt => opt.ComparingByMembers<ComplexStruct>());
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Default_values_are_replacing_nulls(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Default_values_are_replacing_nulls([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             DefaultValueClass defaultValueClass = new DefaultValueClass();
@@ -82,58 +79,59 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             defaultValueClass.andLongSmallDefaultedProperty = null;
 
             //Act
-            var deserialized = engine.Invoke(defaultValueClass, typeof(DefaultValueClass));
+            var deserialized = RoundTrip.Run<DefaultValueClass>(defaultValueClass, format);
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal("Let's go", deserialized.justSomeProperty);
-            Assert.Equal(9200000000000000007, deserialized.andLongBigDefaultedProperty);
-            Assert.Equal(100, deserialized.andLongSmallDefaultedProperty);
-            Assert.Null(deserialized.andNullProperty);
+            deserialized.Should().NotBeNull();
+            deserialized.justSomeProperty.Should().Be("Let's go");
+            deserialized.andLongBigDefaultedProperty.Should().Be(9200000000000000007);
+            deserialized.andLongSmallDefaultedProperty.Should().Be(100);
+            deserialized.andNullProperty.Should().BeNull();
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Properties_marked_as_ignored_are_not_serialized(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Properties_marked_as_ignored_are_not_serialized([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             AttributeClass toSerialize = _fixture.Create<AttributeClass>();
 
             //Act
-            var deserialized = engine.Invoke(toSerialize, typeof(AttributeClass));
+            var deserialized = RoundTrip.Run<AttributeClass>(toSerialize, format);
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Null(deserialized.IgnoredProperty);
+            deserialized.Should().NotBeNull();
+            deserialized.IgnoredProperty.Should().BeNull();
         }
 
-        [Fact(Skip = "Scenario not supported")]
-        public void Component_PrivatePropertyIsMarkedAsDataMember_ItIsSerialized()
+        [DataContract]
+        public class ClassWithPrivateDataMembers
         {
-            //Arrange
-            long expectedValue = 2137;
+            [DataMember] public string Name { get; set; }
+            [DataMember] private long privateProperty { get; set; }
+            [DataMember] private int _privateField;
 
-            AttributeClass toSerialize = _fixture.Create<AttributeClass>();
-            typeof(AttributeClass)
-                .GetFields(BindingFlags.NonPublic | BindingFlags.Instance).FirstOrDefault(f => f.Name.Contains("privateProperty"))?
-                .SetValue(toSerialize, expectedValue);
+            public long ExposedProperty { get => privateProperty; set => privateProperty = value; }
+            public int ExposedField { get => _privateField; set => _privateField = value; }
+        }
+
+        [Test]
+        public void Component_PrivateMembersMarkedAsDataMember_AreSerialized([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
+        {
+            //Arrange (issue #51)
+            var toSerialize = new ClassWithPrivateDataMembers { Name = "x", ExposedProperty = 2137, ExposedField = 7 };
 
 
             //Act
-            var result = AvroConvert.Serialize(toSerialize);
-
-            var deserialized = AvroConvert.Deserialize<AttributeClass>(result);
+            var deserialized = RoundTrip.Run<ClassWithPrivateDataMembers>(toSerialize, format);
 
 
             //Assert
-            Assert.NotNull(result);
-            Assert.NotNull(deserialized);
-
-            var resultValue = typeof(AttributeClass)
-                .GetFields(BindingFlags.NonPublic | BindingFlags.Instance).FirstOrDefault(f => f.Name.Contains("privateProperty"))?
-                .GetValue(deserialized);
-
-            Assert.Equal(expectedValue, resultValue);
+            deserialized.Name.Should().Be("x");
+            deserialized.ExposedProperty.Should().Be(2137);
+            deserialized.ExposedField.Should().Be(7);
+            AvroConvert.GenerateSchema(typeof(ClassWithPrivateDataMembers), includeOnlyDataContractMembers: true)
+                .Should().Contain(@"{""name"":""_privateField"",""type"":""int""}")
+                .And.Contain(@"{""name"":""privateProperty"",""type"":""long""}");
         }
     }
 }

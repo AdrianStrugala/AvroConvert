@@ -1,11 +1,12 @@
-﻿using SolTechnology.Avro.Policies;
-using Xunit;
+﻿using AwesomeAssertions;
+using SolTechnology.Avro.Policies;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.Policies;
 
 public class JavaAvroNamingPolicyTests
 {
-    [Fact]
+    [Test]
     public void Policy_Type_GetsValidName()
     {
         //Arrange
@@ -15,11 +16,11 @@ public class JavaAvroNamingPolicyTests
         var info = policy.GetTypeName(typeof(DifferentCaseBaseTestClass));
 
         //Assert
-        Assert.Equal(nameof(DifferentCaseBaseTestClass), info.Name);
-        Assert.Equal("com.company.product", info.Namespace);
+        info.Name.Should().Be(nameof(DifferentCaseBaseTestClass));
+        info.Namespace.Should().Be("com.company.product");
     }
 
-    [Fact]
+    [Test]
     public void Policy_TypeMember_GetsValidName()
     { 
         //Arrange
@@ -30,16 +31,15 @@ public class JavaAvroNamingPolicyTests
         var name = policy.GetMemberName(member);
 
         //Assert
-        Assert.Equal("objectProperty", name);
+        name.Should().Be("objectProperty");
     }
 
-    [Theory]
-    [InlineData(nameof(EnumWithDifferentNames.CombinedOption), "COMBINED_OPTION")]
-    [InlineData(nameof(EnumWithDifferentNames.None), "NONE")]
-    [InlineData(nameof(EnumWithDifferentNames.Option1), "OPTION_1")]
-    [InlineData(nameof(EnumWithDifferentNames.Option23), "OPTION_23")]
-    [InlineData(nameof(EnumWithDifferentNames.Option1WithSuffix), "OPTION_1_WITH_SUFFIX")]
-    [InlineData(nameof(EnumWithDifferentNames.Option23WithSuffix), "OPTION_23_WITH_SUFFIX")]
+    [TestCase(nameof(EnumWithDifferentNames.CombinedOption), "COMBINED_OPTION")]
+    [TestCase(nameof(EnumWithDifferentNames.None), "NONE")]
+    [TestCase(nameof(EnumWithDifferentNames.Option1), "OPTION_1")]
+    [TestCase(nameof(EnumWithDifferentNames.Option23), "OPTION_23")]
+    [TestCase(nameof(EnumWithDifferentNames.Option1WithSuffix), "OPTION_1_WITH_SUFFIX")]
+    [TestCase(nameof(EnumWithDifferentNames.Option23WithSuffix), "OPTION_23_WITH_SUFFIX")]
     public void Policy_EnumMember_GetsValidName(string symbol, string expected)
     {
         //Arrange
@@ -50,6 +50,6 @@ public class JavaAvroNamingPolicyTests
         var name = policy.GetMemberName(member);
 
         //Assert
-        Assert.Equal(expected, name);
+        name.Should().Be(expected);
     }
 }

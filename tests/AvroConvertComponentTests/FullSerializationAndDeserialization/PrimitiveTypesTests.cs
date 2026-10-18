@@ -4,8 +4,8 @@ using System.Globalization;
 using System.Linq;
 using AutoFixture;
 using AutoFixture.Kernel;
-using FluentAssertions;
-using Xunit;
+using AwesomeAssertions;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 {
@@ -13,66 +13,58 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
     {
         private readonly Fixture _fixture = new();
 
-        public static IEnumerable<object[]> AllPrimitivesCombinations
+        public static IEnumerable<Type> PrimitiveTypes => new[]
         {
-            get
-            {
-                foreach (var c in TestEngine.All().ToList())
-                {
-                    yield return new[] { typeof(short), c.FirstOrDefault() };
-                    yield return new[] { typeof(short?), c.FirstOrDefault() };
-                    yield return new[] { typeof(uint), c.FirstOrDefault() };
-                    yield return new[] { typeof(ushort), c.FirstOrDefault() };
-                    yield return new[] { typeof(int), c.FirstOrDefault() };
-                    yield return new[] { typeof(int?), c.FirstOrDefault() };
-                    yield return new[] { typeof(long), c.FirstOrDefault() };
-                    yield return new[] { typeof(long?), c.FirstOrDefault() };
-                    yield return new[] { typeof(Guid), c.FirstOrDefault() };
-                    yield return new[] { typeof(Guid?), c.FirstOrDefault() };
-                    yield return new[] { typeof(string), c.FirstOrDefault() };
-                    yield return new[] { typeof(ulong), c.FirstOrDefault() };
-                    yield return new[] { typeof(ulong?), c.FirstOrDefault() };
-                    yield return new[] { typeof(char), c.FirstOrDefault() };
-                    yield return new[] { typeof(char?), c.FirstOrDefault() };
-                    yield return new[] { typeof(byte), c.FirstOrDefault() };
-                    yield return new[] { typeof(byte?), c.FirstOrDefault() };
-                    yield return new[] { typeof(sbyte), c.FirstOrDefault() };
-                    yield return new[] { typeof(sbyte?), c.FirstOrDefault() };
-                    yield return new[] { typeof(bool), c.FirstOrDefault() };
-                    yield return new[] { typeof(bool?), c.FirstOrDefault() };
-                    yield return new[] { typeof(float), c.FirstOrDefault() };
-                    yield return new[] { typeof(float?), c.FirstOrDefault() };
-                    yield return new[] { typeof(double), c.FirstOrDefault() };
-                    yield return new[] { typeof(double?), c.FirstOrDefault() };
-                    yield return new[] { typeof(Uri), c.FirstOrDefault() };
-                    yield return new[] { typeof(byte[]), c.FirstOrDefault() };
-                    yield return new[] { typeof(decimal), c.FirstOrDefault() };
-                    yield return new[] { typeof(decimal?), c.FirstOrDefault() };
-                }
-            }
-        }
+            typeof(short),
+            typeof(short?),
+            typeof(uint),
+            typeof(ushort),
+            typeof(int),
+            typeof(int?),
+            typeof(long),
+            typeof(long?),
+            typeof(Guid),
+            typeof(Guid?),
+            typeof(string),
+            typeof(ulong),
+            typeof(ulong?),
+            typeof(char),
+            typeof(char?),
+            typeof(byte),
+            typeof(byte?),
+            typeof(sbyte),
+            typeof(sbyte?),
+            typeof(bool),
+            typeof(bool?),
+            typeof(float),
+            typeof(float?),
+            typeof(double),
+            typeof(double?),
+            typeof(Uri),
+            typeof(byte[]),
+            typeof(decimal),
+            typeof(decimal?)
+        };
 
-        [Theory]
-        [MemberData(nameof(AllPrimitivesCombinations))]
-        public void Primitives(Type type, Func<object, Type, dynamic> engine)
+        [Test]
+        public void Primitives([ValueSource(nameof(PrimitiveTypes))] Type type, [ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             var underTest = new SpecimenContext(_fixture).Resolve(type);
 
 
             //Act
-            var deserialized = engine.Invoke(underTest, type);
+            var deserialized = RoundTrip.Run(underTest, type, format);
 
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(underTest, deserialized);
+            deserialized.Should().NotBeNull();
+            deserialized.Should().BeEquivalentTo(underTest);
         }
 
 
-        [Theory]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Object_with_null_properties(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Object_with_null_properties([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             User user = new User();
@@ -81,196 +73,60 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             user.favorite_number = null;
 
             //Act
-            var deserialized = (User)engine.Invoke(user, typeof(User));
+            var deserialized = RoundTrip.Run<User>(user, format);
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(user.name, deserialized.name);
+            deserialized.Should().NotBeNull();
+            deserialized.name.Should().Be(user.name);
             deserialized.favorite_color.Should().BeNullOrEmpty();
-            Assert.Equal(user.favorite_number, deserialized.favorite_number);
+            deserialized.favorite_number.Should().Be(user.favorite_number);
         }
 
-        public static IEnumerable<object[]> AllIntCombinations
+        [Test]
+        public void Ints([Values(int.MaxValue, int.MinValue, 0, 21, -37)] int testObject, [ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
-            get
-            {
-                foreach (var c in TestEngine.All().ToList())
-                {
-                    yield return new[] { int.MaxValue, c.FirstOrDefault() };
-                    yield return new[] { int.MinValue, c.FirstOrDefault() };
-                    yield return new[] { 0, c.FirstOrDefault() };
-                    yield return new[] { 21, c.FirstOrDefault() };
-                    yield return new[] { -37, c.FirstOrDefault() };
-                }
-            }
+            RoundTrip.Run<int>(testObject, format).Should().Be(testObject);
         }
 
-        [Theory]
-        [MemberData(nameof(AllIntCombinations))]
-        public void Ints(int testObject, Func<object, Type, dynamic> engine)
+        [Test]
+        public void Floats([Values(float.NaN, float.NegativeInfinity, float.MinValue, 0f, float.MaxValue, float.PositiveInfinity)] float testObject,
+            [ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
-            //Arrange
-
-
-            //Act
-            var deserialized = engine.Invoke(testObject, typeof(int));
-
-            //Assert
-            Assert.Equal(testObject, deserialized);
+            RoundTrip.Run<float>(testObject, format).Should().Be(testObject);
         }
 
-        public static IEnumerable<object[]> AllFloatCombinations
+        [Test]
+        public void Doubles([Values(double.NaN, double.NegativeInfinity, double.MinValue, 0d, double.MaxValue, double.PositiveInfinity, 5d)] double testObject,
+            [ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
-            get
-            {
-                foreach (var c in TestEngine.All().ToList())
-                {
-                    yield return new[] { float.NaN, c.FirstOrDefault() };
-                    yield return new[] { float.NegativeInfinity, c.FirstOrDefault() };
-                    yield return new[] { float.MinValue, c.FirstOrDefault() };
-                    yield return new[] { 0.0, c.FirstOrDefault() };
-                    yield return new[] { float.MaxValue, c.FirstOrDefault() };
-                    yield return new[] { float.PositiveInfinity, c.FirstOrDefault() };
-                }
-            }
+            RoundTrip.Run<double>(testObject, format).Should().Be(testObject);
         }
 
-        [Theory]
-        [MemberData(nameof(AllFloatCombinations))]
-        public void Floats(float testObject, Func<object, Type, dynamic> engine)
+        [Test]
+        public void Bools([Values] bool testObject, [ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
-            //Arrange
-
-
-            //Act
-            var deserialized = engine.Invoke(testObject, typeof(float));
-
-            //Assert
-            Assert.Equal(testObject, deserialized);
+            RoundTrip.Run<bool>(testObject, format).Should().Be(testObject);
         }
 
-        public static IEnumerable<object[]> AllDoubleCombinations
+        [Test]
+        public void Strings([Values("", "5", " ", "π", "This is really awesome example of normal string")] string testObject,
+            [ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
-            get
-            {
-                foreach (var c in TestEngine.All().ToList())
-                {
-                    yield return new[] { double.NaN, c.FirstOrDefault() };
-                    yield return new[] { double.NegativeInfinity, c.FirstOrDefault() };
-                    yield return new[] { double.MinValue, c.FirstOrDefault() };
-                    yield return new[] { 0.0, c.FirstOrDefault() };
-                    yield return new[] { double.MaxValue, c.FirstOrDefault() };
-                    yield return new[] { double.PositiveInfinity, c.FirstOrDefault() };
-                    yield return new[] { 0, c.FirstOrDefault() };
-                    yield return new[] { 5, c.FirstOrDefault() };
-                }
-            }
+            var deserialized = RoundTrip.Run<string>(testObject, format);
+
+            deserialized.Should().NotBeNull();
+            deserialized.Should().Be(testObject);
         }
 
-        [Theory]
-        [MemberData(nameof(AllDoubleCombinations))]
-        public void Doubles(double testObject, Func<object, Type, dynamic> engine)
+        [Test]
+        public void Decimals(
+            [Values("21.37", "1234.56", "-100", "100", "24.10", "27.00", "123456789123456789.56", "-123456789123456789.56",
+                "000000000000000001.01", "-000000000000000001.01", "-79228162514264337593543950335", "79228162514264337593543950335")] string test,
+            [ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
-            //Arrange
-
-
-            //Act
-            var deserialized = engine.Invoke(testObject, typeof(double));
-
-            //Assert
-            Assert.Equal(testObject, deserialized);
-        }
-
-
-        public static IEnumerable<object[]> AllBoolCombinations
-        {
-            get
-            {
-                foreach (var c in TestEngine.All().ToList())
-                {
-                    yield return new[] { true, c.FirstOrDefault() };
-                    yield return new[] { false, c.FirstOrDefault() };
-                }
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(AllBoolCombinations))]
-        public void Bools(bool testObject, Func<object, Type, dynamic> engine)
-        {
-            //Arrange
-
-
-            //Act
-            var deserialized = engine.Invoke(testObject, typeof(bool));
-
-            //Assert
-            Assert.Equal(testObject, deserialized);
-        }
-
-        public static IEnumerable<object[]> AllStringCombinations
-        {
-            get
-            {
-                foreach (var c in TestEngine.All().ToList())
-                {
-                    yield return new[] { "", c.FirstOrDefault() };
-                    yield return new[] { "5", c.FirstOrDefault() };
-                    yield return new[] { " ", c.FirstOrDefault() };
-                    yield return new[] { "π", c.FirstOrDefault() };
-                    yield return new[] { "This is really awesome example of normal string", c.FirstOrDefault() };
-                }
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(AllStringCombinations))]
-        public void Strings(string testObject, Func<object, Type, dynamic> engine)
-        {
-            //Arrange
-
-            //Act
-            var deserialized = engine.Invoke(testObject, typeof(string));
-
-            //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(testObject, deserialized);
-        }
-
-        public static IEnumerable<object[]> AllDecimalCombinations
-        {
-            get
-            {
-                foreach (var c in TestEngine.All().ToList())
-                {
-                    yield return new[] { "21.37", c.FirstOrDefault() };
-                    yield return new[] { "1234.56", c.FirstOrDefault() };
-                    yield return new[] { "-100", c.FirstOrDefault() };
-                    yield return new[] { "100", c.FirstOrDefault() };
-                    yield return new[] { "24.10", c.FirstOrDefault() };
-                    yield return new[] { "27.00", c.FirstOrDefault() };
-                    yield return new[] { "123456789123456789.56", c.FirstOrDefault() };
-                    yield return new[] { "-123456789123456789.56", c.FirstOrDefault() };
-                    yield return new[] { "000000000000000001.01", c.FirstOrDefault() };
-                    yield return new[] { "-000000000000000001.01", c.FirstOrDefault() };
-                    yield return new[] { "-79228162514264337593543950335", c.FirstOrDefault() };
-                    yield return new[] { "79228162514264337593543950335", c.FirstOrDefault() };
-                }
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(AllDecimalCombinations))]
-        public void Decimals(string test, Func<object, Type, dynamic> engine)
-        {
-            //Arrange
             var testDecimal = decimal.Parse(test, CultureInfo.InvariantCulture);
 
-            //Act
-            var deserialized = engine.Invoke(testDecimal, typeof(decimal));
-
-            //Assert
-            Assert.Equal(testDecimal, deserialized);
+            RoundTrip.Run<decimal>(testDecimal, format).Should().Be(testDecimal);
         }
     }
 }

@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Runtime.Serialization;
-using FluentAssertions;
+using AwesomeAssertions;
 using SolTechnology.Avro;
 using SolTechnology.Avro.Infrastructure.Attributes;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 {
@@ -24,7 +24,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             public Field<int> Mark { get; set; }
         }
 
-        [Fact]
+        [Test]
         public void Issue159_Generic_types_get_distinct_record_names()
         {
             var schema = AvroConvert.GenerateSchema(typeof(GenericHolder));
@@ -32,9 +32,8 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             schema.Should().Contain("\"name\":\"Field_String\"").And.Contain("\"name\":\"Field_Int32\"");
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.Core), MemberType = typeof(TestEngine))]
-        public void Issue159_Generic_types_round_trip(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Issue159_Generic_types_round_trip([ValueSource(typeof(Formats), nameof(Formats.Core))] Format format)
         {
             var item = new GenericHolder
             {
@@ -42,7 +41,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
                 Mark = new Field<int> { Value = 5, Confidence = 0.4f }
             };
 
-            var result = (GenericHolder)engine.Invoke(item, typeof(GenericHolder));
+            var result = RoundTrip.Run<GenericHolder>(item, format);
 
             result.Should().BeEquivalentTo(item);
         }
@@ -62,7 +61,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             public object UnionField { get; set; }
         }
 
-        [Fact]
+        [Test]
         public void Issue174_Union_of_records_read_into_untyped_object_member()
         {
             var bytes = AvroConvert.Serialize(new TypeWithUnion { UnionField = new UnionRecordB { B = "b" } });
@@ -74,7 +73,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             ((string)dyn.UnionField.B).Should().Be("b");
         }
 
-        [Fact]
+        [Test]
         public void Issue174_AvroUnion_alternatives_win_over_same_named_classes_in_other_namespaces()
         {
             // Registry-style schema: namespace matches neither this test class nor AvroGen.ObjA / AvroGen.ObjB
@@ -96,7 +95,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
         }
 
         // https://github.com/AdrianStrugala/AvroConvert/issues/112
-        [Fact]
+        [Test]
         public void Issue112_ExpandoObject_default_flow()
         {
             dynamic item = new ExpandoObject();
@@ -119,7 +118,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             ((IDictionary<string, object>)expando)["Age"].Should().Be(3);
         }
 
-        [Fact]
+        [Test]
         public void Issue112_ExpandoObject_headless_and_json_flows()
         {
             dynamic item = new ExpandoObject();
@@ -137,7 +136,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             json.Should().Be("{\"Name\":\"n\",\"Age\":3}");
         }
 
-        [Fact]
+        [Test]
         public void Issue112_ExpandoObject_collection_merges_shapes_and_codecs_apply()
         {
             dynamic first = new ExpandoObject();
@@ -161,7 +160,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
         }
 
         // https://github.com/AdrianStrugala/AvroConvert/issues/107
-        [Fact]
+        [Test]
         public void Issue107_Headless_deserialization_to_dynamic_with_explicit_schema()
         {
             var schema = AvroConvert.GenerateSchema(typeof(UnionRecordA));
@@ -177,7 +176,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
         // https://github.com/AdrianStrugala/AvroConvert/issues/26
         public class Multi { public int[,] Grid { get; set; } }
 
-        [Fact]
+        [Test]
         public void Issue26_Multidimensional_array_is_rejected_explicitly()
         {
             Action act = () => AvroConvert.Serialize(new Multi { Grid = new[,] { { 1, 2 }, { 3, 4 } } });

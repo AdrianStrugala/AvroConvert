@@ -1,11 +1,12 @@
+using AwesomeAssertions;
 using SolTechnology.Avro;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 {
     public class ClassesWithMismatchedFieldsTests
     {
-        [Fact]
+        [Test]
         public void Write_schema_with_additional_field_in_array_can_be_read()
         {
             //Arrange
@@ -37,13 +38,13 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             var result = AvroConvert.DeserializeHeadless(serialized, writeSchema, readSchema, typeof(ReadModel)) as ReadModel;
 
             //Assert
-            Assert.NotNull(result);
-            Assert.Equal(2, result.Models.Length);
-            Assert.Equal("string value", result.Models[0].StringValue);
-            Assert.Equal(10, result.Models[0].IntValue);
-            Assert.Equal("string value", result.Models[1].StringValue);
-            Assert.Equal(10, result.Models[1].IntValue);
-            Assert.Equal(456.789m, result.FinalField);
+            result.Should().NotBeNull();
+            result.Models.Length.Should().Be(2);
+            result.Models[0].StringValue.Should().Be("string value");
+            result.Models[0].IntValue.Should().Be(10);
+            result.Models[1].StringValue.Should().Be("string value");
+            result.Models[1].IntValue.Should().Be(10);
+            result.FinalField.Should().Be(456.789m);
         }
 
         public class WriteModel

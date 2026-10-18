@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using AutoFixture;
-using FluentAssertions;
-using Xunit;
+using AwesomeAssertions;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 {
@@ -10,106 +10,100 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
     {
         private readonly Fixture _fixture = new();
 
-        [Theory]
-        [MemberData(nameof(TestEngine.Core), MemberType = typeof(TestEngine))]
-        public void AvroMap(Func<object, Type, dynamic> engine)
+        [Test]
+        public void AvroMap([ValueSource(typeof(Formats), nameof(Formats.Core))] Format format)
         {
             //Arrange
             Dictionary<string, int> dictionary = _fixture.Create<Dictionary<string, int>>();
 
 
             //Act
-            var deserialized = engine.Invoke(dictionary, typeof(Dictionary<string, int>));
+            var deserialized = RoundTrip.Run<Dictionary<string, int>>(dictionary, format);
 
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(dictionary, deserialized);
+            deserialized.Should().NotBeNull();
+            deserialized.Should().BeEquivalentTo(dictionary);
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.Core), MemberType = typeof(TestEngine))]
-        public void Dictionary_with_Uri_key_and_object_value(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Dictionary_with_Uri_key_and_object_value([ValueSource(typeof(Formats), nameof(Formats.Core))] Format format)
         {
             //Arrange
             Dictionary<Uri, BaseTestClass> dictionary = _fixture.Create<Dictionary<Uri, BaseTestClass>>();
 
 
             //Act
-            var deserialized = engine.Invoke(dictionary, typeof(Dictionary<Uri, BaseTestClass>));
+            var deserialized = RoundTrip.Run<Dictionary<Uri, BaseTestClass>>(dictionary, format);
 
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(dictionary, deserialized);
+            deserialized.Should().NotBeNull();
+            deserialized.Should().BeEquivalentTo(dictionary);
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.Core), MemberType = typeof(TestEngine))]
-        public void Dictionary_Int_Key_Int_Value(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Dictionary_Int_Key_Int_Value([ValueSource(typeof(Formats), nameof(Formats.Core))] Format format)
         {
             //Arrange
             Dictionary<int, int> dictionary = _fixture.Create<Dictionary<int, int>>();
 
 
             //Act
-            var deserialized = engine.Invoke(dictionary, typeof(Dictionary<int, int>));
+            var deserialized = RoundTrip.Run<Dictionary<int, int>>(dictionary, format);
 
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(dictionary, deserialized);
+            deserialized.Should().NotBeNull();
+            deserialized.Should().BeEquivalentTo(dictionary);
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.Core), MemberType = typeof(TestEngine))]
-        public void Class_containing_dictionary_and_map(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Class_containing_dictionary_and_map([ValueSource(typeof(Formats), nameof(Formats.Core))] Format format)
         {
             //Arrange
             ExtendedBaseTestClass testClass = _fixture.Create<ExtendedBaseTestClass>();
 
 
             //Act
-            var deserialized = engine.Invoke(testClass, typeof(ExtendedBaseTestClass));
+            var deserialized = RoundTrip.Run<ExtendedBaseTestClass>(testClass, format);
 
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(testClass, deserialized);
+            deserialized.Should().NotBeNull();
+            deserialized.Should().BeEquivalentTo(testClass);
         }
 
-        [Theory]
-        [Trait("Fix", "https://github.com/AdrianStrugala/AvroConvert/issues/152")]
-        [MemberData(nameof(TestEngine.Core), MemberType = typeof(TestEngine))]
-        public void Class_containing_two_dictionaries(Func<object, Type, dynamic> engine)
+        [Test]
+        [Property("Fix", "https://github.com/AdrianStrugala/AvroConvert/issues/152")]
+        public void Class_containing_two_dictionaries([ValueSource(typeof(Formats), nameof(Formats.Core))] Format format)
         {
             //Arrange
             ClassWith2Dictionaries testClass = _fixture.Create<ClassWith2Dictionaries>();
 
 
             //Act
-            var deserialized = (ClassWith2Dictionaries)engine.Invoke(testClass, typeof(ClassWith2Dictionaries));
+            var deserialized = RoundTrip.Run<ClassWith2Dictionaries>(testClass, format);
 
 
             //Assert
-            Assert.NotNull(deserialized);
+            deserialized.Should().NotBeNull();
             deserialized.Should().BeEquivalentTo(testClass);
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.Core), MemberType = typeof(TestEngine))]
-        public void Class_containing_two_maps(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Class_containing_two_maps([ValueSource(typeof(Formats), nameof(Formats.Core))] Format format)
         {
             //Arrange
             ClassWith2Maps testClass = _fixture.Create<ClassWith2Maps>();
 
 
             //Act
-            var deserialized = (ClassWith2Maps)engine.Invoke(testClass, typeof(ClassWith2Maps));
+            var deserialized = RoundTrip.Run<ClassWith2Maps>(testClass, format);
 
 
             //Assert
-            Assert.NotNull(deserialized);
+            deserialized.Should().NotBeNull();
             deserialized.Should().BeEquivalentTo(testClass);
         }
     }

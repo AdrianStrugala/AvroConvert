@@ -1,10 +1,11 @@
-﻿using System;
+﻿using AwesomeAssertions;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoFixture;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 {
@@ -12,9 +13,8 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
     {
         private readonly Fixture _fixture = new();
 
-        [Theory(Skip = "Not supported at the moment")]
-        [MemberData(nameof(TestEngine.All), MemberType = typeof(TestEngine))]
-        public void Class_with_ConcurrentBag(Func<object, Type, dynamic> engine)
+        [Test]
+        public void Class_with_ConcurrentBag([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             ConcurrentBagClass toSerialize = new ConcurrentBagClass
@@ -24,17 +24,16 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
 
             //Act
-            var deserialized = engine.Invoke(toSerialize, typeof(ConcurrentBagClass));
+            var deserialized = RoundTrip.Run<ConcurrentBagClass>(toSerialize, format);
 
 
             //Assert
-            Assert.NotNull(deserialized);
-            Assert.Equal(toSerialize, deserialized);
+            deserialized.Should().NotBeNull();
+            deserialized.Should().BeEquivalentTo(toSerialize);
         }
 
-        [Theory]
-        [MemberData(nameof(TestEngine.DefaultOnly), MemberType = typeof(TestEngine))]
-        public void MultiThread_serialization(Func<object, Type, dynamic> engine)
+        [Test]
+        public void MultiThread_serialization([ValueSource(typeof(Formats), nameof(Formats.ContainerOnly))] Format format)
         {
             //Arrange
             VeryComplexClass testClass = _fixture.Create<VeryComplexClass>();
@@ -49,10 +48,10 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
                 {
                     for (var iMessagesCntr = 0; iMessagesCntr < 100; iMessagesCntr++)
                     {
-                        var deserialized = engine.Invoke(testClass, typeof(VeryComplexClass));
+                        var deserialized = RoundTrip.Run<VeryComplexClass>(testClass, format);
 
                         //Assert
-                        Assert.Equal(testClass, deserialized);
+                        deserialized.Should().BeEquivalentTo(testClass);
 
                         Thread.Sleep(counter);
                     }

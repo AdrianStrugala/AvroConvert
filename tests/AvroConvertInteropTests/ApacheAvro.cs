@@ -5,7 +5,7 @@ using Avro.File.Snappy;
 using Avro.File.Zstandard;
 using Avro.Generic;
 using Avro.IO;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertInteropTests;
 
@@ -40,7 +40,7 @@ internal static class ApacheAvro
         }
         catch (DllNotFoundException e)
         {
-            Skip.If(true, $"Apache.Avro codec '{name}' is unavailable: {e.Message.Split('.')[0]}");
+            Assert.Ignore($"Apache.Avro codec '{name}' is unavailable: {e.Message.Split('.')[0]}");
         }
     }
 

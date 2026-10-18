@@ -1,8 +1,9 @@
-﻿using System;
+﻿using AwesomeAssertions;
+using System;
 using System.IO;
 using Newtonsoft.Json;
 using SolTechnology.Avro;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.Avro2Json
 {
@@ -10,7 +11,7 @@ namespace AvroConvertComponentTests.Avro2Json
     {
         private readonly byte[] _headerOnlyAvroBytes = File.ReadAllBytes("header_only.avro");
 
-        [Fact]
+        [Test]
         public void Avro2Json_ConvertNull_ProducedDesiredJson()
         {
             //Arrange
@@ -26,10 +27,10 @@ namespace AvroConvertComponentTests.Avro2Json
 
 
             //Assert
-            Assert.Equal(expectedJson, resultJson);
+            resultJson.Should().Be(expectedJson);
         }
 
-        [Fact]
+        [Test]
         public void Avro2Json_ConvertFileContainingHeaderOnly_NoExceptionIsThrown()
         {
             //Arrange
@@ -40,7 +41,7 @@ namespace AvroConvertComponentTests.Avro2Json
 
 
             //Assert
-            Assert.Equal(@"""""", resultJson);
+            resultJson.Should().Be(@"""""");
         }
         
     }

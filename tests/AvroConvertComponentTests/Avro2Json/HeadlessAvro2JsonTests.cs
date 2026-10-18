@@ -1,15 +1,16 @@
-﻿using Newtonsoft.Json;
+﻿using AwesomeAssertions;
+using Newtonsoft.Json;
 using SolTechnology.Avro;
 using System.Buffers;
 using System.IO;
 using System.Text;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.Avro2Json
 {
     public class HeadlessAvro2JsonTests
     {
-        [Fact]
+        [Test]
         public void Avro2Json_ConvertComplexType_ProducedDesiredJson()
         {
             //Arrange
@@ -29,10 +30,10 @@ namespace AvroConvertComponentTests.Avro2Json
 
 
             //Assert
-            Assert.Equal(expectedJson, resultJson);
+            resultJson.Should().Be(expectedJson);
         }
 
-        [Fact]
+        [Test]
         public void Avro2Json_ConvertString_ProducedDesiredJson()
         {
             //Arrange
@@ -49,10 +50,10 @@ namespace AvroConvertComponentTests.Avro2Json
 
 
             //Assert
-            Assert.Equal(expectedJson, resultJson);
+            resultJson.Should().Be(expectedJson);
         }
 
-        [Fact]
+        [Test]
         public void Avro2Json_ConvertInt_ProducedDesiredJson()
         {
             //Arrange
@@ -69,10 +70,10 @@ namespace AvroConvertComponentTests.Avro2Json
 
 
             //Assert
-            Assert.Equal(expectedJson, resultJson);
+            resultJson.Should().Be(expectedJson);
         }
 
-        [Fact]
+        [Test]
         public void Avro2Json_ConvertNull_ProducedDesiredJson()
         {
             //Arrange
@@ -89,10 +90,10 @@ namespace AvroConvertComponentTests.Avro2Json
 
 
             //Assert
-            Assert.Equal(expectedJson, resultJson);
+            resultJson.Should().Be(expectedJson);
         }
 
-        [Fact]
+        [Test]
         public void Avro2Json_ConvertDouble_ProducedDesiredJson()
         {
             //Arrange
@@ -109,10 +110,10 @@ namespace AvroConvertComponentTests.Avro2Json
 
 
             //Assert
-            Assert.Equal(expectedJson, resultJson);
+            resultJson.Should().Be(expectedJson);
         }
 
-        [Fact]
+        [Test]
         public void Avro2Json_ConvertArray_ProducedDesiredJson()
         {
             //Arrange
@@ -129,10 +130,10 @@ namespace AvroConvertComponentTests.Avro2Json
 
 
             //Assert
-            Assert.Equal(expectedJson, resultJson);
+            resultJson.Should().Be(expectedJson);
         }
 
-        [Fact]
+        [Test]
         public void Avro2Json_ConvertLongString_ProducedDesiredJson()
         {
             //Arrange
@@ -161,7 +162,7 @@ namespace AvroConvertComponentTests.Avro2Json
 
 
             //Assert
-            Assert.Equal(expectedJson, resultJson);
+            resultJson.Should().Be(expectedJson);
         }
     }
 }

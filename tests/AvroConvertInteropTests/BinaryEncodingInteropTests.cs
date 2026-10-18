@@ -1,12 +1,13 @@
+using AwesomeAssertions;
 using Avro;
 using SolTechnology.Avro;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertInteropTests;
 
 public class BinaryEncodingInteropTests
 {
-    [Fact]
+    [Test]
     public void AvroConvertHeadless_ApacheBinaryDecoder()
     {
         var expected = InteropRecord.Sample();
@@ -19,7 +20,7 @@ public class BinaryEncodingInteropTests
         InteropAssert.Equivalent(expected, record);
     }
 
-    [Fact]
+    [Test]
     public void ApacheBinaryEncoder_AvroConvertHeadless()
     {
         var expected = InteropRecord.Sample();
@@ -35,47 +36,45 @@ public class BinaryEncodingInteropTests
 
 public class SchemaInteropTests
 {
-    [Theory]
-    [InlineData(typeof(InteropRecord))]
-    [InlineData(typeof(InteropChild))]
-    [InlineData(typeof(List<InteropRecord>))]
-    [InlineData(typeof(Dictionary<string, InteropChild>))]
-    [InlineData(typeof(InteropColor))]
-    [InlineData(typeof(decimal))]
-    [InlineData(typeof(Guid))]
-    [InlineData(typeof(DateTime))]
-    [InlineData(typeof(DateOnly))]
-    [InlineData(typeof(TimeOnly))]
-    [InlineData(typeof(TimeSpan))]
-    [InlineData(typeof(int?))]
+    [TestCase(typeof(InteropRecord))]
+    [TestCase(typeof(InteropChild))]
+    [TestCase(typeof(List<InteropRecord>))]
+    [TestCase(typeof(Dictionary<string, InteropChild>))]
+    [TestCase(typeof(InteropColor))]
+    [TestCase(typeof(decimal))]
+    [TestCase(typeof(Guid))]
+    [TestCase(typeof(DateTime))]
+    [TestCase(typeof(DateOnly))]
+    [TestCase(typeof(TimeOnly))]
+    [TestCase(typeof(TimeSpan))]
+    [TestCase(typeof(int?))]
     public void GeneratedSchema_IsAcceptedByApacheParser(Type type)
     {
         var json = AvroConvert.GenerateSchema(type);
 
         var schema = Schema.Parse(json);
 
-        Assert.NotNull(schema);
+        schema.Should().NotBeNull();
     }
 
-    [Fact]
+    [Test]
     public void GeneratedSchema_TimeOnly_IsTimeMicros()
     {
         var schema = Schema.Parse(AvroConvert.GenerateSchema(typeof(TimeOnly)));
 
-        var logical = Assert.IsType<LogicalSchema>(schema);
-        Assert.Equal("time-micros", logical.LogicalTypeName);
-        Assert.Equal(Schema.Type.Long, logical.BaseSchema.Tag);
+        var logical = schema.Should().BeOfType<LogicalSchema>().Subject;
+        logical.LogicalTypeName.Should().Be("time-micros");
+        logical.BaseSchema.Tag.Should().Be(Schema.Type.Long);
     }
 
-    [Theory]
-    [InlineData(@"{""type"":""string"",""logicalType"":""datetime""}")]
-    [InlineData(@"{""type"":""record"",""name"":""R"",""fields"":[{""name"":""f"",""type"":{""type"":""long"",""logicalType"":""timestamp-nanos""}}]}")]
+    [TestCase(@"{""type"":""string"",""logicalType"":""datetime""}")]
+    [TestCase(@"{""type"":""record"",""name"":""R"",""fields"":[{""name"":""f"",""type"":{""type"":""long"",""logicalType"":""timestamp-nanos""}}]}")]
     public void UnknownLogicalType_IsAcceptedByBothImplementations(string json)
     {
-        Assert.NotNull(Schema.Parse(json));
+        Schema.Parse(json).Should().NotBeNull();
 
         var model = AvroConvert.GenerateModel(json);
 
-        Assert.NotNull(model);
+        model.Should().NotBeNull();
     }
 }

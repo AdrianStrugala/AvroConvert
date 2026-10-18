@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using AwesomeAssertions;
+using System.Collections.Generic;
 using SolTechnology.Avro;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.FilesDeserialization.Snappy.Twitter
 {
@@ -15,7 +16,7 @@ namespace AvroConvertComponentTests.FilesDeserialization.Snappy.Twitter
             _snappy = System.IO.File.ReadAllBytes("FilesDeserialization/Snappy/Twitter/twitter.snappy.avro");
         }
 
-        [Fact]
+        [Test]
         public void Deserialize_NotCompressed_DataIsDeserialized()
         {
             //Arrange
@@ -39,10 +40,10 @@ namespace AvroConvertComponentTests.FilesDeserialization.Snappy.Twitter
 
 
             //Assert
-            Assert.Equal(expected, result);
+            result.Should().BeEquivalentTo(expected, o => o.WithStrictOrdering());
         }
 
-        [Fact]
+        [Test]
         public void Deserialize_SnappyCodedFile_DataIsDeserialized()
         {
             //Arrange
@@ -67,7 +68,7 @@ namespace AvroConvertComponentTests.FilesDeserialization.Snappy.Twitter
 
 
             //Assert
-            Assert.Equal(expected, result);
+            result.Should().BeEquivalentTo(expected, o => o.WithStrictOrdering());
         }
     }
 }

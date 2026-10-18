@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using AwesomeAssertions;
+using System.Collections.Generic;
 using System.IO;
 using SolTechnology.Avro;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertComponentTests.FilesDeserialization.Default
 {
@@ -10,7 +11,7 @@ namespace AvroConvertComponentTests.FilesDeserialization.Default
         private readonly byte[] _azureEventHubBytes = File.ReadAllBytes("FilesDeserialization/Default/AzureEventHub.avro");
 
 
-        [Fact]
+        [Test]
         public void File_containing_map_with_multiple_values_is_deserialized()
         {
             //Arrange
@@ -73,7 +74,7 @@ namespace AvroConvertComponentTests.FilesDeserialization.Default
 
 
             //Assert
-            Assert.NotNull(result);
+            result.Should().NotBeNull();
         }
 
 

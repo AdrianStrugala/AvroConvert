@@ -1,13 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using AwesomeAssertions;
+using System.Collections.Generic;
 using SolTechnology.Avro;
 using SolTechnology.Avro.Infrastructure.Exceptions;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertUnitTests
 {
     public class Exceptions
     {
-        [Fact]
+        [Test]
         public void Deserialize_RecordInsteadOfArray_MeaningfulExceptionIsThrown()
         {
             //Arrange
@@ -16,10 +17,10 @@ namespace AvroConvertUnitTests
             //Act
             var result = AvroConvert.Serialize(testObject);
 
-            var exception = Record.Exception(() => AvroConvert.Deserialize<int>(result));
+            var act = () => AvroConvert.Deserialize<int>(result);
 
             //Assert
-            Assert.IsType<AvroTypeMismatchException>(exception);
+            act.Should().ThrowExactly<AvroTypeMismatchException>();
         }
     }
 }

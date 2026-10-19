@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Linq;
 using System.Runtime.Serialization;
 using AwesomeAssertions;
 using SolTechnology.Avro;
 using SolTechnology.Avro.Infrastructure.Attributes;
+using SolTechnology.Avro.Infrastructure.Exceptions;
 using NUnit.Framework;
 
 namespace AvroConvertComponentTests.FullSerializationAndDeserialization
@@ -182,6 +184,58 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             Action act = () => AvroConvert.Serialize(new Multi { Grid = new[,] { { 1, 2 }, { 3, 4 } } });
 
             act.Should().Throw<SerializationException>().WithMessage("*Multidimensional array*jagged*");
+        }
+
+        // https://github.com/AdrianStrugala/AvroConvert/issues/69
+        public class Row
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+        }
+
+        private const string RowSchema =
+            "{\"type\":\"record\",\"name\":\"Row\",\"fields\":[{\"name\":\"Id\",\"type\":\"int\"},{\"name\":\"Name\",\"type\":\"string\"}]}";
+
+        [Test]
+        public void Issue69_Headless_rows_written_one_after_another_are_read_into_a_list()
+        {
+            var rows = new[] { new Row { Id = 1, Name = "a" }, new Row { Id = 2, Name = "b" }, new Row { Id = 3, Name = "c" } };
+            var bytes = rows.SelectMany(r => AvroConvert.SerializeHeadless(r, RowSchema)).ToArray();
+
+            AvroConvert.DeserializeHeadless<List<Row>>(bytes, RowSchema).Should().BeEquivalentTo(rows);
+            AvroConvert.DeserializeHeadless<Row[]>(bytes.AsSpan(), RowSchema).Should().BeEquivalentTo(rows);
+            AvroConvert.DeserializeHeadless<List<Row>>(bytes, AvroSchema.Parse(RowSchema)).Should().BeEquivalentTo(rows);
+        }
+
+        [Test]
+        public void Issue69_Single_headless_row_and_empty_data()
+        {
+            var row = new Row { Id = 1, Name = "a" };
+            var bytes = AvroConvert.SerializeHeadless(row, RowSchema);
+
+            AvroConvert.DeserializeHeadless<Row>(bytes, RowSchema).Should().BeEquivalentTo(row);
+            AvroConvert.DeserializeHeadless<List<Row>>(bytes, RowSchema).Should().BeEquivalentTo(new[] { row });
+            AvroConvert.DeserializeHeadless<List<Row>>(Array.Empty<byte>(), RowSchema).Should().BeEmpty();
+        }
+
+        [Test]
+        public void Issue69_Explicit_row_count_and_array_writer_schema_still_work()
+        {
+            var rows = new List<Row> { new() { Id = 1, Name = "a" }, new() { Id = 2, Name = "b" } };
+            var concatenated = rows.SelectMany(r => AvroConvert.SerializeHeadless(r, RowSchema)).ToArray();
+
+            AvroConvert.DeserializeHeadless<List<Row>>(concatenated, RowSchema, 1).Should().BeEquivalentTo(rows.Take(1));
+            AvroConvert.DeserializeHeadless<List<Row>>(AvroConvert.SerializeHeadless(rows, typeof(List<Row>))).Should().BeEquivalentTo(rows);
+        }
+
+        [Test]
+        public void Issue69_Rows_that_take_no_bytes_cannot_be_counted()
+        {
+            const string emptyRecord = "{\"type\":\"record\",\"name\":\"Empty\",\"fields\":[]}";
+
+            Action act = () => AvroConvert.DeserializeHeadless<List<object>>(new byte[] { 1, 2 }, emptyRecord);
+
+            act.Should().Throw<InvalidAvroObjectException>().WithMessage("*numberOfRows*");
         }
     }
 }

@@ -72,6 +72,40 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             }
         }
 
+        /// <summary>
+        /// Headless data: a collection <typeparamref name="T"/> written item by item (no count, e.g. BigQuery rows) is read until
+        /// the end of the data; anything else is a single value.
+        /// </summary>
+        internal T ResolveToEnd<T>(Reader reader)
+        {
+            try
+            {
+                var plan = GetPlan<T>();
+                if (plan.Blocks == null || _writerSchema.Type == AvroType.Array)
+                {
+                    return plan.One(reader);
+                }
+
+                var accumulator = plan.Blocks.NewAccumulator();
+                while (!reader.IsReadToEnd())
+                {
+                    var position = reader.Position;
+                    plan.Blocks.Append(reader, 1, accumulator);
+                    if (reader.Position == position)
+                    {
+                        throw new InvalidAvroObjectException(
+                            $"An item of schema [{_writerSchema.Name}] takes no bytes, so the number of rows cannot be read from the data; pass numberOfRows.");
+                    }
+                }
+
+                return plan.Blocks.Finish(accumulator);
+            }
+            catch (Exception e) when (e is not InvalidAvroObjectException)
+            {
+                throw WrapFailure<T>(e);
+            }
+        }
+
         internal AvroTypeMismatchException WrapFailure<T>(Exception e) =>
             new($"Unable to deserialize [{_writerSchema.Name}] of schema [{_writerSchema.Type}] to the target type [{typeof(T)}]. Inner exception:", e);
     }

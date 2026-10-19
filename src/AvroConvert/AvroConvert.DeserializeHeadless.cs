@@ -26,11 +26,13 @@ namespace SolTechnology.Avro
     public static partial class AvroConvert
     {
         /// <summary>
-        /// Deserializes Avro object, which does not contain header, to .NET type
+        /// Deserializes Avro object, which does not contain header, to .NET type.
+        /// When <typeparamref name="T"/> is a collection and <paramref name="schema"/> describes one item, the items written one
+        /// after another (e.g. rows from the BigQuery Storage API) are read until the end of the data.
         /// </summary>
         public static T DeserializeHeadless<T>(byte[] avroBytes, string schema)
         {
-            return DeserializeHeadless<T>(avroBytes, Schema.Parse(schema), BuildSchema(typeof(T)), 1);
+            return DeserializeHeadless<T>(avroBytes, Schema.Parse(schema), BuildSchema(typeof(T)), null);
         }
 
         /// <summary>
@@ -46,7 +48,7 @@ namespace SolTechnology.Avro
         /// </summary>
         public static T DeserializeHeadless<T>(byte[] avroBytes)
         {
-            return DeserializeHeadless<T>(avroBytes, BuildSchema(typeof(T)), BuildSchema(typeof(T)), 1);
+            return DeserializeHeadless<T>(avroBytes, BuildSchema(typeof(T)), BuildSchema(typeof(T)), null);
         }
 
         /// <summary>
@@ -110,9 +112,7 @@ namespace SolTechnology.Avro
                 var writeSchema = Schema.Parse(schema);
                 var readSchema = ReadSchemaOrWriter(BuildSchema(typeof(T)), writeSchema);
                 var resolver = new Resolver(writeSchema, readSchema);
-                var result = resolver.Resolve<T>(reader, 1);
-
-                return result;
+                return resolver.ResolveToEnd<T>(reader);
             }
         }
 
@@ -122,7 +122,7 @@ namespace SolTechnology.Avro
         /// </summary>
         public static T DeserializeHeadless<T>(byte[] avroBytes, AvroSchema writerSchema)
         {
-            return DeserializeHeadless<T>(avroBytes, writerSchema.TypeSchema, BuildSchema(typeof(T)), 1);
+            return DeserializeHeadless<T>(avroBytes, writerSchema.TypeSchema, BuildSchema(typeof(T)), null);
         }
 
         /// <summary>
@@ -131,16 +131,15 @@ namespace SolTechnology.Avro
         /// </summary>
         public static T DeserializeHeadless<T>(byte[] avroBytes, AvroSchema writerSchema, AvroSchema readerSchema)
         {
-            return DeserializeHeadless<T>(avroBytes, writerSchema.TypeSchema, readerSchema.TypeSchema, 1);
+            return DeserializeHeadless<T>(avroBytes, writerSchema.TypeSchema, readerSchema.TypeSchema, null);
         }
 
-        private static T DeserializeHeadless<T>(byte[] avroBytes, TypeSchema writeSchema, TypeSchema readSchema, int numberOfRows)
+        /// <param name="numberOfRows">Rows to read into a collection <typeparamref name="T"/>; null reads until the end of the data.</param>
+        private static T DeserializeHeadless<T>(byte[] avroBytes, TypeSchema writeSchema, TypeSchema readSchema, int? numberOfRows)
         {
             var reader = new Reader(avroBytes);
             var resolver = new Resolver(writeSchema, ReadSchemaOrWriter(readSchema, writeSchema));
-            var result = resolver.Resolve<T>(reader, numberOfRows);
-
-            return result;
+            return numberOfRows is { } rows ? resolver.Resolve<T>(reader, rows) : resolver.ResolveToEnd<T>(reader);
         }
 
         private static TypeSchema BuildSchema(Type type) => Schema.Create(type);

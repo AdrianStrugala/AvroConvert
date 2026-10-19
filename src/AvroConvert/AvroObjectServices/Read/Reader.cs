@@ -61,6 +61,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         {
         }
 
+        /// <summary>Position in the buffer or stream this reader was created over.</summary>
+        internal long Position => _buffer != null ? _pos : _stream.Position;
+
         public bool IsReadToEnd()
         {
             return _buffer != null ? _pos >= _end : _stream.Position == _stream.Length;

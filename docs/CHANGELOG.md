@@ -1,40 +1,49 @@
 **v. 4.0.0 (preview)**
-- License changed to PolyForm Noncommercial / PolyForm Small Business (free) and SolTechnology Commercial; optional declaration via `AvroConvert.License` or `AVROCONVERT_LICENSE`; commercial licence keys are signed tokens parsed by `AvroLicense.Commercial` (nothing is restricted)
-- Target framework net10.0 only; netstandard2.0 and net6.0 dropped
-- Dependencies reduced to Newtonsoft.Json and IronSnappy; FastMember.dll no longer shipped
+
+Breaking changes:
+- **net10.0 only.** netstandard2.0 and net6.0 are dropped; .NET Framework and .NET 6–9 stay on 3.4.x (maintained on `release/3.x` with security and critical fixes). SolTechnology.Avro.Http and SolTechnology.Avro.Kafka target net10.0 too, Kafka on Confluent 2.x
+- **License** changed from CC BY-NC-SA 3.0 to PolyForm Noncommercial / PolyForm Small Business (free) and SolTechnology Commercial
+- **Top-level collections are written as one container entry per element** instead of a single `array` (#118). Applies to `List<T>`, `T[]`, `HashSet<T>`, `IEnumerable<T>` etc. with a concrete element type (not `object`, not dictionaries). Files written by 3.x still read. `AvroConvertOptions.CollectionMode = SingleArray` restores the old layout
+- A header-only file (0 entries) deserializes to an empty collection instead of `null`
+- **A reader field missing in the writer schema and without a default throws** instead of getting `default(T)` (#87). Only fields that cannot hold `null` are affected (value types without `Nullable<>`, `[DefaultValue]` or a union with `null`); `string`, classes and `Nullable<T>` still get `null`. `AvroConvertOptions.MissingFieldHandling = UseDefault` restores the old behaviour
+- `DeserializeHeadless<List<T>>(bytes, itemSchema)` returns every row until the end of the data (#69); 3.x returned a list with the first row. The `numberOfRows` overloads keep an explicit count
+- `SchemaConvert` removed in favour of `AvroSchema` (#73): `SchemaConvert.GenerateFromJson(json)` → `AvroSchema.InferFromJson(json).Json`
+- Generated schemas differ in text (binary data stays compatible, but a schema registry sees a new version):
+  - closed generic types get distinct record names, e.g. `Field_String` (#159);
+  - `time-micros` is written without the stray space;
+  - non-public members marked with `[DataMember]` are included (#51)
+- Multidimensional arrays (`int[,]`) throw instead of being flattened (#26); use jagged arrays
+- In `dynamic` results, `int`/`long` values resolved to `long`/`float`/`double` in the reader schema have the reader's type
+- An unknown `logicalType` falls back to the underlying type instead of throwing
+- Snappy blocks carry the CRC-32 required by the specification; 3.x files still read
+- Reflection-based methods are marked `[RequiresUnreferencedCode]` / `[RequiresDynamicCode]`: apps with `PublishTrimmed` or `PublishAot` get IL2026/IL3050 warnings at the call site
+- The internal FastMember dependency is no longer shipped
+
+Changes:
+- Optional licence declaration via `AvroConvert.License` or `AVROCONVERT_LICENSE`; commercial licence keys are signed tokens parsed by `AvroLicense.Commercial` (nothing is restricted)
+- Dependencies: Newtonsoft.Json, IronSnappy and ZstdSharp.Port (zstandard)
 - Serialization and deserialization compiled per schema and type; multiple times faster with a fraction of allocations
-- Top-level collections written as one container entry per element (#118); `CollectionMode = SingleArray` keeps the previous layout; a one-element collection reads back as a collection
-- Reader fields missing in writer schema: default value, null for nullable, otherwise an error (#87); `MissingFieldHandling = UseDefault` keeps the previous behaviour
-- Header-only file deserializes to an empty collection instead of null
-- Unknown logical types fall back to the underlying type (#69)
-- Snappy blocks carry the spec CRC-32; files readable by Java/Python implementations
-- Fixed `time-micros` logical type name
+- A one-element collection reads back as a collection
 - Fixed `Merge` losing data after the first block
-- Fixed non-public members with `[DataMember]` being skipped
 - Fixed `GenerateModel` output differing between operating systems
 - Support for string-convertible map keys (e.g. `Dictionary<Uri, T>`)
 - `ExpandoObject` serialization in default, headless and Avro2Json flows; schema inferred from the instance (#112)
 - `DeserializeHeadless<dynamic>` / `DeserializeHeadless<ExpandoObject>` with an explicit schema (#107)
 - Union of records read into an `object` member or `dynamic`; `GenerateModel` emits such a member as `object` with `[AvroUnion(typeof(A), typeof(B))]` (#174)
-- Closed generic types get distinct record names, e.g. `Field_String`, `Field_Int32` (#159)
-- Multidimensional arrays are rejected with an explicit error instead of being flattened (#26)
-- SolTechnology.Avro.Http and SolTechnology.Avro.Kafka moved to net10.0; Kafka on Confluent 2.x
 - `Avro2JsonEncoding` / `JsonEncoding2Avro`: JSON as defined by the Avro specification (unions as `{"type": value}`, avro-tools compatible); `Avro2Json` / `Json2Avro` unchanged (#156)
 - `AvroSchema`: parsed schema with `CanonicalForm` (Parsing Canonical Form), `Fingerprint` (CRC-64-AVRO), MD5 / SHA-256 fingerprints and equality by canonical form; `AvroConvert` overloads accept it next to schema strings
 - `AvroSchema.Compare` (differences with paths, breaking or not, per the schema resolution rules) and `AvroSchema.CheckCompatibility` (Backward / Forward / Full, transitive) (#73)
-- `SchemaConvert` removed: `SchemaConvert.GenerateFromJson(json)` → `AvroSchema.InferFromJson(json).Json`
 - Logical types `timestamp-nanos`, `local-timestamp-millis`, `local-timestamp-micros`, `local-timestamp-nanos`, `big-decimal`, `uuid` on `fixed(16)`; selected with `[AvroType(...)]` (#153); a `long` member keeps the raw timestamp value (exact nanoseconds)
 - `decimal` on `fixed`: correct schema and encoding (no length prefix); logical types on an unsupported underlying type fall back to that type
 - `zstandard` codec (`CodecType.Zstandard`); GZip and Brotli documented as non-standard codecs
 - Field `order` and enum `default` preserved in schemas; an enum symbol unknown to the reader resolves to the reader's default
-- Schema resolution promotes `string` ↔ `bytes`; `int`/`long` written as `long`/`float`/`double` in the reader schema take the reader type in `dynamic`
+- Schema resolution promotes `string` ↔ `bytes`
 - Defaults of logical-type fields (e.g. `timestamp-millis`) are parsed instead of failing; parsed defaults are written back unchanged
 - `AvroConvertOptions.DateTimeRepresentation`: logical type for every `DateTime`/`DateTimeOffset` member without `[AvroType]` (`timestamp-millis`/`-micros`/`-nanos`, `local-timestamp-*`; default `timestamp-micros`) (#153)
-- `DeserializeHeadless<List<T>>(bytes, itemSchema)` reads rows written one after another until the end of the data, e.g. BigQuery Storage API rows (#69)
 - Streaming API: `Serialize<T>(IEnumerable<T>, Stream)`, `Serialize<T>(IAsyncEnumerable<T>, Stream)` and `Deserialize<T>(Stream)` → `IAsyncEnumerable<T>` write and read a container block by block; `Serialize(obj, IBufferWriter<byte>)` and `SerializeHeadless(obj, IBufferWriter<byte>, schema)` write into a caller's buffer
-- Trimming / Native AOT: the assembly is marked `IsAotCompatible`; reflection-based API carries `[RequiresUnreferencedCode]` / `[RequiresDynamicCode]`, so trimmed and AOT apps get a warning at the call site
 - `SerializeHeadless(obj, Type, options)` builds the schema with the given options
 - `MemoryStream` disposed in `SerializeHeadless` (#163)
+- Fixed reading an empty array with `OpenDeserializer`
 
 \
 **v. 3.4.17 (14.07.26)**

@@ -1,174 +1,136 @@
-### Reading Avro schema from Avro encoded object
+# Schemas
+
+- [Reading the schema of Avro data](#reading-the-schema-of-avro-data)
+- [Generating a schema from C# types](#generating-a-schema-from-c-types)
+  - [Type mapping](#type-mapping)
+  - [Members and attributes](#members-and-attributes)
+- [Logical types](#logical-types)
+- [Generate model](#generate-model)
+- [AvroSchema](#avroschema)
+
+### Reading the schema of Avro data
+
 ```csharp
-string schemaInJsonFormat = AvroConvert.GetSchema(byte[] avroObject)
+string schema = AvroConvert.GetSchema(avroFile);              // byte[]
+string schema = AvroConvert.GetSchema("orders.avro");         // file path
+string schema = AvroConvert.GetSchema(stream);                // Stream
+
+AvroSchema schema = AvroSchema.FromAvro(avroFile);            // parsed, see AvroSchema below
 ```
 
-
-### Generate Model
-
-Generates C# .NET classes (models) from Avro file or schema.
-This action is inversed to GenerateSchema.
+### Generating a schema from C# types
 
 ```csharp
-//Given is schema
-var schema = AvroConvert.GenerateSchema(typeof(User));
-
-{
-   "type":"record",
-   "name":"AvroConvertComponentTests.User",
-   "fields":[
-      {
-         "name":"name",
-         "type":"string"
-      },
-      {
-         "name":"favorite_number",
-         "type":[
-            "null",
-            "int"
-         ]
-      },
-      {
-         "name":"favorite_color",
-         "type":"string"
-      }
-   ]
-}
-
-//Action
-string resultModel = AvroConvert.GenerateModel(schema); //string
-
-OR
-
-string resultModel = AvroConvert.GenerateModel(avroFileContent); //byte[]
-
-//Produces following model:
-public class User
-{
-    public string name { get; set; }
-    public int? favorite_number { get; set; }
-    public string? favorite_color { get; set; }
-}
-
-
+string schema = AvroConvert.GenerateSchema(typeof(Order));
+string schema = AvroConvert.GenerateSchema(typeof(Order), new AvroConvertOptions { NamingPolicy = … });
+AvroSchema schema = AvroSchema.Create<Order>();
 ```
 
+`Serialize` uses the same schema, so the options that affect it (`IncludeOnlyDataContractMembers`, `NamingPolicy`,
+`DateTimeRepresentation`, `AvroConverters`) have to be the same when generating the schema.
 
-### Generating Avro schema for C# classes
-
-Using simple class
 ```csharp
+namespace Shop;
 
-//Model
 public class SimpleTestClass
 {
     public string justSomeProperty { get; set; }
     public long andLongProperty { get; set; }
 }
 
-
-//Action
-string schemaInJsonFormat = AvroConvert.GenerateSchema(typeof(SimpleTestClass));
-
-
-//Produces following schema:
+AvroConvert.GenerateSchema(typeof(SimpleTestClass));
+```
+```json
 {
-   "type":"record",
-   "name":"AvroConvert.SimpleTestClass",
-   "fields":[
-      {
-         "name":"justSomeProperty",
-         "type":[
-            "null",
-            "string"
-         ]
-      },
-      {
-         "name":"andLongProperty",
-         "type":"long"
-      }
-   ]
+  "name": "SimpleTestClass",
+  "namespace": "Shop",
+  "type": "record",
+  "fields": [
+    { "name": "justSomeProperty", "type": "string" },
+    { "name": "andLongProperty", "type": "long" }
+  ]
 }
 ```
 
-Using class decorated with attributes
+#### Type mapping
+
+| .NET type | Avro schema |
+|---|---|
+| `bool` | `boolean` |
+| `int`, `uint`, `short`, `ushort`, `byte`, `sbyte`, `char` | `int` |
+| `long`, `ulong` | `long` |
+| `float`, `double` | `float`, `double` |
+| `string`, `Uri` | `string` |
+| `byte[]` | `bytes` |
+| `enum` | `enum` with the member names as symbols |
+| class, struct, record | `record` named after the type, the .NET namespace as namespace; closed generic types get the type arguments in the name, e.g. `Field_String` |
+| `T[]`, `List<T>`, `HashSet<T>`, `IEnumerable<T>`… | `array` |
+| `Dictionary<string, T>`, `Dictionary<Uri, T>` | `map` |
+| `Dictionary<K, T>` with other keys | `array` of `{Key, Value}` records |
+| `Nullable<T>` (`int?`…), `string?` and other nullable references | `["null", T]` |
+| `object` | needs `[AvroUnion(typeof(A), typeof(B))]` listing the possible types |
+| `decimal`, `Guid`, `DateTime`, `DateTimeOffset`, `DateOnly`, `TimeOnly`, `TimeSpan` | logical types, see [Logical types](#logical-types) |
+
+A reference type is nullable when it is declared with `?` in a nullable context or marked with `[NullableSchema]`;
+otherwise its schema has no `null` branch and a `null` `string` is written as `""`. Multidimensional arrays (`int[,]`)
+are not supported – use jagged arrays (`int[][]`).
+
+#### Members and attributes
+
+Public properties and fields are serialized, plus non-public ones marked with `[DataMember]`. `[IgnoreDataMember]`
+excludes a member; `IncludeOnlyDataContractMembers = true` (or `GenerateSchema(type, true)`) keeps only `[DataMember]`
+members.
+
+| Attribute | Effect |
+|---|---|
+| `[DataContract(Name, Namespace)]` | record name and namespace |
+| `[DataMember(Name)]` | field name; the .NET name is kept in `aliases` |
+| `[IgnoreDataMember]` | member not serialized |
+| `[Description("…")]` | `doc` of the record or field |
+| `[DefaultValue(…)]` | field `default`, used when reading data that lacks the field |
+| `[NullableSchema]` | field type becomes `["null", T]` |
+| `[AvroDecimal(Precision, Scale)]` | precision and scale of a `decimal` |
+| `[AvroType(AvroTypeRepresentation…)]` | another Avro representation, e.g. `timestamp-millis` (see [Logical types](#logical-types)) |
+| `[AvroUnion(typeof(A), typeof(B))]` | union of the listed types for an `object` member |
+
 ```csharp
-//Model
 [DataContract(Name = "User", Namespace = "userspace")]
 [Description("This is Doc of User Class")]
 public class AttributeClass
 {
-	[DataMember(Name = "name")]
-	[Description("This is Doc of record field")]
-	public string StringProperty { get; set; }
+    [DataMember(Name = "name")]
+    [Description("This is Doc of record field")]
+    public string StringProperty { get; set; }
 
-	[DataMember(Name = "favorite_number")]
-	[DefaultValue(2137)]
-	public int? NullableIntPropertyWithDefaultValue { get; set; }
+    [DataMember(Name = "favorite_number")]
+    [DefaultValue(2137)]
+    public int? NullableIntPropertyWithDefaultValue { get; set; }
 
-	[DataMember(Name = "not_favorite_number")]
-	[NullableSchema]
-	public int AnotherWayOrIndicatingNullableProperty { get; set; }
+    [DataMember(Name = "not_favorite_number")]
+    [NullableSchema]
+    public int AnotherWayOrIndicatingNullableProperty { get; set; }
 
-	[DataMember(Name = "favorite_color")]
-	[NullableSchema]
-	public string AndAnotherString { get; set; }
+    [DataMember(Name = "favorite_color")]
+    [NullableSchema]
+    public string AndAnotherString { get; set; }
 }
-
-
-//Action
-string schemaInJsonFormat = AvroConvert.GenerateSchema(typeof(AttributeClass));
-
-
-//Produces following schema:
+```
+```json
 {
-  "type": "record",
-  "name": "userspace.User",
+  "name": "User",
+  "namespace": "userspace",
   "doc": "This is Doc of User Class",
+  "type": "record",
   "fields": [
-    {
-      "name": "name",
-      "doc": "This is Doc of record field",
-      "aliases": [
-        "StringProperty"
-      ],
-      "type": "string"
-    },
-    {
-      "name": "favorite_number",
-      "aliases": [
-        "NullableIntPropertyWithDefaultValue"
-      ],
-      "type": [
-        "int",
-        "null"
-      ],
-      "default": 2137
-    },
-    {
-      "name": "not_favorite_number",
-      "aliases": [
-        "AnotherWayOrIndicatingNullableProperty"
-      ],
-      "type": [
-        "null",
-        "int"
-      ]
-    },
-    {
-      "name": "favorite_color",
-      "aliases": [
-        "AndAnotherString"
-      ],
-      "type": [
-        "null",
-        "string"
-      ]
-    }
+    { "name": "name", "doc": "This is Doc of record field", "aliases": ["StringProperty"], "type": "string" },
+    { "name": "favorite_number", "aliases": ["NullableIntPropertyWithDefaultValue"], "type": ["int", "null"], "default": 2137 },
+    { "name": "not_favorite_number", "aliases": ["AnotherWayOrIndicatingNullableProperty"], "type": ["null", "int"] },
+    { "name": "favorite_color", "aliases": ["AndAnotherString"], "type": ["null", "string"] }
   ]
 }
-```  
+```
 
+A field with a default puts the default's type first in the union, as the specification requires (`["int", "null"]`).
 
 ### Logical types
 
@@ -219,6 +181,37 @@ public long CreatedAtNanos { get; set; }
 `big-decimal` is currently implemented only by the Java and Rust Avro libraries (and AvroConvert); prefer `decimal`
 for data shared with other implementations.
 
+
+### Generate model
+
+Generates C# classes from a schema or from an Avro file (the schema in its header) – the reverse of `GenerateSchema`:
+
+```csharp
+string code = AvroConvert.GenerateModel(schemaJson);   // string
+string code = AvroConvert.GenerateModel(avroFile);     // byte[]
+string code = AvroConvert.GenerateModel(avroSchema);   // AvroSchema
+```
+
+```json
+{"name":"User","namespace":"Shop","type":"record","fields":[
+  {"name":"name","type":"string"},
+  {"name":"favorite_number","type":["null","int"]},
+  {"name":"favorite_color","type":"string"}]}
+```
+```csharp
+public class User
+{
+	public string name { get; set; }
+	public int? favorite_number { get; set; }
+	public string favorite_color { get; set; }
+}
+```
+
+Records become classes and enums become enums (nested types are generated as separate classes); `["null", T]` becomes
+`T?`; arrays become `T[]`, maps `Dictionary<string, T>`; `bytes` and `fixed` become `byte[]`. Logical types: `decimal`
+and `big-decimal` → `decimal`, `uuid` → `Guid`, `timestamp-*`, `local-timestamp-*` and `date` → `DateTime`,
+`time-*` and `duration` → `TimeSpan`. A union of several records becomes `object` with
+`[AvroUnion(typeof(A), typeof(B))]`, so the generated model reads the data back into the right classes.
 
 ### AvroSchema
 

@@ -1,35 +1,66 @@
+# AvroConvert documentation
+
+AvroConvert 4.0 targets .NET 10 (`net10.0`); for .NET Framework and .NET 6–9 use 3.4.x. All operations are static
+methods of `AvroConvert` in the `SolTechnology.Avro` namespace. Schema-related features (type mapping, attributes,
+logical types, `AvroSchema`, model generation) are described in [Documentation.Schema.md](Documentation.Schema.md).
+
+- [Serialization](#serialization)
+- [Deserialization](#deserialization)
+- [Schema evolution](#schema-evolution)
+- [Streaming](#streaming)
+- [Reading items one by one](#reading-items-one-by-one)
+- [Headless serialization and deserialization](#headless-serialization-and-deserialization)
+- [Merge](#merge)
+- [Avro2Json](#avro2json) / [Json2Avro](#json2avro)
+- [Avro JSON Encoding](#avro-json-encoding)
+- [Custom converters](#custom-converters)
+- [Naming policy](#naming-policy)
+- [Licence declaration](#licence-declaration)
+- [Options reference](#options-reference)
+- [Trimming and Native AOT](#trimming-and-native-aot)
+
 ### Serialization
+
+`Serialize` writes an Avro object container file: a header with the schema (built from the object's type) followed by
+the data.
+
 ```csharp
- byte[] avroObject = AvroConvert.Serialize(object yourObject);
+byte[] avro = AvroConvert.Serialize(order);
+byte[] avro = AvroConvert.Serialize(order, CodecType.Snappy);
+byte[] avro = AvroConvert.Serialize(order, new AvroConvertOptions { Codec = CodecType.Zstandard });
 ```
 
-Using encoding
-```csharp
- byte[] avroObject = AvroConvert.Serialize(object yourObject, CodecType.Snappy);
-```
-Supported encoding types:
-- Null (default)
-- Deflate
-- Snappy
-- Zstandard
-- GZip (non-standard, possibly not supported outside AvroConvert)
-- Brotli (non-standard, possibly not supported outside AvroConvert)
+Codecs:
+- `Null` (default)
+- `Deflate`
+- `Snappy`
+- `Zstandard`
+- `GZip` (non-standard, possibly not supported outside AvroConvert)
+- `Brotli` (non-standard, possibly not supported outside AvroConvert)
 
+A top-level collection with a concrete element type (`List<T>`, `T[]`, `HashSet<T>`, `IEnumerable<T>`…) is written as
+one container entry per element, with the element schema – the layout other Avro implementations (Java, Python, Spark,
+avro-tools) write and read. `AvroConvertOptions.CollectionMode = AvroCollectionMode.SingleArray` writes the whole
+collection as one `array` entry instead (the AvroConvert 3.x layout). Dictionaries are written as one `map` value.
 
 ### Deserialization
 
 ```csharp
-//Using generic method
-CustomClass deserializedObject = AvroConvert.Deserialize<CustomClass>(byte[] avroObject);
-
-//Using dynamic method
-CustomClass deserializedObject = AvroConvert.Deserialize(byte[] avroObject, typeof(CustomClass));
-
-//Deserialization to dynamic result
-dynamic deserializedObject = AvroConvert.Deserialize<dynamic>(byte[] avroObject);
+Order order          = AvroConvert.Deserialize<Order>(avro);
+Order order          = AvroConvert.Deserialize<Order>(avro, options);       // options used for writing (converters, naming policy…)
+Order order          = AvroConvert.Deserialize<Order>(avroSpan);            // ReadOnlySpan<byte>
+List<Order> orders   = AvroConvert.Deserialize<List<Order>>(avro);          // every entry of the file
+dynamic order        = AvroConvert.Deserialize(avro, typeof(Order));        // target type known at run time
+dynamic anything     = AvroConvert.Deserialize<dynamic>(avro);
 ```
 
-Records read into `dynamic`, `ExpandoObject` or an `object` member become `ExpandoObject`, unless a loaded class matches the record's namespace **and** name. For a union of records in a typed model, list the alternatives explicitly – they are matched by class name:
+A file with several entries can be read into any collection type; a file with one entry can be read into a single
+object or a one-element collection. A header-only file (no entries) gives an empty collection.
+
+Records read into `dynamic`, `ExpandoObject` or an `object` member become `ExpandoObject`, unless a loaded class
+matches the record's namespace **and** name. For a union of records in a typed model, list the alternatives
+explicitly – they are matched by name:
+
 ```csharp
 public class Envelope
 {
@@ -38,33 +69,39 @@ public class Envelope
 }
 ```
 
-Deserialization when a property value is null, but schema contains information about default value
+### Schema evolution
+
+The file carries the schema it was written with (the writer schema); the target type gives the reader schema. They
+are resolved as the Avro specification defines:
+
+- fields are matched by name or alias (`[DataMember(Name = …)]` keeps the old name as an alias);
+- writer fields unknown to the reader are skipped;
+- a reader field missing in the writer gets its default (`[DefaultValue]`), or `null` when it can hold `null`;
+  otherwise reading throws. `MissingFieldHandling = AvroMissingFieldHandling.UseDefault`
+  leaves the CLR default instead (3.x behaviour);
+- `int` → `long` → `float` → `double` and `string` ↔ `bytes` are promoted;
+- an enum symbol unknown to the reader resolves to the `default` of the reader's enum schema, when it has one.
+
 ```csharp
-//Model used for serialization
-public class DefaultValueClass
+// written with an older model: public class User { public string Name { get; set; } }
+public class User
 {
-    [DefaultValue("Let's go")]
-    public string justSomeProperty { get; set; }
+    public string Name { get; set; }
 
     [DefaultValue(2137)]
-    public long? andLongProperty { get; set; }
+    public long Points { get; set; }      // 2137 when reading old data
+
+    public string? Nickname { get; set; } // null when reading old data
 }
-
-//Deserializing object with null data
- DefaultValueClass deserializedObject = AvroConvert.Deserialize<DefaultValueClass>(byte[] avroObject);
-
-//Produces following object:
-> deserializedObject.justSomeProperty
-> "Let's go"
-
-> deserializedObject.andLongProperty
-> 2137
 ```
+
+`AvroSchema.Compare` and `AvroSchema.CheckCompatibility` check two schema versions before any data is read – see
+[AvroSchema](Documentation.Schema.md#avroschema).
 
 ### Streaming
 
-Large collections can be written and read without holding them in memory. Each item is one container entry and
-data blocks are written or read as the sequence is enumerated. The stream is left open.
+Large collections can be written and read without holding them in memory. Each item is one container entry and data
+blocks are written or read as the sequence is enumerated. The stream is left open.
 
 ```csharp
 // write
@@ -82,118 +119,106 @@ AvroConvert.Serialize(order, bufferWriter);
 AvroConvert.SerializeHeadless(order, bufferWriter, AvroSchema.Create<Order>());
 ```
 
-The schema comes from `T`; for `object`, interfaces, abstract classes and `ExpandoObject` the items are collected
-first, because the schema depends on them.
+The schema comes from `T`. When `T` is `object`, an interface or an abstract class, the items are collected first and
+written with their runtime type, which they must share (`ExpandoObject` items are merged into one schema). A
+dictionary, `string` or `byte[]` is one value, as in `Serialize(obj)`.
 
-### Deserialization of large collection of Avro objects one by one
+`Deserialize<T>(Stream)` reads files written by any Avro implementation. When the file holds whole arrays (3.x or
+`SingleArray` layout) and `T` is not a collection, their items are returned one by one.
+
+### Reading items one by one
+
+Synchronous alternative to `Deserialize<T>(Stream)` for a seekable stream (file, `MemoryStream`):
+
 ```csharp
-using (var reader = AvroConvert.OpenDeserializer<CustomClass>(new MemoryStream(avroObject)))
+using var reader = AvroConvert.OpenDeserializer<Order>(File.OpenRead("orders.avro"));
+while (reader.HasNext())
 {
-    while (reader.HasNext())
-    {
-        var item = reader.ReadNext();
-        // process item
-    }
+    Order order = reader.ReadNext();
+    // process order
 }
 ```
 
-
 ### Headless serialization and deserialization
 
-**Schemas provided for serialization and deserialization have to be *exactly* the same**
+Headless data is the binary encoding of a single value without the container header – the schema has to be known to
+both sides (e.g. from a schema registry or a contract).
 
 ```csharp
+string schema = """
+{"type":"record","name":"User","namespace":"user","fields":[
+  {"name":"name","type":"string"},
+  {"name":"favorite_number","type":["null","int"]},
+  {"name":"favorite_color","type":["null","string"]}]}
+""";
 
-string schema = "{"type":"record","name":"user.User","fields":[{"name":"name","type":,"string"},{"name":"favorite_number","type":["null","int"]},{"name":"favorite_color","type":["null","string"]}]}";
+byte[] data = AvroConvert.SerializeHeadless(user, schema);
+User user   = AvroConvert.DeserializeHeadless<User>(data, schema);
 
-var serialized = AvroConvert.SerializeHeadless(toSerialize, schema);
+byte[] data = AvroConvert.SerializeHeadless(user, typeof(User));          // schema built from the type
+User user   = AvroConvert.DeserializeHeadless<User>(data);
 
-var deserialized = AvroConvert.DeserializeHeadless<User>(serialized, schema);
+AvroSchema userSchema = AvroSchema.Create<User>();                        // parsed once, reused
+byte[] data = AvroConvert.SerializeHeadless(user, userSchema);
+User user   = AvroConvert.DeserializeHeadless<User>(data, userSchema);
+```
 
+Data written with another version of the schema is read by passing both schemas (see
+[Schema evolution](#schema-evolution)):
+
+```csharp
+UserV2 user = AvroConvert.DeserializeHeadless<UserV2>(data, writerSchema: v1, readerSchema: v2);
 ```
 
 Rows written one after another with the item schema (e.g. by the BigQuery Storage API) are read into a collection
-until the end of the data:
+until the end of the data; `numberOfRows` reads a given number instead:
 
 ```csharp
-List<User> users = AvroConvert.DeserializeHeadless<List<User>>(rows, userSchema);
+List<User> users = AvroConvert.DeserializeHeadless<List<User>>(rows, schema);
+List<User> first = AvroConvert.DeserializeHeadless<List<User>>(rows, schema, numberOfRows: 10);
 ```
 
+`DeserializeHeadless<dynamic>(data, schema)` and `DeserializeHeadless<ExpandoObject>(data, schema)` read data without
+a .NET model.
 
 ### Merge
 
-Merges multiple Avro objects of type T into one of type IEnumerable of T
+Merges Avro files with entries of type `T` into one file with all the entries:
 
 ```csharp
+IEnumerable<byte[]> files = users.Select(u => AvroConvert.Serialize(u));
 
-byte[] result = AvroConvert.Merge<T>(IEnumerable<byte[]> avroObjects);
+byte[] merged = AvroConvert.Merge<User>(files);
 
-example:
-//Arrange
-var users = _fixture.CreateMany<User>();
-var avroObjects = users.Select(AvroConvert.Serialize);
-
-
-//Act 
-var result = AvroConvert.Merge<User>(avroObjects);
-
-
-//Assert
-var deserializedResult = AvroConvert.Deserialize<List<User>>(result);
-
+List<User> all = AvroConvert.Deserialize<List<User>>(merged);
 ```
-
 
 ### Avro2Json
 
-Converts Avro serialized object directly to JSON format. Useful for a minimal API approach.
-The JSON has the shape of the .NET model (as produced by `JsonConvert.SerializeObject`), e.g. a nullable field is
-`"MyField": "x"`. For the JSON format defined by the Avro specification see [Avro JSON Encoding](#avro-json-encoding).
+Converts Avro data directly to JSON, e.g. to return it from an API without a .NET model. The JSON has the shape of
+the .NET model (as `JsonConvert.SerializeObject` would produce it): a nullable field is `"favorite_number": 1`, a
+container with several entries becomes a JSON array. For the JSON format defined by the Avro specification see
+[Avro JSON Encoding](#avro-json-encoding).
 
 ```csharp
+string json = AvroConvert.Avro2Json(avroFile);
+// {"name":"a","favorite_number":1,"favorite_color":"red"}
 
-string resultJson = AvroConvert.Avro2Json(byte[] avroData);
-
-
-example:
-//Arrange
-var user = _fixture.Creat<User>();
-var avroData = AvroConvert.Serialize(user);
-
-
-//Act 
-var resultJson = AvroConvert.Avro2Json(avroData);
-
-
-//Assert
-var expectedJson = JsonConvert.SerializeObject(user);
-Assert.Equal(expectedJson, resultJson);
-
+string json = AvroConvert.Avro2Json(headlessData, schema);   // headless data needs the schema
 ```
 
 ### Json2Avro
 
-Converts JSON serialized object directly to Avro format.
+Converts JSON directly to an Avro file:
 
 ```csharp
-
-byte[] resultAvro = Json2Avro<T>(string json, CodecType codecType);
-
-example:
-//Arrange
-var user = _fixture.Creat<User>();
-var jsonData = JsonConvert.SerializeObject(user);
-
-
-//Act 
-var resultAvro = AvroConvert.Json2Avro<User>(jsonData);
-
-
-//Assert
-var expectedAvro = AvroConvert.Serialize(user);
-Assert.Equal(expectedAvro, resultAvro);
-
+byte[] avro = AvroConvert.Json2Avro<User>(json);                    // schema from User
+byte[] avro = AvroConvert.Json2Avro<User>(json, CodecType.Deflate);
+byte[] avro = AvroConvert.Json2Avro(json);                          // schema inferred from the JSON
 ```
+
+Without a type the schema is inferred from the JSON (like `AvroSchema.InferFromJson`): integers become `long`,
+fractions `double`, nested objects records. Prefer the generic overload when a model exists.
 
 ### Avro JSON Encoding
 
@@ -220,6 +245,46 @@ byte[] avroFile = AvroConvert.JsonEncoding2Avro(string json, string schema, Code
 `JsonEncoding2Avro` requires the schema: JSON alone does not tell e.g. `int` from `long`. Record fields missing from the
 JSON take the schema default; unknown properties are ignored. A named union branch may also be given by its short name.
 
+### Custom converters
+
+A converter takes over the serialization of a .NET type, e.g. to store it as a `string`:
+
+```csharp
+public sealed class MoneySchema : BaseConverterSchema
+{
+    public MoneySchema() : base(typeof(Money), AvroType.String, "string") { }
+}
+
+public sealed class MoneyConverter : IAvroConverter
+{
+    public TypeSchema TypeSchema { get; } = new MoneySchema();
+
+    public void Serialize(object data, IWriter writer) =>
+        writer.WriteString(((Money)data).ToString(CultureInfo.InvariantCulture));
+
+    public object Deserialize(IReader reader) => Money.Parse(reader.ReadString(), CultureInfo.InvariantCulture);
+}
+
+var options = new AvroConvertOptions { AvroConverters = { new MoneyConverter() } };
+byte[] avro = AvroConvert.Serialize(order, options);              // "Total" field: "string"
+Order order = AvroConvert.Deserialize<Order>(avro, options);
+```
+
+Pass the same options when reading. Converters are matched by the runtime type of `TypeSchema`.
+
+### Naming policy
+
+`AvroConvertOptions.NamingPolicy` maps .NET names to Avro names. `JavaAvroNamingPolicy` gives camelCase field names
+(the .NET name is kept as an alias, so data written before still reads) and one namespace for all types:
+
+```csharp
+var options = new AvroConvertOptions { NamingPolicy = new JavaAvroNamingPolicy("com.acme") };
+AvroConvert.GenerateSchema(typeof(Order), options);
+// {"name":"Order","namespace":"com.acme","type":"record","fields":[{"name":"id","aliases":["Id"],"type":"int"},…]}
+```
+
+Implement `IAvroNamingPolicy` (`GetTypeName`, `GetMemberName`) for other conventions.
+
 ### Licence declaration
 
 AvroConvert is free for noncommercial use and for companies under 100 people / 1,000,000 USD revenue; other
@@ -242,18 +307,18 @@ licensee, plan and subscription end. `AvroLicense.Commercial` verifies the signa
 while a key with a wrong signature or a subscription that ended before this version was released is accepted
 and only produces a `Trace` warning (versions released during the subscription stay licensed for ever).
 
-### Options reference (4.0)
+### Options reference
 
 | Option | Default | Description |
 |---|---|---|
 | `Codec` | `Null` | Container codec: `Null`, `Deflate`, `Snappy`, `Zstandard`, `GZip`, `Brotli` (the last two are non-standard, possibly not supported outside AvroConvert) |
 | `CollectionMode` | `Entries` | Top-level collection written as one container entry per element (like other Avro tools) or as a single `array` (`SingleArray`, 3.x layout) |
 | `MissingFieldHandling` | `Throw` | Reader field absent from the writer and without default: throw (spec) or leave the CLR default (`UseDefault`). Fields that can hold `null` always resolve to `null` |
-| `NumberHandling` | `Strict` | Decimal scale overflow: `Strict`, `Truncate`, `Rounding` |
+| `NumberHandling` | `Strict` | `decimal` with more fraction digits than the schema scale: throw (`Strict`), `Truncate` or `Rounding` |
 | `IncludeOnlyDataContractMembers` | `false` | Serialize only members marked with `[DataMember]` |
-| `NamingPolicy` | – | Custom member/enum naming |
+| `NamingPolicy` | – | Avro names for types and members, see [Naming policy](#naming-policy) |
 | `DateTimeRepresentation` | `null` (`timestamp-micros`) | Logical type of `DateTime`/`DateTimeOffset` members without `[AvroType]`: `TimestampMilliseconds`, `TimestampMicroseconds`, `TimestampNanoseconds` or a `LocalTimestamp*` value |
-| `AvroConverters` | – | Custom `IAvroConverter` implementations |
+| `AvroConverters` | – | Custom `IAvroConverter` implementations, see [Custom converters](#custom-converters) |
 
 ### Trimming and Native AOT
 

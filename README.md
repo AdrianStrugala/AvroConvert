@@ -24,6 +24,8 @@
 dotnet add package AvroConvert
 ```
 
+AvroConvert 4.x targets .NET 10. For .NET Framework and .NET 6–9 use [3.4.x](https://www.nuget.org/packages/AvroConvert/3.4.17).
+
 ## Docs
 
 [Apache Avro format documentation](http://avro.apache.org/)
@@ -87,16 +89,14 @@ string schemaInJsonFormat = AvroConvert.GetSchema(byte[] avroObject)
 ```
 <br/>
 
-* Deserialization of large collection of Avro objects one by one
+* Streaming of large collections, item by item
 
 ```csharp
-using (var reader = AvroConvert.OpenDeserializer<CustomClass>(new MemoryStream(avroObject)))
+AvroConvert.Serialize(items, fileStream);
+
+await foreach (var item in AvroConvert.Deserialize<CustomClass>(stream))
 {
-    while (reader.HasNext())
-    {
-        var item = reader.ReadNext();
-        // process item
-    }
+    // process item
 }
 ```
 
@@ -113,21 +113,27 @@ using (var reader = AvroConvert.OpenDeserializer<CustomClass>(new MemoryStream(a
 ```
 
 **Extended list:** <br>
-1. Serialization of .NET object to Avro format 
-   - [Standard](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#serialization)
+1. Serialization of .NET object to Avro format
+   - [Standard, codecs, collections](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#serialization)
    - [Excluding header](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#headless-serialization-and-deserialization)
-2. Deserialization of Avro data to .NET object 
-   - [Standard](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#serialization)
-   - [Excluding header](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#headless-serialization-and-deserialization)
-   - [Processing collection items one by one](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#deserialization-of-large-collection-of-avro-objects-one-by-one)
+   - [Streaming: `Stream`, `IAsyncEnumerable<T>`, `IBufferWriter<byte>`](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#streaming)
+2. Deserialization of Avro data to .NET object
+   - [Standard, `dynamic`, unions](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#deserialization)
+   - [Schema evolution: reading data written with another schema version](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#schema-evolution)
+   - [Excluding header, rows until the end of the data](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#headless-serialization-and-deserialization)
+   - [Processing collection items one by one](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#reading-items-one-by-one)
 3. Other Avro data related operations
    - [Merge Avro objects](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#merge)
    - [JSON to Avro conversion](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#json2avro)
    - [Avro to JSON conversion](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#avro2json)
    - [Avro JSON Encoding (spec format, avro-tools compatible)](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#avro-json-encoding)
-4. Schema related
-   - [Get schema from Avro data](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#reading-avro-schema-from-avro-encoded-object)
-   - [Generate schema from .NET object](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#generating-avro-schema-for-c-classes)
+4. Customization
+   - [Options reference](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#options-reference)
+   - [Custom converters](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#custom-converters)
+   - [Naming policy](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#naming-policy)
+5. Schema related
+   - [Get schema from Avro data](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#reading-the-schema-of-avro-data)
+   - [Generate schema from .NET type: type mapping and attributes](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#generating-a-schema-from-c-types)
    - [Generate .NET model from Avro data or schema](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#generate-model)
    - [Generate Avro schema for JSON data](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#avroschema)
    - [Logical types](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#logical-types)

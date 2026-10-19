@@ -32,7 +32,7 @@ namespace SolTechnology.Avro
         /// </summary>
         public static byte[] SerializeHeadless(object obj, string schema, AvroConvertOptions options = null)
         {
-            MemoryStream resultStream = new MemoryStream();
+            using var resultStream = new MemoryStream();
             var encoder = new Writer(resultStream);
             var schemaObject = Schema.Parse(schema);
             var writer = ResolveWriter(schemaObject, obj, options);
@@ -48,9 +48,9 @@ namespace SolTechnology.Avro
         /// </summary>
         public static byte[] SerializeHeadless(object obj, Type objectType, AvroConvertOptions options = null)
         {
-            MemoryStream resultStream = new MemoryStream();
+            using var resultStream = new MemoryStream();
             var encoder = new Writer(resultStream);
-            var schemaObject = BuildSchema(objectType);
+            var schemaObject = Schema.Create(objectType, options);
             var writer = ResolveWriter(schemaObject, obj, options);
 
             writer(obj, encoder);
@@ -64,7 +64,7 @@ namespace SolTechnology.Avro
         /// </summary>
         public static byte[] SerializeHeadless(object obj, AvroSchema schema, AvroConvertOptions options = null)
         {
-            MemoryStream resultStream = new MemoryStream();
+            using var resultStream = new MemoryStream();
             var encoder = new Writer(resultStream);
             ResolveWriter(schema.TypeSchema, obj, options)(obj, encoder);
             return resultStream.ToArray();

@@ -13,8 +13,10 @@
 * Required Notice: Copyright Adrian Strugała (https://soltechnology.dev)
 */
 #endregion
+using System;
 using System.Collections.Generic;
 using SolTechnology.Avro.Converters;
+using SolTechnology.Avro.Infrastructure.Attributes;
 using SolTechnology.Avro.Policies;
 
 namespace SolTechnology.Avro;
@@ -79,4 +81,32 @@ public class AvroConvertOptions
     /// Defaults to <see cref="AvroCollectionMode.Entries"/> (one container entry per element, like other Avro implementations).
     /// </summary>
     public AvroCollectionMode CollectionMode { get; set; }
+
+    private AvroTypeRepresentation? _dateTimeRepresentation;
+
+    /// <summary>
+    /// Gets or sets the logical type used for <see cref="DateTime"/> and <see cref="DateTimeOffset"/> members that have no
+    /// <see cref="AvroTypeAttribute"/> (the attribute wins). Allowed: <c>TimestampMilliseconds</c>, <c>TimestampMicroseconds</c>,
+    /// <c>TimestampNanoseconds</c> and their <c>LocalTimestamp*</c> counterparts. <c>null</c> (default) means <c>timestamp-micros</c>.
+    /// </summary>
+    /// <exception cref="ArgumentException">The value is not a timestamp representation.</exception>
+    public AvroTypeRepresentation? DateTimeRepresentation
+    {
+        get => _dateTimeRepresentation;
+        set
+        {
+            if (value is not (null
+                or AvroTypeRepresentation.TimestampMilliseconds
+                or AvroTypeRepresentation.TimestampMicroseconds
+                or AvroTypeRepresentation.TimestampNanoseconds
+                or AvroTypeRepresentation.LocalTimestampMilliseconds
+                or AvroTypeRepresentation.LocalTimestampMicroseconds
+                or AvroTypeRepresentation.LocalTimestampNanoseconds))
+            {
+                throw new ArgumentException($"{value} is not a timestamp representation.", nameof(value));
+            }
+
+            _dateTimeRepresentation = value;
+        }
+    }
 }

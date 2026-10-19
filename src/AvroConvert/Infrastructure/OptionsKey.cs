@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using SolTechnology.Avro.Policies;
+using SolTechnology.Avro.Infrastructure.Attributes;
 
 namespace SolTechnology.Avro.Infrastructure
 {
@@ -14,7 +15,8 @@ namespace SolTechnology.Avro.Infrastructure
         AvroNumberHandling NumberHandling,
         AvroMissingFieldHandling MissingFieldHandling,
         Type NamingPolicy,
-        string Converters)
+        string Converters,
+        AvroTypeRepresentation? DateTimeRepresentation)
     {
         internal static readonly OptionsKey Default = From(null);
 
@@ -22,7 +24,7 @@ namespace SolTechnology.Avro.Infrastructure
         {
             if (options == null)
             {
-                return new OptionsKey(false, 1024, AvroNumberHandling.Strict, AvroMissingFieldHandling.Throw, null, null);
+                return new OptionsKey(false, 1024, AvroNumberHandling.Strict, AvroMissingFieldHandling.Throw, null, null, null);
             }
 
             return new OptionsKey(
@@ -33,7 +35,8 @@ namespace SolTechnology.Avro.Infrastructure
                 options.NamingPolicy?.GetType(),
                 options.AvroConverters.Count == 0
                     ? null
-                    : string.Join("|", options.AvroConverters.Select(c => c.GetType().AssemblyQualifiedName)));
+                    : string.Join("|", options.AvroConverters.Select(c => c.GetType().AssemblyQualifiedName)),
+                options.DateTimeRepresentation);
         }
     }
 }

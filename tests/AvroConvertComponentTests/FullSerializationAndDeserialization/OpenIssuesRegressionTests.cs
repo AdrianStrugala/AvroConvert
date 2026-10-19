@@ -237,5 +237,56 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
             act.Should().Throw<InvalidAvroObjectException>().WithMessage("*numberOfRows*");
         }
+
+        // https://github.com/AdrianStrugala/AvroConvert/issues/153
+        public class Times
+        {
+            public DateTime At { get; set; }
+            public DateTimeOffset AtOffset { get; set; }
+            public DateTime? Maybe { get; set; }
+            public List<DateTime> Many { get; set; }
+
+            [AvroType(AvroTypeRepresentation.TimestampMicroseconds)]
+            public DateTime Forced { get; set; }
+        }
+
+        [Test]
+        public void Issue153_DateTimeRepresentation_applies_to_members_without_AvroType()
+        {
+            var schema = AvroConvert.GenerateSchema(typeof(Times),
+                new AvroConvertOptions { DateTimeRepresentation = AvroTypeRepresentation.TimestampMilliseconds });
+
+            schema.Should().Contain("{\"name\":\"At\",\"type\":{\"type\":\"long\",\"logicalType\":\"timestamp-millis\"}}")
+                .And.Contain("{\"name\":\"AtOffset\",\"type\":{\"type\":\"long\",\"logicalType\":\"timestamp-millis\"}}")
+                .And.Contain("{\"name\":\"Maybe\",\"type\":[\"null\",{\"type\":\"long\",\"logicalType\":\"timestamp-millis\"}]}")
+                .And.Contain("{\"name\":\"Many\",\"type\":{\"type\":\"array\",\"items\":{\"type\":\"long\",\"logicalType\":\"timestamp-millis\"}}}")
+                .And.Contain("{\"name\":\"Forced\",\"type\":{\"type\":\"long\",\"logicalType\":\"timestamp-micros\"}}");
+            AvroConvert.GenerateSchema(typeof(Times)).Should().NotContain("timestamp-millis");
+        }
+
+        [TestCase(AvroTypeRepresentation.TimestampMilliseconds, "timestamp-millis")]
+        [TestCase(AvroTypeRepresentation.TimestampNanoseconds, "timestamp-nanos")]
+        [TestCase(AvroTypeRepresentation.LocalTimestampMicroseconds, "local-timestamp-micros")]
+        public void Issue153_DateTimeRepresentation_round_trip(AvroTypeRepresentation representation, string logicalType)
+        {
+            var options = new AvroConvertOptions { DateTimeRepresentation = representation };
+            var at = new DateTime(2024, 5, 6, 7, 8, 9, 123, DateTimeKind.Utc);
+            var value = new Times { At = at, AtOffset = new DateTimeOffset(at), Maybe = at, Many = new List<DateTime> { at }, Forced = at };
+
+            var bytes = AvroConvert.Serialize(value, options);
+
+            AvroConvert.GetSchema(bytes).Should().Contain($"\"logicalType\":\"{logicalType}\"");
+            AvroConvert.Deserialize<Times>(bytes, options).Should().BeEquivalentTo(value);
+        }
+
+        [TestCase(AvroTypeRepresentation.Long)]
+        [TestCase(AvroTypeRepresentation.Date)]
+        [TestCase(AvroTypeRepresentation.TimeMicroseconds)]
+        public void Issue153_DateTimeRepresentation_rejects_non_timestamp_values(AvroTypeRepresentation representation)
+        {
+            Action act = () => _ = new AvroConvertOptions { DateTimeRepresentation = representation };
+
+            act.Should().Throw<ArgumentException>();
+        }
     }
 }

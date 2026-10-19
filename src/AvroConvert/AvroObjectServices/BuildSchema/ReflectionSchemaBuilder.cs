@@ -213,6 +213,11 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 return AvroRepresentationToAvroSchemaMap[representation.Value](type);
             }
 
+            if (_options.DateTimeRepresentation is { } dateTimeRepresentation && (type == typeof(DateTime) || type == typeof(DateTimeOffset)))
+            {
+                return AvroRepresentationToAvroSchemaMap[dateTimeRepresentation](type);
+            }
+
             //Logical
             TypeSchema schema = TryBuildLogicalTypeSchema(type, info);
             if (schema != null)

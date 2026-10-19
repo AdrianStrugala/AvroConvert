@@ -25,6 +25,7 @@ using Newtonsoft.Json;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Features.JsonToAvro;
 using SolTechnology.Avro.Infrastructure;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 {
@@ -81,6 +82,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         internal abstract void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas);
 
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal static TypeSchema Parse(string schemaInJson)
         {
             if (string.IsNullOrEmpty(schemaInJson))
@@ -105,6 +107,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             return parsed;
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal static TypeSchema Create(object obj, AvroConvertOptions options = null)
         {
             var type = obj?.GetType();
@@ -122,6 +125,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             return Create(type, options);
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal static TypeSchema Create(Type type, AvroConvertOptions options)
         {
             AvroConvert.EnsureLicenseNotice();
@@ -140,6 +144,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 _ => new ReflectionSchemaBuilder(options).BuildSchema(type));
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal static TypeSchema Create(Type type)
         {
             AvroConvert.EnsureLicenseNotice();

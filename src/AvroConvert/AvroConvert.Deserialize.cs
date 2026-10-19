@@ -18,6 +18,8 @@ using System.IO;
 using System.Reflection;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.Features.Deserialize;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro
 {
@@ -32,6 +34,7 @@ namespace SolTechnology.Avro
         /// <remarks>
         /// This method takes a byte array containing Avro data and deserializes it into an object of the specified type (generic parameter T).
         /// </remarks>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static T Deserialize<T>(byte[] avroBytes)
         {
             using (var stream = new MemoryStream(avroBytes))
@@ -57,6 +60,7 @@ namespace SolTechnology.Avro
         /// This method takes a byte array containing Avro data and deserializes it into an object of the specified type (generic parameter T).
         /// The deserialization process is controlled by the provided Avro conversion options.
         /// </remarks>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static T Deserialize<T>(byte[] avroBytes, AvroConvertOptions options)
         {
             using (var stream = new MemoryStream(avroBytes))
@@ -80,6 +84,7 @@ namespace SolTechnology.Avro
         /// This method uses reflection to dynamically invoke the generic <see cref="Deserialize{T}"/> method
         /// to deserialize Avro data from a byte array into an object of the specified target type.
         /// </remarks>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static dynamic Deserialize(byte[] avroBytes, Type targetType)
         {
             object result;
@@ -109,6 +114,7 @@ namespace SolTechnology.Avro
         /// This method performs Avro data deserialization from a <see cref="ReadOnlySpan{T}"/> of bytes into an object of the specified type.
         /// It is suitable for scenarios where minimizing memory allocation is crucial.
         /// </remarks>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static unsafe T Deserialize<T>(ReadOnlySpan<byte> avroBytes)
         {
             fixed (byte* ptr = avroBytes)

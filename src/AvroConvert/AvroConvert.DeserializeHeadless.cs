@@ -20,6 +20,8 @@ using System.IO;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.AvroObjectServices.Read;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro
 {
@@ -30,6 +32,7 @@ namespace SolTechnology.Avro
         /// When <typeparamref name="T"/> is a collection and <paramref name="schema"/> describes one item, the items written one
         /// after another (e.g. rows from the BigQuery Storage API) are read until the end of the data.
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static T DeserializeHeadless<T>(byte[] avroBytes, string schema)
         {
             return DeserializeHeadless<T>(avroBytes, Schema.Parse(schema), BuildSchema(typeof(T)), null);
@@ -38,6 +41,7 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Deserializes Avro object, which does not contain header, to .NET type
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static T DeserializeHeadless<T>(byte[] avroBytes, string schema, int numberOfRows)
         {
             return DeserializeHeadless<T>(avroBytes, Schema.Parse(schema), BuildSchema(typeof(T)), numberOfRows);
@@ -46,6 +50,7 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Deserializes Avro object, which does not contain header, to .NET type
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static T DeserializeHeadless<T>(byte[] avroBytes)
         {
             return DeserializeHeadless<T>(avroBytes, BuildSchema(typeof(T)), BuildSchema(typeof(T)), null);
@@ -54,6 +59,7 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Deserializes Avro object, which does not contain header, to .NET type
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static dynamic DeserializeHeadless(byte[] avroBytes, Type targetType)
         {
             object result = typeof(AvroConvert)
@@ -67,6 +73,7 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Deserializes Avro object, which does not contain header, to .NET type
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static dynamic DeserializeHeadless(byte[] avroBytes, string schema, Type targetType)
         {
             object result = typeof(AvroConvert)
@@ -81,6 +88,7 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Deserializes Avro object, which does not contain header, to .NET type
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static T DeserializeHeadless<T>(byte[] avroBytes, string writeSchema, string readSchema, int numberOfRows)
         {
             return DeserializeHeadless<T>(avroBytes, Schema.Parse(writeSchema), Schema.Parse(readSchema), numberOfRows);
@@ -90,6 +98,7 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Deserializes Avro object, which does not contain header, to .NET type
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static dynamic DeserializeHeadless(byte[] avroBytes, string writeSchema, string readSchema, Type targetType)
         {
             var result = typeof(AvroConvert)
@@ -103,6 +112,7 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Deserializes Avro object, which does not contain header, to .NET type
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static unsafe T DeserializeHeadless<T>(ReadOnlySpan<byte> avroBytes, string schema)
         {
             fixed (byte* ptr = avroBytes)
@@ -120,6 +130,7 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Deserializes Avro object, which does not contain header, written with <paramref name="writerSchema"/> to .NET type
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static T DeserializeHeadless<T>(byte[] avroBytes, AvroSchema writerSchema)
         {
             return DeserializeHeadless<T>(avroBytes, writerSchema.TypeSchema, BuildSchema(typeof(T)), null);
@@ -129,12 +140,14 @@ namespace SolTechnology.Avro
         /// Deserializes Avro object, which does not contain header, written with <paramref name="writerSchema"/> and resolved
         /// against <paramref name="readerSchema"/> (schema evolution), to .NET type
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static T DeserializeHeadless<T>(byte[] avroBytes, AvroSchema writerSchema, AvroSchema readerSchema)
         {
             return DeserializeHeadless<T>(avroBytes, writerSchema.TypeSchema, readerSchema.TypeSchema, null);
         }
 
         /// <param name="numberOfRows">Rows to read into a collection <typeparamref name="T"/>; null reads until the end of the data.</param>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private static T DeserializeHeadless<T>(byte[] avroBytes, TypeSchema writeSchema, TypeSchema readSchema, int? numberOfRows)
         {
             var reader = new Reader(avroBytes);
@@ -142,6 +155,7 @@ namespace SolTechnology.Avro
             return numberOfRows is { } rows ? resolver.Resolve<T>(reader, rows) : resolver.ResolveToEnd<T>(reader);
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private static TypeSchema BuildSchema(Type type) => Schema.Create(type);
 
         /// <summary>dynamic / ExpandoObject targets carry no shape of their own; the writer schema is read as-is.</summary>

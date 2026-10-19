@@ -27,6 +27,8 @@ using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes;
 using SolTechnology.Avro.Infrastructure.Attributes;
 using SolTechnology.Avro.Infrastructure.Extensions;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 {
@@ -59,6 +61,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         /// <returns>Schema internal representation as a tree of nodes.</returns>
         /// <exception cref="System.ArgumentException">Thrown when <paramref name="schema"/> is null or empty.</exception>
         /// <exception cref="System.Runtime.Serialization.SerializationException">Thrown when <paramref name="schema"/> is invalid schema.</exception>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal TypeSchema BuildSchema(string schema)
         {
             if (string.IsNullOrEmpty(schema))
@@ -86,6 +89,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         /// Schema internal representation.
         /// </returns>
         /// <exception cref="System.Runtime.Serialization.SerializationException">Thrown when JSON schema type is not supported.</exception>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private TypeSchema Parse(JToken token, NamedSchema parent, Dictionary<string, NamedSchema> namedSchemas)
         {
             if (token.Type == JTokenType.Object)
@@ -135,6 +139,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         /// Schema internal representation.
         /// </returns>
         /// <exception cref="System.Runtime.Serialization.SerializationException">Thrown when JSON schema type is invalid.</exception>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private TypeSchema ParseJsonObject(JObject token, NamedSchema parent, Dictionary<string, NamedSchema> namedSchemas)
         {
             JToken tokenType = token[AvroKeywords.Type];
@@ -174,6 +179,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 string.Format(CultureInfo.InvariantCulture, "Invalid type specified: '{0}'.", tokenType));
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private TypeSchema ParseTypedObject(JObject token, AvroType type, NamedSchema parent, Dictionary<string, NamedSchema> namedSchemas)
         {
             switch (type)
@@ -209,6 +215,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         /// Schema internal representation.
         /// </returns>
         /// <exception cref="System.Runtime.Serialization.SerializationException">Thrown when union schema type is invalid.</exception>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private TypeSchema ParseUnionType(JArray unionToken, NamedSchema parent, Dictionary<string, NamedSchema> namedSchemas)
         {
             var types = new HashSet<string>();
@@ -295,6 +302,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         /// A corresponding schema.
         /// </returns>
         /// <exception cref="System.Runtime.Serialization.SerializationException">Thrown when no 'items' property is found in <paramref name="array" />.</exception>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private TypeSchema ParseArrayType(JObject array, NamedSchema parent, Dictionary<string, NamedSchema> namedSchemas)
         {
             var itemType = array[AvroKeywords.Items];
@@ -318,6 +326,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         /// A corresponding schema.
         /// </returns>
         /// <exception cref="System.Runtime.Serialization.SerializationException">Thrown when 'values' property is not found in <paramref name="map" />.</exception>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private TypeSchema ParseMapType(JObject map, NamedSchema parent, Dictionary<string, NamedSchema> namedSchemas)
         {
             var valueType = map[AvroKeywords.Values];
@@ -379,6 +388,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         /// Schema internal representation.
         /// </returns>
         /// <exception cref="System.Runtime.Serialization.SerializationException">Thrown when <paramref name="record"/> can not be parsed properly.</exception>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private TypeSchema ParseRecordType(JObject record, NamedSchema parent, Dictionary<string, NamedSchema> namedSchemas)
         {
             var name = record.RequiredProperty<string>(AvroKeywords.Name);
@@ -424,6 +434,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         /// Schema internal representation.
         /// </returns>
         /// <exception cref="System.Runtime.Serialization.SerializationException">Thrown when <paramref name="field"/> is not valid or when sort order is not valid.</exception>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private RecordFieldSchema ParseRecordField(JObject field, NamedSchema parent, Dictionary<string, NamedSchema> namedSchemas, int position)
         {
             var name = field.RequiredProperty<string>(AvroKeywords.Name);

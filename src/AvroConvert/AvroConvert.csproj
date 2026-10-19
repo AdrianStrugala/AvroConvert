@@ -3,6 +3,7 @@
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
 		<TargetFramework>net10.0</TargetFramework>
+		<IsAotCompatible>true</IsAotCompatible>
 		<LangVersion>latest</LangVersion>
 		<Nullable>disable</Nullable>
 		<Authors>Adrian Strugala</Authors>

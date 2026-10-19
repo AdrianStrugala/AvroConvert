@@ -15,6 +15,8 @@
 #endregion
 using Newtonsoft.Json;
 using SolTechnology.Avro.Features.JsonToAvro;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro
 {
@@ -24,6 +26,7 @@ namespace SolTechnology.Avro
         /// Converts JSON object directly to Avro format
         /// Warning! The dynamic implementations is an experimental feature. Use generic overload if possible.
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] Json2Avro(string json)
         {
             var decoder = new JsonToAvroDecoder();
@@ -37,6 +40,7 @@ namespace SolTechnology.Avro
         /// Choosing <paramref name="codecType"/> reduces output object size
         /// Warning! The dynamic implementations is an experimental feature. Use generic overload if possible.
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] Json2Avro(string json, CodecType codecType)
         {
             var decoder = new JsonToAvroDecoder();
@@ -47,6 +51,7 @@ namespace SolTechnology.Avro
         /// <summary>
         ///  Converts JSON object directly to Avro format
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] Json2Avro<T>(string json)
         {
             var deserializedJson = JsonConvert.DeserializeObject<T>(json);
@@ -60,6 +65,7 @@ namespace SolTechnology.Avro
         ///  Converts JSON object directly to Avro format
         ///  Choosing <paramref name="codecType"/> reduces output object size
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] Json2Avro<T>(string json, CodecType codecType)
         {
             var deserializedJson = JsonConvert.DeserializeObject<T>(json);

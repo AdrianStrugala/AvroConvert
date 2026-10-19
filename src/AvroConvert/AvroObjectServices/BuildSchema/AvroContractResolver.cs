@@ -25,6 +25,8 @@ using System.Runtime.Serialization;
 using SolTechnology.Avro.Infrastructure.Attributes;
 using SolTechnology.Avro.Infrastructure.Extensions;
 using SolTechnology.Avro.Policies;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 {
@@ -35,6 +37,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
     /// </summary>
 
 
+    [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
     internal class AvroContractResolver
     {
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Infrastructure;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 {
@@ -33,6 +34,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         private static readonly ConcurrentDictionary<(TypeSchema Writer, TypeSchema Reader, Type Target, OptionsKey Options), object> Plans = new();
         private const int Limit = 1024;
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal static ReadPlan<T> Get<T>(TypeSchema writerSchema, TypeSchema readerSchema, AvroConvertOptions options)
         {
             var key = (writerSchema, readerSchema, typeof(T), OptionsKey.From(options));

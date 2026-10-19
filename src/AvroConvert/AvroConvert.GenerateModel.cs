@@ -14,6 +14,8 @@
 */
 #endregion
 using SolTechnology.Avro.Features.GenerateModel;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro
 {
@@ -22,6 +24,7 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Generates C# .NET classes from given AVRO object containing schema
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static string GenerateModel(byte[] avroBytes)
         {
             var generateClassHandler = new GenerateModel();
@@ -33,6 +36,7 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Generates C# .NET classes from given AVRO schema
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static string GenerateModel(AvroSchema schema)
         {
             return GenerateModel(schema.Json);
@@ -41,6 +45,7 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Generates C# .NET classes from given AVRO schema
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static string GenerateModel(string schema)
         {
             var generateClassHandler = new GenerateModel();

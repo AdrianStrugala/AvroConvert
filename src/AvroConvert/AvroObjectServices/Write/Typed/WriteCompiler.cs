@@ -16,6 +16,8 @@ using SolTechnology.Avro.Infrastructure.Exceptions;
 using SolTechnology.Avro.Infrastructure.Extensions;
 using SolTechnology.Avro.Infrastructure.Reflection;
 using SolTechnology.Avro.Policies;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
 {
@@ -25,6 +27,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
     /// is <c>object</c> (or an interface/abstract class) are dispatched at runtime to the plan compiled for their actual
     /// type, which is how polymorphism, ExpandoObject and JSON tokens are handled.
     /// </summary>
+    [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
     internal sealed class WriteCompiler
     {
         private static readonly MethodInfo WriteNullMethod = typeof(IWriter).GetMethod(nameof(IWriter.WriteNull))!;

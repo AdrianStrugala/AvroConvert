@@ -16,6 +16,8 @@
 
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.Features.JsonEncoding;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro
 {
@@ -29,6 +31,7 @@ namespace SolTechnology.Avro
         /// and logical types are written as their underlying type. Each container entry is one JSON value; several entries
         /// are separated by new lines.
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static string Avro2JsonEncoding(byte[] avro)
         {
             return new JsonEncodingWriter().Convert(avro, null);
@@ -39,12 +42,14 @@ namespace SolTechnology.Avro
         /// writer schema of data without a header (headless); consecutive headless values become new-line separated JSON values.
         /// For an object container file the schema from its header is used.
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static string Avro2JsonEncoding(byte[] avro, string avroSchema)
         {
             return Avro2JsonEncoding(avro, AvroSchema.Parse(avroSchema));
         }
 
         /// <inheritdoc cref="Avro2JsonEncoding(byte[], string)"/>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static string Avro2JsonEncoding(byte[] avro, AvroSchema avroSchema)
         {
             return new JsonEncodingWriter().Convert(avro, avroSchema.TypeSchema);
@@ -55,6 +60,7 @@ namespace SolTechnology.Avro
         /// or avro-tools <c>tojson</c>) to an Avro object container file. Each JSON value in <paramref name="json"/> (separated
         /// by whitespace or new lines) becomes one entry. Missing record fields take their schema default.
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] JsonEncoding2Avro(string json, string avroSchema)
         {
             return JsonEncoding2Avro(json, avroSchema, CodecType.Null);
@@ -64,18 +70,21 @@ namespace SolTechnology.Avro
         /// Converts JSON in the Avro specification's JSON Encoding to an Avro object container file compressed with
         /// <paramref name="codecType"/>. Each JSON value in <paramref name="json"/> becomes one entry.
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] JsonEncoding2Avro(string json, string avroSchema, CodecType codecType)
         {
             return JsonEncoding2Avro(json, AvroSchema.Parse(avroSchema), codecType);
         }
 
         /// <inheritdoc cref="JsonEncoding2Avro(string, string)"/>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] JsonEncoding2Avro(string json, AvroSchema avroSchema)
         {
             return JsonEncoding2Avro(json, avroSchema, CodecType.Null);
         }
 
         /// <inheritdoc cref="JsonEncoding2Avro(string, string, CodecType)"/>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] JsonEncoding2Avro(string json, AvroSchema avroSchema, CodecType codecType)
         {
             return new JsonEncodingReader().Convert(json, avroSchema.TypeSchema, codecType);

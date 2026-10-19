@@ -23,6 +23,8 @@ using SolTechnology.Avro.AvroObjectServices.FileHeader.Codec;
 using SolTechnology.Avro.AvroObjectServices.Read;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Infrastructure.Exceptions;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro.Features.Deserialize
 {
@@ -35,6 +37,7 @@ namespace SolTechnology.Avro.Features.Deserialize
             _options = options;
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal T Decode<T>(Stream stream, TypeSchema readSchema)
         {
             var reader = new Reader(stream);
@@ -79,6 +82,7 @@ namespace SolTechnology.Avro.Features.Deserialize
         }
 
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal T Read<T>(Reader reader, Header header, AbstractCodec codec, Resolver resolver)
         {
             if (reader.IsReadToEnd())

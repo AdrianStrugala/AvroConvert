@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Infrastructure;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
 {
@@ -17,6 +18,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
         private const int Limit = 1024;
 
         /// <summary>Strongly typed writer for values whose static type is exactly T (no boxing of the root value).</summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal static Action<IWriter, T> GetTyped<T>(TypeSchema schema, AvroConvertOptions options)
         {
             var key = (schema, typeof(T), OptionsKey.From(options));
@@ -34,6 +36,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
             return plan;
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal static Encoder.WriteItem Get(TypeSchema schema, Type type, AvroConvertOptions options)
         {
             var key = (schema, type, OptionsKey.From(options));

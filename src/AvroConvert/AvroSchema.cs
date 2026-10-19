@@ -24,6 +24,8 @@ using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Features.CompareSchema;
 using SolTechnology.Avro.Features.GetSchema;
 using SolTechnology.Avro.Features.JsonToAvro;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro
 {
@@ -37,6 +39,7 @@ namespace SolTechnology.Avro
         private readonly Lazy<string> _canonicalForm;
         private readonly Lazy<long> _fingerprint;
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private AvroSchema(TypeSchema schema)
         {
             TypeSchema = schema;
@@ -61,6 +64,7 @@ namespace SolTechnology.Avro
         public long Fingerprint => _fingerprint.Value;
 
         /// <summary>Parses a schema from its JSON definition.</summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static AvroSchema Parse(string json)
         {
             if (string.IsNullOrWhiteSpace(json))
@@ -72,9 +76,11 @@ namespace SolTechnology.Avro
         }
 
         /// <summary>Generates the schema of a .NET type.</summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static AvroSchema Create<T>(AvroConvertOptions options = null) => Create(typeof(T), options);
 
         /// <summary>Generates the schema of a .NET type.</summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static AvroSchema Create(Type type, AvroConvertOptions options = null)
         {
             if (type == null)
@@ -86,6 +92,7 @@ namespace SolTechnology.Avro
         }
 
         /// <summary>Reads the schema from the header of an Avro object container file.</summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static AvroSchema FromAvro(byte[] avro)
         {
             using var stream = new MemoryStream(avro, writable: false);
@@ -93,6 +100,7 @@ namespace SolTechnology.Avro
         }
 
         /// <summary>Reads the schema from the header of an Avro object container file.</summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static AvroSchema FromAvro(Stream avro)
         {
             return Parse(new HeaderDecoder().GetSchema(avro));
@@ -101,6 +109,7 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Infers a schema from sample JSON data (not a schema definition – use <see cref="Parse"/> for that).
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static AvroSchema InferFromJson(string jsonData)
         {
             AvroConvert.EnsureLicenseNotice();

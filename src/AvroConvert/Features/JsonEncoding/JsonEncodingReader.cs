@@ -27,6 +27,8 @@ using SolTechnology.Avro.AvroObjectServices.Write;
 using SolTechnology.Avro.AvroObjectServices.Write.Typed;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Infrastructure.Exceptions;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro.Features.JsonEncoding
 {
@@ -36,6 +38,7 @@ namespace SolTechnology.Avro.Features.JsonEncoding
     /// </summary>
     internal sealed class JsonEncodingReader
     {
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal byte[] Convert(string json, TypeSchema schema, CodecType codecType)
         {
             var values = ReadValues(json);
@@ -75,6 +78,7 @@ namespace SolTechnology.Avro.Features.JsonEncoding
         /// Binary encoding of a schema <c>default</c>. Defaults use the JSON encoding except for unions, whose default is the
         /// unwrapped value of a branch (the first one that accepts it).
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal static byte[] EncodeDefault(TypeSchema schema, JToken defaultJson)
         {
             using var stream = new MemoryStream();
@@ -82,6 +86,7 @@ namespace SolTechnology.Avro.Features.JsonEncoding
             return stream.ToArray();
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal static void Write(TypeSchema schema, JToken token, IWriter writer, string path, bool isDefault = false)
         {
             switch (schema)
@@ -185,6 +190,7 @@ namespace SolTechnology.Avro.Features.JsonEncoding
             }
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private static void WriteRecord(RecordSchema schema, JToken token, IWriter writer, string path, bool isDefault)
         {
             Expect(token, JTokenType.Object, schema, path);
@@ -215,6 +221,7 @@ namespace SolTechnology.Avro.Features.JsonEncoding
             // Properties that are not fields of the record are ignored, as by the Java JsonDecoder.
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private static void WriteDefault(RecordFieldSchema field, IWriter writer)
         {
             if (field.DefaultValue == null)
@@ -226,6 +233,7 @@ namespace SolTechnology.Avro.Features.JsonEncoding
             WritePlanCache.Get(field.TypeSchema, field.DefaultValue.GetType(), null)(field.DefaultValue, writer);
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private static void WriteUnion(UnionSchema schema, JToken token, IWriter writer, string path)
         {
             var branches = schema.Schemas;
@@ -265,6 +273,7 @@ namespace SolTechnology.Avro.Features.JsonEncoding
             throw Mismatch(path, $"'{property.Name}' is not a branch of union {schema}; expected one of {string.Join(", ", branches.Select(JsonEncodingRules.BranchName))}");
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private static void WriteUnionDefault(UnionSchema schema, JToken token, IWriter writer, string path)
         {
             // Avro 1.12: the default matches one of the branches, the first one traditionally; try them in order.

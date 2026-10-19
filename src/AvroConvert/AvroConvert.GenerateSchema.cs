@@ -17,6 +17,8 @@
 
 using System;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro
 {
@@ -25,6 +27,7 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Generates schema for given .NET Type
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static string GenerateSchema(Type type)
         {
             return Schema.Create(type, null).ToString();
@@ -35,6 +38,7 @@ namespace SolTechnology.Avro
         /// Generates schema for given .NET Type
         /// <paramref name="includeOnlyDataContractMembers"/> indicates if only classes with DataContractAttribute and properties marked with DataMemberAttribute should be returned
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static string GenerateSchema(Type type, bool includeOnlyDataContractMembers)
         {
             return GenerateSchema(type, new AvroConvertOptions
@@ -49,6 +53,7 @@ namespace SolTechnology.Avro
         /// <param name="type">The given .NET type</param>
         /// <param name="options">Options to use for generating the schema</param>
         /// <returns></returns>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static string GenerateSchema(Type type, AvroConvertOptions options)
         {
             return Schema.Create(type, options).ToString();

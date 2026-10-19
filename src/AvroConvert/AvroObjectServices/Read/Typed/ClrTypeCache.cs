@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 {
@@ -11,6 +13,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
     /// For dynamic deserialization: finds a loaded CLR type whose namespace and name match a record schema.
     /// Nested types match on their outer namespace (so `Ns.Outer+Inner` serves `Ns.Inner`); a bare name never matches a namespaced type.
     /// </summary>
+    [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
     internal static class ClrTypeCache
     {
         private static readonly ConcurrentDictionary<string, Type> BySchemaName = new();

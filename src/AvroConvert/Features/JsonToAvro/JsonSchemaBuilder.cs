@@ -8,6 +8,8 @@ using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Infrastructure.Attributes;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro.Features.JsonToAvro
 {
@@ -15,11 +17,13 @@ namespace SolTechnology.Avro.Features.JsonToAvro
     {
         private readonly ReflectionSchemaBuilder _reflectionSchemaBuilder;
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal JsonSchemaBuilder()
         {
             _reflectionSchemaBuilder = new ReflectionSchemaBuilder();
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal TypeSchema BuildSchema(object item, string name = null)
         {
             if (item == null)
@@ -44,6 +48,7 @@ namespace SolTechnology.Avro.Features.JsonToAvro
         }
 
         /// <summary>Record schema covering every item: a field per key seen, nullable when any item lacks it or holds null.</summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal TypeSchema BuildSchema(IEnumerable<ExpandoObject> items, string name = null)
         {
             var seen = new Dictionary<string, (TypeSchema Schema, bool Nullable)>();
@@ -95,6 +100,7 @@ namespace SolTechnology.Avro.Features.JsonToAvro
             return result;
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal TypeSchema BuildRecordSchema(IEnumerable<KeyValuePair<string, object>> properties, string name = null)
         {
             RecordSchema record = new RecordSchema(new NamedEntityAttributes(
@@ -143,6 +149,7 @@ namespace SolTechnology.Avro.Features.JsonToAvro
             return record;
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal TypeSchema BuildArraySchema(JArray incomingObject, string name = null)
         {
             var childObject = incomingObject.FirstOrDefault();

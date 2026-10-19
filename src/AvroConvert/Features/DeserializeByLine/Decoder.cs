@@ -22,11 +22,14 @@ using SolTechnology.Avro.AvroObjectServices.Read;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Features.DeserializeByLine.LineReaders;
 using SolTechnology.Avro.Infrastructure.Exceptions;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro.Features.DeserializeByLine
 {
     internal class Decoder
     {
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal static ILineReader<T> OpenReader<T>(Stream stream, TypeSchema readSchema)
         {
             var reader = new Reader(stream);

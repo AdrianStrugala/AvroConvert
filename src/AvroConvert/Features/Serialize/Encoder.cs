@@ -28,6 +28,8 @@ using SolTechnology.Avro.AvroObjectServices.FileHeader.Codec;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.AvroObjectServices.Write;
 using SolTechnology.Avro.AvroObjectServices.Write.Typed;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro.Features.Serialize
 {
@@ -82,6 +84,7 @@ namespace SolTechnology.Avro.Features.Serialize
             System.Security.Cryptography.RandomNumberGenerator.Fill(_header.SyncData);
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal void Append(object datum)
         {
             if (datum == null)
@@ -122,6 +125,7 @@ namespace SolTechnology.Avro.Features.Serialize
         }
 
         /// <summary>Appends every element as its own container entry using a typed writer (no boxing per element).</summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal void AppendAll<T>(IEnumerable<T> items)
         {
             var write = WritePlanCache.GetTyped<T>(_schema, _options);
@@ -138,6 +142,7 @@ namespace SolTechnology.Avro.Features.Serialize
         }
 
         /// <summary>Typed writer for <see cref="Append{T}"/>; fetch once and reuse for every item.</summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal Action<IWriter, T> TypedWriter<T>() => WritePlanCache.GetTyped<T>(_schema, _options);
 
         /// <summary>Appends one container entry; returns true when the entry completed a data block written to the output.</summary>

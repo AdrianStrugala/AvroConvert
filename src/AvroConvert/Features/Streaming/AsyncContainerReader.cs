@@ -28,6 +28,8 @@ using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Features.DeserializeByLine.LineReaders;
 using SolTechnology.Avro.Infrastructure.Exceptions;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro.Features.Streaming
 {
@@ -49,6 +51,7 @@ namespace SolTechnology.Avro.Features.Streaming
             _input = input;
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal static async IAsyncEnumerable<T> Read<T>(Stream input, AvroConvertOptions options, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             var container = new AsyncContainerReader(input);

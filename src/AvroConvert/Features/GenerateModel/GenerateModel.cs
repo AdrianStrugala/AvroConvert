@@ -23,9 +23,12 @@ using SolTechnology.Avro.Features.GenerateModel.NetModel;
 using SolTechnology.Avro.Features.GenerateModel.Resolvers;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 using SolTechnology.Avro.Infrastructure.Extensions;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro.Features.GenerateModel
 {
+    [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
     internal class GenerateModel
     {
         private NamespaceHelper _namespaceHelper;

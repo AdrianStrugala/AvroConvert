@@ -29,6 +29,8 @@ using SolTechnology.Avro.Features.JsonToAvro;
 using SolTechnology.Avro.AvroObjectServices.Write;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Features.Streaming;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro
 {
@@ -46,6 +48,7 @@ namespace SolTechnology.Avro
         /// A dictionary, <c>string</c> or <c>byte[]</c> is one value, written like <see cref="Serialize(object, AvroConvertOptions)"/>.
         /// </remarks>
         /// <exception cref="ArgumentException">Collected items have different runtime types.</exception>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static void Serialize<T>(IEnumerable<T> items, Stream output, AvroConvertOptions options = null)
         {
             ArgumentNullException.ThrowIfNull(items);
@@ -74,6 +77,7 @@ namespace SolTechnology.Avro
         /// it is full. The stream is left open.
         /// </summary>
         /// <remarks>Schema rules are the same as for <see cref="Serialize{T}(IEnumerable{T}, Stream, AvroConvertOptions)"/>.</remarks>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static async Task Serialize<T>(IAsyncEnumerable<T> items, Stream output, AvroConvertOptions options = null, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(items);
@@ -116,6 +120,7 @@ namespace SolTechnology.Avro
         /// <typeparamref name="T"/> is the type of one entry. When the file holds whole arrays (written with
         /// <see cref="AvroCollectionMode.SingleArray"/>) and <typeparamref name="T"/> is not a collection, their items are returned.
         /// </remarks>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static IAsyncEnumerable<T> Deserialize<T>(Stream input, AvroConvertOptions options = null, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(input);
@@ -125,6 +130,7 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Serializes <paramref name="obj"/> into Avro format (including header with metadata) directly into <paramref name="output"/>.
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static void Serialize(object obj, IBufferWriter<byte> output, AvroConvertOptions options = null)
         {
             ArgumentNullException.ThrowIfNull(output);
@@ -134,6 +140,7 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Serializes <paramref name="obj"/> to Avro format - <c>excluding</c> header - directly into <paramref name="output"/>.
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static void SerializeHeadless(object obj, IBufferWriter<byte> output, AvroSchema schema, AvroConvertOptions options = null)
         {
             ArgumentNullException.ThrowIfNull(output);
@@ -147,6 +154,7 @@ namespace SolTechnology.Avro
         private static bool IsSingleValue(object items) => items is string or byte[] or IDictionary;
 
         /// <summary>Items whose schema comes from their runtime type, which they must share.</summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private static void SerializeCollected<T>(List<T> items, Stream output, CodecType codec, AvroConvertOptions options)
         {
             var types = items.Select(i => i?.GetType()).Distinct().ToList();

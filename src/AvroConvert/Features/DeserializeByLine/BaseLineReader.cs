@@ -19,9 +19,12 @@ using SolTechnology.Avro.AvroObjectServices.Read;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Features.DeserializeByLine.LineReaders;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro.Features.DeserializeByLine
 {
+    [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
     internal class BaseLineReader<T> : ILineReader<T>
     {
         private readonly Reader _reader;

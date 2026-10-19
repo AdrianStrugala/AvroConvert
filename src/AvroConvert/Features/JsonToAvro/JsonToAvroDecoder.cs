@@ -7,9 +7,12 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Infrastructure.Extensions;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro.Features.JsonToAvro
 {
+    [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
     internal class JsonToAvroDecoder
     {
         private readonly JsonSchemaBuilder _jsonSchemaBuilder;

@@ -23,9 +23,12 @@ using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.AvroObjectServices.Schemas.AvroTypes;
 using SolTechnology.Avro.Infrastructure.Exceptions;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro.Features.AvroToJson
 {
+    [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
     internal partial class Resolver
     {
         private readonly TypeSchema _readerSchema;

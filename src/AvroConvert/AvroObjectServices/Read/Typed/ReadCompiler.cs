@@ -15,6 +15,8 @@ using SolTechnology.Avro.Infrastructure.Attributes;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 using SolTechnology.Avro.Infrastructure.Reflection;
 using SolTechnology.Avro.Policies;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 {
@@ -25,6 +27,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
     /// (<c>object</c>) materialise as ExpandoObject / List&lt;object&gt; / Dictionary&lt;string, object&gt;, or as a CLR type
     /// whose name matches the record schema.
     /// </summary>
+    [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
     internal sealed class ReadCompiler
     {
         private static readonly MethodInfo ReadBooleanMethod = typeof(IReader).GetMethod(nameof(IReader.ReadBoolean))!;

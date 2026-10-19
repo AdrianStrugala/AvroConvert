@@ -20,6 +20,8 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using SolTechnology.Avro.Policies;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro.AvroObjectServices.Read
 {
@@ -27,6 +29,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
     {
         private static ConcurrentDictionary<Type, EnumCache> memberValueCaches = new ConcurrentDictionary<Type, EnumCache>();
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static object Parse(Type enumType, string value, IAvroNamingPolicy namingPolicy)
         {
             var cache = GetEnumMemberCache(enumType, namingPolicy);
@@ -34,6 +37,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             return Enum.Parse(enumType, cache.MembersToNames[value]);
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static string GetEnumName(Type enumType, object value, IAvroNamingPolicy namingPolicy)
         {
             var cache = GetEnumMemberCache(enumType, namingPolicy);
@@ -45,6 +49,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                 : valueAsString;
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private static EnumCache GetEnumMemberCache(Type runtimeType, IAvroNamingPolicy namingPolicy)
         {
             return memberValueCaches.GetOrAdd(runtimeType, type =>
@@ -64,6 +69,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             });
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private static string GetEnumMemberValue(Type runtimeType, string member, IAvroNamingPolicy namingPolicy)
         {
             var field = runtimeType.GetField(member);

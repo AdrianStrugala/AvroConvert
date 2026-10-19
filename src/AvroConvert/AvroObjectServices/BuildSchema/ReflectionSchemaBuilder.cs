@@ -28,6 +28,8 @@ using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Infrastructure.Attributes;
 using SolTechnology.Avro.Infrastructure.Extensions;
 using SolTechnology.Avro.Policies;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 {
@@ -35,6 +37,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
     ///     This class creates an avro schema given a c# type.
     /// </summary>
 
+    [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
     internal sealed class ReflectionSchemaBuilder
     {
         private static readonly Dictionary<Type, Func<Type, LogicalTypeSchema>> TypeToAvroLogicalSchemaMap =

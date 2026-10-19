@@ -30,11 +30,14 @@ using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Features.JsonToAvro;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Policies;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro
 {
     public static partial class AvroConvert
     {
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private static byte[] SerializeToArray(object obj, CodecType codecType, AvroConvertOptions options)
         {
             using var resultStream = new MemoryStream();
@@ -43,6 +46,7 @@ namespace SolTechnology.Avro
         }
 
         /// <summary>Writes an Avro container with <paramref name="obj"/> to <paramref name="output"/>, leaving the stream open.</summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private static void SerializeTo(object obj, Stream output, CodecType codecType, AvroConvertOptions options)
         {
             var itemType = options == null || options.CollectionMode == AvroCollectionMode.Entries ? EntryItemType(obj) : null;
@@ -60,6 +64,7 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Writes every element of a top-level collection as its own container entry (schema = element schema).
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private static void SerializeEntries(IEnumerable items, Type itemType, Stream output, CodecType codecType, AvroConvertOptions options)
         {
             var schema = itemType == typeof(ExpandoObject)
@@ -72,6 +77,7 @@ namespace SolTechnology.Avro
         private static readonly ConcurrentDictionary<Type, Action<Encoder, IEnumerable>> EntryAppenders = new();
 
         /// <summary>(encoder, items) => encoder.AppendAll&lt;T&gt;((IEnumerable&lt;T&gt;)items) for the runtime element type.</summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private static Action<Encoder, IEnumerable> CompileAppender(Type itemType)
         {
             var encoder = Expression.Parameter(typeof(Encoder), "encoder");
@@ -82,6 +88,7 @@ namespace SolTechnology.Avro
         }
 
         /// <summary>Element type of a generic collection suitable for entry-wise serialization; null otherwise.</summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private static Type EntryItemType(object obj)
         {
             if (obj is not IEnumerable || obj is string || obj is byte[] || obj is IDictionary)
@@ -103,6 +110,7 @@ namespace SolTechnology.Avro
         /// </summary>
         /// <param name="obj">The object to serialize.</param>
         /// <returns>A byte array containing the serialized Avro data.</returns>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] Serialize(object obj)
         {
             return Serialize(obj, CodecType.Null);
@@ -114,6 +122,7 @@ namespace SolTechnology.Avro
         /// <param name="obj">The object to serialize.</param>
         /// <param name="codecType">The codec type to be used for serialization. Choosing a specific codec may reduce the output size.</param>
         /// <returns>A byte array containing the serialized Avro data.</returns>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] Serialize(object obj, CodecType codecType)
         {
             return SerializeToArray(obj, codecType, null);
@@ -126,6 +135,7 @@ namespace SolTechnology.Avro
         /// <param name="obj">The object to serialize.</param>
         /// <param name="options">The Avro conversion options that control the serialization process, including codec and other settings.</param>
         /// <returns>A byte array containing the serialized Avro data.</returns>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] Serialize(object obj, AvroConvertOptions options)
         {
             return SerializeToArray(obj, options.Codec, options);

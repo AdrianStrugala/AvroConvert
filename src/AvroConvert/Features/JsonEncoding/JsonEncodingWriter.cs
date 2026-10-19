@@ -27,6 +27,8 @@ using SolTechnology.Avro.AvroObjectServices.Read;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Infrastructure.Exceptions;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro.Features.JsonEncoding
 {
@@ -36,6 +38,7 @@ namespace SolTechnology.Avro.Features.JsonEncoding
     /// </summary>
     internal sealed class JsonEncodingWriter
     {
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal string Convert(byte[] avro, TypeSchema headlessSchema)
         {
             using var stream = new MemoryStream(avro, writable: false);

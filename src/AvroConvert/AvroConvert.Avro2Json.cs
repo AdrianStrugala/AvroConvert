@@ -17,6 +17,8 @@ using System.IO;
 using Newtonsoft.Json;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.Features.AvroToJson;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro
 {
@@ -25,6 +27,7 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Converts Avro object directly to JSON format
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static string Avro2Json(byte[] avro)
         {
             using (var stream = new MemoryStream(avro))
@@ -41,6 +44,7 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Converts Avro object compatible with given <paramref name="avroSchema"/> directly to JSON format
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static string Avro2Json(byte[] avro, string avroSchema)
         {
             return Avro2Json(avro, AvroSchema.Parse(avroSchema));
@@ -49,6 +53,7 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Converts Avro object compatible with given <paramref name="avroSchema"/> directly to JSON format
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static string Avro2Json(byte[] avro, AvroSchema avroSchema)
         {
             using (var stream = new MemoryStream(avro))

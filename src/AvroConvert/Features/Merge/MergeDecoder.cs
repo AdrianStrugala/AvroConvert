@@ -22,11 +22,14 @@ using SolTechnology.Avro.AvroObjectServices.FileHeader;
 using SolTechnology.Avro.AvroObjectServices.FileHeader.Codec;
 using SolTechnology.Avro.AvroObjectServices.Read;
 using SolTechnology.Avro.Infrastructure.Exceptions;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro.Features.Merge
 {
     internal class MergeDecoder
     {
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal AvroObjectContent ExtractAvroObjectContent(byte[] avroObject)
         {
             using (var stream = new MemoryStream(avroObject))

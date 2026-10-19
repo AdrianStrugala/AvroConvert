@@ -22,6 +22,8 @@ using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.AvroObjectServices.Write;
 using SolTechnology.Avro.AvroObjectServices.Write.Typed;
 using SolTechnology.Avro.Features.Serialize;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro
 {
@@ -30,6 +32,7 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Serializes given object to Avro format - <c>excluding</c> header
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] SerializeHeadless(object obj, string schema, AvroConvertOptions options = null)
         {
             using var resultStream = new MemoryStream();
@@ -46,6 +49,7 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Serializes given object to Avro format - <c>excluding</c> header
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] SerializeHeadless(object obj, Type objectType, AvroConvertOptions options = null)
         {
             using var resultStream = new MemoryStream();
@@ -62,6 +66,7 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Serializes given object to Avro format - <c>excluding</c> header
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] SerializeHeadless(object obj, AvroSchema schema, AvroConvertOptions options = null)
         {
             using var resultStream = new MemoryStream();
@@ -70,6 +75,7 @@ namespace SolTechnology.Avro
             return resultStream.ToArray();
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private static Encoder.WriteItem ResolveWriter(TypeSchema schema, object obj, AvroConvertOptions options) =>
             obj == null
                 ? (_, writer) => WriteHelpers.WriteNullValue(schema, writer)

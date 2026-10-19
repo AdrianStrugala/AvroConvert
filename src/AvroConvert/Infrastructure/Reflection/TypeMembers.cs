@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.Serialization;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SolTechnology.Avro.Infrastructure.Reflection
 {
@@ -31,6 +32,7 @@ namespace SolTechnology.Avro.Infrastructure.Reflection
     /// Compiled getters and metadata for the members that take part in Avro (de)serialization –
     /// public properties and fields, plus non-public ones marked with <see cref="DataMemberAttribute"/>.
     /// </summary>
+    [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
     internal sealed class TypeMembers
     {
         private static readonly ConcurrentDictionary<Type, TypeMembers> Cache = new();

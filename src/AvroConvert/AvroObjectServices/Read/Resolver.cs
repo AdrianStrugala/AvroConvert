@@ -20,6 +20,8 @@ using SolTechnology.Avro.AvroObjectServices.Read.Typed;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Infrastructure.Exceptions;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro.AvroObjectServices.Read
 {
@@ -27,6 +29,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
     /// Entry point for decoding values of a (writer schema, reader schema) pair into T. All work is done by compiled
     /// read plans (<see cref="ReadCompiler"/>); this type only carries the schemas/options and wraps failures.
     /// </summary>
+    [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
     internal sealed class Resolver
     {
         private readonly TypeSchema _readerSchema;

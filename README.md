@@ -39,14 +39,13 @@ AvroConvert 4.x targets .NET 10. For .NET Framework and .NET 6–9 use [3.4.x](h
 
 **Avro combines the self-describing schema of JSON with the size and speed of binary serialization.** AvroConvert brings it to .NET the way you already serialize JSON: plain C# objects in, `byte[]` out – no code generation, no `.avsc` files.
 
-|                                                                         |                 AvroConvert                 |               Apache.Avro                | Newtonsoft.Json |
-|-------------------------------------------------------------------------|:-------------------------------------------:|:----------------------------------------:|:---------------:|
-| Works on plain C# classes – no generated code or schema files           |                     ✔️                      |                    ❌                     |       ✔️        |
+|                                                                          |                 AvroConvert                 |               Apache.Avro                | Newtonsoft.Json |
+|--------------------------------------------------------------------------|:-------------------------------------------:|:----------------------------------------:|:---------------:|
+| Works on plain C# classes – no generated code or schema files            |                     ✔️                      |                    ❌                     |       ✔️        |
 | Native .NET types (`Dictionary`, `List`, `DateTime`, `Guid`, `decimal`…) |                     ✔️                      |                    ❌                     |       ✔️        |
-| Compact binary payload                                                  |                     ✔️                      |                    ✔️                     |       ❌        |
-| Schema travels with the data – readable, versionable, evolvable         |                     ✔️                      |                    ✔️                     |       ❌        |
-| Compression codecs                                                      | Deflate · Snappy · Zstandard · GZip · Brotli (built-in) |      Deflate (others via add-ons)       |       ❌        |
-| Avro ⇄ JSON conversion, schema and C# model generation                  |                     ✔️                      |                    ❌                     |       ❌        |
+| Compact binary payload                                                   |                     ✔️                      |                    ✔️                     |       ❌        |
+| Clear data schema – readable, versionable, evolvable                     |                     ✔️                      |                    ✔️                     |       ❌        |
+| Compression codecs                                                       | Deflate · Snappy · Zstandard · GZip · Brotli (built-in) |      Deflate (others via add-ons)       |       ❌        |
 
 What it means for your services:
 * **Smaller data** – a 1 000-record payload is 2.9× smaller than JSON before compression, and codecs shrink it further → lower storage and network cost
@@ -116,11 +115,11 @@ await foreach (var item in AvroConvert.Deserialize<CustomClass>(stream))
 1. Serialization of .NET object to Avro format
    - [Standard, codecs, collections](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#serialization)
    - [Excluding header](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#headless-serialization-and-deserialization)
-   - [Streaming: `Stream`, `IAsyncEnumerable<T>`, `IBufferWriter<byte>`](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#streaming)
+   - [Streaming](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#streaming)
 2. Deserialization of Avro data to .NET object
-   - [Standard, `dynamic`, unions](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#deserialization)
+   - [Standard, dynamic, unions](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#deserialization)
+   - [Excluding header](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#headless-serialization-and-deserialization)
    - [Schema evolution: reading data written with another schema version](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#schema-evolution)
-   - [Excluding header, rows until the end of the data](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#headless-serialization-and-deserialization)
    - [Processing collection items one by one](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#reading-items-one-by-one)
 3. Other Avro data related operations
    - [Merge Avro objects](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#merge)
@@ -153,7 +152,7 @@ AvroConvert is source-available and **free for noncommercial use and for small c
 | Company with fewer than 100 people **and** under 1,000,000 USD annual revenue | [PolyForm Small Business 1.0.0](licenses/PolyForm-Small-Business-1.0.0.md) | Free |
 | Any other company or organisation | [Commercial Licence](licenses/Commercial.md) | Annual, per organisation, unlimited developers — [buy at soltechnology.dev](https://soltechnology.dev/avroconvert/) |
 
-Declare the licence you rely on (optional, silences a one-time `Trace` warning; functionality is never restricted):
+Declare the licence you rely on (optional for noncommercial / small business, required for commercial) in code:
 
 ```csharp
 AvroConvert.License = AvroLicense.NonCommercial;          // or AvroLicense.SmallBusiness

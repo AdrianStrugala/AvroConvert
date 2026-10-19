@@ -13,6 +13,7 @@
 * Required Notice: Copyright Adrian Strugała (https://soltechnology.dev)
 */
 #endregion
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -58,6 +59,7 @@ namespace SolTechnology.Avro.Features.GenerateModel
             NetModel.NetModel model = new NetModel.NetModel();
             Resolve(json, model);
             _namespaceHelper.EnsureUniqueNames(model);
+            KeepRecordUnionMembers(model);
 
             StringBuilder sb = new StringBuilder();
             foreach (INetType ac in model.NetTypes)
@@ -69,6 +71,16 @@ namespace SolTechnology.Avro.Features.GenerateModel
             return sb.Replace("\r\n", "\n").Replace("\n", "\r\n").ToString();
         }
 
+
+        /// <summary>[AvroUnion] lists only records (classes); enums and fixed are read without it.</summary>
+        private static void KeepRecordUnionMembers(NetModel.NetModel model)
+        {
+            var classNames = model.NetTypes.OfType<NetClass>().Select(c => c.Name).ToHashSet();
+            foreach (var field in model.NetTypes.OfType<NetClass>().SelectMany(c => c.Fields))
+            {
+                field.UnionMembers.RemoveAll(m => !classNames.Contains(m.FieldType));
+            }
+        }
 
         private void Resolve(object json, NetModel.NetModel model)
         {
@@ -154,6 +166,7 @@ namespace SolTechnology.Avro.Features.GenerateModel
                                 if (types.Count > 2 || (types.Count > 1 && !isNullable))
                                 {
                                     fieldType.FieldType = "object";
+                                    fieldType.UnionMembers.AddRange(ResolveUnionMembers(types));
                                     break;
                                 }
 
@@ -201,6 +214,25 @@ namespace SolTechnology.Avro.Features.GenerateModel
                 else
                 {
                     throw new InvalidAvroObjectException($"Field type {field.GetType().Name} not supported");
+                }
+            }
+        }
+
+        private static readonly HashSet<string> PrimitiveTypeNames = new() { "null", "boolean", "int", "long", "float", "double", "bytes", "string" };
+
+        /// <summary>Named branches of a union (inline definitions and references by name); non-record ones are dropped later.</summary>
+        private IEnumerable<NetClassField> ResolveUnionMembers(JArray types)
+        {
+            foreach (var type in types)
+            {
+                switch (type)
+                {
+                    case JObject { } definition when definition["type"]?.ToString() is "record" or "error" or "enum" or "fixed":
+                        yield return ResolveField(definition);
+                        break;
+                    case JValue name when !PrimitiveTypeNames.Contains(name.ToString()):
+                        yield return ResolveField(new JObject { ["type"] = name.ToString() });
+                        break;
                 }
             }
         }

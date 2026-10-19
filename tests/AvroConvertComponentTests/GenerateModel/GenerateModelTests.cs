@@ -803,6 +803,7 @@ namespace AvroConvertComponentTests.GenerateModel
                 "\t/// <summary>\r\n" +
                 "\t/// Data:Switchable_PersonName\r\n" +
                 "\t/// </summary>\r\n" +
+                "\t[AvroUnion(typeof(Switchable_PersonName))]\r\n" +
                 "\tpublic object? Name { get; set; }\r\n" +
                 "\tpublic object AgeOrSex { get; set; }\r\n" +
                 "}\r\n" +
@@ -817,6 +818,25 @@ namespace AvroConvertComponentTests.GenerateModel
                 "\tpublic string? Suffix { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n");
+        }
+
+        [Test]
+        public void GenerateClass_UnionOfRecords_PropertyListsTheRecordsInAvroUnion()
+        {
+            //Arrange (issue #174): an inline record, a record referenced by name, an enum and a primitive
+            const string schema = @"{""type"":""record"",""name"":""Envelope"",""namespace"":""shop"",""fields"":[
+                {""name"":""First"",""type"":{""type"":""record"",""name"":""Paid"",""fields"":[{""name"":""Amount"",""type"":""int""}]}},
+                {""name"":""Kind"",""type"":{""type"":""enum"",""name"":""Kind"",""symbols"":[""A""]}},
+                {""name"":""Event"",""type"":[""null"",""Paid"",{""type"":""record"",""name"":""Cancelled"",""fields"":[{""name"":""Reason"",""type"":""string""}]},""Kind"",""string""]}]}";
+
+
+            //Act
+            var model = AvroConvert.GenerateModel(schema);
+
+
+            //Assert
+            model.Should().Contain("\t[AvroUnion(typeof(Paid), typeof(Cancelled))]\r\n\tpublic object? Event { get; set; }\r\n");
+            model.Should().Contain("public class Cancelled");
         }
     }
 }

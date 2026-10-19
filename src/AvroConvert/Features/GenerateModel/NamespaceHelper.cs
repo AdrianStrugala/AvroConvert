@@ -35,7 +35,7 @@ namespace SolTechnology.Avro.Features.GenerateModel
                 foreach (var netClass in netTypes.OfType<NetClass>().ToList())
                 {
                     foreach (var avroField in model.NetTypes.OfType<NetClass>().ToList()
-                                 .SelectMany(c => c.Fields)
+                                 .SelectMany(c => c.Fields.Concat(c.Fields.SelectMany(f => f.UnionMembers)))
                                  .Where(f => (f.FieldType == netClass.Name ||
                                               f.FieldType == netClass.Name + "[]" ||
                                               f.FieldType == netClass.Name + "?") &&

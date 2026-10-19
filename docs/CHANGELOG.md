@@ -15,7 +15,7 @@
 - Support for string-convertible map keys (e.g. `Dictionary<Uri, T>`)
 - `ExpandoObject` serialization in default, headless and Avro2Json flows; schema inferred from the instance (#112)
 - `DeserializeHeadless<dynamic>` / `DeserializeHeadless<ExpandoObject>` with an explicit schema (#107)
-- Union of records read into an `object` member or `dynamic` (#174)
+- Union of records read into an `object` member or `dynamic`; `GenerateModel` emits such a member as `object` with `[AvroUnion(typeof(A), typeof(B))]` (#174)
 - Closed generic types get distinct record names, e.g. `Field_String`, `Field_Int32` (#159)
 - Multidimensional arrays are rejected with an explicit error instead of being flattened (#26)
 - SolTechnology.Avro.Http and SolTechnology.Avro.Kafka moved to net10.0; Kafka on Confluent 2.x
@@ -29,6 +29,12 @@
 - Field `order` and enum `default` preserved in schemas; an enum symbol unknown to the reader resolves to the reader's default
 - Schema resolution promotes `string` ↔ `bytes`; `int`/`long` written as `long`/`float`/`double` in the reader schema take the reader type in `dynamic`
 - Defaults of logical-type fields (e.g. `timestamp-millis`) are parsed instead of failing; parsed defaults are written back unchanged
+- `AvroConvertOptions.DateTimeRepresentation`: logical type for every `DateTime`/`DateTimeOffset` member without `[AvroType]` (`timestamp-millis`/`-micros`/`-nanos`, `local-timestamp-*`; default `timestamp-micros`) (#153)
+- `DeserializeHeadless<List<T>>(bytes, itemSchema)` reads rows written one after another until the end of the data, e.g. BigQuery Storage API rows (#69)
+- Streaming API: `Serialize<T>(IEnumerable<T>, Stream)`, `Serialize<T>(IAsyncEnumerable<T>, Stream)` and `Deserialize<T>(Stream)` → `IAsyncEnumerable<T>` write and read a container block by block; `Serialize(obj, IBufferWriter<byte>)` and `SerializeHeadless(obj, IBufferWriter<byte>, schema)` write into a caller's buffer
+- Trimming / Native AOT: the assembly is marked `IsAotCompatible`; reflection-based API carries `[RequiresUnreferencedCode]` / `[RequiresDynamicCode]`, so trimmed and AOT apps get a warning at the call site
+- `SerializeHeadless(obj, Type, options)` builds the schema with the given options
+- `MemoryStream` disposed in `SerializeHeadless` (#163)
 
 \
 **v. 3.4.17 (14.07.26)**

@@ -183,7 +183,9 @@ string schemaInJsonFormat = AvroConvert.GenerateSchema(typeof(AttributeClass));
 | `Guid` | `string` + `uuid` |
 | `decimal` | `bytes` + `decimal` (precision 29, scale 14; change with `[AvroDecimal]`) |
 
-`[AvroType]` picks another representation for a member:
+`AvroConvertOptions.DateTimeRepresentation` changes the logical type of all `DateTime`/`DateTimeOffset` members, e.g.
+`TimestampMilliseconds` for `timestamp-millis` everywhere. `[AvroType]` picks another representation for a single
+member and wins over the option:
 
 ```csharp
 public class Event

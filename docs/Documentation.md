@@ -61,6 +61,30 @@ public class DefaultValueClass
 > 2137
 ```
 
+### Streaming
+
+Large collections can be written and read without holding them in memory. Each item is one container entry and
+data blocks are written or read as the sequence is enumerated. The stream is left open.
+
+```csharp
+// write
+AvroConvert.Serialize(ReadRowsFromDatabase(), fileStream, new AvroConvertOptions { Codec = CodecType.Zstandard });
+await AvroConvert.Serialize(rowsAsyncEnumerable, httpResponseStream, cancellationToken: ct);
+
+// read
+await foreach (var row in AvroConvert.Deserialize<Row>(httpRequestStream, cancellationToken: ct))
+{
+    // process row
+}
+
+// into a caller's buffer (e.g. a PipeWriter or ArrayBufferWriter<byte>)
+AvroConvert.Serialize(order, bufferWriter);
+AvroConvert.SerializeHeadless(order, bufferWriter, AvroSchema.Create<Order>());
+```
+
+The schema comes from `T`; for `object`, interfaces, abstract classes and `ExpandoObject` the items are collected
+first, because the schema depends on them.
+
 ### Deserialization of large collection of Avro objects one by one
 ```csharp
 using (var reader = AvroConvert.OpenDeserializer<CustomClass>(new MemoryStream(avroObject)))
@@ -86,6 +110,13 @@ var serialized = AvroConvert.SerializeHeadless(toSerialize, schema);
 
 var deserialized = AvroConvert.DeserializeHeadless<User>(serialized, schema);
 
+```
+
+Rows written one after another with the item schema (e.g. by the BigQuery Storage API) are read into a collection
+until the end of the data:
+
+```csharp
+List<User> users = AvroConvert.DeserializeHeadless<List<User>>(rows, userSchema);
 ```
 
 
@@ -221,4 +252,12 @@ and only produces a `Trace` warning (versions released during the subscription s
 | `NumberHandling` | `Strict` | Decimal scale overflow: `Strict`, `Truncate`, `Rounding` |
 | `IncludeOnlyDataContractMembers` | `false` | Serialize only members marked with `[DataMember]` |
 | `NamingPolicy` | – | Custom member/enum naming |
+| `DateTimeRepresentation` | `null` (`timestamp-micros`) | Logical type of `DateTime`/`DateTimeOffset` members without `[AvroType]`: `TimestampMilliseconds`, `TimestampMicroseconds`, `TimestampNanoseconds` or a `LocalTimestamp*` value |
 | `AvroConverters` | – | Custom `IAvroConverter` implementations |
+
+### Trimming and Native AOT
+
+AvroConvert maps .NET types by reflection and compiles serializers at runtime. Methods that do so are marked with
+`[RequiresUnreferencedCode]` and `[RequiresDynamicCode]`, so a trimmed or Native AOT application gets a warning where
+it calls them instead of failing at run time. This includes `AvroSchema.Parse`, because field `default` values are
+materialized by reflection.

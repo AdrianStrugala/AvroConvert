@@ -50,10 +50,12 @@ namespace SolTechnology.Avro.Features.Serialize
         private int _blockCount;
         private readonly int _syncInterval;
         private readonly Header _header;
+        private readonly bool _leaveOpen;
 
 
-        internal Encoder(TypeSchema schema, Stream outOutStream, CodecType codecType, AvroConvertOptions options = null)
+        internal Encoder(TypeSchema schema, Stream outOutStream, CodecType codecType, AvroConvertOptions options = null, bool leaveOpen = false)
         {
+            _leaveOpen = leaveOpen;
             _codec = AbstractCodec.CreateCodec(codecType);
             _outStream = outOutStream;
             _header = new Header();
@@ -135,6 +137,23 @@ namespace SolTechnology.Avro.Features.Serialize
             }
         }
 
+        /// <summary>Typed writer for <see cref="Append{T}"/>; fetch once and reuse for every item.</summary>
+        internal Action<IWriter, T> TypedWriter<T>() => WritePlanCache.GetTyped<T>(_schema, _options);
+
+        /// <summary>Appends one container entry; returns true when the entry completed a data block written to the output.</summary>
+        internal bool Append<T>(Action<IWriter, T> write, T item)
+        {
+            write(_chunkWriter, item);
+            _blockCount++;
+            if (_memoryChunk.Position >= _syncInterval)
+            {
+                WriteBuffer();
+                return true;
+            }
+
+            return false;
+        }
+
         private void WriteBuffer()
         {
             if (_blockCount > 0)
@@ -162,7 +181,10 @@ namespace SolTechnology.Avro.Features.Serialize
             _memoryChunk.Dispose();
             _compressedChunk?.Dispose();
             _outStream.Flush();
-            _outStream.Dispose();
+            if (!_leaveOpen)
+            {
+                _outStream.Dispose();
+            }
         }
     }
 }

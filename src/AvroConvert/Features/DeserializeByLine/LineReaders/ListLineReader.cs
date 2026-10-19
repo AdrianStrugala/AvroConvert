@@ -21,21 +21,30 @@ namespace SolTechnology.Avro.Features.DeserializeByLine.LineReaders
     {
         private readonly IReader reader;
         private readonly Resolver resolver;
-        private int itemsCount;
+        private long itemsCount;
+        private bool finished;
 
         public ListLineReader(IReader reader, Resolver resolver)
         {
             this.reader = reader;
             this.resolver = resolver;
 
-            itemsCount = (int)reader.ReadArrayStart();
+            itemsCount = reader.ReadArrayStart();
+            finished = itemsCount == 0;
         }
         public bool HasNext()
         {
             if (itemsCount == 0)
             {
-                itemsCount = (int)reader.ReadArrayNext();
-                return itemsCount != 0;
+                // A zero count terminates the array; reading another count after it would consume the next entry.
+                if (finished)
+                {
+                    return false;
+                }
+
+                itemsCount = reader.ReadArrayNext();
+                finished = itemsCount == 0;
+                return !finished;
             }
             else
             {

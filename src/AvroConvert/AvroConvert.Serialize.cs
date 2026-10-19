@@ -35,32 +35,38 @@ namespace SolTechnology.Avro
 {
     public static partial class AvroConvert
     {
-        private static byte[] SerializeInternal(object obj, TypeSchema schema, CodecType codecType, AvroConvertOptions options = null)
+        private static byte[] SerializeToArray(object obj, CodecType codecType, AvroConvertOptions options)
         {
-            using MemoryStream resultStream = new MemoryStream();
-            using (var writer = options != null 
-                       ? new Encoder(schema, resultStream, options.Codec, options)
-                       : new Encoder(schema, resultStream, codecType))
-            {
-                writer.Append(obj);
-            }
+            using var resultStream = new MemoryStream();
+            SerializeTo(obj, resultStream, codecType, options);
             return resultStream.ToArray();
+        }
+
+        /// <summary>Writes an Avro container with <paramref name="obj"/> to <paramref name="output"/>, leaving the stream open.</summary>
+        private static void SerializeTo(object obj, Stream output, CodecType codecType, AvroConvertOptions options)
+        {
+            var itemType = options == null || options.CollectionMode == AvroCollectionMode.Entries ? EntryItemType(obj) : null;
+            if (itemType != null)
+            {
+                SerializeEntries((IEnumerable)obj, itemType, output, codecType, options);
+                return;
+            }
+
+            var schema = Schema.Create(obj, options);
+            using var writer = new Encoder(schema, output, codecType, options, leaveOpen: true);
+            writer.Append(obj);
         }
 
         /// <summary>
         /// Writes every element of a top-level collection as its own container entry (schema = element schema).
         /// </summary>
-        private static byte[] SerializeEntries(IEnumerable items, Type itemType, CodecType codecType, AvroConvertOptions options)
+        private static void SerializeEntries(IEnumerable items, Type itemType, Stream output, CodecType codecType, AvroConvertOptions options)
         {
             var schema = itemType == typeof(ExpandoObject)
                 ? new JsonSchemaBuilder().BuildSchema(items.Cast<ExpandoObject>())
                 : Schema.Create(itemType, options);
-            using MemoryStream resultStream = new MemoryStream();
-            using (var writer = new Encoder(schema, resultStream, codecType, options))
-            {
-                EntryAppenders.GetOrAdd(itemType, CompileAppender)(writer, items);
-            }
-            return resultStream.ToArray();
+            using var writer = new Encoder(schema, output, codecType, options, leaveOpen: true);
+            EntryAppenders.GetOrAdd(itemType, CompileAppender)(writer, items);
         }
 
         private static readonly ConcurrentDictionary<Type, Action<Encoder, IEnumerable>> EntryAppenders = new();
@@ -110,14 +116,7 @@ namespace SolTechnology.Avro
         /// <returns>A byte array containing the serialized Avro data.</returns>
         public static byte[] Serialize(object obj, CodecType codecType)
         {
-            var itemType = EntryItemType(obj);
-            if (itemType != null)
-            {
-                return SerializeEntries((IEnumerable)obj, itemType, codecType, null);
-            }
-
-            var schema = Schema.Create(obj);
-            return SerializeInternal(obj, schema, codecType);
+            return SerializeToArray(obj, codecType, null);
         }
         
 
@@ -129,14 +128,7 @@ namespace SolTechnology.Avro
         /// <returns>A byte array containing the serialized Avro data.</returns>
         public static byte[] Serialize(object obj, AvroConvertOptions options)
         {
-            var itemType = options.CollectionMode == AvroCollectionMode.Entries ? EntryItemType(obj) : null;
-            if (itemType != null)
-            {
-                return SerializeEntries((IEnumerable)obj, itemType, options.Codec, options);
-            }
-
-            var schema = Schema.Create(obj, options);
-            return SerializeInternal(obj, schema, options.Codec, options);
+            return SerializeToArray(obj, options.Codec, options);
         }
     }
 }

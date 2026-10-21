@@ -2,7 +2,7 @@
 
 Zrobione (licencja, `net10.0`, typowany rdzeń, zgodność ze specyfikacją Avro 1.12 S1–S15, issues #51, #69, #73, #87,
 #100, #107, #112, #118, #135, #153, #156, #159, #163, #174, API strumieniowe, adnotacje AOT, testy na NUnit) jest
-opisane w `CHANGELOG.md` i w dokumentacji – tutaj tylko to, co jeszcze otwarte. Szczegóły licencji i Paddle:
+opisane w `CHANGELOG.md` i w dokumentacji – tutaj tylko to, co jeszcze otwarte. Szczegóły licencji i Polar (MoR; od 21.10.2026 zamiast Paddle):
 `LicensingMigrationPlan.md` (repo strony, prywatne); wydajność: `PerformanceRewriteAnalysis.md`.
 
 Decyzje, które zostają w mocy:
@@ -32,7 +32,7 @@ Stan 19.10.2026: kod, testy (unit 93, komponentowe 1518, interop 116), licencje,
 2. Zebrać feedback z preview (tydzień–dwa): issue na GitHubie „4.0 preview – breaking changes” z linkiem do sekcji "Breaking changes" w CHANGELOG.
 3. Przed stabilnym 4.0.0:
    - przegląd prawny `licenses/Commercial.md`, realna nazwa prawna JDG w pliku i w `config.ts` strony;
-   - Paddle: produkt + ceny (0 / 189 / 1299), Domain Review zaliczony, checkout na soltechnology.dev działa; webhook → e-mail z certyfikatem licencji (PDF) – do zbudowania;
+   - Polar: custom field `licensee`, produkty + ceny (0 / 199 / 1499), Checkout Links wpisane w `config.ts` strony, webhook `order.paid` → Worker → e-mail z kluczem i certyfikatem (PDF) przetestowany w sandboxie; kroki w `licensing/ops/docs/MarketplaceChecklist.md`;
    - wznowienie JDG (CEIDG) – dopiero gdy checkout gotowy;
    - `<Version>4.0.0</Version>` w trzech csproj, `docs/CHANGELOG.md` – data; tag `v4.0.0`;
    - merge `release/4.0` → `master` (CI: `.github/workflows/build&test.yml` na .NET 10, artefakty nupkg); `release/3.x` zostaje gałęzią utrzymaniową 3.4.x.

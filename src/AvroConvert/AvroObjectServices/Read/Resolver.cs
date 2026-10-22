@@ -62,7 +62,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
                 }
 
                 // One entry whose schema is the collection item (entries mode, single element): still a collection of one.
-                if (itemsCount == 1 && plan.Many != null && _writerSchema.Type != AvroType.Array)
+                if (itemsCount == 1 && plan.Many != null && ReadCompiler.EntryIsItem(_writerSchema, typeof(T)))
                 {
                     return plan.Many(reader, 1);
                 }
@@ -84,7 +84,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
             try
             {
                 var plan = GetPlan<T>();
-                if (plan.Blocks == null || _writerSchema.Type == AvroType.Array)
+                if (plan.Blocks == null || !ReadCompiler.EntryIsItem(_writerSchema, typeof(T)))
                 {
                     return plan.One(reader);
                 }

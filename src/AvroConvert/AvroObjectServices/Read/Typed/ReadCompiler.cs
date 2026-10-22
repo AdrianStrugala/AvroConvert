@@ -46,7 +46,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         private static readonly MethodInfo ConvertToLogicalMethod = typeof(LogicalTypeSchema).GetMethod(nameof(LogicalTypeSchema.ConvertToLogicalValue), BindingFlags.Instance | BindingFlags.NonPublic)!;
         private static readonly MethodInfo GetUninitializedObjectMethod = typeof(RuntimeHelpers).GetMethod(nameof(RuntimeHelpers.GetUninitializedObject))!;
         private static readonly MethodInfo ReadListMethod = Helper(nameof(ReadHelpers.ReadList));
+        private static readonly ConstructorInfo ReaderFromBytesCtor = typeof(Reader).GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(byte[]) }, null)!;
         private static readonly MethodInfo ReadCountIntoMethod = Helper(nameof(ReadHelpers.ReadCountInto));
+        private static readonly MethodInfo ReadArraysIntoMethod = Helper(nameof(ReadHelpers.ReadArraysInto));
         private static readonly MethodInfo ReadMapMethod = Helper(nameof(ReadHelpers.ReadMap));
         private static readonly MethodInfo ReadMapKeyedMethod = Helper(nameof(ReadHelpers.ReadMapKeyed));
         private static readonly MethodInfo ReadDictionaryMethod = Helper(nameof(ReadHelpers.ReadDictionary));
@@ -88,8 +90,13 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                 return null;
             }
 
-            var itemWriter = writerSchema is ArraySchema was ? was.ItemSchema : writerSchema;
-            var itemReader = readerSchema is ArraySchema ras ? ras.ItemSchema : readerSchema;
+            // A container entry is either one item of T (4.x entries layout) or a whole array of items (3.x single-array
+            // layout, several entries after Merge). The reader schema derived from T nests as deeply as T does.
+            var depth = CollectionDepth(typeof(T), out _);
+            var entryIsItem = EntryIsItem(writerSchema, typeof(T));
+            int nullIndex = -1;
+            var itemWriter = entryIsItem ? writerSchema : AsArray(writerSchema, out nullIndex).ItemSchema;
+            var itemReader = readerSchema is ArraySchema ras && ArrayDepth(readerSchema) == depth ? ras.ItemSchema : readerSchema;
             if (itemReader.IsEmpty())
             {
                 itemReader = itemWriter;
@@ -107,7 +114,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                 return null;
             }
 
-            var append = Expression.Call(ReadCountIntoMethod.MakeGenericMethod(itemType), reader, count, Expression.Constant(itemFn), Expression.Convert(accumulator, listType));
+            var append = entryIsItem
+                ? Expression.Call(ReadCountIntoMethod.MakeGenericMethod(itemType), reader, count, Expression.Constant(itemFn), Expression.Convert(accumulator, listType))
+                : Expression.Call(ReadArraysIntoMethod.MakeGenericMethod(itemType), reader, count, Expression.Constant(itemFn), Expression.Convert(accumulator, listType), Expression.Constant(nullIndex));
 
             return new ManyPlan<T>
             {
@@ -585,7 +594,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                     continue;
                 }
 
-                body.Add(Expression.Assign(Expression.MakeMemberAccess(instance, member.Info), Expression.Constant(value, member.Type)));
+                body.Add(Expression.Assign(Expression.MakeMemberAccess(instance, member.Info), value ?? Expression.Constant(null, member.Type)));
             }
 
             body.Add(instance);
@@ -633,7 +642,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 
                 string name = rf.Aliases.FirstOrDefault() ?? rf.Name;
                 var value = ResolveMissingReaderField(rs, rf, typeof(object), clrNullable: true);
-                body.Add(Expression.Call(dictionary, ExpandoAddMethod, Expression.Constant(name), Expression.Constant(value, typeof(object))));
+                body.Add(Expression.Call(dictionary, ExpandoAddMethod, Expression.Constant(name), value ?? Expression.Constant(null, typeof(object))));
             }
 
             body.Add(Expression.Convert(dictionary, typeof(object)));
@@ -641,10 +650,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         }
 
         /// <summary>
-        /// Avro schema resolution for a reader field absent from the writer: the reader's default; otherwise null for
-        /// fields that can hold null, or an error governed by MissingFieldHandling.
+        /// Avro schema resolution for a reader field absent from the writer: an expression producing the reader's default
+        /// for each record; null when the field gets null (fields that can hold null, or MissingFieldHandling.UseDefault);
+        /// otherwise an error.
         /// </summary>
-        private object ResolveMissingReaderField(RecordSchema readerSchema, RecordFieldSchema rf, Type memberType, bool clrNullable)
+        private Expression ResolveMissingReaderField(RecordSchema readerSchema, RecordFieldSchema rf, Type memberType, bool clrNullable)
         {
             if (rf.DefaultJson != null)
             {
@@ -660,7 +670,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 
             if (rf.HasDefaultValue)
             {
-                return rf.DefaultValue == null ? null : FormatDefaultValue(rf.DefaultValue, memberType);
+                return rf.DefaultValue == null ? null : Expression.Constant(FormatDefaultValue(rf.DefaultValue, memberType), memberType);
             }
 
             bool nullable = clrNullable ||
@@ -679,12 +689,20 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         /// <summary>
         /// A default declared in a parsed schema is encoded to Avro binary and read with the same plan as data, so it
         /// converts to the member type exactly like a value on the wire would (e.g. timestamp-nanos into long or DateTime).
+        /// Immutable results become constants; collections, records and bytes are decoded again for every record so
+        /// that instances are never shared between results.
         /// </summary>
-        private object ReadDefault(RecordFieldSchema rf, Type memberType)
+        private Expression ReadDefault(RecordFieldSchema rf, Type memberType)
         {
             var encoded = JsonEncodingReader.EncodeDefault(rf.TypeSchema, rf.DefaultJson);
             var read = CompileItem(rf.TypeSchema, rf.TypeSchema, memberType);
-            return read.DynamicInvoke(new Reader(encoded));
+            var value = read.DynamicInvoke(new Reader(encoded));
+            if (value == null || value is string || value.GetType().IsValueType)
+            {
+                return Expression.Constant(value, memberType);
+            }
+
+            return Expression.Invoke(Expression.Constant(read), Expression.New(ReaderFromBytesCtor, Expression.Constant(encoded)));
         }
 
         private object FormatDefaultValue(object defaultValue, Type memberType)
@@ -746,6 +764,65 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             && (reader is not LogicalTypeSchema readerLogical || writer is LogicalTypeSchema writerLogical && readerLogical.LogicalTypeName == writerLogical.LogicalTypeName);
 
         /// <summary>Element type for arrays, generic collections and their common interfaces; null when not a collection.</summary>
+        /// <summary>
+        /// True when each top-level container entry of <paramref name="writerSchema"/> is one item of the collection
+        /// <paramref name="collectionType"/> (entries layout), false when an entry is an array holding the items.
+        /// An <c>object</c> element leaves the depth of T open, so the writer's own entries layout wins.
+        /// </summary>
+        internal static bool EntryIsItem(TypeSchema writerSchema, Type collectionType)
+        {
+            int depth = CollectionDepth(collectionType, out var openEnded);
+            int arrayDepth = ArrayDepth(writerSchema);
+            return arrayDepth < depth || openEnded && arrayDepth == depth;
+        }
+
+        /// <summary>The array schema of <paramref name="schema"/>, also when it is a union of null and one array; null otherwise.</summary>
+        private static ArraySchema AsArray(TypeSchema schema, out int nullIndex)
+        {
+            nullIndex = -1;
+            if (schema is ArraySchema array)
+            {
+                return array;
+            }
+
+            if (schema is UnionSchema union && union.Schemas.Count == 2)
+            {
+                var nullBranch = union.Schemas.ToList().FindIndex(s => s.Type == AvroType.Null);
+                if (nullBranch >= 0 && union.Schemas[1 - nullBranch] is ArraySchema branch)
+                {
+                    nullIndex = nullBranch;
+                    return branch;
+                }
+            }
+
+            return null;
+        }
+
+        private static int ArrayDepth(TypeSchema schema)
+        {
+            int depth = 0;
+            for (var array = AsArray(schema, out _); array != null; array = AsArray(array.ItemSchema, out _))
+            {
+                depth++;
+            }
+
+            return depth;
+        }
+
+        private static int CollectionDepth(Type type, out bool openEnded)
+        {
+            int depth = 0;
+            var item = CollectionItemType(type);
+            for (; item != null; item = CollectionItemType(item))
+            {
+                depth++;
+                type = item;
+            }
+
+            openEnded = type == typeof(object);
+            return depth;
+        }
+
         internal static Type CollectionItemType(Type type)
         {
             if (type == typeof(string) || type == typeof(byte[]) || type == typeof(object) || DictionaryArguments(type) != null)

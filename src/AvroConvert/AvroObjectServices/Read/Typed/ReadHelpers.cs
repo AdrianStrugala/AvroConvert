@@ -36,6 +36,29 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             }
         }
 
+        /// <summary>
+        /// Reads <paramref name="count"/> container entries that are each an array of items and flattens them. When the
+        /// entry schema is a union of null and the array, <paramref name="nullIndex"/> is the null branch (-1 otherwise).
+        /// </summary>
+        internal static void ReadArraysInto<T>(IReader reader, long count, Func<IReader, T> readItem, List<T> list, int nullIndex)
+        {
+            for (long i = 0; i < count; i++)
+            {
+                if (nullIndex >= 0 && reader.ReadUnionIndex() == nullIndex)
+                {
+                    continue;
+                }
+
+                for (long n = reader.ReadArrayStart(); n != 0; n = reader.ReadArrayNext())
+                {
+                    for (long j = 0; j < n; j++)
+                    {
+                        list.Add(readItem(reader));
+                    }
+                }
+            }
+        }
+
         internal static Dictionary<string, T> ReadMap<T>(IReader reader, Func<IReader, T> readValue)
         {
             var result = new Dictionary<string, T>();

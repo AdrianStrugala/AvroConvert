@@ -35,6 +35,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         private static readonly ConcurrentDictionary<(Type Type, OptionsKey Options), TypeSchema> _schemaWithOptionsCache = new();
         private static readonly ConcurrentDictionary<string, TypeSchema> _parsedSchemaCache = new();
         private const int ParsedSchemaCacheLimit = 256;
+        private const int SchemaWithOptionsCacheLimit = 1024;
         private string _json;
 
         protected Schema(IDictionary<string, string> attributes)
@@ -138,6 +139,12 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             if (options is null)
             {
                 return Create(type);
+            }
+
+            // Keyed by the policy and converter instances, so a fresh options object per call is a miss: bounded like the plan caches.
+            if (_schemaWithOptionsCache.Count >= SchemaWithOptionsCacheLimit)
+            {
+                _schemaWithOptionsCache.Clear();
             }
 
             return _schemaWithOptionsCache.GetOrAdd((type, OptionsKey.From(options)),

@@ -66,15 +66,9 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
             //Assert
             deserialized.Should().NotBeNull();
-            //the timezone is dropped
-            deserialized.yeah.Microsecond().Should().Be(toSerialize.yeah.Microsecond());
-            deserialized.yeah.Millisecond.Should().Be(toSerialize.yeah.Millisecond);
-            deserialized.yeah.Second.Should().Be(toSerialize.yeah.Second);
-            deserialized.yeah.Minute.Should().Be(toSerialize.yeah.Minute);
-            deserialized.yeah.Hour.Should().Be(toSerialize.yeah.Hour);
-            deserialized.yeah.Day.Should().Be(toSerialize.yeah.Day);
-            deserialized.yeah.Month.Should().Be(toSerialize.yeah.Month);
-            deserialized.yeah.Year.Should().Be(toSerialize.yeah.Year);
+            // the same instant at microsecond precision; the offset is not stored and reads back as zero
+            deserialized.yeah.Should().BeCloseTo(toSerialize.yeah, TimeSpan.FromTicks(9));
+            deserialized.yeah.Offset.Should().Be(TimeSpan.Zero);
         }
 
         [Test]
@@ -107,14 +101,8 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
             //Assert
             deserialized.Should().NotBeNull();
-            deserialized.Value.Microsecond().Should().Be(toSerialize.Value.Microsecond());
-            deserialized.Value.Millisecond.Should().Be(toSerialize.Value.Millisecond);
-            deserialized.Value.Second.Should().Be(toSerialize.Value.Second);
-            deserialized.Value.Minute.Should().Be(toSerialize.Value.Minute);
-            deserialized.Value.Hour.Should().Be(toSerialize.Value.Hour);
-            deserialized.Value.Day.Should().Be(toSerialize.Value.Day);
-            deserialized.Value.Month.Should().Be(toSerialize.Value.Month);
-            deserialized.Value.Year.Should().Be(toSerialize.Value.Year);
+            deserialized.Value.Should().BeCloseTo(toSerialize.Value, TimeSpan.FromTicks(9));
+            deserialized.Value.Offset.Should().Be(TimeSpan.Zero);
         }
 
         [Test]

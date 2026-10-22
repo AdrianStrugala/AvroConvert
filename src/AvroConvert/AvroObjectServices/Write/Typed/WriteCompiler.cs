@@ -66,6 +66,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
         private static readonly MethodInfo WriteDynamicMethod = typeof(WriteCompiler).GetMethod(nameof(WriteDynamic), BindingFlags.Instance | BindingFlags.NonPublic)!;
         private static readonly PropertyInfo DateTimeTicks = typeof(DateTime).GetProperty(nameof(DateTime.Ticks))!;
         private static readonly PropertyInfo DateTimeOffsetDateTime = typeof(DateTimeOffset).GetProperty(nameof(DateTimeOffset.DateTime))!;
+        private static readonly PropertyInfo DateTimeOffsetUtcDateTime = typeof(DateTimeOffset).GetProperty(nameof(DateTimeOffset.UtcDateTime))!;
         private static readonly PropertyInfo DateOnlyDayNumber = typeof(DateOnly).GetProperty(nameof(DateOnly.DayNumber))!;
 
         private static MethodInfo Helper(string name) => typeof(WriteHelpers).GetMethod(name, BindingFlags.Static | BindingFlags.NonPublic)!;
@@ -269,16 +270,16 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                     return Expression.Call(writer, WriteLongMethod, value);
 
                 case LogicalTypeSchema.LogicalTypeEnum.TimestampMicroseconds when schema.BaseTypeSchema.Type == AvroType.Long && (type == typeof(DateTime) || type == typeof(DateTimeOffset)):
-                    return Expression.Call(writer, WriteLongMethod, Expression.Divide(TicksSinceEpoch(type, value), Expression.Constant(10L)));
+                    return Expression.Call(writer, WriteLongMethod, Expression.Divide(TicksSinceEpoch(type, value, local: false), Expression.Constant(10L)));
                 case LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds when schema.BaseTypeSchema.Type == AvroType.Long && (type == typeof(DateTime) || type == typeof(DateTimeOffset)):
-                    return Expression.Call(writer, WriteLongMethod, Expression.Divide(TicksSinceEpoch(type, value), Expression.Constant(TimeSpan.TicksPerMillisecond)));
+                    return Expression.Call(writer, WriteLongMethod, Expression.Divide(TicksSinceEpoch(type, value, local: false), Expression.Constant(TimeSpan.TicksPerMillisecond)));
 
                 case LogicalTypeSchema.LogicalTypeEnum.Date when type == typeof(DateOnly) && schema.BaseTypeSchema.Type == AvroType.Int:
                     return Expression.Call(writer, WriteIntMethod,
                         Expression.Subtract(Expression.Property(value, DateOnlyDayNumber), Expression.Constant(DateTimeExtensions.UnixEpochDate.DayNumber)));
 
                 case var _ when schema is TimestampSchema timestampSchema && (type == typeof(DateTime) || type == typeof(DateTimeOffset)):
-                    return Expression.Call(WriteTimestampMethod, writer, TicksSinceEpoch(type, value), Expression.Constant(timestampSchema));
+                    return Expression.Call(WriteTimestampMethod, writer, TicksSinceEpoch(type, value, timestampSchema.IsLocal), Expression.Constant(timestampSchema));
 
                 case LogicalTypeSchema.LogicalTypeEnum.BigDecimal when type == typeof(decimal) || type.IsPrimitive && type != typeof(bool):
                     return Expression.Call(WriteBigDecimalMethod, writer, Convert(value, typeof(decimal)));
@@ -319,9 +320,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
             logicalTypeName is LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds or LogicalTypeSchema.LogicalTypeEnum.TimestampMicroseconds
                 || TimestampSchema.Handles(logicalTypeName);
 
-        private static Expression TicksSinceEpoch(Type type, Expression value)
+        // A DateTimeOffset denotes an instant: timestamp-* logical types take its UTC value (it reads back with offset zero
+        // as the same instant); local-timestamp-* types keep the wall-clock time. A DateTime is written by its ticks as is.
+        private static Expression TicksSinceEpoch(Type type, Expression value, bool local)
         {
-            var dateTime = type == typeof(DateTimeOffset) ? Expression.Property(value, DateTimeOffsetDateTime) : value;
+            var dateTime = type == typeof(DateTimeOffset) ? Expression.Property(value, local ? DateTimeOffsetDateTime : DateTimeOffsetUtcDateTime) : value;
             return Expression.Subtract(Expression.Property(dateTime, DateTimeTicks), Expression.Constant(DateTimeExtensions.UnixEpochDateTime.Ticks));
         }
 

@@ -48,14 +48,9 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             deserialized.Four!.Value.Should().BeCloseTo(testObject.Four!.Value, precision: TimeSpan.FromTicks(10),
                 "According to the Avro documentation, the most accurate precision is microseconds");
 
-            deserialized.Five.Microsecond().Should().Be(testObject.Five.Microsecond());
-            deserialized.Five.Millisecond.Should().Be(testObject.Five.Millisecond);
-            deserialized.Five.Second.Should().Be(testObject.Five.Second);
-            deserialized.Five.Minute.Should().Be(testObject.Five.Minute);
-            deserialized.Five.Hour.Should().Be(testObject.Five.Hour);
-            deserialized.Five.Day.Should().Be(testObject.Five.Day);
-            deserialized.Five.Month.Should().Be(testObject.Five.Month);
-            deserialized.Five.Year.Should().Be(testObject.Five.Year);
+            // the same instant at microsecond precision; the offset is not stored and reads back as zero
+            deserialized.Five.Should().BeCloseTo(testObject.Five, TimeSpan.FromTicks(9));
+            deserialized.Five.Offset.Should().Be(TimeSpan.Zero);
 
         }
 

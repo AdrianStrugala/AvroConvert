@@ -6,6 +6,8 @@ using AutoFixture;
 using AutoFixture.Kernel;
 using AwesomeAssertions;
 using NUnit.Framework;
+using SolTechnology.Avro;
+using SolTechnology.Avro.Policies;
 
 namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 {
@@ -68,8 +70,8 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
         {
             //Arrange
             User user = new User();
-            user.name = "Krzys";
-            user.favorite_color = null;
+            user.name = null;
+            user.favorite_color = "green";
             user.favorite_number = null;
 
             //Act
@@ -77,9 +79,42 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
             //Assert
             deserialized.Should().NotBeNull();
+            deserialized.name.Should().BeNull();
+            deserialized.favorite_color.Should().Be(user.favorite_color);
+            deserialized.favorite_number.Should().BeNull();
+        }
+
+        [Test]
+        public void Null_in_member_that_does_not_allow_null_throws([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
+        {
+            //Arrange
+            User user = new User { name = "Krzys", favorite_number = 7, favorite_color = null };
+
+            //Act
+            var exception = Recorded.Exception(() => RoundTrip.Run<User>(user, format));
+
+            //Assert
+            exception.Should().NotBeNull();
+            exception.Message.Should().Contain("Field 'User.favorite_color' is null")
+                .And.Contain("\"string\"")
+                .And.Contain(nameof(AvroNullValueHandling.WriteEmpty));
+        }
+
+        [Test]
+        public void Null_in_member_that_does_not_allow_null_with_WriteEmpty_is_written_as_empty_value([ValueSource(typeof(Formats), nameof(Formats.Evolution))] Format format)
+        {
+            //Arrange
+            User user = new User { name = "Krzys", favorite_number = null, favorite_color = null };
+            var options = new AvroConvertOptions { NullValueHandling = AvroNullValueHandling.WriteEmpty };
+            if (format == Format.Brotli) options.Codec = CodecType.Brotli;
+
+            //Act
+            var deserialized = RoundTrip.Run<User>(user, format == Format.Brotli ? Format.Container : format, options);
+
+            //Assert
             deserialized.name.Should().Be(user.name);
-            deserialized.favorite_color.Should().BeNullOrEmpty();
-            deserialized.favorite_number.Should().Be(user.favorite_number);
+            deserialized.favorite_number.Should().BeNull();
+            deserialized.favorite_color.Should().BeEmpty();
         }
 
         [Test]

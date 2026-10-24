@@ -78,7 +78,7 @@ namespace SolTechnology.Avro
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private static Encoder.WriteItem ResolveWriter(TypeSchema schema, object obj, AvroConvertOptions options) =>
             obj == null
-                ? (_, writer) => WriteHelpers.WriteNullValue(schema, writer)
+                ? (_, writer) => WriteHelpers.WriteRootNull(schema, writer, options)
                 : WritePlanCache.Get(schema, obj.GetType(), options);
     }
 }

@@ -1,10 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json.Linq;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Infrastructure.Exceptions;
+using SolTechnology.Avro.Policies;
 
 namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
 {
@@ -176,6 +178,38 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
             }
 
             writer.WriteEnum(position);
+        }
+
+        /// <summary>True when <paramref name="schema"/> can hold null: the null type or a union with a null branch.</summary>
+        internal static bool CanBeNull(TypeSchema schema) =>
+            schema.Type == AvroType.Null || schema is UnionSchema union && union.Schemas.Any(s => s.Type == AvroType.Null);
+
+        internal static Exception NullNotAllowed(string message) => new AvroTypeMismatchException(message);
+
+        internal const string NullHint =
+            "Declare the member as nullable (string?, int? or [NullableSchema]) so that its schema becomes a union with \"null\", " +
+            "or set AvroConvertOptions.NullValueHandling = AvroNullValueHandling.WriteEmpty to write an empty value instead (AvroConvert 3.x behaviour).";
+
+        /// <param name="context">Where the value sits ("User.name", "User.tags[]"); null for the root value.</param>
+        internal static string NullMessage(string context, TypeSchema schema) =>
+            $"{(context == null ? "The value" : $"Field '{context}'")} is null, but its schema {Describe(schema)} does not allow null. {NullHint}";
+
+        internal static string Describe(TypeSchema schema) => schema switch
+        {
+            LogicalTypeSchema logical => $"\"{logical.LogicalTypeName}\"",
+            NamedSchema named => $"{schema.Type.ToString().ToLowerInvariant()} {named.Name}",
+            _ => $"\"{schema.Type.ToString().ToLowerInvariant()}\""
+        };
+
+        /// <summary>A null root value (whole object or a collection entry): null branch, error or empty value per the options.</summary>
+        internal static void WriteRootNull(TypeSchema schema, IWriter writer, AvroConvertOptions options)
+        {
+            if ((options?.NullValueHandling ?? AvroNullValueHandling.Throw) == AvroNullValueHandling.Throw && !CanBeNull(schema))
+            {
+                throw NullNotAllowed(NullMessage(null, schema));
+            }
+
+            WriteNullValue(schema, writer);
         }
 
         /// <summary>

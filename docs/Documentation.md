@@ -314,6 +314,7 @@ and only produces the same one-time notice (versions released during the subscri
 | `Codec` | `Null` | Container codec: `Null`, `Deflate`, `Snappy`, `Zstandard`, `GZip`, `Brotli` (the last two are non-standard, possibly not supported outside AvroConvert) |
 | `CollectionMode` | `Entries` | Top-level collection written as one container entry per element (like other Avro tools) or as a single `array` (`SingleArray`, 3.x layout) |
 | `MissingFieldHandling` | `Throw` | Reader field absent from the writer and without default: throw (spec) or leave the CLR default (`UseDefault`). Fields that can hold `null` always resolve to `null` |
+| `NullValueHandling` | `Throw` | `null` written into a schema that cannot hold `null` (no `["null", T]` union): throw with the field name (spec) or write the empty value – `""`, empty bytes/array/map, `0`, `false` (`WriteEmpty`, 3.x behaviour; enums and logical types still throw) |
 | `NumberHandling` | `Strict` | `decimal` with more fraction digits than the schema scale: throw (`Strict`), `Truncate` or `Rounding` |
 | `IncludeOnlyDataContractMembers` | `false` | Serialize only members marked with `[DataMember]` |
 | `NamingPolicy` | – | Avro names for types and members, see [Naming policy](#naming-policy) |

@@ -77,6 +77,13 @@ public class AvroConvertOptions
     public AvroMissingFieldHandling MissingFieldHandling { get; set; }
 
     /// <summary>
+    /// Gets or sets what happens when a <c>null</c> member is serialized against a schema that does not allow <c>null</c>
+    /// (for example a <c>string</c> member without <c>?</c>, whose schema is <c>"string"</c>).
+    /// Defaults to <see cref="AvroNullValueHandling.Throw"/> as required by the Avro specification.
+    /// </summary>
+    public AvroNullValueHandling NullValueHandling { get; set; }
+
+    /// <summary>
     /// Gets or sets how a top-level collection is written by <c>Serialize</c>.
     /// Defaults to <see cref="AvroCollectionMode.Entries"/> (one container entry per element, like other Avro implementations).
     /// </summary>

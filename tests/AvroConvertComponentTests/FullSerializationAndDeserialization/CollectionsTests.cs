@@ -161,7 +161,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
         public void Class_with_empty_list([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
-            ClassWithConstructorPopulatingProperty testClass = new ClassWithConstructorPopulatingProperty();
+            ClassWithConstructorPopulatingProperty testClass = new ClassWithConstructorPopulatingProperty { stringProperty = "not a list" };
 
 
             //Act
@@ -172,7 +172,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             deserialized.Should().NotBeNull();
             deserialized.anotherList.Should().BeEquivalentTo(testClass.anotherList, o => o.WithStrictOrdering());
             deserialized.nestedList.Should().BeEquivalentTo(testClass.nestedList, o => o.WithStrictOrdering());
-            deserialized.stringProperty.Should().BeNullOrEmpty();
+            deserialized.stringProperty.Should().Be(testClass.stringProperty);
         }
     }
 }

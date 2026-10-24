@@ -89,7 +89,7 @@ namespace SolTechnology.Avro.Features.Serialize
         {
             if (datum == null)
             {
-                WriteHelpers.WriteNullValue(_schema, _chunkWriter);
+                WriteHelpers.WriteRootNull(_schema, _chunkWriter, _options);
             }
             else
             {

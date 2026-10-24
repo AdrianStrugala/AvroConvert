@@ -54,6 +54,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
         private static readonly MethodInfo NoUnionBranchMethod = Helper(nameof(WriteHelpers.NoUnionBranch));
         private static readonly MethodInfo TypeMismatchMethod = Helper(nameof(WriteHelpers.TypeMismatch));
         private static readonly MethodInfo WriteNullValueMethod = Helper(nameof(WriteHelpers.WriteNullValue));
+        private static readonly MethodInfo NullNotAllowedMethod = Helper(nameof(WriteHelpers.NullNotAllowed));
         private static readonly MethodInfo WriteDecimalMethod = typeof(LogicalWriters).GetMethod(nameof(LogicalWriters.WriteDecimal), BindingFlags.Static | BindingFlags.NonPublic)!;
         private static readonly MethodInfo WriteDurationMethod = typeof(LogicalWriters).GetMethod(nameof(LogicalWriters.WriteDuration), BindingFlags.Static | BindingFlags.NonPublic)!;
         private static readonly MethodInfo WriteTimeMicrosMethod = typeof(LogicalWriters).GetMethod(nameof(LogicalWriters.WriteTimeMicros), BindingFlags.Static | BindingFlags.NonPublic)!;
@@ -73,13 +74,19 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
 
         private readonly AvroConvertOptions _options;
         private readonly AvroNumberHandling _numberHandling;
+        private readonly AvroNullValueHandling _nullHandling;
         private readonly Dictionary<Type, Action<object, IWriter>> _converters;
         private readonly Dictionary<(TypeSchema, Type), object> _recordHolders = new();
+
+        // Where in the schema the code being compiled writes ("User.name", "User.tags[]"); null for the root value.
+        // Only used to make the null-value error point at the member.
+        private string _context;
 
         internal WriteCompiler(AvroConvertOptions options)
         {
             _options = options;
             _numberHandling = options?.NumberHandling ?? AvroNumberHandling.Strict;
+            _nullHandling = options?.NullValueHandling ?? AvroNullValueHandling.Throw;
             _converters = options?.AvroConverters.Count > 0
                 ? options.AvroConverters.ToDictionary(c => c.TypeSchema.RuntimeType, c => (Action<object, IWriter>)c.Serialize)
                 : null;
@@ -103,10 +110,16 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
         }
 
         /// <summary>Runtime dispatch for values whose static type carries no information (object, interfaces, JSON tokens).</summary>
-        private void WriteDynamic(TypeSchema schema, object value, IWriter writer)
+        /// <param name="nullMessage">Error for a null value; null when a null value is written (schema allows it or WriteEmpty).</param>
+        private void WriteDynamic(TypeSchema schema, string nullMessage, object value, IWriter writer)
         {
             if (value == null)
             {
+                if (nullMessage != null)
+                {
+                    throw WriteHelpers.NullNotAllowed(nullMessage);
+                }
+
                 WriteHelpers.WriteNullValue(schema, writer);
                 return;
             }
@@ -141,20 +154,20 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                     case AvroType.Null:
                         return Expression.Call(writer, WriteNullMethod);
                     case AvroType.Boolean:
-                        return Expression.Call(writer, WriteBooleanMethod, Convert(value, typeof(bool)));
+                        return Expression.Call(writer, WriteBooleanMethod, Convert(value, typeof(bool), schema));
                     case AvroType.Int:
-                        return Expression.Call(writer, WriteIntMethod, Convert(value, typeof(int)));
+                        return Expression.Call(writer, WriteIntMethod, Convert(value, typeof(int), schema));
                     case AvroType.Long:
-                        return Expression.Call(writer, WriteLongMethod, Convert(value, typeof(long)));
+                        return Expression.Call(writer, WriteLongMethod, Convert(value, typeof(long), schema));
                     case AvroType.Float:
-                        return Expression.Call(writer, WriteFloatMethod, Convert(value, typeof(float)));
+                        return Expression.Call(writer, WriteFloatMethod, Convert(value, typeof(float), schema));
                     case AvroType.Double:
-                        return Expression.Call(writer, WriteDoubleMethod, Convert(value, typeof(double)));
+                        return Expression.Call(writer, WriteDoubleMethod, Convert(value, typeof(double), schema));
                     case AvroType.String:
-                        return Expression.Call(writer, WriteStringMethod, AsString(type, value));
+                        return Expression.Call(writer, WriteStringMethod, AsString(type, value, schema));
                     case AvroType.Bytes:
                         if (type != typeof(byte[])) throw new NotSupportedException($"[byte[]] required to write against [Bytes] schema but found [{type}]");
-                        return Expression.Call(writer, WriteBytesMethod, Expression.Coalesce(value, Expression.Constant(Array.Empty<byte>())));
+                        return Expression.Call(writer, WriteBytesMethod, OrEmpty(value, Expression.Constant(Array.Empty<byte>()), schema));
                     case AvroType.Logical:
                         return BuildLogical((LogicalTypeSchema)schema, type, value, writer);
                     case AvroType.Record:
@@ -183,16 +196,68 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
         }
 
         private Expression Dynamic(TypeSchema schema, Expression value, ParameterExpression writer) =>
-            Expression.Call(Expression.Constant(this), WriteDynamicMethod, Expression.Constant(schema, typeof(TypeSchema)), Expression.Convert(value, typeof(object)), writer);
+            Expression.Call(Expression.Constant(this), WriteDynamicMethod,
+                Expression.Constant(schema, typeof(TypeSchema)),
+                Expression.Constant(ThrowsOnNull(schema) ? NullMessage(schema) : null, typeof(string)),
+                Expression.Convert(value, typeof(object)), writer);
 
-        private static Expression WriteNullValue(TypeSchema schema, ParameterExpression writer) =>
+        private static Expression WriteEmptyValue(TypeSchema schema, ParameterExpression writer) =>
             Expression.Call(WriteNullValueMethod, Expression.Constant(schema, typeof(TypeSchema)), writer);
+
+        // ------------------------------------------------------------------ null values
+
+        private bool ThrowsOnNull(TypeSchema schema) =>
+            _nullHandling == AvroNullValueHandling.Throw && !WriteHelpers.CanBeNull(schema);
+
+        /// <summary>
+        /// What a null value turns into: the null branch of the schema if it has one, otherwise an error
+        /// (<see cref="AvroNullValueHandling.Throw"/>) or the schema's empty value (<see cref="AvroNullValueHandling.WriteEmpty"/>).
+        /// </summary>
+        private Expression NullValue(TypeSchema schema, ParameterExpression writer, string message = null) =>
+            ThrowsOnNull(schema)
+                ? Expression.Throw(Expression.Call(NullNotAllowedMethod, Expression.Constant(message ?? NullMessage(schema))))
+                : WriteEmptyValue(schema, writer);
+
+        /// <summary><paramref name="value"/>, or for null the empty value <paramref name="empty"/> / an error, typed as the value.</summary>
+        private Expression OrEmpty(Expression value, Expression empty, TypeSchema schema) =>
+            Expression.Coalesce(value, ThrowsOnNull(schema)
+                ? Expression.Throw(Expression.Call(NullNotAllowedMethod, Expression.Constant(NullMessage(schema))), empty.Type)
+                : empty);
+
+        /// <summary>For reference types under <see cref="AvroNullValueHandling.Throw"/>: checks null before <paramref name="write"/>.</summary>
+        private Expression GuardNull(Type type, Expression value, TypeSchema schema, ParameterExpression writer, Expression write) =>
+            type.IsValueType || !ThrowsOnNull(schema)
+                ? write
+                : Expression.IfThenElse(Expression.ReferenceEqual(value, Expression.Constant(null, type)), NullValue(schema, writer), write);
+
+        private string NullMessage(TypeSchema schema) => WriteHelpers.NullMessage(_context, schema);
+
+        private static string Describe(TypeSchema schema) => WriteHelpers.Describe(schema);
+
+        private string ItemContext() => $"{_context ?? "value"}[]";
+
+        private string ValueContext() => $"{_context ?? "value"}[key]";
+
+        /// <summary>Runs <paramref name="build"/> with <see cref="_context"/> set to <paramref name="context"/>.</summary>
+        private T InContext<T>(string context, Func<T> build)
+        {
+            var previous = _context;
+            _context = context;
+            try
+            {
+                return build();
+            }
+            finally
+            {
+                _context = previous;
+            }
+        }
 
         private static bool IsKnownCollectionInterface(Type type) =>
             ReadCompiler.CollectionItemType(type) != null || ReadCompiler.DictionaryArguments(type) != null || type == typeof(IDictionary<string, object>);
 
         /// <summary>Numeric / enum / nullable conversion of a primitive; throws NotSupported otherwise.</summary>
-        private static Expression Convert(Expression value, Type target)
+        private Expression Convert(Expression value, Type target, TypeSchema schema)
         {
             var type = value.Type;
             if (type == target)
@@ -203,8 +268,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
             var underlying = Nullable.GetUnderlyingType(type);
             if (underlying != null)
             {
-                // Outside a union a missing value is written as the primitive's default (classic behaviour).
-                return Convert(Expression.Coalesce(value, Expression.Default(underlying)), target);
+                // Outside a union a missing value is an error, or the primitive's default under WriteEmpty.
+                return Convert(OrEmpty(value, Expression.Default(underlying), schema), target, schema);
             }
 
             if (target == typeof(bool))
@@ -220,12 +285,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
             throw new NotSupportedException($"[{target}] required but found [{type}]");
         }
 
-        private static Expression AsString(Type type, Expression value)
+        private Expression AsString(Type type, Expression value, TypeSchema schema)
         {
             if (type == typeof(string))
             {
-                // Classic behaviour: a null string is written as an empty string.
-                return Expression.Coalesce(value, Expression.Constant(string.Empty));
+                return OrEmpty(value, Expression.Constant(string.Empty), schema);
             }
 
             var underlying = Nullable.GetUnderlyingType(type);
@@ -234,13 +298,14 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                 return Expression.Condition(
                     Expression.Property(value, "HasValue"),
                     Expression.Call(Expression.Property(value, "Value"), underlying.GetMethod(nameof(ToString), Type.EmptyTypes)!),
-                    Expression.Constant(string.Empty));
+                    OrEmpty(Expression.Constant(null, typeof(string)), Expression.Constant(string.Empty), schema));
             }
 
             var toString = Expression.Call(value, type.GetMethod(nameof(ToString), Type.EmptyTypes)!);
             return type.IsValueType
                 ? toString
-                : Expression.Condition(Expression.ReferenceEqual(value, Expression.Constant(null, type)), Expression.Constant(string.Empty), toString);
+                : Expression.Condition(Expression.ReferenceEqual(value, Expression.Constant(null, type)),
+                    OrEmpty(Expression.Constant(null, typeof(string)), Expression.Constant(string.Empty), schema), toString);
         }
 
         private Expression BuildLogical(LogicalTypeSchema schema, Type type, Expression value, ParameterExpression writer)
@@ -251,7 +316,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                 return Expression.IfThenElse(
                     Expression.Property(value, "HasValue"),
                     BuildLogical(schema, underlying, Expression.Property(value, "Value"), writer),
-                    WriteNullValue(schema, writer));
+                    NullValue(schema, writer));
             }
 
             switch (schema.LogicalTypeName)
@@ -259,11 +324,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                 case LogicalTypeSchema.LogicalTypeEnum.Uuid when schema.BaseTypeSchema.Type == AvroType.Fixed && type == typeof(Guid):
                     return Expression.Call(WriteUuidFixedMethod, writer, value);
                 case LogicalTypeSchema.LogicalTypeEnum.Uuid when schema.BaseTypeSchema.Type == AvroType.Fixed && type == typeof(string):
-                    return Expression.Call(WriteUuidFixedMethod, writer, Expression.Call(GuidParseMethod, value));
+                    return GuardNull(type, value, schema, writer, Expression.Call(WriteUuidFixedMethod, writer, Expression.Call(GuidParseMethod, value)));
                 case LogicalTypeSchema.LogicalTypeEnum.Uuid when type == typeof(Guid):
                     return Expression.Call(writer, WriteStringMethod, Expression.Call(value, typeof(Guid).GetMethod(nameof(Guid.ToString), Type.EmptyTypes)!));
                 case LogicalTypeSchema.LogicalTypeEnum.Uuid when type == typeof(string):
-                    return Expression.Call(writer, WriteStringMethod, AsString(type, value));
+                    return Expression.Call(writer, WriteStringMethod, AsString(type, value, schema));
 
                 case var _ when IsTimestamp(schema.LogicalTypeName) && type == typeof(long):
                     // A long member holds the raw count since the epoch and is written as is.
@@ -282,10 +347,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                     return Expression.Call(WriteTimestampMethod, writer, TicksSinceEpoch(type, value, timestampSchema.IsLocal), Expression.Constant(timestampSchema));
 
                 case LogicalTypeSchema.LogicalTypeEnum.BigDecimal when type == typeof(decimal) || type.IsPrimitive && type != typeof(bool):
-                    return Expression.Call(WriteBigDecimalMethod, writer, Convert(value, typeof(decimal)));
+                    return Expression.Call(WriteBigDecimalMethod, writer, Convert(value, typeof(decimal), schema));
 
                 case LogicalTypeSchema.LogicalTypeEnum.Decimal when type == typeof(decimal) || type.IsPrimitive && type != typeof(bool):
-                    return Expression.Call(WriteDecimalMethod, writer, Convert(value, typeof(decimal)), Expression.Constant(schema), Expression.Constant(_numberHandling));
+                    return Expression.Call(WriteDecimalMethod, writer, Convert(value, typeof(decimal), schema), Expression.Constant(schema), Expression.Constant(_numberHandling));
 
                 case LogicalTypeSchema.LogicalTypeEnum.Duration when type == typeof(TimeSpan):
                     return Expression.Call(WriteDurationMethod, writer, value, Expression.Constant(schema));
@@ -332,7 +397,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
         {
             if (type == typeof(string))
             {
-                return Expression.Call(WriteEnumSymbolMethod, writer, value, Expression.Constant(schema));
+                return Expression.IfThenElse(
+                    Expression.ReferenceEqual(value, Expression.Constant(null, type)),
+                    NullValue(schema, writer),
+                    Expression.Call(WriteEnumSymbolMethod, writer, value, Expression.Constant(schema)));
             }
 
             var underlyingNullable = Nullable.GetUnderlyingType(type);
@@ -341,7 +409,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                 return Expression.IfThenElse(
                     Expression.Property(value, "HasValue"),
                     BuildEnum(schema, underlyingNullable, Expression.Property(value, "Value"), writer),
-                    WriteNullValue(schema, writer));
+                    NullValue(schema, writer));
             }
 
             if (!type.IsEnum)
@@ -375,16 +443,16 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                 : Expression.Switch(typeof(void), Expression.Convert(value, underlying), unknown, null, cases);
         }
 
-        private static Expression BuildFixed(FixedSchema schema, Type type, Expression value, ParameterExpression writer)
+        private Expression BuildFixed(FixedSchema schema, Type type, Expression value, ParameterExpression writer)
         {
             if (type == typeof(AvroFixed))
             {
-                return Expression.Call(WriteAvroFixedMethod, writer, value, Expression.Constant(schema));
+                return GuardNull(type, value, schema, writer, Expression.Call(WriteAvroFixedMethod, writer, value, Expression.Constant(schema)));
             }
 
             if (type == typeof(byte[]))
             {
-                return Expression.Call(writer, WriteFixedMethod, value);
+                return GuardNull(type, value, schema, writer, Expression.Call(writer, WriteFixedMethod, value));
             }
 
             if (type == typeof(Guid) && schema.Size == 16)
@@ -397,7 +465,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
 
         // ------------------------------------------------------------------ records
 
-        private Expression BuildRecord(RecordSchema schema, Type type, Expression value, ParameterExpression writer)
+        private Expression BuildRecord(RecordSchema schema, Type type, Expression value, ParameterExpression writer) =>
+            GuardNull(type, value, schema, writer, BuildRecordBody(schema, type, value, writer));
+
+        private Expression BuildRecordBody(RecordSchema schema, Type type, Expression value, ParameterExpression writer)
         {
             if (type == typeof(ExpandoObject) || typeof(IDictionary<string, object>).IsAssignableFrom(type))
             {
@@ -438,7 +509,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                 names[i] = field.Aliases.FirstOrDefault() ?? field.Name;
                 var writer = Expression.Parameter(typeof(IWriter), "writer");
                 var item = Expression.Parameter(typeof(object), "value");
-                writers[i] = Expression.Lambda<Action<IWriter, object>>(Build(field.TypeSchema, typeof(object), item, writer), writer, item).Compile();
+                var body = InContext($"{schema.Name}.{field.Name}", () => Build(field.TypeSchema, typeof(object), item, writer));
+                writers[i] = Expression.Lambda<Action<IWriter, object>>(body, writer, item).Compile();
             }
 
             return (names, writers);
@@ -457,11 +529,15 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                 if (member is not { CanRead: true })
                 {
                     // Member absent on this type: the field is written as "no value".
-                    fields.Add(WriteNullValue(field.TypeSchema, writer));
+                    fields.Add(NullValue(field.TypeSchema, writer,
+                        $"Field '{schema.Name}.{field.Name}' has no readable member in [{type}], and its schema {Describe(field.TypeSchema)} does not allow null. " +
+                        "Add the member, make the field a union with \"null\", " +
+                        "or set AvroConvertOptions.NullValueHandling = AvroNullValueHandling.WriteEmpty to write an empty value instead (AvroConvert 3.x behaviour)."));
                     continue;
                 }
 
-                fields.Add(Build(field.TypeSchema, member.Type, Expression.MakeMemberAccess(instance, member.Info), writer));
+                fields.Add(InContext($"{schema.Name}.{field.Name}",
+                    () => Build(field.TypeSchema, member.Type, Expression.MakeMemberAccess(instance, member.Info), writer)));
             }
 
             Expression body = fields.Count == 0 ? Expression.Empty() : Expression.Block(typeof(void), fields);
@@ -469,7 +545,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
             {
                 body = Expression.IfThenElse(
                     Expression.ReferenceEqual(instance, Expression.Constant(null, type)),
-                    WriteNullValue(schema, writer),
+                    NullValue(schema, writer),
                     body);
             }
 
@@ -478,21 +554,24 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
 
         // ------------------------------------------------------------------ collections
 
-        private Expression BuildArray(ArraySchema schema, Type type, Expression value, ParameterExpression writer)
+        private Expression BuildArray(ArraySchema schema, Type type, Expression value, ParameterExpression writer) =>
+            GuardNull(type, value, schema, writer, BuildArrayBody(schema, type, value, writer));
+
+        private Expression BuildArrayBody(ArraySchema schema, Type type, Expression value, ParameterExpression writer)
         {
             var itemType = ReadCompiler.CollectionItemType(type);
             if (itemType == null)
             {
                 if (typeof(IEnumerable).IsAssignableFrom(type) && type != typeof(string) && type != typeof(byte[]))
                 {
-                    var dynamicItem = CompileItem(schema.ItemSchema, typeof(object));
+                    var dynamicItem = InContext(ItemContext(), () => CompileItem(schema.ItemSchema, typeof(object)));
                     return Expression.Call(WriteUntypedEnumerableMethod, writer, Expression.Convert(value, typeof(IEnumerable)), Expression.Constant(dynamicItem));
                 }
 
                 throw new NotSupportedException($"[IEnumerable] required to write against [Array] schema but found [{type}]");
             }
 
-            var itemFn = CompileItem(schema.ItemSchema, itemType);
+            var itemFn = InContext(ItemContext(), () => CompileItem(schema.ItemSchema, itemType));
 
             if (type.IsArray)
             {
@@ -509,11 +588,14 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
             return Expression.Call(WriteEnumerableMethod.MakeGenericMethod(itemType), writer, Expression.Convert(value, enumerable), Expression.Constant(itemFn));
         }
 
-        private Expression BuildMap(MapSchema schema, Type type, Expression value, ParameterExpression writer)
+        private Expression BuildMap(MapSchema schema, Type type, Expression value, ParameterExpression writer) =>
+            GuardNull(type, value, schema, writer, BuildMapBody(schema, type, value, writer));
+
+        private Expression BuildMapBody(MapSchema schema, Type type, Expression value, ParameterExpression writer)
         {
             if (type == typeof(JObject))
             {
-                var dynamicValue = CompileItem(schema.ValueSchema, typeof(object));
+                var dynamicValue = InContext(ValueContext(), () => CompileItem(schema.ValueSchema, typeof(object)));
                 var jsonEntries = typeof(IEnumerable<KeyValuePair<string, JToken>>);
                 return Expression.Call(WriteMapMethod.MakeGenericMethod(typeof(string), typeof(JToken)), writer,
                     Expression.Convert(value, jsonEntries),
@@ -526,7 +608,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
             {
                 if (typeof(IDictionary).IsAssignableFrom(type))
                 {
-                    var dynamicValue = CompileItem(schema.ValueSchema, typeof(object));
+                    var dynamicValue = InContext(ValueContext(), () => CompileItem(schema.ValueSchema, typeof(object)));
                     return Expression.Call(WriteUntypedMapMethod, writer, Expression.Convert(value, typeof(IDictionary)), Expression.Constant(dynamicValue));
                 }
 
@@ -534,14 +616,14 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
             }
 
             var (keyType, valueType) = kv.Value;
-            var valueFn = CompileItem(schema.ValueSchema, valueType);
+            var valueFn = InContext(ValueContext(), () => CompileItem(schema.ValueSchema, valueType));
             var pair = typeof(KeyValuePair<,>).MakeGenericType(keyType, valueType);
             var entries = typeof(IEnumerable<>).MakeGenericType(pair);
             var countInterface = typeof(IReadOnlyDictionary<,>).MakeGenericType(keyType, valueType).IsAssignableFrom(type) && !typeof(IDictionary<,>).MakeGenericType(keyType, valueType).IsAssignableFrom(type)
                 ? typeof(IReadOnlyCollection<>).MakeGenericType(pair)
                 : typeof(ICollection<>).MakeGenericType(pair);
 
-            // Null dictionaries outside a union are written as an empty map.
+            // Under WriteEmpty a null dictionary outside a union is written as an empty map (Throw is handled by GuardNull).
             var isNull = Expression.ReferenceEqual(value, Expression.Constant(null, type));
             var count = Expression.Condition(isNull, Expression.Constant(0), Expression.Property(Expression.Convert(value, countInterface), countInterface.GetProperty("Count")!));
             var safeEntries = Expression.Coalesce(Expression.Convert(value, entries), Expression.Constant(Array.CreateInstance(pair, 0), entries));

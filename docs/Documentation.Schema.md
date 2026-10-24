@@ -72,8 +72,9 @@ AvroConvert.GenerateSchema(typeof(SimpleTestClass));
 | `decimal`, `Guid`, `DateTime`, `DateTimeOffset`, `DateOnly`, `TimeOnly`, `TimeSpan` | logical types, see [Logical types](#logical-types) |
 
 A reference type is nullable when it is declared with `?` in a nullable context or marked with `[NullableSchema]`;
-otherwise its schema has no `null` branch and a `null` `string` is written as `""`. Multidimensional arrays (`int[,]`)
-are not supported – use jagged arrays (`int[][]`).
+otherwise its schema has no `null` branch, and serializing `null` into it throws, as the Avro specification has no
+representation for it (`AvroConvertOptions.NullValueHandling = AvroNullValueHandling.WriteEmpty` writes `""`, an empty
+collection or `0` instead, like 3.x). Multidimensional arrays (`int[,]`) are not supported – use jagged arrays (`int[][]`).
 
 #### Members and attributes
 

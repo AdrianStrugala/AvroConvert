@@ -19,6 +19,7 @@ namespace SolTechnology.Avro.Infrastructure
         int MaxItemsInSchemaTree,
         AvroNumberHandling NumberHandling,
         AvroMissingFieldHandling MissingFieldHandling,
+        AvroNullValueHandling NullValueHandling,
         IAvroNamingPolicy NamingPolicy,
         ConverterSet Converters,
         AvroTypeRepresentation? DateTimeRepresentation)
@@ -29,7 +30,7 @@ namespace SolTechnology.Avro.Infrastructure
         {
             if (options == null)
             {
-                return new OptionsKey(false, 1024, AvroNumberHandling.Strict, AvroMissingFieldHandling.Throw, null, null, null);
+                return new OptionsKey(false, 1024, AvroNumberHandling.Strict, AvroMissingFieldHandling.Throw, AvroNullValueHandling.Throw, null, null, null);
             }
 
             return new OptionsKey(
@@ -37,6 +38,7 @@ namespace SolTechnology.Avro.Infrastructure
                 options.MaxItemsInSchemaTree,
                 options.NumberHandling,
                 options.MissingFieldHandling,
+                options.NullValueHandling,
                 options.NamingPolicy,
                 options.AvroConverters.Count == 0 ? null : new ConverterSet(options.AvroConverters),
                 options.DateTimeRepresentation);

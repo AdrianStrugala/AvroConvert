@@ -9,7 +9,8 @@ inside small companies; larger companies need a commercial licence. Pick the pat
 |---|---|---|
 | An individual, a student, a non-profit, a public institution, or using it for research, hobby or evaluation | [PolyForm Noncommercial 1.0.0](licenses/PolyForm-Noncommercial-1.0.0.md) | Free |
 | A company with **fewer than 100 people** (employees + contractors) **and** under **1,000,000 USD** revenue in the prior tax year | [PolyForm Small Business 1.0.0](licenses/PolyForm-Small-Business-1.0.0.md) | Free |
-| Any other company or organisation | [SolTechnology Commercial Licence](licenses/Commercial.md) | Annual subscription per organisation — https://soltechnology.dev/avroconvert/ |
+| Any other company or organisation with **fewer than 1,000 people**, not publicly listed, not public sector | [SolTechnology Commercial Licence](licenses/Commercial.md) — **Business** tier | Annual subscription per organisation — https://soltechnology.dev/avroconvert/ |
+| An organisation with **1,000 or more people**, a publicly listed company, or a public-sector body using it commercially | [SolTechnology Commercial Licence](licenses/Commercial.md) — **Enterprise** tier | Annual subscription per organisation — https://soltechnology.dev/avroconvert/ |
 
 The two free licences are offered in parallel: you may rely on whichever one fits your situation. If
 neither does, you need the commercial licence to use AvroConvert in production.
@@ -32,13 +33,24 @@ AvroConvert.License = AvroLicense.Commercial("AVC1.…");   // licence key recei
 The same can be set through the `AVROCONVERT_LICENSE` environment variable (`NonCommercial`,
 `SmallBusiness` or the key). A commercial key is signed by SolTechnology and carries the licence number,
 licensee, plan and subscription end; the library verifies the signature and exposes these values
-(`AvroConvert.License.Licensee`, `.ValidUntil`, …) but an invalid or ended key only produces a `Trace`
-warning. Without any declaration the library works normally and emits a single `Trace` warning per process.
+(`AvroConvert.License.Licensee`, `.ValidUntil`, …) but an invalid or ended key only produces a one-time
+warning. Without any declaration the library works normally and writes a single notice per process to
+standard error (prefixed `[AvroConvert]`).
 
 ## Versions
 
 - AvroConvert **4.0 and later** — the terms above.
 - AvroConvert **3.x and earlier** — remain under Creative Commons BY-NC-SA 3.0 as published with those versions.
+  A commercial licence bought for 4.x **also covers the 3.4.x maintenance releases**, so a team that cannot move
+  to .NET 10 yet can be licensed today and upgrade later.
+  Commercial licences for 3.x bought from Xabe stay valid for 3.x, and their holders are entitled to a **free
+  perpetual commercial licence for 4.x and all future versions** — no deadline, no renewal; send the Xabe invoice
+  to contact@soltechnology.dev to receive the key. See [licenses/Commercial.md](licenses/Commercial.md), section 12.
+
+## Trademarks
+
+Apache Avro, Avro and Apache are trademarks of The Apache Software Foundation. AvroConvert is an independent
+implementation for .NET and is not affiliated with, endorsed by or sponsored by the ASF.
 
 ## Third-party components
 

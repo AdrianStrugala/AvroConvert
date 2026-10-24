@@ -289,8 +289,8 @@ Implement `IAvroNamingPolicy` (`GetTypeName`, `GetMemberName`) for other convent
 
 AvroConvert is free for noncommercial use and for companies under 100 people / 1,000,000 USD revenue; other
 organisations need a commercial licence (see [LICENSE.md](../LICENSE.md)). Declare which licence your application
-relies on — functionality is never restricted, and the declaration silences the one-time `Trace` warning emitted
-when no licence is declared:
+relies on — functionality is never restricted, and the declaration silences the one-time notice written to
+standard error (prefixed `[AvroConvert]`) when no licence is declared:
 
 ```csharp
 AvroConvert.License = AvroLicense.NonCommercial;
@@ -305,7 +305,7 @@ A commercial key is a signed token (`AVC1.<payload>.<signature>`, ECDSA P-256) t
 licensee, plan and subscription end. `AvroLicense.Commercial` verifies the signature and exposes the values as
 `Id`, `Licensee`, `Plan`, `ValidUntil` and `IsSignatureValid`; a malformed string throws `ArgumentException`,
 while a key with a wrong signature or a subscription that ended before this version was released is accepted
-and only produces a `Trace` warning (versions released during the subscription stay licensed for ever).
+and only produces the same one-time notice (versions released during the subscription stay licensed for ever).
 
 ### Options reference
 

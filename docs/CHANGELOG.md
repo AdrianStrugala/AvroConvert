@@ -2,7 +2,7 @@
 
 Breaking changes:
 - **Requires .NET 10.** Support for netstandard2.0 and net6.0 is gone. If you are on .NET Framework or .NET 6–9, stay on 3.4.x – it lives on the `release/3.x` branch and keeps getting security and critical fixes. SolTechnology.Avro.Http and SolTechnology.Avro.Kafka also move to .NET 10 (Kafka on Confluent 2.x)
-- **New licence.** 4.x is free under PolyForm Noncommercial and PolyForm Small Business (individuals, open source, education, companies under 100 people and USD 1M revenue); larger companies need a SolTechnology Commercial licence. 3.4.x stays CC BY-NC-SA 3.0. Details: https://soltechnology.dev/avroconvert
+- **New licence.** 4.x is free under PolyForm Noncommercial and PolyForm Small Business (individuals, open source, education, companies under 100 people and USD 1M revenue); larger companies need a SolTechnology Commercial licence, which also covers the 3.4.x maintenance releases. 3.4.x itself stays CC BY-NC-SA 3.0. Holders of a 3.x commercial licence bought from Xabe are entitled to a free perpetual licence for 4.x and all future versions (see `licenses/Commercial.md`, section 12). Details: https://soltechnology.dev/avroconvert
 - **Lists are stored differently.** When you serialize a `List<T>`, `T[]`, `HashSet<T>`, `IEnumerable<T>` (any collection with a concrete element type – not `object`, not dictionaries), each element becomes its own entry in the Avro container, the way every other Avro tool does it (#118). Files written by 3.x still read fine, and other tools can now read yours. Want the old single-`array` layout? Set `AvroConvertOptions.CollectionMode = SingleArray`
 - A file with a header but no data now deserializes to an empty collection instead of `null`
 - **Missing fields fail loudly.** If your reader class has a field that is not in the data and that field cannot hold `null` (a non-nullable value type without `[DefaultValue]` or a union with `null`), deserialization throws instead of quietly leaving `default(T)` (#87). `string`, classes and `Nullable<T>` still come back as `null`. To get the old behaviour: `AvroConvertOptions.MissingFieldHandling = UseDefault`
@@ -21,7 +21,7 @@ Breaking changes:
 - The bundled FastMember copy is gone (internal; nothing to change unless you referenced it directly)
 
 Changes:
-- Optional licence declaration via `AvroConvert.License` or `AVROCONVERT_LICENSE`; commercial licence keys are signed tokens parsed by `AvroLicense.Commercial` (nothing is restricted)
+- Optional licence declaration via `AvroConvert.License` or `AVROCONVERT_LICENSE`; commercial licence keys are signed tokens parsed by `AvroLicense.Commercial` (nothing is restricted). Without a declaration a single notice per process is written to standard error
 - Dependencies: Newtonsoft.Json, IronSnappy and ZstdSharp.Port (zstandard)
 - Serialization and deserialization compiled per schema and type; multiple times faster with a fraction of allocations
 - A one-element collection reads back as a collection

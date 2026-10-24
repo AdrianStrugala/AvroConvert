@@ -1,0 +1,65 @@
+name: Publish
+
+# Push a tag like v4.0.0-preview.1 or v4.0.0 to publish AvroConvert, SolTechnology.Avro.Http and SolTechnology.Avro.Kafka
+# to nuget.org. The tag must match <Version> in the csproj files. A tag with a hyphen is a prerelease.
+#
+# nuget.org uses Trusted Publishing (OIDC, no stored API key). One-time setup on nuget.org → your profile → Trusted Publishing:
+#   Repository Owner: AdrianStrugala, Repository: AvroConvert, Workflow File: publish.yml, Environment: nuget
+# The nuget.org profile name is read from the repository variable NUGET_USER (Settings → Secrets and variables → Actions → Variables).
+
+on:
+  push:
+    tags: [ "v*" ]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: nuget
+    permissions:
+      contents: write   # GitHub release
+      id-token: write   # OIDC token for nuget.org
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Check tag matches the package version
+      run: |
+        version="${GITHUB_REF_NAME#v}"
+        for project in src/AvroConvert/AvroConvert.csproj src/SolTechnology.Avro.Http/SolTechnology.Avro.Http.csproj src/Soltechnology.Avro.Kafka/SolTechnology.Avro.Kafka.csproj; do
+          grep -q "<Version>$version</Version>" "$project" || { echo "::error::$project does not have <Version>$version</Version>"; exit 1; }
+        done
+
+    - name: Build and test
+      run: |
+        dotnet build AvroConvert.sln -c Release
+        dotnet test AvroConvert.sln --no-build -c Release
+
+    - name: Pack
+      run: |
+        dotnet pack src/AvroConvert/AvroConvert.csproj --no-build -c Release -o artifacts
+        dotnet pack src/SolTechnology.Avro.Http/SolTechnology.Avro.Http.csproj --no-build -c Release -o artifacts
+        dotnet pack src/Soltechnology.Avro.Kafka/SolTechnology.Avro.Kafka.csproj --no-build -c Release -o artifacts
+
+    - name: NuGet login (OIDC → temporary API key)
+      uses: NuGet/login@v1
+      id: login
+      with:
+        user: ${{ vars.NUGET_USER }}
+
+    - name: Push to nuget.org
+      run: dotnet nuget push "artifacts/*.nupkg" --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+    - name: GitHub release
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        notes="docs/release-notes/${GITHUB_REF_NAME}.md"
+        args=("$GITHUB_REF_NAME" artifacts/*.nupkg --title "AvroConvert ${GITHUB_REF_NAME#v}")
+        [[ "$GITHUB_REF_NAME" == *-* ]] && args+=(--prerelease)
+        if [[ -f "$notes" ]]; then args+=(--notes-file "$notes"); else args+=(--generate-notes); fi
+        gh release create "${args[@]}"

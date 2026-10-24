@@ -20,6 +20,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Infrastructure.Attributes;
@@ -38,6 +39,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         internal bool HasDefaultValue { get; }
         internal object DefaultValue { get; }
         internal int Position { get; }
+
+        /// <summary>Sort order (<c>ascending</c>, <c>descending</c> or <c>ignore</c>); null when not declared (ascending).</summary>
+        internal string Order { get; init; }
+
+        /// <summary>The <c>default</c> exactly as declared in a parsed schema (JSON of the underlying type); written back unchanged.</summary>
+        internal JToken DefaultJson { get; init; }
         internal NamedEntityAttributes NamedEntityAttributes { get; }
 
         internal string GetAliasOrDefault() => NamedEntityAttributes.Aliases.FirstOrDefault();
@@ -78,7 +85,16 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             writer.WriteOptionalProperty("aliases", Aliases);
             writer.WritePropertyName("type");
             TypeSchema.ToJson(writer, seenSchemas);
-            writer.WriteOptionalProperty("default", DefaultValue, HasDefaultValue);
+            if (DefaultJson != null)
+            {
+                writer.WritePropertyName("default");
+                DefaultJson.WriteTo(writer);
+            }
+            else
+            {
+                writer.WriteOptionalProperty("default", DefaultValue, HasDefaultValue);
+            }
+            writer.WriteOptionalProperty("order", Order);
 
             writer.WriteEndObject();
         }

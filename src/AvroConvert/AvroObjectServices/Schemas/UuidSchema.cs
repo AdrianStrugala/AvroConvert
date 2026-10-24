@@ -16,6 +16,9 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using SolTechnology.Avro.AvroObjectServices.BuildSchema;
+using SolTechnology.Avro.Infrastructure.Attributes;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 
 namespace SolTechnology.Avro.AvroObjectServices.Schemas
@@ -31,18 +34,35 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             BaseTypeSchema = new StringSchema();
         }
 
+        /// <summary>uuid annotating <c>fixed(16)</c>; the 16 bytes follow RFC 4122 (big-endian) byte order.</summary>
+        public UuidSchema(Type runtimeType, FixedSchema fixedBase) : base(runtimeType)
+        {
+            if (fixedBase.Size != 16)
+            {
+                throw new ArgumentException("uuid can only annotate fixed of size 16", nameof(fixedBase));
+            }
+
+            BaseTypeSchema = fixedBase;
+        }
+
+        internal static FixedSchema CreateFixedBase() =>
+            new(new NamedEntityAttributes(new SchemaName("uuid"), new List<string>(), ""), 16, typeof(Guid));
+
         internal override AvroType Type => AvroType.Logical;
         internal override TypeSchema BaseTypeSchema { get; set; }
         internal override string LogicalTypeName => LogicalTypeEnum.Uuid;
 
         internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type readType)
         {
-            if (baseValue is Guid)
-                return baseValue;
-            else
+            var guid = baseValue switch
             {
-                return Guid.Parse((string)baseValue);
-            }
+                Guid g => g,
+                byte[] bytes => new Guid(bytes, bigEndian: true),
+                AvroTypes.AvroFixed avroFixed => new Guid(avroFixed.Value, bigEndian: true),
+                _ => Guid.Parse((string)baseValue)
+            };
+
+            return readType == typeof(string) ? guid.ToString() : guid;
         }
     }
 }

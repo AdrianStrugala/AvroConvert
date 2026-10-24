@@ -1,0 +1,8 @@
+<Project>
+  <!-- Applies also to BenchmarkDotNet's auto-generated projects under bin/: each job pins a different AvroConvert
+       version, so package "downgrades" relative to the compile-time reference are expected. -->
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);NU1605</NoWarn>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+</Project>

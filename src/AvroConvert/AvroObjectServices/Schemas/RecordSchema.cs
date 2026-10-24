@@ -98,7 +98,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             writer.WriteProperty("type", "record");
             writer.WritePropertyName("fields");
             writer.WriteStartArray();
+            var context = seenSchemas as SchemaWriteContext;
+            context?.EnterNamespace(Namespace);
             fields.ForEach(_ => _.ToJson(writer, seenSchemas));
+            context?.ExitNamespace();
             writer.WriteEndArray();
             writer.WriteEndObject();
         }

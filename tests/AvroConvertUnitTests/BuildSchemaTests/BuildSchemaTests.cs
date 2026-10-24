@@ -1,14 +1,15 @@
-﻿using System;
+﻿using AwesomeAssertions;
+using System;
 using System.ComponentModel;
 using System.Runtime.Serialization;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
-using Xunit;
+using NUnit.Framework;
 
 namespace AvroConvertUnitTests.BuildSchemaTests;
 
 public sealed class BuildSchemaTests
 {
-    [Fact]
+    [Test]
     public void BuildSchema_JsonSchemaContainsAvroAttributes_ResultIsEqualToInput()
     {
         // Arrange
@@ -18,10 +19,10 @@ public sealed class BuildSchemaTests
         var result = Schema.Parse(schema.ToString());
 
         // Assert
-        Assert.Equal(schema.ToString(), result.ToString());
+        result.ToString().Should().Be(schema.ToString());
     }
 
-    [Fact]
+    [Test]
     public void WhenTheDefaultValueForGUIDIsValid_ThenTheSchemaShouldBeCreated()
     {
         // Arrange
@@ -31,17 +32,17 @@ public sealed class BuildSchemaTests
         var resultSchema = Schema.Parse(schema.ToString());
 
         // Assert
-        Assert.Equal(schema.ToString(), resultSchema.ToString());
+        resultSchema.ToString().Should().Be(schema.ToString());
     }
 
-    [Fact]
+    [Test]
     public void WhenTheDefaultValueForGuidIsInvalid_ThenAnExceptionShouldBeThrown()
     {
         // Arrange
         var schema = Schema.Create(typeof(GuidClassWithInvalidDefaultValue));
 
         // Act and Assert
-        Assert.Throws<SerializationException>(() => Schema.Parse(schema.ToString()));
+        FluentActions.Invoking(() => Schema.Parse(schema.ToString())).Should().ThrowExactly<SerializationException>();
     }
 }
 

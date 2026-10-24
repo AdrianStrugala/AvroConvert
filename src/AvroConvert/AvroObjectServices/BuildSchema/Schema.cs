@@ -18,16 +18,26 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Globalization;
 using System.IO;
 using Newtonsoft.Json;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
+using SolTechnology.Avro.Features.JsonToAvro;
+using SolTechnology.Avro.Infrastructure;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 {
     public abstract class Schema
     {
-        private static ConcurrentDictionary<Type, TypeSchema> _schemaCache = new();
+        private static readonly ConcurrentDictionary<Type, TypeSchema> _schemaCache = new();
+        private static readonly ConcurrentDictionary<(Type Type, OptionsKey Options), TypeSchema> _schemaWithOptionsCache = new();
+        private static readonly ConcurrentDictionary<string, TypeSchema> _parsedSchemaCache = new();
+        private const int ParsedSchemaCacheLimit = 256;
+        private const int SchemaWithOptionsCacheLimit = 1024;
+        private string _json;
+
         protected Schema(IDictionary<string, string> attributes)
         {
             Attributes = (Dictionary<string, string>)(attributes ?? new Dictionary<string, string>());
@@ -50,10 +60,16 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
         public override string ToString()
         {
+            // Schemas are immutable once built, so the JSON form is computed once and reused by every Serialize call.
+            return _json ??= BuildJson();
+        }
+
+        private string BuildJson()
+        {
             using (var result = new StringWriter(CultureInfo.InvariantCulture))
             {
                 var writer = new JsonTextWriter(result);
-                this.ToJson(writer, new HashSet<NamedSchema>());
+                this.ToJson(writer, new SchemaWriteContext());
                 return result.ToString();
             }
         }
@@ -67,6 +83,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         internal abstract void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas);
 
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal static TypeSchema Parse(string schemaInJson)
         {
             if (string.IsNullOrEmpty(schemaInJson))
@@ -74,41 +91,71 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 throw new ArgumentNullException(nameof(schemaInJson));
             }
 
-            return new TypeSchemaBuilder().BuildSchema(schemaInJson);
+            AvroConvert.EnsureLicenseNotice();
+
+            // Parsed schemas are immutable, so the same JSON text (e.g. a file header) is parsed once per process.
+            if (_parsedSchemaCache.TryGetValue(schemaInJson, out var cached))
+            {
+                return cached;
+            }
+
+            var parsed = new TypeSchemaBuilder().BuildSchema(schemaInJson);
+            if (_parsedSchemaCache.Count >= ParsedSchemaCacheLimit)
+            {
+                _parsedSchemaCache.Clear();
+            }
+            _parsedSchemaCache.TryAdd(schemaInJson, parsed);
+            return parsed;
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal static TypeSchema Create(object obj, AvroConvertOptions options = null)
         {
             var type = obj?.GetType();
-            
-            if (options is null && type is not null)
+            if (type is null)
             {
-                return _schemaCache.GetOrAdd(type,
-                    t =>
-                    {
-                        var builder = new ReflectionSchemaBuilder(null);
-                        var schema = builder.BuildSchema(t);
-
-                        return schema;
-                    });
+                return new ReflectionSchemaBuilder(options).BuildSchema(null);
             }
-            else
+
+            if (obj is ExpandoObject expando)
             {
-                var builder = new ReflectionSchemaBuilder(options);
-                var schema = builder.BuildSchema(type);
-
-                return schema;
+                AvroConvert.EnsureLicenseNotice();
+                return new JsonSchemaBuilder().BuildSchema(new[] { expando });
             }
+
+            return Create(type, options);
         }
 
-        internal static TypeSchema Create(Type type) =>
-            _schemaCache.GetOrAdd(type,
-                t =>
-                {
-                    var builder = new ReflectionSchemaBuilder();
-                    var schema = builder.BuildSchema(t);
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
+        internal static TypeSchema Create(Type type, AvroConvertOptions options)
+        {
+            AvroConvert.EnsureLicenseNotice();
 
-                    return schema;
-                });
+            if (type is null)
+            {
+                return new ReflectionSchemaBuilder(options).BuildSchema(null);
+            }
+
+            if (options is null)
+            {
+                return Create(type);
+            }
+
+            // Keyed by the policy and converter instances, so a fresh options object per call is a miss: bounded like the plan caches.
+            if (_schemaWithOptionsCache.Count >= SchemaWithOptionsCacheLimit)
+            {
+                _schemaWithOptionsCache.Clear();
+            }
+
+            return _schemaWithOptionsCache.GetOrAdd((type, OptionsKey.From(options)),
+                _ => new ReflectionSchemaBuilder(options).BuildSchema(type));
+        }
+
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
+        internal static TypeSchema Create(Type type)
+        {
+            AvroConvert.EnsureLicenseNotice();
+            return _schemaCache.GetOrAdd(type, t => new ReflectionSchemaBuilder().BuildSchema(t));
+        }
     }
 }

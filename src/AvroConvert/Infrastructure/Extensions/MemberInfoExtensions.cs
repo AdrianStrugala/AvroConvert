@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SolTechnology.Avro.Infrastructure.Extensions
 {
+    [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
     internal static class MemberInfoExtensions
     {
         private static readonly byte[] EmptyFlags = {0};

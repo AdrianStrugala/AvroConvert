@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace SolTechnology.Avro.Features.GenerateModel.NetModel
@@ -40,6 +41,11 @@ namespace SolTechnology.Avro.Features.GenerateModel.NetModel
                     }
                     sb.AppendLine($"	[DefaultValue({defaultVal})]");
                 }
+
+                if (field.UnionMembers.Count > 0)
+                {
+                    sb.AppendLine($"	[AvroUnion({string.Join(", ", field.UnionMembers.Select(m => $"typeof({m.FieldType})"))})]");
+                }
                 sb.AppendLine($"	public {field.FieldType} {field.Name} {{ get; set; }}");
             }
             sb.AppendLine("}");
@@ -55,5 +61,8 @@ namespace SolTechnology.Avro.Features.GenerateModel.NetModel
         public string Namespace { get; set; }
         public string Default { get; set; }
         public string Doc { get; set; }
+
+        /// <summary>Named types of a union field; the records among them become <c>[AvroUnion(typeof(...))]</c>.</summary>
+        public List<NetClassField> UnionMembers { get; } = new();
     }
 }

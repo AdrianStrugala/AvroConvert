@@ -1,0 +1,138 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Dynamic;
+using AwesomeAssertions;
+using SolTechnology.Avro;
+using NUnit.Framework;
+
+namespace AvroConvertComponentTests.FullSerializationAndDeserialization
+{
+    //from issue: https://github.com/AdrianStrugala/AvroConvert/issues/94
+    public class AnonymousAndExpandoTypes
+    {
+        [Test]
+        public void Anonymous_type([ValueSource(typeof(Formats), nameof(Formats.Evolution))] Format format)
+        {
+            //Arrange
+            var valschema = @"
+    {
+      ""type"": ""record"",
+      ""name"": ""TestObject"",
+      ""namespace"": ""ca.dataedu"",
+      ""fields"": [
+        {
+          ""name"": ""Value"",
+          ""type"":[
+            ""null"",
+            {
+              ""type"": ""record"",
+              ""name"": ""Value"",
+              ""fields"": [
+                {
+                  ""name"": ""KeyNested"",
+                  ""type"": ""string""
+                },
+                {
+                  ""name"": ""ValueNested"",
+                  ""type"": ""string""
+                }
+              ]
+            }]
+        }
+      ]
+    }
+";
+
+            var item = new { Value = new { KeyNested = "key1", ValueNested = "val1" } };
+
+            //Act
+            var deserialized = RoundTrip.Evolve<AnonymousLikeClass>(item, format, valschema, valschema);
+
+            //Assert
+            deserialized.Should().BeEquivalentTo(item);
+
+        }
+
+        [Test]
+        public void Expando_object([ValueSource(typeof(Formats), nameof(Formats.Evolution))] Format format)
+        {
+            //Arrange
+            var valSchema = @"
+    {
+      ""type"": ""record"",
+      ""name"": ""TestObject"",
+      ""namespace"": ""ca.dataedu"",
+      ""fields"": [
+        {
+          ""name"": ""Value"",
+          ""type"":[
+            ""null"",
+            {
+              ""type"": ""record"",
+              ""name"": ""Value"",
+              ""fields"": [
+                {
+                  ""name"": ""KeyNested"",
+                  ""type"": ""string""
+                },
+                {
+                  ""name"": ""ValueNested"",
+                  ""type"": ""string""
+                }
+              ]
+            }]
+        }
+      ]
+    }
+";
+            dynamic item = new ExpandoObject();
+            item.value = new ExpandoObject();
+            item.value.KeyNested = "key1";
+            item.value.ValueNested = "val1";
+
+
+            //Act
+            var deserialized = RoundTrip.Evolve<AnonymousLikeClass>(item, format, valSchema, valSchema);
+
+
+            //Assert
+            ((object)deserialized).Should().BeEquivalentTo(new { Value = new { KeyNested = "key1", ValueNested = "val1" } });
+
+        }
+        
+        [Test]
+        public void DeserializeByLine_CollectionWithUnionOfClasses_ResultIsTheSameAsInput([ValueSource(typeof(Formats), nameof(Formats.Evolution))] Format format)
+        {
+          //Arrange
+          var schema =
+            "{\n  \"type\": \"record\",\n  \"name\": \"TypeWithUnionAvro\",\n  \"namespace\": \"TypeUnionExampleAvro\",\n  \"fields\": [\n    {\n      \"name\": \"TopLevelField\",\n      \"type\": \"string\"\n    },\n    {\n      \"name\": \"UnionField\",\n      \"type\": [\n        {\n          \"type\": \"record\",\n          \"name\": \"ObjA\",\n          \"fields\": [\n            {\n              \"name\": \"FieldA\",\n              \"type\": \"string\"\n            }\n          ]\n        },\n        {\n          \"type\": \"record\",\n          \"name\": \"ObjB\",\n          \"fields\": [\n            {\n              \"name\": \"FieldB\",\n              \"type\": \"int\"\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}";
+
+          var toSerialize =
+            new TypeWithUnionAvro
+            {
+              TopLevelField = "First",
+              UnionField = new ObjA
+              {
+                FieldA = "test"
+              }
+            };
+            
+          //Act
+          var deserialized = RoundTrip.Evolve<TypeWithUnionAvro>(toSerialize, format, schema, schema);
+            
+          //Assert
+          deserialized.Should().BeEquivalentTo(toSerialize);
+        }
+    }
+
+    public class AnonymousLikeClass
+    {
+        public NestedClass Value { get; set; }
+    }
+
+    public class NestedClass
+    {
+        public string KeyNested { get; set; }
+        public string ValueNested { get; set; }
+    }
+}

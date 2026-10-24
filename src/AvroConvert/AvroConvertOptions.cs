@@ -1,27 +1,22 @@
 ﻿#region license
-/**Copyright (c) 2023 Adrian Strugala
+/**Copyright (c) 2019-2026 Adrian Strugała (SolTechnology)
 *
-* Licensed under the CC BY-NC-SA 3.0 License(the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
+* Licensed under the PolyForm Noncommercial License 1.0.0, the PolyForm Small Business License 1.0.0,
+* or the SolTechnology Commercial Licence – pick the one that applies to you. See LICENSE.md:
 *
-* https://creativecommons.org/licenses/by-nc-sa/3.0/
+* https://github.com/AdrianStrugala/AvroConvert/blob/master/LICENSE.md
 *
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
 *
-* You are free to use or modify the code for personal usage.
-* For commercial usage purchase the product at
-*
-* https://xabe.net/product/avroconvert/
+* Required Notice: Copyright Adrian Strugała (https://soltechnology.dev)
 */
 #endregion
-
+using System;
 using System.Collections.Generic;
 using SolTechnology.Avro.Converters;
+using SolTechnology.Avro.Infrastructure.Attributes;
 using SolTechnology.Avro.Policies;
 
 namespace SolTechnology.Avro;
@@ -74,4 +69,44 @@ public class AvroConvertOptions
     /// Gets or sets the number handling behavior for Avro types.
     /// </summary>
     public AvroNumberHandling NumberHandling { get; set; }
+
+    /// <summary>
+    /// Gets or sets how reader-schema fields that are absent from the writer schema and have no <c>default</c> are handled.
+    /// Defaults to <see cref="AvroMissingFieldHandling.Throw"/> as required by the Avro specification.
+    /// </summary>
+    public AvroMissingFieldHandling MissingFieldHandling { get; set; }
+
+    /// <summary>
+    /// Gets or sets how a top-level collection is written by <c>Serialize</c>.
+    /// Defaults to <see cref="AvroCollectionMode.Entries"/> (one container entry per element, like other Avro implementations).
+    /// </summary>
+    public AvroCollectionMode CollectionMode { get; set; }
+
+    private AvroTypeRepresentation? _dateTimeRepresentation;
+
+    /// <summary>
+    /// Gets or sets the logical type used for <see cref="DateTime"/> and <see cref="DateTimeOffset"/> members that have no
+    /// <see cref="AvroTypeAttribute"/> (the attribute wins). Allowed: <c>TimestampMilliseconds</c>, <c>TimestampMicroseconds</c>,
+    /// <c>TimestampNanoseconds</c> and their <c>LocalTimestamp*</c> counterparts. <c>null</c> (default) means <c>timestamp-micros</c>.
+    /// </summary>
+    /// <exception cref="ArgumentException">The value is not a timestamp representation.</exception>
+    public AvroTypeRepresentation? DateTimeRepresentation
+    {
+        get => _dateTimeRepresentation;
+        set
+        {
+            if (value is not (null
+                or AvroTypeRepresentation.TimestampMilliseconds
+                or AvroTypeRepresentation.TimestampMicroseconds
+                or AvroTypeRepresentation.TimestampNanoseconds
+                or AvroTypeRepresentation.LocalTimestampMilliseconds
+                or AvroTypeRepresentation.LocalTimestampMicroseconds
+                or AvroTypeRepresentation.LocalTimestampNanoseconds))
+            {
+                throw new ArgumentException($"{value} is not a timestamp representation.", nameof(value));
+            }
+
+            _dateTimeRepresentation = value;
+        }
+    }
 }

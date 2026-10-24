@@ -87,6 +87,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
 
         internal long[] AvroToCSharpValueMapping => this.avroToCSharpValueMapping.ToArray();
 
+        /// <summary>Symbol used by a reader when the writer's symbol is unknown to it (Avro 1.9+); null when not declared.</summary>
+        internal string Default { get; set; }
+
         internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
         {
             if (seenSchemas.Contains(this))
@@ -105,6 +108,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             writer.WriteStartArray();
             this.symbols.ForEach(writer.WriteValue);
             writer.WriteEndArray();
+            writer.WriteOptionalProperty("default", this.Default);
             writer.WriteEndObject();
         }
 

@@ -1,26 +1,20 @@
 ﻿#region license
-/**Copyright (c) 2021 Adrian Strugala
+/**Copyright (c) 2019-2026 Adrian Strugała (SolTechnology)
 *
-* Licensed under the CC BY-NC-SA 3.0 License(the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
+* Licensed under the PolyForm Noncommercial License 1.0.0, the PolyForm Small Business License 1.0.0,
+* or the SolTechnology Commercial Licence – pick the one that applies to you. See LICENSE.md:
 *
-* https://creativecommons.org/licenses/by-nc-sa/3.0/
+* https://github.com/AdrianStrugala/AvroConvert/blob/master/LICENSE.md
 *
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
 *
-* You are free to use or modify the code for personal usage.
-* For commercial usage purchase the product at
-*
-* https://xabe.net/product/avroconvert/
+* Required Notice: Copyright Adrian Strugała (https://soltechnology.dev)
 */
 #endregion
-
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
@@ -29,6 +23,8 @@ using SolTechnology.Avro.AvroObjectServices.FileHeader.Codec;
 using SolTechnology.Avro.AvroObjectServices.Read;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Infrastructure.Exceptions;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro.Features.Deserialize
 {
@@ -41,6 +37,7 @@ namespace SolTechnology.Avro.Features.Deserialize
             _options = options;
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal T Decode<T>(Stream stream, TypeSchema readSchema)
         {
             var reader = new Reader(stream);
@@ -85,31 +82,69 @@ namespace SolTechnology.Avro.Features.Deserialize
         }
 
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal T Read<T>(Reader reader, Header header, AbstractCodec codec, Resolver resolver)
         {
             if (reader.IsReadToEnd())
             {
-                return default;
+                // Header-only file: an empty collection for collection targets, default otherwise.
+                var emptyPlan = resolver.GetPlan<T>().Blocks;
+                return emptyPlan != null ? emptyPlan.Finish(emptyPlan.NewAccumulator()) : default;
             }
 
-            long itemsCount = 0;
-            byte[] data = Array.Empty<byte>();
+            long firstCount = reader.ReadLong();
+            byte[] firstBlock = reader.ReadDataBlock(header.SyncData, codec);
 
-            do
+            // Single block: decode straight from the decompressed buffer.
+            if (reader.IsReadToEnd())
+            {
+                return resolver.Resolve<T>(new Reader(firstBlock), firstCount);
+            }
+
+            var plan = resolver.GetPlan<T>();
+            if (plan.Blocks != null)
+            {
+                // Multi-block file: append each block's entries to the result collection, no buffer concatenation.
+                try
+                {
+                    var accumulator = plan.Blocks.NewAccumulator();
+                    plan.Blocks.Append(new Reader(firstBlock), firstCount, accumulator);
+                    while (!reader.IsReadToEnd())
+                    {
+                        long count = reader.ReadLong();
+                        var block = reader.ReadDataBlock(header.SyncData, codec);
+                        plan.Blocks.Append(new Reader(block), count, accumulator);
+                    }
+
+                    return plan.Blocks.Finish(accumulator);
+                }
+                catch (Exception e)
+                {
+                    throw resolver.WrapFailure<T>(e);
+                }
+            }
+
+            // T is not a collection: classic behaviour over the concatenated blocks.
+            long itemsCount = firstCount;
+            var blocks = new List<byte[]> { firstBlock };
+            long totalLength = firstBlock.Length;
+            while (!reader.IsReadToEnd())
             {
                 itemsCount += reader.ReadLong();
-                var dataBlock = reader.ReadDataBlock(header.SyncData, codec);
+                var block = reader.ReadDataBlock(header.SyncData, codec);
+                blocks.Add(block);
+                totalLength += block.Length;
+            }
 
-                int dataBlockSize = data.Length;
-                Array.Resize(ref data, dataBlockSize + dataBlock.Length);
-                Array.Copy(dataBlock, 0, data, dataBlockSize, dataBlock.Length);
+            var data = new byte[totalLength];
+            int offset = 0;
+            foreach (var block in blocks)
+            {
+                block.CopyTo(data, offset);
+                offset += block.Length;
+            }
 
-            } while (!reader.IsReadToEnd());
-
-
-            reader = new Reader(new MemoryStream(data));
-
-            return resolver.Resolve<T>(reader, itemsCount);
+            return resolver.Resolve<T>(new Reader(data), itemsCount);
         }
     }
 }

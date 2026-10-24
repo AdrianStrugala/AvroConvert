@@ -1,49 +1,48 @@
-﻿using Newtonsoft.Json;
+﻿using AwesomeAssertions;
+using Newtonsoft.Json;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro;
 using System;
 using System.IO;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
-using Xunit;
+using NUnit.Framework;
 using SolTechnology.Avro.Features.Serialize;
 
 namespace AvroConvertUnitTests
 {
     public class DeserializeUnionTests
     {
-        [Theory]
-        [InlineData(typeof(Person))]
-        [InlineData(typeof(DateTimeOffset))]
-        [InlineData(typeof(DateTime))]
-        [InlineData(typeof(Guid))]
-        [InlineData(typeof(string))]
-        [InlineData(typeof(int))]
-        [InlineData(typeof(float))]
-        [InlineData(typeof(long))]
-        [InlineData(typeof(double))]
-        [InlineData(typeof(bool))]
-        [InlineData(typeof(byte[]))]
+        [TestCase(typeof(Person))]
+        [TestCase(typeof(DateTimeOffset))]
+        [TestCase(typeof(DateTime))]
+        [TestCase(typeof(Guid))]
+        [TestCase(typeof(string))]
+        [TestCase(typeof(int))]
+        [TestCase(typeof(float))]
+        [TestCase(typeof(long))]
+        [TestCase(typeof(double))]
+        [TestCase(typeof(bool))]
+        [TestCase(typeof(byte[]))]
         public void UnionsOfSameTypeShouldThrowException(Type type)
         {
             var unionSchema = new UnionSchema(Schema.Create(type), Schema.Create(type));
 
-            Assert.ThrowsAny<Exception>(() => 
-                Schema.Parse(unionSchema.ToString())
-            );
+            FluentActions.Invoking(() => 
+                Schema.Parse(unionSchema.ToString())).Should().Throw<Exception>();
         }
 
-        [Fact]
+        [Test]
         public void UnionsOfDifferentRecordTypesShouldBeAllowed()
         {
             var unionSchema = new UnionSchema(Schema.Create(typeof(Person)), Schema.Create(typeof(Car)));
 
             var fromJsonSchema = Schema.Parse(unionSchema.ToString());
 
-            Assert.NotNull(fromJsonSchema);
+            fromJsonSchema.Should().NotBeNull();
         }
 
-        [Fact]
+        [Test]
         public void GivenSchemaWithUnionOfRecords_WhenDeserializingFirstTypeOfUnion_ThenShouldWork()
         {
             // Scenario with multiple message types in same avro schema with unions:
@@ -60,10 +59,10 @@ namespace AvroConvertUnitTests
             var json = ToJsonViaAvro(person, unionSchema);
             var deserialized = JsonConvert.DeserializeObject<Person>(json);
 
-            Assert.Equal(person.Name, deserialized.Name);
+            deserialized.Name.Should().Be(person.Name);
         }
 
-        [Fact]
+        [Test]
         public void GivenSchemaWithUnionOfRecords_WhenDeserializingSecondTypeOfUnion_ThenShouldWork()
         {
             // Scenario with multiple message types in same avro schema with unions:
@@ -80,7 +79,7 @@ namespace AvroConvertUnitTests
             var json = ToJsonViaAvro(person, unionSchema);
             var deserialized = JsonConvert.DeserializeObject<Person>(json);
 
-            Assert.Equal(person.Name, deserialized.Name);
+            deserialized.Name.Should().Be(person.Name);
         }
 
         private string ToJsonViaAvro<T>(T data, TypeSchema schema)

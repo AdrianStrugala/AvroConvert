@@ -30,6 +30,12 @@ public class JavaAvroNamingPolicy : IAvroNamingPolicy
         return new AvroTypeInfo(type.Name, _rootNamespace);
     }
 
+    /// <summary>Two policies with the same root namespace behave the same, so they share cached schemas and plans.</summary>
+    public override bool Equals(object obj) => obj is JavaAvroNamingPolicy other && other.GetType() == GetType() && other._rootNamespace == _rootNamespace;
+
+    /// <inheritdoc cref="Equals(object)"/>
+    public override int GetHashCode() => HashCode.Combine(GetType(), _rootNamespace);
+
     /// <inheritdoc cref="IAvroNamingPolicy"/>
     public virtual string GetMemberName(MemberInfo member)
     {

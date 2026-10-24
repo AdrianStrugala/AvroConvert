@@ -1,25 +1,19 @@
 ﻿#region license
-/**Copyright (c) 2021 Adrian Strugala
+/**Copyright (c) 2019-2026 Adrian Strugała (SolTechnology)
 *
-* Licensed under the CC BY-NC-SA 3.0 License(the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
+* Licensed under the PolyForm Noncommercial License 1.0.0, the PolyForm Small Business License 1.0.0,
+* or the SolTechnology Commercial Licence – pick the one that applies to you. See LICENSE.md:
 *
-* https://creativecommons.org/licenses/by-nc-sa/3.0/
+* https://github.com/AdrianStrugala/AvroConvert/blob/master/LICENSE.md
 *
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
 *
-* You are free to use or modify the code for personal usage.
-* For commercial usage purchase the product at
-*
-* https://xabe.net/product/avroconvert/
+* Required Notice: Copyright Adrian Strugała (https://soltechnology.dev)
 */
 #endregion
-
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -29,9 +23,12 @@ using SolTechnology.Avro.Features.GenerateModel.NetModel;
 using SolTechnology.Avro.Features.GenerateModel.Resolvers;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 using SolTechnology.Avro.Infrastructure.Extensions;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro.Features.GenerateModel
 {
+    [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
     internal class GenerateModel
     {
         private NamespaceHelper _namespaceHelper;
@@ -65,6 +62,7 @@ namespace SolTechnology.Avro.Features.GenerateModel
             NetModel.NetModel model = new NetModel.NetModel();
             Resolve(json, model);
             _namespaceHelper.EnsureUniqueNames(model);
+            KeepRecordUnionMembers(model);
 
             StringBuilder sb = new StringBuilder();
             foreach (INetType ac in model.NetTypes)
@@ -72,9 +70,20 @@ namespace SolTechnology.Avro.Features.GenerateModel
                 ac.Write(sb);
             }
 
-            return sb.ToString();
+            // Generated code uses CRLF regardless of the host platform so the output is deterministic.
+            return sb.Replace("\r\n", "\n").Replace("\n", "\r\n").ToString();
         }
 
+
+        /// <summary>[AvroUnion] lists only records (classes); enums and fixed are read without it.</summary>
+        private static void KeepRecordUnionMembers(NetModel.NetModel model)
+        {
+            var classNames = model.NetTypes.OfType<NetClass>().Select(c => c.Name).ToHashSet();
+            foreach (var field in model.NetTypes.OfType<NetClass>().SelectMany(c => c.Fields))
+            {
+                field.UnionMembers.RemoveAll(m => !classNames.Contains(m.FieldType));
+            }
+        }
 
         private void Resolve(object json, NetModel.NetModel model)
         {
@@ -160,6 +169,7 @@ namespace SolTechnology.Avro.Features.GenerateModel
                                 if (types.Count > 2 || (types.Count > 1 && !isNullable))
                                 {
                                     fieldType.FieldType = "object";
+                                    fieldType.UnionMembers.AddRange(ResolveUnionMembers(types));
                                     break;
                                 }
 
@@ -211,6 +221,25 @@ namespace SolTechnology.Avro.Features.GenerateModel
             }
         }
 
+        private static readonly HashSet<string> PrimitiveTypeNames = new() { "null", "boolean", "int", "long", "float", "double", "bytes", "string" };
+
+        /// <summary>Named branches of a union (inline definitions and references by name); non-record ones are dropped later.</summary>
+        private IEnumerable<NetClassField> ResolveUnionMembers(JArray types)
+        {
+            foreach (var type in types)
+            {
+                switch (type)
+                {
+                    case JObject { } definition when definition["type"]?.ToString() is "record" or "error" or "enum" or "fixed":
+                        yield return ResolveField(definition);
+                        break;
+                    case JValue name when !PrimitiveTypeNames.Contains(name.ToString()):
+                        yield return ResolveField(new JObject { ["type"] = name.ToString() });
+                        break;
+                }
+            }
+        }
+
         private NetClassField ResolveField(JObject typeObj)
         {
             NetClassField result = new NetClassField();
@@ -231,14 +260,8 @@ namespace SolTechnology.Avro.Features.GenerateModel
                     break;
                 default:
                     {
-                        if (typeObj["logicalType"] != null)
-                        {
-                            result.FieldType = _logicalResolver.ResolveLogical(typeObj);
-                        }
-                        else
-                        {
-                            result.FieldType = objectType;
-                        }
+                        result.FieldType = (typeObj["logicalType"] != null ? _logicalResolver.ResolveLogical(typeObj) : null)
+                                           ?? objectType;
 
                         break;
                     }

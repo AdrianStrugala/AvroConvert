@@ -7,9 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SolTechnology.Avro.Http", "
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{D7E6BECC-2913-4910-8144-9FD82B55B424}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Http.Server", "..\..\tests\Http.Server\Http.Server.csproj", "{296BBD20-0C76-4CB0-9483-399C9FE3107D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Http.Server", "..\..\samples\Http.Server\Http.Server.csproj", "{296BBD20-0C76-4CB0-9483-399C9FE3107D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Http.Client", "..\..\tests\Http.Client\Http.Client.csproj", "{D00C3C50-5E82-46D5-9684-44C822115065}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Http.Client", "..\..\samples\Http.Client\Http.Client.csproj", "{D00C3C50-5E82-46D5-9684-44C822115065}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,30 +1,25 @@
 ﻿#region license
-/**Copyright (c) 2021 Adrian Strugala
+/**Copyright (c) 2019-2026 Adrian Strugała (SolTechnology)
 *
-* Licensed under the CC BY-NC-SA 3.0 License(the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
+* Licensed under the PolyForm Noncommercial License 1.0.0, the PolyForm Small Business License 1.0.0,
+* or the SolTechnology Commercial Licence – pick the one that applies to you. See LICENSE.md:
 *
-* https://creativecommons.org/licenses/by-nc-sa/3.0/
+* https://github.com/AdrianStrugala/AvroConvert/blob/master/LICENSE.md
 *
 * Unless required by applicable law or agreed to in writing, software
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
 *
-* You are free to use or modify the code for personal usage.
-* For commercial usage purchase the product at
-*
-* https://xabe.net/product/avroconvert/
+* Required Notice: Copyright Adrian Strugała (https://soltechnology.dev)
 */
 #endregion
-
 using System;
 using System.IO;
 using System.Reflection;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.Features.Deserialize;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro
 {
@@ -39,6 +34,7 @@ namespace SolTechnology.Avro
         /// <remarks>
         /// This method takes a byte array containing Avro data and deserializes it into an object of the specified type (generic parameter T).
         /// </remarks>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static T Deserialize<T>(byte[] avroBytes)
         {
             using (var stream = new MemoryStream(avroBytes))
@@ -64,6 +60,7 @@ namespace SolTechnology.Avro
         /// This method takes a byte array containing Avro data and deserializes it into an object of the specified type (generic parameter T).
         /// The deserialization process is controlled by the provided Avro conversion options.
         /// </remarks>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static T Deserialize<T>(byte[] avroBytes, AvroConvertOptions options)
         {
             using (var stream = new MemoryStream(avroBytes))
@@ -71,7 +68,7 @@ namespace SolTechnology.Avro
                 var decoder = new Decoder(options);
                 var deserialized = decoder.Decode<T>(
                     stream,
-                    Schema.Create(typeof(T))
+                    Schema.Create(typeof(T), options)
                 );
                 return deserialized;
             }
@@ -87,6 +84,7 @@ namespace SolTechnology.Avro
         /// This method uses reflection to dynamically invoke the generic <see cref="Deserialize{T}"/> method
         /// to deserialize Avro data from a byte array into an object of the specified target type.
         /// </remarks>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static dynamic Deserialize(byte[] avroBytes, Type targetType)
         {
             object result;
@@ -116,6 +114,7 @@ namespace SolTechnology.Avro
         /// This method performs Avro data deserialization from a <see cref="ReadOnlySpan{T}"/> of bytes into an object of the specified type.
         /// It is suitable for scenarios where minimizing memory allocation is crucial.
         /// </remarks>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static unsafe T Deserialize<T>(ReadOnlySpan<byte> avroBytes)
         {
             fixed (byte* ptr = avroBytes)

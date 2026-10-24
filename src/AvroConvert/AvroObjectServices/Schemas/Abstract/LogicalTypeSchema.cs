@@ -1,5 +1,5 @@
 #region license
-/**Copyright (c) 2020 Adrian Struga³a
+/**Copyright (c) 2020 Adrian Strugaï¿½a
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using Newtonsoft.Json;
 using SolTechnology.Avro.AvroObjectServices.Write;
 using SolTechnology.Avro.Infrastructure.Extensions;
@@ -31,10 +32,15 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
                 Uuid = "uuid",
                 TimestampMilliseconds = "timestamp-millis",
                 TimestampMicroseconds = "timestamp-micros",
+                TimestampNanoseconds = "timestamp-nanos",
+                LocalTimestampMilliseconds = "local-timestamp-millis",
+                LocalTimestampMicroseconds = "local-timestamp-micros",
+                LocalTimestampNanoseconds = "local-timestamp-nanos",
                 Decimal = "decimal",
+                BigDecimal = "big-decimal",
                 Duration = "duration",
                 TimeMilliseconds = "time-millis",
-                TimeMicrosecond = "time-micros ",
+                TimeMicrosecond = "time-micros",
                 Date = "date";
         }
 
@@ -53,11 +59,43 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
 
         internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
         {
+            if (BaseTypeSchema is FixedSchema fixedBase)
+            {
+                // A named fixed is defined once per effective full name (a fixed without namespace takes the enclosing one);
+                // later occurrences reference that full name, which carries the logical type with it.
+                if (seenSchemas is SchemaWriteContext context)
+                {
+                    var fullName = context.EffectiveFullName(fixedBase);
+                    if (!context.TryDefine(fullName))
+                    {
+                        writer.WriteValue(fullName);
+                        return;
+                    }
+                }
+
+                writer.WriteStartObject();
+                writer.WriteProperty("type", "fixed");
+                writer.WriteProperty("size", fixedBase.Size);
+                writer.WriteProperty("name", fixedBase.Name);
+                writer.WriteOptionalProperty("namespace", fixedBase.Namespace);
+                writer.WriteOptionalProperty("aliases", fixedBase.Aliases);
+                writer.WriteProperty("logicalType", LogicalTypeName);
+                WriteLogicalProperties(writer);
+                writer.WriteEndObject();
+                return;
+            }
+
             writer.WriteStartObject();
             writer.WritePropertyName("type");
             BaseTypeSchema.ToJsonSafe(writer, seenSchemas);
             writer.WriteProperty("logicalType", LogicalTypeName);
+            WriteLogicalProperties(writer);
             writer.WriteEndObject();
+        }
+
+        /// <summary>Logical-type specific attributes (e.g. precision and scale) written after <c>logicalType</c>.</summary>
+        protected virtual void WriteLogicalProperties(JsonTextWriter writer)
+        {
         }
 
         internal abstract object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type readType);

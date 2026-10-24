@@ -21,6 +21,8 @@ using System.Linq;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.Features.Merge;
 using SolTechnology.Avro.Infrastructure.Exceptions;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro
 {
@@ -29,6 +31,7 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Merge multiple Avro objects of type T into one Avro object of type IEnumerable T
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] Merge<T>(IEnumerable<byte[]> avroObjects)
         {
             var itemSchema = Schema.Create(typeof(T));

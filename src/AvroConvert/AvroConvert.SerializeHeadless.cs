@@ -18,7 +18,12 @@
 using System;
 using System.IO;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
+using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.AvroObjectServices.Write;
+using SolTechnology.Avro.AvroObjectServices.Write.Typed;
+using SolTechnology.Avro.Features.Serialize;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro
 {
@@ -27,13 +32,13 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Serializes given object to Avro format - <c>excluding</c> header
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] SerializeHeadless(object obj, string schema, AvroConvertOptions options = null)
         {
-            MemoryStream resultStream = new MemoryStream();
+            using var resultStream = new MemoryStream();
             var encoder = new Writer(resultStream);
             var schemaObject = Schema.Parse(schema);
-            var resolver = new WriteResolver(options);
-            var writer = resolver.ResolveWriter(schemaObject);
+            var writer = ResolveWriter(schemaObject, obj, options);
 
             writer(obj, encoder);
 
@@ -44,18 +49,36 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Serializes given object to Avro format - <c>excluding</c> header
         /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] SerializeHeadless(object obj, Type objectType, AvroConvertOptions options = null)
         {
-            MemoryStream resultStream = new MemoryStream();
+            using var resultStream = new MemoryStream();
             var encoder = new Writer(resultStream);
-            var schemaObject = BuildSchema(objectType);
-            var resolver = new WriteResolver(options);
-            var writer = resolver.ResolveWriter(schemaObject);
+            var schemaObject = Schema.Create(objectType, options);
+            var writer = ResolveWriter(schemaObject, obj, options);
 
             writer(obj, encoder);
 
             var result = resultStream.ToArray();
             return result;
         }
+
+        /// <summary>
+        /// Serializes given object to Avro format - <c>excluding</c> header
+        /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
+        public static byte[] SerializeHeadless(object obj, AvroSchema schema, AvroConvertOptions options = null)
+        {
+            using var resultStream = new MemoryStream();
+            var encoder = new Writer(resultStream);
+            ResolveWriter(schema.TypeSchema, obj, options)(obj, encoder);
+            return resultStream.ToArray();
+        }
+
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
+        private static Encoder.WriteItem ResolveWriter(TypeSchema schema, object obj, AvroConvertOptions options) =>
+            obj == null
+                ? (_, writer) => WriteHelpers.WriteNullValue(schema, writer)
+                : WritePlanCache.Get(schema, obj.GetType(), options);
     }
 }

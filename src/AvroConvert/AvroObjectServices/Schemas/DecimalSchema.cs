@@ -64,21 +64,15 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             Precision = precision;
         }
 
-        internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
+        protected override void WriteLogicalProperties(JsonTextWriter writer)
         {
-            writer.WriteStartObject();
-            writer.WriteProperty("type", BaseTypeSchema.Type.ToString().ToLowerInvariant());
-            writer.WriteProperty("logicalType", LogicalTypeName);
             writer.WriteProperty("precision", Precision);
             writer.WriteProperty("scale", Scale);
-            writer.WriteEndObject();
         }
 
         internal override object ConvertToLogicalValue(object baseValue, LogicalTypeSchema schema, Type readType)
         {
-            var buffer = AvroType.Bytes == schema.BaseTypeSchema.Type
-                ? (byte[])baseValue
-                : ((AvroFixed)baseValue).Value;
+            var buffer = baseValue as byte[] ?? ((AvroFixed)baseValue).Value;
 
             Array.Reverse(buffer);
             var avroDecimal = new AvroDecimal(new BigInteger(buffer), Scale);

@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- AvroConvert vs Apache.Avro (Avro.Reflect) vs Newtonsoft.Json on the same POCO dataset. Results: docs/benchmarks. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.15.*" />
+    <PackageReference Include="Apache.Avro" Version="1.12.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\AvroConvert\AvroConvert.csproj" />
+  </ItemGroup>
+
+</Project>

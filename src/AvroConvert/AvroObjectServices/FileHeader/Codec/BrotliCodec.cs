@@ -15,23 +15,29 @@
 */
 #endregion
 
+using System;
 using System.IO;
-using BrotliSharpLib;
+using System.IO.Compression;
 
 namespace SolTechnology.Avro.AvroObjectServices.FileHeader.Codec
 {
     internal class BrotliCodec : AbstractCodec
     {
         internal override string Name { get; } = CodecType.Brotli.ToString().ToLower();
+
         internal override byte[] Decompress(byte[] compressedData)
         {
-            return Brotli.DecompressBuffer(compressedData, 0, compressedData.Length);
+            using var input = new MemoryStream(compressedData);
+            using var brotli = new BrotliStream(input, CompressionMode.Decompress);
+            using var output = new MemoryStream(compressedData.Length * 3);
+            brotli.CopyTo(output);
+            return output.ToArray();
         }
 
-        internal override MemoryStream Compress(MemoryStream toCompress)
+        internal override void Compress(ReadOnlySpan<byte> data, Stream output)
         {
-            var toCompressBytes = toCompress.ToArray();
-            return new MemoryStream(Brotli.CompressBuffer(toCompressBytes, 0, toCompressBytes.Length, 4));
+            using var brotli = new BrotliStream(output, CompressionLevel.Optimal, leaveOpen: true);
+            brotli.Write(data);
         }
     }
 }

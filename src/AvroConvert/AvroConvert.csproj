@@ -2,13 +2,18 @@
 
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
-		<TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
-		<LangVersion>10.0</LangVersion>
+		<TargetFramework>net10.0</TargetFramework>
+		<IsAotCompatible>true</IsAotCompatible>
+		<LangVersion>latest</LangVersion>
+		<Nullable>disable</Nullable>
 		<Authors>Adrian Strugala</Authors>
-		<Version>3.4.17</Version>
-		<Description>Rapid Apache Avro serializer for .NET.</Description>
-		<PackageLicenseUrl>https://creativecommons.org/licenses/by-nc-sa/3.0/</PackageLicenseUrl>
-		<PackageProjectUrl>https://xabe.net/product/avroconvert/</PackageProjectUrl>
+		<Company>SolTechnology</Company>
+		<Version>4.0.0-preview.1</Version>
+		<Description>Rapid Apache Avro serializer for .NET. Free for noncommercial use and for companies under 100 people / 1M USD revenue (PolyForm Noncommercial / Small Business); commercial licence for other organisations – see LICENSE.md.</Description>
+		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+		<PackageReleaseNotes>4.0: new licence (PolyForm Noncommercial / Small Business / Commercial), net10.0 only, compiled typed serializers (up to 20x faster deserialization), spec fixes. See docs/CHANGELOG.md.</PackageReleaseNotes>
+		<PackageProjectUrl>https://soltechnology.dev/avroconvert/</PackageProjectUrl>
 		<RepositoryType>Dependency</RepositoryType>
 		<PackageTags>avro serialization deserialization standard apache core microservice big data bigdata kafka apache.avro</PackageTags>
 		<ApplicationIcon />
@@ -34,35 +39,34 @@
 		</AssemblyAttribute>
 	</ItemGroup>
 
+	<!-- Read by AvroConvert.ReleaseDate: a commercial subscription covers every version released before it ended. -->
+	<ItemGroup>
+		<AssemblyMetadata Include="ReleaseDate" Value="$([System.DateTime]::UtcNow.ToString('yyyy-MM-dd'))" />
+	</ItemGroup>
+
 
 	<PropertyGroup>
-		<PackageIcon>docs\mini-logo.png</PackageIcon>
-		<PackageIconUrl>https://raw.githubusercontent.com/AdrianStrugala/AvroConvert/master/docs/mini-logo.png</PackageIconUrl>
+		<PackageIcon>avroconvert-icon.png</PackageIcon>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<None Include="..\..\README.md" Pack="true" PackagePath="\" />
-		<None Include="..\..\docs\mini-logo.png" Pack="true" Visible="false" PackagePath="docs\mini-logo.png" />
+		<None Include="..\..\LICENSE.md" Pack="true" PackagePath="\" />
+		<None Include="..\..\licenses\PolyForm-Noncommercial-1.0.0.md" Pack="true" PackagePath="licenses\" />
+		<None Include="..\..\licenses\PolyForm-Small-Business-1.0.0.md" Pack="true" PackagePath="licenses\" />
+		<None Include="..\..\licenses\Commercial.md" Pack="true" PackagePath="licenses\" />
+		<None Include="NOTICE" Pack="true" PackagePath="\" />
+		<None Include="..\..\docs\avroconvert-icon.png" Pack="true" Visible="false" PackagePath="\" />
 	</ItemGroup>
 
 
-	<!--Conditionally obtain references for the .NET versions target-->
-	<ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.*" />
-		<PackageReference Include="IronSnappy" Version="1.3.*" />
-		<PackageReference Include="BrotliSharpLib" Version="0.3.*" />
-		<PackageReference Include="Microsoft.CSharp" Version="4.7.*" />
-		<PackageReference Include="Portable.System.DateTimeOnly" Version="6.0.3" />
-	</ItemGroup>
-	<ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.*" />
-		<PackageReference Include="IronSnappy" Version="1.3.*" />
-		<PackageReference Include="BrotliSharpLib" Version="0.3.*" />
-	</ItemGroup>
 	<ItemGroup>
-	  <ProjectReference Include="..\SolTechnology.FastMember\SolTechnology.FastMember.csproj"  PrivateAssets="All" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.*" />
+		<PackageReference Include="IronSnappy" Version="1.3.*" />
+		<PackageReference Include="ZstdSharp.Port" Version="0.8.*" />
 	</ItemGroup>
+
 
 	<!-- To indlucde referenced projects in nuget package: -->
 	<PropertyGroup>

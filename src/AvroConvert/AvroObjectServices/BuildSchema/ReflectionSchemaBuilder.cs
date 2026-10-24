@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -27,6 +28,8 @@ using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Infrastructure.Attributes;
 using SolTechnology.Avro.Infrastructure.Extensions;
 using SolTechnology.Avro.Policies;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 {
@@ -34,6 +37,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
     ///     This class creates an avro schema given a c# type.
     /// </summary>
 
+    [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
     internal sealed class ReflectionSchemaBuilder
     {
         private static readonly Dictionary<Type, Func<Type, LogicalTypeSchema>> TypeToAvroLogicalSchemaMap =
@@ -91,6 +95,12 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 { AvroTypeRepresentation.TimeMilliseconds, type => new TimeMillisecondsSchema(type) },
                 { AvroTypeRepresentation.TimeMicroseconds, type => new TimeMicrosecondsSchema(type) },
                 { AvroTypeRepresentation.Date, type => new DateSchema(type) },
+                { AvroTypeRepresentation.TimestampNanoseconds, type => new TimestampSchema(LogicalTypeSchema.LogicalTypeEnum.TimestampNanoseconds, type) },
+                { AvroTypeRepresentation.LocalTimestampMilliseconds, type => new TimestampSchema(LogicalTypeSchema.LogicalTypeEnum.LocalTimestampMilliseconds, type) },
+                { AvroTypeRepresentation.LocalTimestampMicroseconds, type => new TimestampSchema(LogicalTypeSchema.LogicalTypeEnum.LocalTimestampMicroseconds, type) },
+                { AvroTypeRepresentation.LocalTimestampNanoseconds, type => new TimestampSchema(LogicalTypeSchema.LogicalTypeEnum.LocalTimestampNanoseconds, type) },
+                { AvroTypeRepresentation.UuidFixed, type => new UuidSchema(type, UuidSchema.CreateFixedBase()) },
+                { AvroTypeRepresentation.BigDecimal, type => new BigDecimalSchema(type) },
             };
 
         private readonly AvroConvertOptions _options;
@@ -206,6 +216,11 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 return AvroRepresentationToAvroSchemaMap[representation.Value](type);
             }
 
+            if (_options.DateTimeRepresentation is { } dateTimeRepresentation && (type == typeof(DateTime) || type == typeof(DateTimeOffset)))
+            {
+                return AvroRepresentationToAvroSchemaMap[dateTimeRepresentation](type);
+            }
+
             //Logical
             TypeSchema schema = TryBuildLogicalTypeSchema(type, info);
             if (schema != null)
@@ -279,6 +294,12 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             if (type.IsArray)
             {
                 return BuildArrayTypeSchema(type, schemas, currentDepth, representation);
+            }
+
+            // Shape known only at runtime: same empty record as `object`, so readers fall back to the writer schema.
+            if (type == typeof(ExpandoObject))
+            {
+                return BuildRecordTypeSchema(typeof(object), schemas, currentDepth);
             }
 
             // Dictionary
@@ -379,6 +400,12 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         /// </returns>
         private TypeSchema BuildArrayTypeSchema(Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth, AvroTypeRepresentation? representation)
         {
+            if (type.GetArrayRank() > 1)
+            {
+                throw new SerializationException(
+                    string.Format(CultureInfo.InvariantCulture, "Multidimensional array '{0}' is not supported; use a jagged array (T[][]) instead.", type));
+            }
+
             Type element = type.GetElementType();
             TypeSchema elementSchema = this.CreateSchema(false, element, schemas, currentDepth + 1, representation);
             return new ArraySchema(elementSchema, type);

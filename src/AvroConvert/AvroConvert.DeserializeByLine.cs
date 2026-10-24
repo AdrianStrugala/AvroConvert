@@ -18,6 +18,8 @@
 using System.IO;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.Features.DeserializeByLine;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro
 {
@@ -29,6 +31,7 @@ namespace SolTechnology.Avro
         /// <typeparam name="T">The type of objects to be deserialized.</typeparam>
         /// <param name="stream">The stream containing the Avro data to be deserialized.</param>
         /// <returns>An <see cref="ILineReader{T}"/> instance for sequentially reading the deserialized Avro objects.</returns>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static ILineReader<T> OpenDeserializer<T>(Stream stream)
         {
             var reader = Decoder.OpenReader<T>(stream, Schema.Create(typeof(T)));

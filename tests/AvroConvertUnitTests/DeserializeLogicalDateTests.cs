@@ -1,7 +1,8 @@
-﻿using SolTechnology.Avro;
+﻿using AwesomeAssertions;
+using SolTechnology.Avro;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using System;
-using Xunit;
+using NUnit.Framework;
 using Newtonsoft.Json;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 
@@ -9,7 +10,7 @@ namespace AvroConvertUnitTests
 {
     public class DeserializeLogicalDateTests
     {
-        [Fact]
+        [Test]
         public void GivenDateTimeProperty_WhenUsingSchemaWithTimeAsTimestampMicroseconds_ThenShouldWork()
         {
             //Arrange
@@ -27,15 +28,15 @@ namespace AvroConvertUnitTests
             var deserialized = JsonConvert.DeserializeObject<ClassWithDateTime>(avro2Json);
 
             //Assert
-            Assert.NotNull(result);
-            Assert.NotNull(deserialized);
-            Assert.Equal(toSerialize.ArriveBy.Millisecond, deserialized.ArriveBy.Millisecond);
-            Assert.Equal(toSerialize.ArriveBy.Second, deserialized.ArriveBy.Second);
-            Assert.Equal(toSerialize.ArriveBy.Minute, deserialized.ArriveBy.Minute);
-            Assert.Equal(toSerialize.ArriveBy.Hour, deserialized.ArriveBy.Hour);
-            Assert.Equal(toSerialize.ArriveBy.Day, deserialized.ArriveBy.Day);
-            Assert.Equal(toSerialize.ArriveBy.Month, deserialized.ArriveBy.Month);
-            Assert.Equal(toSerialize.ArriveBy.Year, deserialized.ArriveBy.Year);
+            result.Should().NotBeNull();
+            deserialized.Should().NotBeNull();
+            deserialized.ArriveBy.Millisecond.Should().Be(toSerialize.ArriveBy.Millisecond);
+            deserialized.ArriveBy.Second.Should().Be(toSerialize.ArriveBy.Second);
+            deserialized.ArriveBy.Minute.Should().Be(toSerialize.ArriveBy.Minute);
+            deserialized.ArriveBy.Hour.Should().Be(toSerialize.ArriveBy.Hour);
+            deserialized.ArriveBy.Day.Should().Be(toSerialize.ArriveBy.Day);
+            deserialized.ArriveBy.Month.Should().Be(toSerialize.ArriveBy.Month);
+            deserialized.ArriveBy.Year.Should().Be(toSerialize.ArriveBy.Year);
         }
 
         public class ClassWithDateTime

@@ -25,6 +25,8 @@ using System.Runtime.Serialization;
 using SolTechnology.Avro.Infrastructure.Attributes;
 using SolTechnology.Avro.Infrastructure.Extensions;
 using SolTechnology.Avro.Policies;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 {
@@ -35,6 +37,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
     /// </summary>
 
 
+    [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
     internal class AvroContractResolver
     {
 
@@ -128,7 +131,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                     string.Format(CultureInfo.InvariantCulture, "Type '{0}' is not supported by the resolver.", type));
             }
 
-            var name = dataContract?.Name ?? type.Name;
+            var name = dataContract?.Name ?? type.GetAvroName();
             var ns = dataContract?.Namespace ?? type.Namespace;
 
             if (_namingPolicy != null)
@@ -190,7 +193,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 BindingFlags.DeclaredOnly);
 
             // add members that are explicitly marked with DataMember attribute
-            var privateMembers = type.GetFieldsAndProperties(BindingFlags.NonPublic);
+            var privateMembers = type.GetFieldsAndProperties(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
             foreach (var privateMember in privateMembers)
             {
                 if (privateMember.GetCustomAttribute<DataMemberAttribute>() != null)

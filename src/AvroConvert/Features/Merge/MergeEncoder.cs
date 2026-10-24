@@ -30,7 +30,7 @@ namespace SolTechnology.Avro.Features.Merge
     {
         private readonly AbstractCodec _codec;
         private readonly Stream _stream;
-        private MemoryStream _tempBuffer;
+        private readonly MemoryStream _tempBuffer;
         private readonly Writer _writer;
         private readonly Writer _tempWriter;
         private bool _isOpen;
@@ -103,22 +103,17 @@ namespace SolTechnology.Avro.Features.Merge
         {
             if (_blockCount > 0)
             {
-                // byte[] dataToWrite = _tempBuffer.ToArray();
+                _writer.WriteDataBlock(_tempBuffer, _header.SyncData, _blockCount);
 
-                _writer.WriteDataBlock(_codec.Compress(_tempBuffer), _header.SyncData, _blockCount);
-
-                // reset block buffer
                 _blockCount = 0;
-                _tempBuffer = new MemoryStream();
+                _tempBuffer.SetLength(0);
             }
         }
 
         private void GenerateSyncData()
         {
             _header.SyncData = new byte[16];
-
-            Random random = new Random();
-            random.NextBytes(_header.SyncData);
+            System.Security.Cryptography.RandomNumberGenerator.Fill(_header.SyncData);
         }
 
         public void Dispose()

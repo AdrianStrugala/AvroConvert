@@ -26,10 +26,13 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
     /// <summary>
     /// Represents a name of the schema. For details, please see <a href="http://avro.apache.org/docs/current/spec.html#Names">the specification</a>.
     /// </summary>
-    internal sealed class SchemaName
+    internal sealed partial class SchemaName
     {
-        private static readonly Regex NamePattern = new Regex("^[A-Za-z_][A-Za-z0-9_]*$");
-        private static readonly Regex NamespacePattern = new Regex("^([A-Za-z_][A-Za-z0-9_]*)?(?:\\.[A-Za-z_][A-Za-z0-9_]*)*$");
+        [GeneratedRegex("^[A-Za-z_][A-Za-z0-9_]*$")]
+        private static partial Regex NamePattern { get; }
+
+        [GeneratedRegex("^([A-Za-z_][A-Za-z0-9_]*)?(?:\\.[A-Za-z_][A-Za-z0-9_]*)*$")]
+        private static partial Regex NamespacePattern { get; }
 
         private readonly string name;
         private readonly string @namespace;

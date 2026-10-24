@@ -26,16 +26,12 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SolTechnology.Avro.Infrastructure.Extensions
 {
     internal static class TypeExtensions
     {
-        internal static bool HasParameterlessConstructor(this Type type)
-        {
-            //return type.GetTypeInfo().GetConstructor(BindingFlags.Instance | BindingFlags.internal | BindingFlags.Noninternal, null, Type.EmptyTypes, null) != null;
-            return type.GetConstructor(Type.EmptyTypes) != null;
-        }
 
         internal static bool IsUnsupported(this Type type)
         {
@@ -66,6 +62,7 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
             typeof(Guid)
         };
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal static bool IsNativelySupported(this Type type)
         {
             var notNullable = Nullable.GetUnderlyingType(type) ?? type;
@@ -84,6 +81,7 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
             typeof(IEnumerable<>)
         };
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private static bool ImplementsSupportedInterface(this Type type)
         {
             foreach (var interfaceType in type.GetInterfaces())
@@ -106,12 +104,14 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
                 && type.Name.Contains("__Anonymous");
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal static PropertyInfo GetPropertyByName(
             this Type type, string name, BindingFlags flags = BindingFlags.Public | BindingFlags.FlattenHierarchy | BindingFlags.Instance)
         {
             return type.GetProperty(name, flags);
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal static MethodInfo GetMethodByName(this Type type, string shortName, params Type[] arguments)
         {
             var result = type
@@ -131,6 +131,7 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
                                  && m.GetParameters().Select(p => p.ParameterType).SequenceEqual(arguments));
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal static IEnumerable<FieldInfo> GetAllFields(this Type t)
         {
             if (t == null)
@@ -149,6 +150,7 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
                 .Concat(GetAllFields(t.BaseType()));
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal static IEnumerable<PropertyInfo> GetAllProperties(this Type t)
         {
             if (t == null)
@@ -169,6 +171,7 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
                 .Concat(GetAllProperties(t.BaseType()));
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static List<MemberInfo> GetFieldsAndProperties(this Type type, BindingFlags bindingAttr)
         {
             if (type == null)
@@ -195,7 +198,6 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
 
             return result;
         }
-
 
         private static bool FilterMembers(MemberInfo member)
         {
@@ -244,6 +246,7 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
             return false;
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal static IEnumerable<Type> GetAllInterfaces(this Type t)
         {
             foreach (var i in t.GetInterfaces())
@@ -252,19 +255,18 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
             }
         }
 
-        internal static string GetStrippedFullName(this Type type)
+        /// <summary>Avro-safe type name; closed generics include their arguments so Field&lt;int&gt; and Field&lt;string&gt; do not collide.</summary>
+        internal static string GetAvroName(this Type type)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException("type");
-            }
-
-            if (string.IsNullOrEmpty(type.Namespace))
+            type = Nullable.GetUnderlyingType(type) ?? type;
+            if (!type.IsGenericType() || type.IsGenericTypeDefinition)
             {
                 return StripAvroNonCompatibleCharacters(type.Name);
             }
 
-            return StripAvroNonCompatibleCharacters(type.Namespace + "." + type.Name);
+            int tick = type.Name.IndexOf('`');
+            string baseName = tick < 0 ? type.Name : type.Name.Substring(0, tick);
+            return StripAvroNonCompatibleCharacters(baseName + "_" + string.Join("_", type.GetGenericArguments().Select(GetAvroName)));
         }
 
         internal static string StripAvroNonCompatibleCharacters(string value)
@@ -294,12 +296,12 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
             return underlyingType != null;
         }
 
-
         internal static bool IsKeyValuePair(this Type type)
         {
             return type.IsGenericType() && type.GetGenericTypeDefinition() == typeof(KeyValuePair<,>);
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal static bool CanBeKnownTypeOf(this Type type, Type baseType)
         {
             return !type.IsAbstract()
@@ -313,6 +315,7 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
                                   .TrueForAll(tuple => CanBeKnownTypeOf(tuple.Item1, tuple.Item2))));
         }
 
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private static bool GenericIsAssignable(this Type type, Type instanceType)
         {
             if (!type.IsGenericType() || !instanceType.IsGenericType())
@@ -335,7 +338,6 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
                 .OfType<KnownTypeAttribute>()
                 .Select(a => a.Type);
         }
-
 
         internal static void CheckPropertyGetters(IEnumerable<PropertyInfo> properties)
         {
@@ -369,12 +371,7 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
             return result;
         }
 
-        public static Type GetEnumeratedType(this Type type)
-        {
-            return type?.GetElementType() ?? type.GenericTypeArguments.FirstOrDefault();
-
-        }
-
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static Type FindEnumerableType(this Type type)
         {
             if (type.IsEnumerable())
@@ -412,16 +409,6 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
             return type.GetTypeInfo().IsClass;
         }
 
-        internal static bool IsDictionary(this Type type)
-        {
-            return typeof(IDictionary).IsAssignableFrom(type);
-        }
-
-        internal static bool IsList(this Type type)
-        {
-            return typeof(IList).IsAssignableFrom(type);
-        }
-
         internal static bool IsEnumerable(this Type type)
         {
             return type.IsGenericType() && type.GetGenericTypeDefinition() == typeof(IEnumerable<>);
@@ -447,28 +434,5 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
             return type.GetTypeInfo().BaseType;
         }
 
-
-        internal static bool CanChangeTypeFrom(this Type type, object value)
-        {
-            if (value is null)
-            {
-                return !type.IsValueType || Nullable.GetUnderlyingType(type) != null;
-            }
-
-            if (type.IsInstanceOfType(value))
-            {
-                return true;
-            }
-
-            try
-            {
-                _ = Convert.ChangeType(value, type);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
     }
 }

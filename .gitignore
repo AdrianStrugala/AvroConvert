@@ -64,3 +64,10 @@ docs/AvroAPIArticle.synctex.gz
 .vscode/launch.json
 .vscode/tasks.json
 /.idea
+artifacts/
+
+# VersionsBenchmark inputs/outputs
+benchmarks/VersionsBenchmark/local-packages/
+benchmarks/VersionsBenchmark/artifacts/
+benchmarks/LibrariesBenchmark/artifacts/
+.venv/

@@ -1,11 +1,12 @@
-﻿using SolTechnology.Avro.AvroObjectServices.FileHeader;
-using Xunit;
+﻿using AwesomeAssertions;
+using SolTechnology.Avro.AvroObjectServices.FileHeader;
+using NUnit.Framework;
 
 namespace AvroConvertUnitTests.FileHeader
 {
     public class HeaderTests
     {
-        [Fact]
+        [Test]
         public void GetMetadata_ItExists_ValueIsReturned()
         {
             //Arrange
@@ -21,10 +22,10 @@ namespace AvroConvertUnitTests.FileHeader
 
 
             //Assert
-            Assert.Equal(expectedValue, result);
+            result.Should().Be(expectedValue);
         }
 
-        [Fact]
+        [Test]
         public void GetMetadata_ItDoesNotExist_NullIsReturned()
         {
             //Arrange
@@ -36,7 +37,7 @@ namespace AvroConvertUnitTests.FileHeader
 
 
             //Assert
-            Assert.Null(result);
+            result.Should().BeNull();
         }
     }
 }

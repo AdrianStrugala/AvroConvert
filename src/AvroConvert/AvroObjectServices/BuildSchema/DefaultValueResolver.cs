@@ -25,6 +25,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
+using System.Diagnostics.CodeAnalysis;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro.AvroObjectServices.BuildSchema;
 
@@ -32,6 +34,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema;
 /// This class is responsible for parsing a JSON string according to a given JSON
 /// schema and returning the corresponding C# value as object.
 /// </summary>
+[RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
 internal sealed class DefaultValueResolver
 {
     private readonly Dictionary<Type, Func<string, object>> parsersWithoutSchema;
@@ -72,6 +75,13 @@ internal sealed class DefaultValueResolver
     /// <returns>The object.</returns>
     internal object Parse(TypeSchema schema, string json)
     {
+        if (schema is LogicalTypeSchema logical
+            && (!this.parsersWithoutSchema.ContainsKey(schema.GetType()) || logical.BaseTypeSchema.Type == AvroType.Fixed))
+        {
+            // Defaults of logical types are written in the JSON form of the underlying type.
+            return logical.ConvertToLogicalValue(this.Parse(logical.BaseTypeSchema, json), logical, logical.RuntimeType);
+        }
+
         if (this.parsersWithoutSchema.ContainsKey(schema.GetType()))
         {
             return this.parsersWithoutSchema[schema.GetType()](json);

@@ -1,6 +1,5 @@
 using System;
 using System.Buffers.Text;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -18,7 +17,7 @@ namespace SolTechnology.Avro
     /// <remarks>
     /// The declaration is informational: functionality is never restricted. Commercial licence keys are
     /// signed and parsed so that the licensee, plan and subscription end are visible, but an invalid or
-    /// expired key only produces a <see cref="Trace"/> warning.
+    /// expired key only produces a one-time notice on standard error.
     /// Set it through <see cref="AvroConvert.License"/> or the <c>AVROCONVERT_LICENSE</c> environment variable
     /// (<c>NonCommercial</c>, <c>SmallBusiness</c> or the licence key).
     /// </remarks>
@@ -159,7 +158,7 @@ namespace SolTechnology.Avro
 
         /// <summary>
         /// Declares the licence this application relies on (see <see cref="AvroLicense"/>). Optional; when not set,
-        /// a single warning is traced per process and the library keeps working normally.
+        /// a single notice is written to standard error per process and the library keeps working normally.
         /// </summary>
         public static AvroLicense License
         {
@@ -170,7 +169,10 @@ namespace SolTechnology.Avro
         /// <summary>Build date from AssemblyMetadata("ReleaseDate"); decides whether an ended subscription still covers this version.</summary>
         internal static DateOnly ReleaseDate { get; } = ReadReleaseDate();
 
-        /// <summary>Traces the licence notice once per process when no or a problematic licence has been declared.</summary>
+        /// <summary>
+        /// Writes the licence notice to standard error once per process when no or a problematic licence has been
+        /// declared. Never throws.
+        /// </summary>
         internal static void EnsureLicenseNotice()
         {
             if (_noticeShown != 0)
@@ -184,8 +186,18 @@ namespace SolTechnology.Avro
                 return;
             }
 
-            Trace.TraceWarning(message);
+            try
+            {
+                Console.Error.WriteLine("[AvroConvert] " + message);
+            }
+            catch
+            {
+                // stderr may be closed or redirected to a broken stream; the notice must never break the host.
+            }
         }
+
+        /// <summary>Allows tests to observe the notice again within the same process.</summary>
+        internal static void ResetLicenseNoticeForTesting() => Volatile.Write(ref _noticeShown, 0);
 
         internal static string LicenseNotice(AvroLicense license, DateOnly releaseDate)
         {

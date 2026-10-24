@@ -119,6 +119,55 @@ namespace AvroConvertUnitTests
             AvroConvert.LicenseNotice(license, new DateOnly(2027, 10, 9)).Should().Contain("Renew");
         }
 
+        [Test, NonParallelizable]
+        public void EnsureLicenseNotice_NoLicence_WritesToStandardErrorOncePerProcess()
+        {
+            var previousLicense = AvroConvert.License;
+            var previousError = Console.Error;
+            var stderr = new System.IO.StringWriter();
+            try
+            {
+                AvroConvert.License = null;
+                Console.SetError(stderr);
+                AvroConvert.ResetLicenseNoticeForTesting();
+
+                AvroConvert.EnsureLicenseNotice();
+                AvroConvert.EnsureLicenseNotice();
+
+                var output = stderr.ToString();
+                output.Should().StartWith("[AvroConvert] ").And.Contain("https://soltechnology.dev/avroconvert/");
+                output.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).Should().HaveCount(1);
+            }
+            finally
+            {
+                Console.SetError(previousError);
+                AvroConvert.License = previousLicense;
+            }
+        }
+
+        [Test, NonParallelizable]
+        public void EnsureLicenseNotice_DeclaredLicence_WritesNothing()
+        {
+            var previousLicense = AvroConvert.License;
+            var previousError = Console.Error;
+            var stderr = new System.IO.StringWriter();
+            try
+            {
+                AvroConvert.License = AvroLicense.SmallBusiness;
+                Console.SetError(stderr);
+                AvroConvert.ResetLicenseNoticeForTesting();
+
+                AvroConvert.EnsureLicenseNotice();
+
+                stderr.ToString().Should().BeEmpty();
+            }
+            finally
+            {
+                Console.SetError(previousError);
+                AvroConvert.License = previousLicense;
+            }
+        }
+
         [Test]
         public void Declaration_DoesNotAffectSerialization()
         {

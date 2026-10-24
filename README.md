@@ -150,7 +150,7 @@ AvroConvert is source-available and **free for noncommercial use and for small c
 |---|---|---|
 | Individual, student, non-profit, public institution, research or evaluation | [PolyForm Noncommercial 1.0.0](licenses/PolyForm-Noncommercial-1.0.0.md) | Free |
 | Company with fewer than 100 people **and** under 1,000,000 USD annual revenue | [PolyForm Small Business 1.0.0](licenses/PolyForm-Small-Business-1.0.0.md) | Free |
-| Any other company or organisation | [Commercial Licence](licenses/Commercial.md) | Annual, per organisation, unlimited developers — [buy at soltechnology.dev](https://soltechnology.dev/avroconvert/) |
+| Any other company or organisation | [Commercial Licence](licenses/Commercial.md) — Business under 1,000 people, Enterprise from 1,000 people, listed companies and public sector | Annual, per organisation, unlimited developers — [buy at soltechnology.dev](https://soltechnology.dev/avroconvert/) |
 
 Declare the licence you rely on (optional for noncommercial / small business, required for commercial) in code:
 
@@ -160,7 +160,7 @@ AvroConvert.License = AvroLicense.Commercial("AVC1.…");   // licence key recei
 ```
 
 or set the environment variable `AVROCONVERT_LICENSE` to `NonCommercial`, `SmallBusiness` or the key. Details in [LICENSE.md](LICENSE.md).
-Versions 3.x remain under CC BY-NC-SA 3.0.
+Versions 3.x remain under CC BY-NC-SA 3.0; a commercial licence for 4.x also covers the 3.4.x maintenance releases, so you can be licensed before you move to .NET 10. Bought a 3.x commercial licence from Xabe? It still covers 3.x, and you are entitled to a free perpetual licence for 4.x and every future version — e-mail the invoice to contact@soltechnology.dev for your key, whenever you like (details in [licenses/Commercial.md](licenses/Commercial.md), section 12).
 
 ## Contribution
 
@@ -185,3 +185,7 @@ These amazing people have contributed to AvroConvert:
 - [![Nuget](https://img.shields.io/badge/Soltechnology.Avro.Kafka-v3.0.0-blue?logo=nuget)](https://www.nuget.org/packages/SolTechnology.Avro.Kafka/) - Library containing components needed for Confluent Kafka integration
 
 - [Avro API article](https://www.c-sharpcorner.com/blogs/avro-rest-api-as-the-evolution-of-json-based-communication-between-mic) 
+
+---
+
+Apache Avro, Avro and Apache are trademarks of [The Apache Software Foundation](https://www.apache.org/). AvroConvert is an independent implementation of the Avro specification for .NET and is not affiliated with, endorsed by or sponsored by the ASF.

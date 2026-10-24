@@ -20,14 +20,16 @@
 
 ## Docs
 
-[AvroConvert documentation](https://github.com/AdrianStrugala/AvroConvert/tree/master/docs) ·
-[Apache Avro specification](http://avro.apache.org/) ·
+[AvroConvert documentation](https://github.com/AdrianStrugala/AvroConvert/tree/master/docs)
+
+[Apache Avro specification](http://avro.apache.org/)
+
 [First steps with Avro in .NET](https://www.c-sharpcorner.com/article/how-to-work-with-avro-data-type-in-net-environment/)
 
 
 ## Why AvroConvert
 
-**Avro is a binary format that keeps the schema inside the data: payloads as small as Protobuf, still readable years later without the code that wrote them.** AvroConvert serializes the C# classes you already have to Avro and back. No code generation, no `.avsc` files to keep in sync.
+**Avro combines the self-describing schema of JSON with the size and speed of binary serialization.** AvroConvert brings it to .NET the way you already serialize JSON: plain C# objects in, `byte[]` out – no code generation, no `.avsc` files.
 
 |                                                                          |                 AvroConvert                 |               Apache.Avro                | Newtonsoft.Json |
 |--------------------------------------------------------------------------|:-------------------------------------------:|:----------------------------------------:|:---------------:|

@@ -18,52 +18,35 @@
  <a href="https://www.nuget.org/packages/AvroConvert"><img src="https://img.shields.io/nuget/dt/AvroConvert.svg?label=NuGet%20Downloads&logo=nuget&color=blue"></a>
 </p>
 
-## Installation
-
-```
-dotnet add package AvroConvert
-```
-
-AvroConvert 4.x targets .NET 10. For .NET Framework and .NET 6–9 use [3.4.x](https://www.nuget.org/packages/AvroConvert/3.4.17).
-
 ## Docs
 
-[Apache Avro format documentation](http://avro.apache.org/)
-
-[First steps with Avro in the .NET](https://www.c-sharpcorner.com/article/how-to-work-with-avro-data-type-in-net-environment/)
-
-[AvroConvert documentation](https://github.com/AdrianStrugala/AvroConvert/tree/master/docs)
+[AvroConvert documentation](https://github.com/AdrianStrugala/AvroConvert/tree/master/docs) ·
+[Apache Avro specification](http://avro.apache.org/) ·
+[First steps with Avro in .NET](https://www.c-sharpcorner.com/article/how-to-work-with-avro-data-type-in-net-environment/)
 
 
-## Benefits
+## Why AvroConvert
 
-**Avro combines the self-describing schema of JSON with the size and speed of binary serialization.** AvroConvert brings it to .NET the way you already serialize JSON: plain C# objects in, `byte[]` out – no code generation, no `.avsc` files.
+**Avro is a binary format that keeps the schema inside the data: payloads as small as Protobuf, still readable years later without the code that wrote them.** AvroConvert serializes the C# classes you already have to Avro and back. No code generation, no `.avsc` files to keep in sync.
 
 |                                                                          |                 AvroConvert                 |               Apache.Avro                | Newtonsoft.Json |
 |--------------------------------------------------------------------------|:-------------------------------------------:|:----------------------------------------:|:---------------:|
 | Works on plain C# classes – no generated code or schema files            |                     ✔️                      |                    ❌                     |       ✔️        |
 | Native .NET types (`Dictionary`, `List`, `DateTime`, `Guid`, `decimal`…) |                     ✔️                      |                    ❌                     |       ✔️        |
 | Compact binary payload                                                   |                     ✔️                      |                    ✔️                     |       ❌        |
-| Clear data schema – readable, versionable, evolvable                     |                     ✔️                      |                    ✔️                     |       ❌        |
+| Schema stored with the data – readable, versionable, evolvable           |                     ✔️                      |                    ✔️                     |       ❌        |
 | Compression codecs                                                       | Deflate · Snappy · Zstandard · GZip · Brotli (built-in) |      Deflate (others via add-ons)       |       ❌        |
+| Serialization time                                                       |                     1×                      |                 6× slower                 |    5× slower    |
+| Deserialization time                                                     |                     1×                      |                 9× slower                 |    3× slower    |
+| Memory allocated                                                         |                     1×                      |                 3× more                   |     2× more     |
+| Payload size, uncompressed                                               |                     1×                      |                    1×                     |    2.9× larger  |
 
 What it means for your services:
 * **Smaller data** – a 1 000-record payload is 2.9× smaller than JSON before compression, and codecs shrink it further → lower storage and network cost
 * **Faster round trips** – less time spent in serialization and on the wire between microservices
 * **Safer by default** – binary on the wire is not readable in plain text, and the embedded schema protects against silent shape drift
 
-### Performance
-
-Same POCO dataset, same machine, each library used as intended (AvroConvert · [Apache.Avro](https://www.nuget.org/packages/Apache.Avro) 1.12 with `Avro.Reflect` · [Newtonsoft.Json](https://www.nuget.org/packages/Newtonsoft.Json) 13):
-
-![AvroConvert vs Apache.Avro vs Newtonsoft.Json – time and memory](docs/benchmarks/libraries.png)
-
-* **vs Apache.Avro** – 3–7× faster serialization, 4–18× faster deserialization, 2–11× less memory allocated
-* **vs Newtonsoft.Json** – 2–6× faster serialization, 2–8× faster deserialization, up to 4× less memory – with a 2.9× smaller payload
-
-Full tables: [libraries comparison](docs/benchmarks/2026-10-08-libraries-avroconvert-vs-apache-vs-newtonsoft.md) · [4.0 vs earlier AvroConvert releases](docs/benchmarks/2026-10-08-versions-2.7.1-to-4.0.md). Reproduce with `benchmarks/LibrariesBenchmark`.
-
-Background on the format and the Avro-over-HTTP idea: [Avro REST API as the evolution of JSON-based communication between microservices](https://www.c-sharpcorner.com/blogs/avro-rest-api-as-the-evolution-of-json-based-communication-between-mic).
+Benchmarks: [raw results](docs/benchmarks/2026-10-08-libraries-avroconvert-vs-apache-vs-newtonsoft.md) · `benchmarks/LibrariesBenchmark`
 
 
 ## Features
@@ -144,7 +127,7 @@ await foreach (var item in AvroConvert.Deserialize<CustomClass>(stream))
 
 ## License
 
-AvroConvert is source-available and **free for noncommercial use and for small companies**:
+AvroConvert is source-available. Noncommercial use and small companies pay nothing; everyone else buys a yearly licence for the whole organisation.
 
 | You are… | Licence | Cost |
 |---|---|---|
@@ -152,15 +135,16 @@ AvroConvert is source-available and **free for noncommercial use and for small c
 | Company with fewer than 100 people **and** under 1,000,000 USD annual revenue | [PolyForm Small Business 1.0.0](licenses/PolyForm-Small-Business-1.0.0.md) | Free |
 | Any other company or organisation | [Commercial Licence](licenses/Commercial.md) — Business under 1,000 people, Enterprise from 1,000 people, listed companies and public sector | Annual, per organisation, unlimited developers — [buy at soltechnology.dev](https://soltechnology.dev/avroconvert/) |
 
-Declare the licence you rely on (optional for noncommercial / small business, required for commercial) in code:
+Say which licence you rely on, in code or through the `AVROCONVERT_LICENSE` environment variable (`NonCommercial`, `SmallBusiness` or the key). It is optional for the free licences and expected for commercial ones; nothing is enforced and nothing phones home.
 
 ```csharp
 AvroConvert.License = AvroLicense.NonCommercial;          // or AvroLicense.SmallBusiness
 AvroConvert.License = AvroLicense.Commercial("AVC1.…");   // licence key received by e-mail after purchase
 ```
 
-or set the environment variable `AVROCONVERT_LICENSE` to `NonCommercial`, `SmallBusiness` or the key. Details in [LICENSE.md](LICENSE.md).
-Versions 3.x remain under CC BY-NC-SA 3.0; a commercial licence for 4.x also covers the 3.4.x maintenance releases, so you can be licensed before you move to .NET 10. Bought a 3.x commercial licence from Xabe? It still covers 3.x, and you are entitled to a free perpetual licence for 4.x and every future version — e-mail the invoice to contact@soltechnology.dev for your key, whenever you like (details in [licenses/Commercial.md](licenses/Commercial.md), section 12).
+Details in [LICENSE.md](LICENSE.md).
+
+Versions 3.x stay under CC BY-NC-SA 3.0. A commercial licence bought for 4.x also covers the 3.4.x releases, so a team that is not on .NET 10 yet can be licensed now and upgrade later. If you bought a 3.x licence from Xabe, it still covers 3.x, and you can have a free perpetual licence for 4.x and every later version: send the invoice to contact@soltechnology.dev, there is no deadline ([licenses/Commercial.md](licenses/Commercial.md), section 12).
 
 ## Contribution
 
@@ -178,12 +162,9 @@ These amazing people have contributed to AvroConvert:
 
 ## Related Work  
 
-- [![](https://img.shields.io/badge/AvroConvertOnline-Try%20Now-blue.svg?logo=google-chrome)](https://adrianstrugala.github.io/AvroConvert/)- online Avro Schema to C# model converter
-
-- [![Nuget](https://img.shields.io/badge/Soltechnology.Avro.Http-v3.0.0-blue?logo=nuget)](https://www.nuget.org/packages/SolTechnology.Avro.Http/) - Library containing functionalities, which enable communication between microservices via Http using Avro data format
-
-- [![Nuget](https://img.shields.io/badge/Soltechnology.Avro.Kafka-v3.0.0-blue?logo=nuget)](https://www.nuget.org/packages/SolTechnology.Avro.Kafka/) - Library containing components needed for Confluent Kafka integration
-
+- [![](https://img.shields.io/badge/AvroConvertOnline-Try%20Now-blue.svg?logo=google-chrome)](https://adrianstrugala.github.io/AvroConvert/) – paste an Avro schema, get a C# model
+- [![Nuget](https://img.shields.io/badge/Soltechnology.Avro.Http-v3.0.0-blue?logo=nuget)](https://www.nuget.org/packages/SolTechnology.Avro.Http/) – Avro as the wire format between HTTP services
+- [![Nuget](https://img.shields.io/badge/Soltechnology.Avro.Kafka-v3.0.0-blue?logo=nuget)](https://www.nuget.org/packages/SolTechnology.Avro.Kafka/) – serializers for Confluent Kafka
 - [Avro API article](https://www.c-sharpcorner.com/blogs/avro-rest-api-as-the-evolution-of-json-based-communication-between-mic) 
 
 ---

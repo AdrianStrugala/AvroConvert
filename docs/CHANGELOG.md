@@ -27,7 +27,7 @@ Breaking changes:
   - Schema Registry references (shared types in their own subjects) are resolved
   - builder extensions: `SetAvroValueSerializer` / `SetAvroKeySerializer` / `SetAvroValueDeserializer` / `SetAvroKeyDeserializer`
   - removed: `KafkaConsumer`, `KafkaPropNames`, `ConfluentSchema`, `ConsumerBuilderExtensions.SetAvroValueDeserializer(string schema)`
-- **SolTechnology.Avro.Http** follows System.Net.Http.Json: `GetFromAvroAsync` (now sends `Accept: application/avro`, so content negotiation picks Avro), `PostAsAvroAsync`, `PutAsAvroAsync`, `PatchAsAvroAsync`, `HttpContent.ReadFromAvroAsync`, `AvroContent`, all with `AvroConvertOptions` and `CancellationToken`. `AddAvroFormatters()` registers the MVC formatters; Minimal APIs get `Avro<T>` and `AvroResults.Avro` / `Results.Extensions.Avro`. An invalid Avro body is a 400 instead of a 500. The 3.x method names and `Consts` remain as `[Obsolete]`
+- **SolTechnology.Avro.Http** follows System.Net.Http.Json: `GetFromAvroAsync` (now sends `Accept: application/avro`, so content negotiation picks Avro), `PostAsAvroAsync`, `PutAsAvroAsync`, `PatchAsAvroAsync`, `HttpContent.ReadFromAvroAsync`, `AvroContent`, all with `AvroConvertOptions` and `CancellationToken`. `AddAvroFormatters()` registers the MVC formatters; Minimal APIs get `Avro<T>` and `AvroResults.Avro` / `Results.Extensions.Avro`. An invalid Avro body is a 400 instead of a 500. Streaming in both directions: `AvroResults.Stream(IAsyncEnumerable<T>)`, `AvroStream<T>` request bodies, `GetFromAvroAsAsyncEnumerable`, `PostAsAvroStreamAsync` / `AvroStreamContent<T>`. The 3.x method names and `Consts` remain as `[Obsolete]`
 - The bundled FastMember copy is gone (internal; nothing to change unless you referenced it directly)
 
 Changes:

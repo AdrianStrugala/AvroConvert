@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -27,6 +29,33 @@ public static class HttpClientAvroExtensions
 
     public static Task<T> GetFromAvroAsync<T>(this HttpClient client, string requestUri, CancellationToken cancellationToken) =>
         client.GetFromAvroAsync<T>(requestUri, null, cancellationToken);
+
+    /// <summary>
+    /// Sends a GET request with <c>Accept: application/avro</c> and reads the response body item by item while the sequence
+    /// is enumerated, e.g. from an endpoint returning <see cref="AvroResults.Stream{T}"/>. Items arrive as soon as their data
+    /// block does; only the current block is held in memory.
+    /// </summary>
+    public static async IAsyncEnumerable<T> GetFromAvroAsAsyncEnumerable<T>(this HttpClient client, string requestUri, AvroConvertOptions options = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(client);
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(AvroMediaTypes.Avro));
+
+        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+        await foreach (var item in response.Content.ReadFromAvroAsAsyncEnumerable<T>(options, cancellationToken).ConfigureAwait(false))
+        {
+            yield return item;
+        }
+    }
+
+    /// <summary>Sends a POST request whose body is written from <paramref name="items"/> while they are enumerated.</summary>
+    public static Task<HttpResponseMessage> PostAsAvroStreamAsync<T>(this HttpClient client, string requestUri, IAsyncEnumerable<T> items, AvroConvertOptions options = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(client);
+        return client.PostAsync(requestUri, new AvroStreamContent<T>(items, options), cancellationToken);
+    }
 
     /// <summary>Sends a POST request with <paramref name="value"/> serialized to Avro as the body.</summary>
     public static Task<HttpResponseMessage> PostAsAvroAsync<T>(this HttpClient client, string requestUri, T value, AvroConvertOptions options = null, CancellationToken cancellationToken = default)

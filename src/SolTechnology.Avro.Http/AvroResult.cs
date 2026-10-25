@@ -72,6 +72,14 @@ public static class AvroResults
     public static AvroResult<T> Avro<T>(T value, AvroConvertOptions options = null, int? statusCode = null) =>
         new(value, options, statusCode);
 
+    /// <summary>
+    /// Streams <paramref name="items"/> as an <c>application/avro</c> object container while they are enumerated.
+    /// Read it with <c>HttpClient.GetFromAvroAsAsyncEnumerable&lt;T&gt;</c>.
+    /// </summary>
+    /// <param name="options">AvroConvert options; null falls back to <see cref="AvroHttpOptions"/>, then to the defaults.</param>
+    public static AvroStreamResult<T> Stream<T>(IAsyncEnumerable<T> items, AvroConvertOptions options = null) =>
+        new(items, options);
+
     /// <inheritdoc cref="Avro{T}(T, AvroConvertOptions, int?)"/>
     public static AvroResult<T> Avro<T>(this IResultExtensions resultExtensions, T value, AvroConvertOptions options = null, int? statusCode = null)
     {

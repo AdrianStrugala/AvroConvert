@@ -5,7 +5,7 @@
     <Authors>Adrian Strugala</Authors>
     <Company>SolTechnology</Company>
     <Version>4.0.0-preview.1</Version>
-    <Description>Library containing functionalities, which enable communication between microservices using Avro data format</Description>
+    <Description>Apache Avro over HTTP with AvroConvert: HttpClient extensions, MVC formatters, Minimal API results and request bodies, and streaming of IAsyncEnumerable in both directions.</Description>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageProjectUrl>https://soltechnology.dev/avroconvert/</PackageProjectUrl>
     <RepositoryType>Dependency</RepositoryType>
@@ -17,6 +17,7 @@
     <RootNamespace>SolTechnology.Avro.Http</RootNamespace>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -26,6 +27,7 @@
   <ItemGroup>
     <None Include="..\..\docs\avroconvert-icon.png" Pack="true" Visible="false" PackagePath="\" />
     <None Include="..\..\LICENSE.md" Pack="true" PackagePath="\" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>

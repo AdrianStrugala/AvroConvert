@@ -17,11 +17,14 @@
 		<RootNamespace>SolTechnology.Avro.Kafka</RootNamespace>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageIcon>avroconvert-icon.png</PackageIcon>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<None Include="..\..\LICENSE.md" Pack="true" PackagePath="\" />
 		<None Include="..\..\docs\avroconvert-icon.png" Pack="true" Visible="false" PackagePath="\" />
+		<None Include="README.md" Pack="true" PackagePath="\" />
 	</ItemGroup>
 
 	<ItemGroup>

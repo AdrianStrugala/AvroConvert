@@ -47,7 +47,7 @@ Every method takes optional `AvroConvertOptions` (codec, naming policy, converte
 
 ## Links
 
-- [Documentation](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#http)
+- [Documentation](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Http.md)
 - [Source and samples](https://github.com/AdrianStrugala/AvroConvert)
 - [AvroConvert Online](https://soltechnology.dev/avroconvert/online/): schema → C#, Avro file viewer and more, in your browser
 

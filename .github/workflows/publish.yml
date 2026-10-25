@@ -37,7 +37,8 @@ jobs:
     - name: Build and test
       run: |
         dotnet build AvroConvert.sln -c Release
-        dotnet test AvroConvert.sln --no-build -c Release
+        # The Kafka integration tests (Testcontainers) run on every PR in Build&Test; publishing does not pull the images again.
+        dotnet test AvroConvert.sln --no-build -c Release --filter "FullyQualifiedName!~AvroConvertKafkaIntegrationTests"
 
     - name: Pack
       run: |

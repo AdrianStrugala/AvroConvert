@@ -14,6 +14,7 @@
 */
 #endregion
 using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Reflection;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
@@ -85,24 +86,8 @@ namespace SolTechnology.Avro
         /// to deserialize Avro data from a byte array into an object of the specified target type.
         /// </remarks>
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
-        public static dynamic Deserialize(byte[] avroBytes, Type targetType)
-        {
-            object result;
-            try
-            {
-                result = typeof(AvroConvert)
-                    .GetMethod(nameof(Deserialize), new[] { typeof(byte[]) })
-                    ?.MakeGenericMethod(targetType)
-                    .Invoke(null, new object[] { avroBytes });
-            }
-            catch (TargetInvocationException ex)
-            {
-                throw ex.InnerException!;
-            }
-
-            return result;
-        }
-        
+        public static dynamic Deserialize(byte[] avroBytes, Type targetType) =>
+            BoxedDeserializer(targetType)(avroBytes, null);
 
         /// <summary>
         /// Deserializes Avro data from a byte array into an object of the specified target type using the provided Avro
@@ -113,26 +98,25 @@ namespace SolTechnology.Avro
         /// <param name="options">The Avro conversion options that control the deserialization process; null uses the defaults.</param>
         /// <returns>The deserialized object of the specified target type.</returns>
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
-        public static object Deserialize(byte[] avroBytes, Type targetType, AvroConvertOptions options)
+        public static object Deserialize(byte[] avroBytes, Type targetType, AvroConvertOptions options) =>
+            BoxedDeserializer(targetType)(avroBytes, options);
+
+        // Deserialize<T> for a type known only at runtime: the generic method is bound once per type, then called directly.
+        private static readonly ConcurrentDictionary<Type, Func<byte[], AvroConvertOptions, object>> BoxedDeserializers = new();
+
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
+        private static Func<byte[], AvroConvertOptions, object> BoxedDeserializer(Type targetType)
         {
             ArgumentNullException.ThrowIfNull(targetType);
-            if (options == null)
-            {
-                return Deserialize(avroBytes, targetType);
-            }
-
-            try
-            {
-                return typeof(AvroConvert)
-                    .GetMethod(nameof(Deserialize), new[] { typeof(byte[]), typeof(AvroConvertOptions) })!
-                    .MakeGenericMethod(targetType)
-                    .Invoke(null, new object[] { avroBytes, options });
-            }
-            catch (TargetInvocationException ex)
-            {
-                throw ex.InnerException!;
-            }
+            return BoxedDeserializers.GetOrAdd(targetType, static type =>
+                typeof(AvroConvert).GetMethod(nameof(DeserializeBoxed), BindingFlags.NonPublic | BindingFlags.Static)!
+                    .MakeGenericMethod(type)
+                    .CreateDelegate<Func<byte[], AvroConvertOptions, object>>());
         }
+
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
+        private static object DeserializeBoxed<T>(byte[] avroBytes, AvroConvertOptions options) =>
+            options == null ? Deserialize<T>(avroBytes) : Deserialize<T>(avroBytes, options);
 
         /// <summary>
         /// Deserializes Avro data from a <see cref="ReadOnlySpan{T}"/> of bytes into an object of the specified type.

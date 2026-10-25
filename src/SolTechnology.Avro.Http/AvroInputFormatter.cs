@@ -37,7 +37,7 @@ public class AvroInputFormatter : InputFormatter
 
         try
         {
-            var model = AvroConvert.Deserialize(body.ToArray(), context.ModelType, _options);
+            var model = AvroConvert.Deserialize(AvroBody.ToArray(body), context.ModelType, _options);
             return await InputFormatterResult.SuccessAsync(model);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)

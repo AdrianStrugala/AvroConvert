@@ -123,8 +123,8 @@ await foreach (var item in AvroConvert.Deserialize<CustomClass>(stream))
    - [Logical types](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#logical-types)
    - [AvroSchema: canonical form, fingerprints, comparison and compatibility checks](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#avroschema)
 6. Integrations
-   - [HTTP: HttpClient extensions, MVC formatters, Minimal API](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#http)
-   - [Kafka: Confluent Schema Registry serializers](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#kafka)
+   - [HTTP: HttpClient extensions, MVC formatters, Minimal API](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Http.md)
+   - [Kafka: Confluent Schema Registry serializers](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Kafka.md)
 
 
 [Full documentation](https://github.com/AdrianStrugala/AvroConvert/tree/master/docs)

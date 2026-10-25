@@ -47,7 +47,7 @@ public sealed class Avro<T> : IEndpointParameterMetadataProvider
         var options = context.RequestServices?.GetService<IOptions<AvroHttpOptions>>()?.Value.SerializerOptions;
         try
         {
-            var bytes = body.ToArray();
+            var bytes = AvroBody.ToArray(body);
             return new Avro<T>(options == null ? AvroConvert.Deserialize<T>(bytes) : AvroConvert.Deserialize<T>(bytes, options));
         }
         catch (Exception ex) when (ex is not OperationCanceledException)

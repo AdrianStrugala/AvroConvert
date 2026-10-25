@@ -8,7 +8,7 @@
 		<Nullable>disable</Nullable>
 		<Authors>Adrian Strugala</Authors>
 		<Company>SolTechnology</Company>
-		<Version>4.0.0-preview.1</Version>
+		<Version>4.0.0-preview.2</Version>
 		<Description>Rapid Apache Avro serializer for .NET. Free for noncommercial use and for companies under 100 people / 1M USD revenue (PolyForm Noncommercial / Small Business); commercial licence for other organisations – see LICENSE.md.</Description>
 		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>

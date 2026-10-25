@@ -34,7 +34,7 @@ Breaking changes:
 Changes:
 - Optional licence declaration via `AvroConvert.License` or `AVROCONVERT_LICENSE`; commercial licence keys are signed tokens parsed by `AvroLicense.Commercial` (nothing is restricted). Without a declaration a single notice per process is written to standard error
 - Dependencies: Newtonsoft.Json, IronSnappy and ZstdSharp.Port (zstandard)
-- New overloads: `Deserialize(byte[], Type, AvroConvertOptions)` and `DeserializeHeadless<T>(ReadOnlySpan<byte>, AvroSchema writer, AvroSchema reader, AvroConvertOptions)`
+- New overloads: `Deserialize(byte[], Type, AvroConvertOptions)` and `DeserializeHeadless<T>(ReadOnlySpan<byte>, AvroSchema writer, AvroSchema reader, AvroConvertOptions)`. `Deserialize(byte[], Type…)` binds `Deserialize<T>` once per type instead of reflecting on every call, and exceptions come out unwrapped with their stack trace
 - Serialization and deserialization compiled per schema and type; multiple times faster with a fraction of allocations
 - A one-element collection reads back as a collection
 - `Json2Avro` and `AvroSchema.InferFromJson` look at every element of a JSON array, not only the first: a field that is `null` or missing in any element becomes a union with `null` (3.x failed on such data), and a number that is whole in the first element but fractional in a later one is a `double` (3.x inferred `long` and truncated the fractions)

@@ -24,6 +24,7 @@ using var consumer = new ConsumerBuilder<string, Order>(consumerConfig)
 - **Schemas:** schema evolution, and schema references (types shared through their own subjects).
 - **Messages:** tombstones (null values) in both directions, and keys through `SetAvroKeySerializer` / `SetAvroKeyDeserializer`.
 - **Options:** `AvroConvertOptions` (naming policy, converters) through `AvroConvertSerializerConfig` / `AvroConvertDeserializerConfig`.
+- **Not supported:** Confluent data contract rules (migration rules, field-level encryption). If your schemas carry rules, they are not executed.
 
 ## Without a registry
 
@@ -36,7 +37,7 @@ Plain headless Avro, with the schema agreed out of band:
 
 ## Links
 
-- [Documentation](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#kafka)
+- [Documentation](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Kafka.md)
 - [Sample with Kafka and Schema Registry in Docker](https://github.com/AdrianStrugala/AvroConvert/tree/master/samples/KafkaApp)
 - [Kafka message decoder](https://soltechnology.dev/avroconvert/online/kafka-message-decoder/): magic byte, schema id and payload in your browser
 

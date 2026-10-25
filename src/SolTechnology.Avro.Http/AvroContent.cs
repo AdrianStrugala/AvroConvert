@@ -24,7 +24,7 @@ public sealed class AvroContent : HttpContent
     /// <summary>The serialized value.</summary>
     public object Value { get; }
 
-    /// <summary>The declared type of <see cref="Value"/>.</summary>
+    /// <summary>The type the data was written as: the runtime type of <see cref="Value"/>, or the declared type for <c>null</c>. The schema in the container is the schema of this type.</summary>
     public Type ObjectType { get; }
 
     /// <summary>Serializes <paramref name="value"/> to Avro.</summary>
@@ -36,7 +36,7 @@ public sealed class AvroContent : HttpContent
     {
         ArgumentNullException.ThrowIfNull(inputType);
         var body = options == null ? AvroConvert.Serialize(value) : AvroConvert.Serialize(value, options);
-        return new AvroContent(value, inputType, body);
+        return new AvroContent(value, value?.GetType() ?? inputType, body);
     }
 
     protected override Task SerializeToStreamAsync(Stream stream, TransportContext context) =>

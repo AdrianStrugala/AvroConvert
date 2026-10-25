@@ -15,6 +15,7 @@ logical types, `AvroSchema`, model generation) are described in [Documentation.S
 - [Avro JSON Encoding](#avro-json-encoding)
 - [Custom converters](#custom-converters)
 - [Naming policy](#naming-policy)
+- [HTTP and Kafka](#http-and-kafka)
 - [Licence declaration](#licence-declaration)
 - [Options reference](#options-reference)
 - [Trimming and Native AOT](#trimming-and-native-aot)
@@ -285,91 +286,12 @@ AvroConvert.GenerateSchema(typeof(Order), options);
 
 Implement `IAvroNamingPolicy` (`GetTypeName`, `GetMemberName`) for other conventions.
 
-### HTTP
+### HTTP and Kafka
 
-`SolTechnology.Avro.Http` uses Avro (`application/avro`) as the wire format between HTTP services, mirroring
-`System.Net.Http.Json`:
+The satellite packages have their own pages:
 
-```csharp
-// Client
-var order = await httpClient.GetFromAvroAsync<Order>("orders/1");        // sends Accept: application/avro
-using var response = await httpClient.PostAsAvroAsync("orders", order);  // also PutAsAvroAsync, PatchAsAvroAsync
-var created = await response.Content.ReadFromAvroAsync<Order>();
-var content = AvroContent.Create(order, new AvroConvertOptions { Codec = CodecType.Brotli });
-
-// MVC controllers: JSON stays the default, Avro is used for Content-Type / Accept: application/avro
-builder.Services.AddControllers().AddAvroFormatters(new AvroConvertOptions { Codec = CodecType.Brotli });
-
-// Minimal API
-app.MapPost("/orders", (Avro<Order> order) => Results.Extensions.Avro(order.Value, statusCode: 201));
-app.MapGet("/orders/{id}", (int id) => AvroResults.Avro(repository.Get(id)));
-builder.Services.Configure<AvroHttpOptions>(o => o.SerializerOptions = new AvroConvertOptions { … });
-```
-
-Every method takes optional `AvroConvertOptions` and a `CancellationToken`. A request body that is not valid Avro is a
-400 (a model state error in MVC); a Minimal API `Avro<T>` parameter answers 415 to other content types.
-
-Large results and uploads can be streamed as an Avro object container: each data block goes over the wire as soon as
-it is full and only the current block is held in memory, on both sides.
-
-```csharp
-// Server (Minimal API, or returned from an MVC action)
-app.MapGet("/orders", (OrderStore store) => AvroResults.Stream(store.ReadAllAsync()));     // IAsyncEnumerable<Order>
-app.MapPost("/orders/import", async (AvroStream<Order> orders) =>
-{
-    await foreach (var order in orders) { /* … */ }
-});
-
-// Client
-await foreach (var order in httpClient.GetFromAvroAsAsyncEnumerable<Order>("orders")) { /* … */ }
-await httpClient.PostAsAvroStreamAsync("orders/import", ReadOrdersAsync());               // AvroStreamContent<T>
-```
-
-### Kafka
-
-`SolTechnology.Avro.Kafka` serializes plain .NET objects for Confluent Kafka in the
-[Schema Registry wire format](https://docs.confluent.io/platform/current/schema-registry/fundamentals/serdes-develop/index.html#wire-format),
-so the messages are read and written by the Confluent serializers of Java, Python, Go or .NET. Subject naming,
-registration and the schema id encoding come from Confluent.SchemaRegistry; AvroConvert generates the schema of your
-type and writes the data.
-
-```csharp
-using var schemaRegistry = new CachedSchemaRegistryClient(new SchemaRegistryConfig { Url = "http://localhost:8081" });
-
-using var producer = new ProducerBuilder<string, Order>(producerConfig)
-    .SetAvroValueSerializer(schemaRegistry)          // registers the schema of Order under "{topic}-value"
-    .Build();
-
-using var consumer = new ConsumerBuilder<string, Order>(consumerConfig)
-    .SetAvroValueDeserializer(schemaRegistry)        // writer schema from the registry, resolved against Order
-    .Build();
-```
-
-| `AvroConvertSerializerConfig` | Default | |
-|---|---|---|
-| `AutoRegisterSchemas` | `true` | Register the schema of `T`; when `false` it must already be registered |
-| `UseLatestVersion` / `UseLatestWithMetadata` / `UseSchemaId` | – | Write with a registered schema instead of the schema of `T` |
-| `NormalizeSchemas` | `false` | Let the registry normalize the schema |
-| `SubjectNameStrategy` | `Topic` | `Topic`, `Record`, `TopicRecord` |
-| `SchemaIdStrategy` | `Prefix` | Schema id in front of the data (magic byte + 4 bytes) or in a message header |
-| `SerializerOptions` | – | `AvroConvertOptions` (naming policy, converters…), also used to generate the schema |
-
-`AvroConvertDeserializerConfig` has `SubjectNameStrategy`, `SchemaIdStrategy` (`Dual` by default: header if present,
-else prefix) and `SerializerOptions`. Keys work the same way with `SetAvroKeySerializer` / `SetAvroKeyDeserializer`.
-A null value is a null message (tombstone) in both directions. Schemas with
-[references](https://docs.confluent.io/platform/current/schema-registry/fundamentals/serdes-develop/index.html#schema-references)
-(types shared through their own subjects) are resolved from the registry when reading, and when writing with
-`UseLatestVersion` / `UseSchemaId`. Data contract rules are not supported.
-
-Without a schema registry, `AvroConvertSerializer<T>` / `AvroConvertDeserializer<T>` (or `SetAvroValueSerializer()`
-without a client) write and read plain headless Avro, with the schema agreed out of band:
-
-```csharp
-.SetAvroValueSerializer(AvroSchema.Create<Order>())
-.SetAvroValueDeserializer(writerSchema: AvroSchema.Parse(schemaJson))
-```
-
-A runnable example with Kafka and Schema Registry in Docker is in `samples/KafkaApp`.
+- [SolTechnology.Avro.Http](Documentation.Http.md): HttpClient extensions, MVC formatters, Minimal API, streaming
+- [SolTechnology.Avro.Kafka](Documentation.Kafka.md): Confluent Schema Registry serializers, plain Avro serializers
 
 ### Licence declaration
 

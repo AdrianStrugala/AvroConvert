@@ -1,4 +1,4 @@
-﻿#region license
+#region license
 /**Copyright (c) 2019-2026 Adrian Strugała (SolTechnology)
 *
 * Licensed under the PolyForm Noncommercial License 1.0.0, the PolyForm Small Business License 1.0.0,

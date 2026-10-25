@@ -100,9 +100,10 @@ namespace SolTechnology.Avro.Features.JsonToAvro
                     {
                         entry.Nullable = true;
                     }
-                    else
+                    else if (entry.Schema == null || (entry.Schema is IntSchema or LongSchema && IsFloatingPoint(kv.Value)))
                     {
-                        entry.Schema ??= BuildSchema(kv.Value, kv.Key);
+                        // A whole number first and a fraction later is a double, not a long that would truncate it.
+                        entry.Schema = BuildSchema(kv.Value, kv.Key);
                     }
 
                     seen[kv.Key] = entry;
@@ -130,6 +131,9 @@ namespace SolTechnology.Avro.Features.JsonToAvro
 
             return result;
         }
+
+        private static bool IsFloatingPoint(object value) =>
+            value is double or float or decimal || value is JValue { Type: JTokenType.Float };
 
         /// <summary>A field named after a JSON key; a key that is not a valid Avro name gets a valid one and keeps the key as alias.</summary>
         private static RecordFieldSchema CreateField(string key, TypeSchema schema, int position)

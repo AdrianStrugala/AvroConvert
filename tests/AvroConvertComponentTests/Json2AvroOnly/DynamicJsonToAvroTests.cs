@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using AutoFixture;
 using AwesomeAssertions;
 using Newtonsoft.Json;
@@ -56,6 +57,23 @@ namespace AvroConvertComponentTests.Json2AvroOnly
             result[2]["note"].Should().BeNull();
             result[2]["extra"].Should().Be(true);
             result[0]["extra"].Should().BeNull();
+        }
+
+        [Test]
+        public void JsonToAvro_WholeNumberFirstFractionLater_KeepsTheFraction()
+        {
+            //Arrange
+            var json = """[{ "temperature": 0 }, { "temperature": 1.5 }, { "temperature": -2 }]""";
+
+
+            //Act
+            var resultAvro = AvroConvert.Json2Avro(json);
+
+
+            //Assert
+            AvroConvert.GetSchema(resultAvro).Should().Contain("\"double\"");
+            var result = JsonConvert.DeserializeObject<List<Dictionary<string, double>>>(AvroConvert.Avro2Json(resultAvro));
+            result.Select(r => r["temperature"]).Should().Equal(0, 1.5, -2);
         }
     }
 }

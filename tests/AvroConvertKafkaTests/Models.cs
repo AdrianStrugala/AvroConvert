@@ -33,7 +33,7 @@ internal static class Samples
         Tags = new List<string> { "licence", "business" }
     };
 
-    /// <summary>A newer version of the schema of <see cref="Order"/>: one more optional field.</summary>
+    /// <summary>A newer version of the schema of <see cref="Order"/>: one more field with a default.</summary>
     public const string OrderSchemaV2 = """
         {
           "type": "record",
@@ -45,7 +45,7 @@ internal static class Samples
             { "name": "Total", "type": "double" },
             { "name": "Paid", "type": "boolean" },
             { "name": "Tags", "type": { "type": "array", "items": "string" } },
-            { "name": "Channel", "type": ["null", "string"], "default": null }
+            { "name": "Channel", "type": "string", "default": "web shop" }
           ]
         }
         """;

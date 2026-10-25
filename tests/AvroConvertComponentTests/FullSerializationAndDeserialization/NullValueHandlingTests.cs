@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Dynamic;
 using AwesomeAssertions;
 using NUnit.Framework;
@@ -221,6 +221,28 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             //Assert
             AvroConvert.GenerateSchema(typeof(User)).Should().Contain("{\"name\":\"name\",\"type\":[\"null\",\"string\"]}");
             result.name.Should().BeNull();
+        }
+
+        [Test]
+        public void Field_without_a_member_is_written_with_its_schema_default()
+        {
+            //Arrange: a newer schema version, as with Kafka "use latest version"
+            var schema = """
+                {"type":"record","name":"Holder","fields":[
+                  {"name":"Value","type":"string"},
+                  {"name":"Channel","type":"string","default":"web shop"},
+                  {"name":"Priority","type":"int","default":3},
+                  {"name":"Color","type":{"type":"enum","name":"Color","symbols":["Red","Green"]},"default":"Green"},
+                  {"name":"Score","type":["double","null"],"default":1.5},
+                  {"name":"Note","type":["null","string"],"default":null}
+                ]}
+                """;
+
+            //Act
+            var bytes = AvroConvert.SerializeHeadless(new Holder<string> { Value = "x" }, schema);
+
+            //Assert
+            AvroConvert.Avro2Json(bytes, schema).Should().Be("{\"Value\":\"x\",\"Channel\":\"web shop\",\"Priority\":3,\"Color\":\"Green\",\"Score\":1.5,\"Note\":null}");
         }
     }
 }

@@ -144,7 +144,7 @@ public class SchemaRegistrySerdeTests
         var record = await new AvroDeserializer<GenericRecord>(client, new AvroDeserializerConfig { SubjectNameStrategy = SubjectNameStrategy.Topic })
             .DeserializeAsync(bytes, false, ValueContext);
         record["Customer"].Should().Be("Sol Technology");
-        record["Channel"].Should().BeNull();
+        record["Channel"].Should().Be("web shop");
     }
 
     [Test]

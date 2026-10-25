@@ -15,6 +15,7 @@ logical types, `AvroSchema`, model generation) are described in [Documentation.S
 - [Avro JSON Encoding](#avro-json-encoding)
 - [Custom converters](#custom-converters)
 - [Naming policy](#naming-policy)
+- [HTTP and Kafka](#http-and-kafka)
 - [Licence declaration](#licence-declaration)
 - [Options reference](#options-reference)
 - [Trimming and Native AOT](#trimming-and-native-aot)
@@ -284,6 +285,13 @@ AvroConvert.GenerateSchema(typeof(Order), options);
 ```
 
 Implement `IAvroNamingPolicy` (`GetTypeName`, `GetMemberName`) for other conventions.
+
+### HTTP and Kafka
+
+The satellite packages have their own pages:
+
+- [SolTechnology.Avro.Http](Documentation.Http.md): HttpClient extensions, MVC formatters, Minimal API, streaming
+- [SolTechnology.Avro.Kafka](Documentation.Kafka.md): Confluent Schema Registry serializers, plain Avro serializers
 
 ### Licence declaration
 

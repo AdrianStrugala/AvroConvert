@@ -528,7 +528,14 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                 var member = members.Find(field.Aliases.FirstOrDefault() ?? field.Name);
                 if (member is not { CanRead: true })
                 {
-                    // Member absent on this type: the field is written as "no value".
+                    // Member absent on this type, field with a default (e.g. writing with a newer schema version): write the default.
+                    if (field.HasDefaultValue && field.DefaultValue != null && TryBuildDefault(schema, field, writer) is { } defaultValue)
+                    {
+                        fields.Add(defaultValue);
+                        continue;
+                    }
+
+                    // Otherwise the field is written as "no value".
                     fields.Add(NullValue(field.TypeSchema, writer,
                         $"Field '{schema.Name}.{field.Name}' has no readable member in [{type}], and its schema {Describe(field.TypeSchema)} does not allow null. " +
                         "Add the member, make the field a union with \"null\", " +
@@ -550,6 +557,21 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
             }
 
             return Expression.Lambda(typeof(Action<,>).MakeGenericType(typeof(IWriter), type), body, writer, instance).Compile();
+        }
+
+        /// <summary>Writer of the default value of <paramref name="field"/>; null when the default cannot be written as its schema.</summary>
+        private Expression TryBuildDefault(RecordSchema schema, RecordFieldSchema field, ParameterExpression writer)
+        {
+            var defaultValue = field.DefaultValue;
+            try
+            {
+                return InContext($"{schema.Name}.{field.Name}",
+                    () => Build(field.TypeSchema, defaultValue.GetType(), Expression.Constant(defaultValue, defaultValue.GetType()), writer));
+            }
+            catch (Exception e) when (e is NotSupportedException or InvalidOperationException or ArgumentException or AvroTypeMismatchException)
+            {
+                return null;
+            }
         }
 
         // ------------------------------------------------------------------ collections

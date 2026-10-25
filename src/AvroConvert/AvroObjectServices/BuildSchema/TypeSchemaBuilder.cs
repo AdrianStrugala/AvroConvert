@@ -80,6 +80,51 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         }
 
         /// <summary>
+        /// Builds the schema when it uses named types (records, enums, fixed) defined in other schemas, as with Confluent
+        /// Schema Registry references. The referenced schemas may come in any order and may use each other.
+        /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
+        internal TypeSchema BuildSchema(string schema, IEnumerable<string> referencedSchemas)
+        {
+            if (string.IsNullOrEmpty(schema))
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
+
+            var namedSchemas = new Dictionary<string, NamedSchema>();
+            var pending = referencedSchemas.Select(JToken.Parse).ToList();
+            while (pending.Count > 0)
+            {
+                var parsedAny = false;
+                for (int i = 0; i < pending.Count; i++)
+                {
+                    // Parse into a copy: a reference that fails on a type defined in a later one leaves nothing half-registered.
+                    var attempt = new Dictionary<string, NamedSchema>(namedSchemas);
+                    try
+                    {
+                        this.Parse(pending[i], null, attempt);
+                    }
+                    catch (SerializationException)
+                    {
+                        continue;
+                    }
+
+                    namedSchemas = attempt;
+                    pending.RemoveAt(i--);
+                    parsedAny = true;
+                }
+
+                if (!parsedAny)
+                {
+                    // None resolves with what is known: parse the first again to surface its error.
+                    this.Parse(pending[0], null, new Dictionary<string, NamedSchema>(namedSchemas));
+                }
+            }
+
+            return this.Parse(JToken.Parse(schema), null, namedSchemas);
+        }
+
+        /// <summary>
         /// Parses the specified token.
         /// </summary>
         /// <param name="token">The token.</param>
@@ -479,6 +524,12 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         /// <returns>Schema internal representation.</returns>
         private TypeSchema ParsePrimitiveTypeFromString(string token)
         {
+            if (!PrimitiveRuntimeType.ContainsKey(token))
+            {
+                throw new SerializationException(string.Format(CultureInfo.InvariantCulture,
+                    "Unknown type '{0}': not a primitive type and not a named type defined earlier in the schema or in its references.", token));
+            }
+
             return this.CreatePrimitiveTypeSchema(token, new Dictionary<string, string>());
         }
 

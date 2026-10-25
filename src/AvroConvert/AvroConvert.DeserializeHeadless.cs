@@ -146,6 +146,24 @@ namespace SolTechnology.Avro
             return DeserializeHeadless<T>(avroBytes, writerSchema.TypeSchema, readerSchema.TypeSchema, null);
         }
 
+        /// <summary>
+        /// Deserializes Avro data, which does not contain header, written with <paramref name="writerSchema"/> and resolved
+        /// against <paramref name="readerSchema"/> (schema evolution), to .NET type – without copying <paramref name="avroBytes"/>.
+        /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
+        public static unsafe T DeserializeHeadless<T>(ReadOnlySpan<byte> avroBytes, AvroSchema writerSchema, AvroSchema readerSchema, AvroConvertOptions options = null)
+        {
+            ArgumentNullException.ThrowIfNull(writerSchema);
+            ArgumentNullException.ThrowIfNull(readerSchema);
+            fixed (byte* ptr = avroBytes)
+            {
+                using UnmanagedMemoryStream stream = new(ptr, avroBytes.Length);
+                var reader = new Reader(stream);
+                var resolver = new Resolver(writerSchema.TypeSchema, ReadSchemaOrWriter(readerSchema.TypeSchema, writerSchema.TypeSchema), options);
+                return resolver.ResolveToEnd<T>(reader);
+            }
+        }
+
         /// <param name="numberOfRows">Rows to read into a collection <typeparamref name="T"/>; null reads until the end of the data.</param>
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private static T DeserializeHeadless<T>(byte[] avroBytes, TypeSchema writeSchema, TypeSchema readSchema, int? numberOfRows)

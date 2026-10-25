@@ -10,9 +10,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.15.*" />
+    <PackageReference Include="BenchmarkDotNet" />
     <!-- Lowest benchmarked version: the runtime binder accepts higher assembly versions than referenced, not lower. -->
-    <PackageReference Include="AvroConvert" Version="2.7.1" />
+    <PackageReference Include="AvroConvert" VersionOverride="2.7.1" />
   </ItemGroup>
 
 </Project>

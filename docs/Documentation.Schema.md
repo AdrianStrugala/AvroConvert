@@ -221,6 +221,7 @@ checks. The `AvroConvert` methods that take a schema accept it next to the JSON 
 
 ```csharp
 AvroSchema schema = AvroSchema.Parse(json);              // schema definition (JSON)
+AvroSchema schema = AvroSchema.Parse(json, new[] { addressJson, statusJson });   // uses types defined in other schemas
 AvroSchema schema = AvroSchema.Create<Order>();          // from a .NET type (same as AvroConvert.GenerateSchema)
 AvroSchema schema = AvroSchema.FromAvro(avroFile);       // from the header of an Avro file (byte[] or Stream)
 AvroSchema schema = AvroSchema.InferFromJson(jsonData);  // inferred from sample JSON data

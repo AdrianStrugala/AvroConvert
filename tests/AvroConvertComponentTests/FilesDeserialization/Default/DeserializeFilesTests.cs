@@ -111,6 +111,39 @@ namespace AvroConvertComponentTests.FilesDeserialization.Default
         }
 
         [Test]
+        public void Deserialize_InvalidFileWithType_ExceptionIsNotWrapped()
+        {
+            //Arrange
+            byte[] invalidBytes = new byte[2137];
+
+
+            //Act
+            var result = Recorded.Exception(() => AvroConvert.Deserialize(invalidBytes, typeof(List<UserNameClass>), new AvroConvertOptions()));
+
+
+            //Assert
+            result.Should().BeOfType<InvalidAvroObjectException>();
+        }
+
+        [Test]
+        public void Deserialize_WithTypeAndOptions_ReturnsTheSameAsGeneric()
+        {
+            //Arrange
+            var options = new AvroConvertOptions();
+
+
+            //Act
+            var byType = AvroConvert.Deserialize(_avroBytes, typeof(List<UserNameClass>), options);
+            var byTypeAgain = AvroConvert.Deserialize(_avroBytes, typeof(List<UserNameClass>), options);
+
+
+            //Assert
+            byType.Should().BeOfType<List<UserNameClass>>();
+            byType.Should().BeEquivalentTo(AvroConvert.Deserialize<List<UserNameClass>>(_avroBytes, options));
+            byTypeAgain.Should().BeEquivalentTo(byType);
+        }
+
+        [Test]
         public void Deserialization_with_ReadOnlySpan_Works()
         {
             //Arrange

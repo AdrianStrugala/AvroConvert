@@ -1,0 +1,20 @@
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      confluent:
+        patterns: ["Confluent.*"]
+      tests:
+        patterns: ["NUnit*", "Microsoft.NET.Test.Sdk", "AwesomeAssertions", "AutoFixture", "Microsoft.AspNetCore.TestHost", "Testcontainers*", "Google.Protobuf"]
+      benchmarks:
+        patterns: ["BenchmarkDotNet", "Apache.Avro*", "GroBuf", "MongoDB.Bson", "BrotliSharpLib", "Equals.Fody"]
+    ignore:
+      # Benchmarks compare against these exact published versions on purpose.
+      - dependency-name: AvroConvert
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

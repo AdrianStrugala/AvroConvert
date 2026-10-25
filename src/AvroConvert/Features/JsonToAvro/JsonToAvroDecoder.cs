@@ -49,7 +49,7 @@ namespace SolTechnology.Avro.Features.JsonToAvro
         private byte[] SerializeJArray(JArray jArray, CodecType codecType)
         {
             using MemoryStream resultStream = new MemoryStream();
-            var schema = _jsonSchemaBuilder.BuildSchema(jArray.FirstOrDefault());
+            var schema = _jsonSchemaBuilder.BuildItemSchema(jArray);
 
             using (var writer = new Serialize.Encoder(schema, resultStream, codecType))
             {

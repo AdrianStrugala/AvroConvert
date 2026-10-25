@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -7,6 +7,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Soltechnology.Avro.Kafka\SolTechnology.Avro.Kafka.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="docker-compose.yml" />
   </ItemGroup>
 
 </Project>

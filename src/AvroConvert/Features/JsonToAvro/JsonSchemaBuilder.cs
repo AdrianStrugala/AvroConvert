@@ -51,10 +51,41 @@ namespace SolTechnology.Avro.Features.JsonToAvro
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal TypeSchema BuildSchema(IEnumerable<ExpandoObject> items, string name = null)
         {
+            return BuildMergedRecordSchema(items.Select(item => (IDictionary<string, object>)item), name, typeof(ExpandoObject));
+        }
+
+        /// <summary>
+        /// Schema of the elements of a JSON array. Objects are merged like <see cref="BuildSchema(IEnumerable{ExpandoObject}, string)"/>,
+        /// so a field that is missing or null in any element becomes a union with null; other elements take the shape of the first one.
+        /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
+        internal TypeSchema BuildItemSchema(JArray array, string name = null)
+        {
+            var items = array.Where(t => t.Type != JTokenType.Null).ToList();
+            if (items.Count == 0 || !items.All(t => t is JObject))
+            {
+                return BuildSchema(array.FirstOrDefault(), name);
+            }
+
+            var record = BuildMergedRecordSchema(
+                items.Cast<JObject>().Select(o => (IDictionary<string, object>)o.Properties().ToDictionary(
+                    p => p.Name,
+                    p => p.Value.Type == JTokenType.Null ? null : (object)p.Value)),
+                name,
+                typeof(JObject));
+
+            return items.Count < array.Count
+                ? new UnionSchema(new List<TypeSchema> { new NullSchema(), record }, typeof(object))
+                : record;
+        }
+
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
+        private TypeSchema BuildMergedRecordSchema(IEnumerable<IDictionary<string, object>> items, string name, System.Type runtimeType)
+        {
             var seen = new Dictionary<string, (TypeSchema Schema, bool Nullable)>();
             var order = new List<string>();
             int count = 0;
-            foreach (IDictionary<string, object> item in items)
+            foreach (var item in items)
             {
                 count++;
                 foreach (var kv in item)
@@ -69,9 +100,10 @@ namespace SolTechnology.Avro.Features.JsonToAvro
                     {
                         entry.Nullable = true;
                     }
-                    else
+                    else if (entry.Schema == null || (entry.Schema is IntSchema or LongSchema && IsFloatingPoint(kv.Value)))
                     {
-                        entry.Schema ??= BuildSchema(kv.Value, kv.Key);
+                        // A whole number first and a fraction later is a double, not a long that would truncate it.
+                        entry.Schema = BuildSchema(kv.Value, kv.Key);
                     }
 
                     seen[kv.Key] = entry;
@@ -86,7 +118,7 @@ namespace SolTechnology.Avro.Features.JsonToAvro
                 }
             }
 
-            var result = new RecordSchema(new NamedEntityAttributes(new SchemaName(name ?? "UnknownObject"), new List<string>(), ""), typeof(ExpandoObject));
+            var result = new RecordSchema(new NamedEntityAttributes(new SchemaName(name ?? "UnknownObject"), new List<string>(), ""), runtimeType);
             int position = 0;
             foreach (var key in order)
             {
@@ -94,10 +126,31 @@ namespace SolTechnology.Avro.Features.JsonToAvro
                 TypeSchema fieldSchema = schema == null ? new NullSchema()
                     : nullable && schema is not UnionSchema && schema is not NullSchema ? new UnionSchema(new List<TypeSchema> { new NullSchema(), schema }, typeof(object))
                     : schema;
-                result.AddField(new RecordFieldSchema(new NamedEntityAttributes(new SchemaName(key), new List<string>(), string.Empty), fieldSchema, false, null, position++));
+                result.AddField(CreateField(key, fieldSchema, position++));
             }
 
             return result;
+        }
+
+        private static bool IsFloatingPoint(object value) =>
+            value is double or float or decimal || value is JValue { Type: JTokenType.Float };
+
+        /// <summary>A field named after a JSON key; a key that is not a valid Avro name gets a valid one and keeps the key as alias.</summary>
+        private static RecordFieldSchema CreateField(string key, TypeSchema schema, int position)
+        {
+            try
+            {
+                return new RecordFieldSchema(new NamedEntityAttributes(new SchemaName(key), new List<string>(), string.Empty), schema, false, null, position);
+            }
+            catch (SerializationException serializationException)
+            {
+                return new RecordFieldSchema(
+                    new NamedEntityAttributes(new SchemaName(key, true), new List<string> { key }, $" [{serializationException.Message}]"),
+                    schema,
+                    false,
+                    null,
+                    position);
+            }
         }
 
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
@@ -152,13 +205,7 @@ namespace SolTechnology.Avro.Features.JsonToAvro
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal TypeSchema BuildArraySchema(JArray incomingObject, string name = null)
         {
-            var childObject = incomingObject.FirstOrDefault();
-
-            TypeSchema childSchema = BuildSchema(childObject, name);
-
-            ArraySchema array = new ArraySchema(childSchema, typeof(object));
-
-            return array;
+            return new ArraySchema(BuildItemSchema(incomingObject, name), typeof(object));
         }
     }
 }

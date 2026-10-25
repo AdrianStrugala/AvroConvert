@@ -19,6 +19,7 @@
     <PackageVersion Include="Confluent.SchemaRegistry.Serdes.Avro" Version="2.16.0" />
     <PackageVersion Include="Google.Protobuf" Version="3.29.3" />
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.13" />
+    <PackageVersion Include="Testcontainers.Kafka" Version="4.16.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageVersion Include="NUnit" Version="5.0.0" />
     <PackageVersion Include="NUnit.Analyzers" Version="4.15.0" />

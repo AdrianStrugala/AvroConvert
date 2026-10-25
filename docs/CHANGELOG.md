@@ -24,6 +24,7 @@ Breaking changes:
   - configuration through `AvroConvertSerializerConfig` / `AvroConvertDeserializerConfig`: auto-registration, use latest version / schema id, subject name strategies, schema id in a header, `AvroConvertOptions`
   - writer schema from the registry is resolved against the schema of `T` (schema evolution); null values are tombstones in both directions
   - `AvroConvertSerializer<T>` / `AvroConvertDeserializer<T>` (no registry) take an `AvroSchema` instead of a Confluent JSON envelope and write plain headless Avro. 3.x wrote a fake Confluent header with schema id 0, which no Confluent consumer can resolve, and stripped spaces and backslashes from the schema
+  - Schema Registry references (shared types in their own subjects) are resolved
   - builder extensions: `SetAvroValueSerializer` / `SetAvroKeySerializer` / `SetAvroValueDeserializer` / `SetAvroKeyDeserializer`
   - removed: `KafkaConsumer`, `KafkaPropNames`, `ConfluentSchema`, `ConsumerBuilderExtensions.SetAvroValueDeserializer(string schema)`
 - **SolTechnology.Avro.Http** follows System.Net.Http.Json: `GetFromAvroAsync` (now sends `Accept: application/avro`, so content negotiation picks Avro), `PostAsAvroAsync`, `PutAsAvroAsync`, `PatchAsAvroAsync`, `HttpContent.ReadFromAvroAsync`, `AvroContent`, all with `AvroConvertOptions` and `CancellationToken`. `AddAvroFormatters()` registers the MVC formatters; Minimal APIs get `Avro<T>` and `AvroResults.Avro` / `Results.Extensions.Avro`. An invalid Avro body is a 400 instead of a 500. The 3.x method names and `Consts` remain as `[Obsolete]`
@@ -37,6 +38,7 @@ Changes:
 - A one-element collection reads back as a collection
 - `Json2Avro` and `AvroSchema.InferFromJson` look at every element of a JSON array, not only the first: a field that is `null` or missing in any element becomes a union with `null` (3.x failed on such data), and a number that is whole in the first element but fractional in a later one is a `double` (3.x inferred `long` and truncated the fractions)
 - Writing with a schema that has a field the .NET type does not have writes the field's `default` (for example a newer schema version from a registry); without a default it still throws
+- `AvroSchema.Parse(json, referencedSchemas)` parses a schema that uses named types defined in other schemas (any order); an unknown type name now fails with a message naming it instead of a `KeyNotFoundException`
 - Fixed `Merge` losing data after the first block
 - Fixed `GenerateModel` output differing between operating systems
 - Support for string-convertible map keys (e.g. `Dictionary<Uri, T>`)

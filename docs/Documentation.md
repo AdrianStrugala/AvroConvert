@@ -340,8 +340,10 @@ using var consumer = new ConsumerBuilder<string, Order>(consumerConfig)
 
 `AvroConvertDeserializerConfig` has `SubjectNameStrategy`, `SchemaIdStrategy` (`Dual` by default: header if present,
 else prefix) and `SerializerOptions`. Keys work the same way with `SetAvroKeySerializer` / `SetAvroKeyDeserializer`.
-A null value is a null message (tombstone) in both directions. Schema references and data contract rules are not
-supported yet.
+A null value is a null message (tombstone) in both directions. Schemas with
+[references](https://docs.confluent.io/platform/current/schema-registry/fundamentals/serdes-develop/index.html#schema-references)
+(types shared through their own subjects) are resolved from the registry when reading, and when writing with
+`UseLatestVersion` / `UseSchemaId`. Data contract rules are not supported.
 
 Without a schema registry, `AvroConvertSerializer<T>` / `AvroConvertDeserializer<T>` (or `SetAvroValueSerializer()`
 without a client) write and read plain headless Avro, with the schema agreed out of band:

@@ -1,4 +1,4 @@
-#region license
+﻿#region license
 /**Copyright (c) 2019-2026 Adrian Strugała (SolTechnology)
 *
 * Licensed under the PolyForm Noncommercial License 1.0.0, the PolyForm Small Business License 1.0.0,
@@ -73,6 +73,30 @@ namespace SolTechnology.Avro
             }
 
             return new AvroSchema(Schema.Parse(json));
+        }
+
+        /// <summary>
+        /// Parses a schema that uses named types (records, enums, fixed) defined in other schemas, e.g. a Confluent Schema
+        /// Registry schema with references. <paramref name="referencedSchemas"/> are the JSON definitions of those schemas,
+        /// in any order. The result is self-contained: <see cref="Json"/> includes the referenced types.
+        /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
+        public static AvroSchema Parse(string json, IEnumerable<string> referencedSchemas)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                throw new ArgumentException("Schema JSON is empty", nameof(json));
+            }
+
+            ArgumentNullException.ThrowIfNull(referencedSchemas);
+            var references = referencedSchemas.ToList();
+            if (references.Count == 0)
+            {
+                return Parse(json);
+            }
+
+            AvroConvert.EnsureLicenseNotice();
+            return new AvroSchema(new TypeSchemaBuilder().BuildSchema(json, references));
         }
 
         /// <summary>Generates the schema of a .NET type.</summary>

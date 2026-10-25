@@ -14,7 +14,7 @@ namespace SolTechnology.Avro.Kafka.Deserialization;
 /// </summary>
 /// <remarks>
 /// Use <c>.AsSyncOverAsync()</c> (or <c>SetAvroValueDeserializer</c>) with a consumer. A null message (tombstone)
-/// is returned as <c>default</c>. Data contract rules and schema references are not supported.
+/// is returned as <c>default</c>. Data contract rules are not supported.
 /// </remarks>
 public class AvroConvertSchemaRegistryDeserializer<T> : AsyncDeserializer<T, AvroSchema>
 {
@@ -49,13 +49,10 @@ public class AvroConvertSchemaRegistryDeserializer<T> : AsyncDeserializer<T, Avr
         return AvroConvert.DeserializeHeadless<T>(payload.Span, writerSchema, _readerSchema, _options);
     }
 
-    protected override Task<AvroSchema> ParseSchema(Schema schema)
+    protected override async Task<AvroSchema> ParseSchema(Schema schema)
     {
-        if (schema.References is { Count: > 0 })
-        {
-            throw new NotSupportedException("AvroConvert does not support schema references yet.");
-        }
-
-        return Task.FromResult(AvroSchema.Parse(schema.SchemaString));
+        // Named types defined in other subjects (Schema Registry references) are fetched and parsed with the schema.
+        var references = await ResolveReferences(schema).ConfigureAwait(false);
+        return AvroSchema.Parse(schema.SchemaString, references.Values);
     }
 }

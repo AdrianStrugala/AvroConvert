@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using AwesomeAssertions;
@@ -88,6 +88,73 @@ namespace AvroConvertComponentTests.Schemas
             var act = () => AvroSchema.Parse(" ");
 
             act.Should().Throw<ArgumentException>();
+        }
+
+        private const string Money = """{"type":"record","name":"Money","namespace":"shared","fields":[{"name":"Amount","type":"double"},{"name":"Currency","type":"shared.Currency"}]}""";
+        private const string Currency = """{"type":"enum","name":"Currency","namespace":"shared","symbols":["EUR","PLN"]}""";
+        private const string Invoice = """{"type":"record","name":"Invoice","namespace":"billing","fields":[{"name":"Number","type":"string"},{"name":"Total","type":"shared.Money"}]}""";
+
+        public class InvoiceModel
+        {
+            public string Number { get; set; }
+            public MoneyModel Total { get; set; }
+        }
+
+        public class MoneyModel
+        {
+            public double Amount { get; set; }
+            public CurrencyModel Currency { get; set; }
+        }
+
+        public enum CurrencyModel
+        {
+            EUR,
+            PLN
+        }
+
+        [Test]
+        public void Parse_WithReferences_InAnyOrder_IsSelfContained()
+        {
+            //Act: Money (needs Currency) comes before Currency
+            var schema = AvroSchema.Parse(Invoice, new[] { Money, Currency });
+
+
+            //Assert
+            schema.Json.Should().Contain("\"name\":\"Money\"").And.Contain("\"symbols\":[\"EUR\",\"PLN\"]");
+            AvroSchema.Parse(schema.Json).Should().Be(schema);
+        }
+
+        [Test]
+        public void Parse_WithReferences_ReadsAndWritesData()
+        {
+            //Arrange
+            var schema = AvroSchema.Parse(Invoice, new[] { Currency, Money });
+            var invoice = new InvoiceModel { Number = "FV/1", Total = new MoneyModel { Amount = 199, Currency = CurrencyModel.PLN } };
+
+
+            //Act
+            var bytes = AvroConvert.SerializeHeadless(invoice, schema);
+            var result = AvroConvert.DeserializeHeadless<InvoiceModel>(bytes, schema);
+
+
+            //Assert
+            result.Should().BeEquivalentTo(invoice);
+        }
+
+        [Test]
+        public void Parse_WithAMissingReference_NamesTheType()
+        {
+            var act = () => AvroSchema.Parse(Invoice, new[] { Money });
+
+            act.Should().Throw<Exception>().WithMessage("*Unknown type 'shared.Currency'*");
+        }
+
+        [Test]
+        public void Parse_UnknownType_NamesIt()
+        {
+            var act = () => AvroSchema.Parse("""{"type":"record","name":"R","fields":[{"name":"F","type":"Nope"}]}""");
+
+            act.Should().Throw<Exception>().WithMessage("*Unknown type 'Nope'*");
         }
     }
 

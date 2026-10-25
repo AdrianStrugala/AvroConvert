@@ -15,7 +15,7 @@ namespace SolTechnology.Avro.Kafka.Serialization;
 /// </summary>
 /// <remarks>
 /// A null value is written as a null message (a tombstone on compacted topics).
-/// Data contract rules and schema references are not supported.
+/// Data contract rules are not supported.
 /// </remarks>
 public class AvroConvertSchemaRegistrySerializer<T> : AsyncSerializer<T, AvroSchema>
 {
@@ -95,13 +95,10 @@ public class AvroConvertSchemaRegistrySerializer<T> : AsyncSerializer<T, AvroSch
         return message;
     }
 
-    protected override Task<AvroSchema> ParseSchema(Schema schema)
+    protected override async Task<AvroSchema> ParseSchema(Schema schema)
     {
-        if (schema.References is { Count: > 0 })
-        {
-            throw new NotSupportedException("AvroConvert does not support schema references yet.");
-        }
-
-        return Task.FromResult(AvroSchema.Parse(schema.SchemaString));
+        // Named types defined in other subjects (Schema Registry references) are fetched and parsed with the schema.
+        var references = await ResolveReferences(schema).ConfigureAwait(false);
+        return AvroSchema.Parse(schema.SchemaString, references.Values);
     }
 }

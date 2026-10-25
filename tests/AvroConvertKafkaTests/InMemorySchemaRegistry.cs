@@ -25,7 +25,7 @@ public class InMemorySchemaRegistry : DispatchProxy
 
     public int RegisterCalls { get; private set; }
 
-    public RegisteredSchema Register(string subject, string schemaString)
+    public RegisteredSchema Register(string subject, string schemaString, List<SchemaReference> references = null)
     {
         RegisterCalls++;
         var existing = _schemas.FirstOrDefault(s => s.Subject == subject && s.SchemaString == schemaString);
@@ -38,7 +38,7 @@ public class InMemorySchemaRegistry : DispatchProxy
         var id = same?.Id ?? _schemas.Count + 1;
         var guid = same?.Guid ?? Guid.NewGuid().ToString();
         var version = _schemas.Count(s => s.Subject == subject) + 1;
-        var registered = new RegisteredSchema(subject, version, id, guid, schemaString, SchemaType.Avro, new List<SchemaReference>());
+        var registered = new RegisteredSchema(subject, version, id, guid, schemaString, SchemaType.Avro, references ?? new List<SchemaReference>());
         _schemas.Add(registered);
         return registered;
     }
@@ -83,6 +83,14 @@ public class InMemorySchemaRegistry : DispatchProxy
                 return found != null
                     ? Task.FromResult<Schema>(found)
                     : Task.FromException<Schema>(new SchemaRegistryException("Schema not found", System.Net.HttpStatusCode.NotFound, 40403));
+            }
+            case "GetRegisteredSchemaAsync":
+            {
+                var subject = (string)args[0];
+                var version = (int)args[1];
+                return Task.FromResult(version < 0
+                    ? _schemas.LastOrDefault(s => s.Subject == subject)
+                    : _schemas.FirstOrDefault(s => s.Subject == subject && s.Version == version));
             }
             case "GetLatestSchemaAsync":
                 return Task.FromResult(_schemas.Last(s => s.Subject == (string)args[0]));

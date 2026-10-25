@@ -105,6 +105,36 @@ namespace SolTechnology.Avro
         
 
         /// <summary>
+        /// Deserializes Avro data from a byte array into an object of the specified target type using the provided Avro
+        /// conversion options.
+        /// </summary>
+        /// <param name="avroBytes">The byte array containing the Avro data to be deserialized.</param>
+        /// <param name="targetType">The target type into which the Avro data should be deserialized.</param>
+        /// <param name="options">The Avro conversion options that control the deserialization process; null uses the defaults.</param>
+        /// <returns>The deserialized object of the specified target type.</returns>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
+        public static object Deserialize(byte[] avroBytes, Type targetType, AvroConvertOptions options)
+        {
+            ArgumentNullException.ThrowIfNull(targetType);
+            if (options == null)
+            {
+                return Deserialize(avroBytes, targetType);
+            }
+
+            try
+            {
+                return typeof(AvroConvert)
+                    .GetMethod(nameof(Deserialize), new[] { typeof(byte[]), typeof(AvroConvertOptions) })!
+                    .MakeGenericMethod(targetType)
+                    .Invoke(null, new object[] { avroBytes, options });
+            }
+            catch (TargetInvocationException ex)
+            {
+                throw ex.InnerException!;
+            }
+        }
+
+        /// <summary>
         /// Deserializes Avro data from a <see cref="ReadOnlySpan{T}"/> of bytes into an object of the specified type.
         /// </summary>
         /// <typeparam name="T">The type of object to deserialize into.</typeparam>

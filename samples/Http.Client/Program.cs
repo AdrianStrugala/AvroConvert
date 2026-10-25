@@ -1,27 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System;
 using System.Net.Http;
-using Newtonsoft.Json;
+using System.Text.Json;
 using SolTechnology.Avro.Http;
 
-namespace Http.Client
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            Console.WriteLine("Http Client running!");
-            string url = "https://localhost:2137/WeatherForecast";
+// Start samples/Http.Server first.
+using var client = new HttpClient { BaseAddress = new Uri("http://localhost:2137/") };
 
-            HttpClient httpClient = new HttpClient();
-            List<WeatherForecast> avroResult = httpClient.GetAsAvro<List<WeatherForecast>>(url).Result;
-            Console.WriteLine(JsonConvert.SerializeObject(avroResult));
+// GetFromAvroAsync sends Accept: application/avro, so the server answers in Avro instead of JSON.
+var forecasts = await client.GetFromAvroAsync<WeatherForecast[]>("WeatherForecast");
+Console.WriteLine($"MVC GET     -> {JsonSerializer.Serialize(forecasts)}");
 
-            HttpResponseMessage postResponse = httpClient.PostAsAvro(url, avroResult.First()).Result;
-            Console.WriteLine(JsonConvert.SerializeObject(postResponse));
+using var posted = await client.PostAsAvroAsync("WeatherForecast", forecasts[0]);
+Console.WriteLine($"MVC POST    -> {(int)posted.StatusCode} {posted.Content.Headers.ContentType}");
 
-            Console.ReadLine();
-        }
-    }
-}
+var minimal = await client.GetFromAvroAsync<WeatherForecast[]>("minimal/forecast");
+Console.WriteLine($"Minimal GET -> {minimal.Length} forecasts");
+
+using var created = await client.PostAsAvroAsync("minimal/forecast", minimal[0]);
+var echoed = await created.Content.ReadFromAvroAsync<WeatherForecast>();
+Console.WriteLine($"Minimal POST-> {(int)created.StatusCode} {JsonSerializer.Serialize(echoed)}");
+
+public record WeatherForecast(DateTime Date, int TemperatureC, string Summary);

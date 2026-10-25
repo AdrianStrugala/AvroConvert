@@ -1,55 +1,61 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.IO;
-using System.Net;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Confluent.Kafka;
 using Confluent.SchemaRegistry;
 
-namespace SolTechnology.Avro.Kafka.Deserialization
+namespace SolTechnology.Avro.Kafka.Deserialization;
+
+/// <summary>
+/// Deserializes messages in the Confluent Schema Registry wire format, written by AvroConvert or by the Confluent
+/// serializers of any language, to plain .NET objects. The writer schema is fetched from the registry by the id in the
+/// message and resolved against the schema of <typeparamref name="T"/> (Avro schema evolution).
+/// </summary>
+/// <remarks>
+/// Use <c>.AsSyncOverAsync()</c> (or <c>SetAvroValueDeserializer</c>) with a consumer. A null message (tombstone)
+/// is returned as <c>default</c>. Data contract rules and schema references are not supported.
+/// </remarks>
+public class AvroConvertSchemaRegistryDeserializer<T> : AsyncDeserializer<T, AvroSchema>
 {
-    public class AvroConvertSchemaRegistryDeserializer<T> : IAsyncDeserializer<T>
+    private readonly AvroConvertOptions _options;
+    private readonly AvroSchema _readerSchema;
+
+    public AvroConvertSchemaRegistryDeserializer(ISchemaRegistryClient schemaRegistryClient, AvroConvertDeserializerConfig config = null)
+        : base(schemaRegistryClient ?? throw new ArgumentNullException(nameof(schemaRegistryClient)), null)
     {
-        private ISchemaRegistryClient RegistryClient { get; }
-        private readonly ConcurrentDictionary<int, Schema> cache = new ConcurrentDictionary<int, Schema>();
+        config ??= new AvroConvertDeserializerConfig();
+        _options = config.SerializerOptions;
+        _readerSchema = AvroSchema.Create<T>(_options);
 
-        public AvroConvertSchemaRegistryDeserializer(ISchemaRegistryClient registryClient
-        )
+        schemaIdDecoder = config.SchemaIdStrategy.ToDeserializer();
+        subjectNameStrategy = config.SubjectNameStrategy.ToAsyncDelegate(schemaRegistryClient, Enumerable.Empty<KeyValuePair<string, string>>(), out associatedNameStrategy);
+    }
+
+    public override async Task<T> DeserializeAsync(ReadOnlyMemory<byte> data, bool isNull, SerializationContext context)
+    {
+        if (isNull)
         {
-            RegistryClient = registryClient ?? throw new ArgumentNullException(nameof(registryClient));
+            return default;
         }
 
-        public virtual async Task<T> DeserializeAsync(ReadOnlyMemory<byte> data, bool isNull, SerializationContext context)
+        var isKey = context.Component == MessageComponentType.Key;
+        var subject = await GetSubjectName(context.Topic, isKey, null).ConfigureAwait(false);
+
+        var schemaId = new SchemaId(SchemaType.Avro);
+        var payload = schemaIdDecoder.Decode(data, context, ref schemaId);
+        var (_, writerSchema) = await GetWriterSchema(subject, schemaId).ConfigureAwait(false);
+
+        return AvroConvert.DeserializeHeadless<T>(payload.Span, writerSchema, _readerSchema, _options);
+    }
+
+    protected override Task<AvroSchema> ParseSchema(Schema schema)
+    {
+        if (schema.References is { Count: > 0 })
         {
-            using (var stream = new MemoryStream(data.ToArray(), false))
-            {
-                //Confluent Kafka format:
-                //https://docs.confluent.io/current/schema-registry/docs/serializer-formatter.html#wire-format
-                if (stream.ReadByte() != 0x00)
-                {
-                    throw new InvalidDataException("Invalid Confluent Kafka data format");
-                }
-                var bytes = new byte[4];
-                stream.Read(bytes, 0, bytes.Length);
-
-                var id = BitConverter.ToInt32(bytes, 0);
-                id = IPAddress.NetworkToHostOrder(id);  //ensure correct order
-
-                Schema schema;
-
-                if (cache.ContainsKey(id))
-                {
-                    schema = cache[id];
-                }
-                else
-                {
-                    schema = await RegistryClient.GetSchemaAsync(id);
-                    cache.AddOrUpdate(id, schema, (key, oldValue) => schema);
-                }
-
-                var result = AvroConvert.DeserializeHeadless<T>(stream.ToArray(), schema.SchemaString);
-                return result;
-            }
+            throw new NotSupportedException("AvroConvert does not support schema references yet.");
         }
+
+        return Task.FromResult(AvroSchema.Parse(schema.SchemaString));
     }
 }

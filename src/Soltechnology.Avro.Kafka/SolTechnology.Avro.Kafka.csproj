@@ -6,7 +6,7 @@
 		<Authors>Adrian Strugala</Authors>
 		<Company>SolTechnology</Company>
 		<Version>4.0.0-preview.1</Version>
-		<Description>Library containing extensions for Confluent Kafka platform</Description>
+		<Description>AvroConvert serializers for Confluent Kafka: plain .NET objects in the Confluent Schema Registry wire format, interoperable with the Confluent serializers of any language.</Description>
 		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
 		<PackageProjectUrl>https://soltechnology.dev/avroconvert/</PackageProjectUrl>
 		<RepositoryType>Dependency</RepositoryType>
@@ -25,8 +25,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Confluent.Kafka" Version="2.*" />
-		<PackageReference Include="Confluent.SchemaRegistry" Version="2.*" />
+		<PackageReference Include="Confluent.Kafka" Version="2.16.0" />
+		<PackageReference Include="Confluent.SchemaRegistry" Version="2.16.0" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -19,11 +19,20 @@ Breaking changes:
 - Snappy blocks now include the CRC-32 the specification requires, so other Avro tools can read them; 3.x files still read
 - Reflection-based methods are marked `[RequiresUnreferencedCode]` / `[RequiresDynamicCode]`. If you publish with `PublishTrimmed` or `PublishAot`, you will see IL2026/IL3050 warnings where you call them – the library works, but trimming may remove types it needs
 - `DateTimeOffset` now keeps its instant: a value with offset `+02:00` is written as the UTC moment it denotes and reads back as that moment with offset zero. 3.x wrote the wall-clock time and dropped the offset, so the same bytes read back as a different instant. `local-timestamp-*` logical types still take the wall-clock time
+- **SolTechnology.Avro.Kafka is rewritten** on the Confluent.SchemaRegistry serializer base classes (Confluent.Kafka / Confluent.SchemaRegistry 2.16):
+  - `AvroConvertSchemaRegistrySerializer<T>` / `AvroConvertSchemaRegistryDeserializer<T>` now produce and read the real Confluent wire format, verified against the official Confluent Avro serdes. 3.x failed on the first message to a subject that did not exist yet, and its deserializer passed the 5-byte header to the decoder together with the data
+  - configuration through `AvroConvertSerializerConfig` / `AvroConvertDeserializerConfig`: auto-registration, use latest version / schema id, subject name strategies, schema id in a header, `AvroConvertOptions`
+  - writer schema from the registry is resolved against the schema of `T` (schema evolution); null values are tombstones in both directions
+  - `AvroConvertSerializer<T>` / `AvroConvertDeserializer<T>` (no registry) take an `AvroSchema` instead of a Confluent JSON envelope and write plain headless Avro. 3.x wrote a fake Confluent header with schema id 0, which no Confluent consumer can resolve, and stripped spaces and backslashes from the schema
+  - builder extensions: `SetAvroValueSerializer` / `SetAvroKeySerializer` / `SetAvroValueDeserializer` / `SetAvroKeyDeserializer`
+  - removed: `KafkaConsumer`, `KafkaPropNames`, `ConfluentSchema`, `ConsumerBuilderExtensions.SetAvroValueDeserializer(string schema)`
+- **SolTechnology.Avro.Http** follows System.Net.Http.Json: `GetFromAvroAsync` (now sends `Accept: application/avro`, so content negotiation picks Avro), `PostAsAvroAsync`, `PutAsAvroAsync`, `PatchAsAvroAsync`, `HttpContent.ReadFromAvroAsync`, `AvroContent`, all with `AvroConvertOptions` and `CancellationToken`. `AddAvroFormatters()` registers the MVC formatters; Minimal APIs get `Avro<T>` and `AvroResults.Avro` / `Results.Extensions.Avro`. An invalid Avro body is a 400 instead of a 500. The 3.x method names and `Consts` remain as `[Obsolete]`
 - The bundled FastMember copy is gone (internal; nothing to change unless you referenced it directly)
 
 Changes:
 - Optional licence declaration via `AvroConvert.License` or `AVROCONVERT_LICENSE`; commercial licence keys are signed tokens parsed by `AvroLicense.Commercial` (nothing is restricted). Without a declaration a single notice per process is written to standard error
 - Dependencies: Newtonsoft.Json, IronSnappy and ZstdSharp.Port (zstandard)
+- New overloads: `Deserialize(byte[], Type, AvroConvertOptions)` and `DeserializeHeadless<T>(ReadOnlySpan<byte>, AvroSchema writer, AvroSchema reader, AvroConvertOptions)`
 - Serialization and deserialization compiled per schema and type; multiple times faster with a fraction of allocations
 - A one-element collection reads back as a collection
 - Fixed `Merge` losing data after the first block

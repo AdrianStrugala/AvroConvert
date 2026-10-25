@@ -285,6 +285,74 @@ AvroConvert.GenerateSchema(typeof(Order), options);
 
 Implement `IAvroNamingPolicy` (`GetTypeName`, `GetMemberName`) for other conventions.
 
+### HTTP
+
+`SolTechnology.Avro.Http` uses Avro (`application/avro`) as the wire format between HTTP services, mirroring
+`System.Net.Http.Json`:
+
+```csharp
+// Client
+var order = await httpClient.GetFromAvroAsync<Order>("orders/1");        // sends Accept: application/avro
+using var response = await httpClient.PostAsAvroAsync("orders", order);  // also PutAsAvroAsync, PatchAsAvroAsync
+var created = await response.Content.ReadFromAvroAsync<Order>();
+var content = AvroContent.Create(order, new AvroConvertOptions { Codec = CodecType.Brotli });
+
+// MVC controllers: JSON stays the default, Avro is used for Content-Type / Accept: application/avro
+builder.Services.AddControllers().AddAvroFormatters(new AvroConvertOptions { Codec = CodecType.Brotli });
+
+// Minimal API
+app.MapPost("/orders", (Avro<Order> order) => Results.Extensions.Avro(order.Value, statusCode: 201));
+app.MapGet("/orders/{id}", (int id) => AvroResults.Avro(repository.Get(id)));
+builder.Services.Configure<AvroHttpOptions>(o => o.SerializerOptions = new AvroConvertOptions { … });
+```
+
+Every method takes optional `AvroConvertOptions` and a `CancellationToken`. A request body that is not valid Avro is a
+400 (a model state error in MVC); a Minimal API `Avro<T>` parameter answers 415 to other content types.
+
+### Kafka
+
+`SolTechnology.Avro.Kafka` serializes plain .NET objects for Confluent Kafka in the
+[Schema Registry wire format](https://docs.confluent.io/platform/current/schema-registry/fundamentals/serdes-develop/index.html#wire-format),
+so the messages are read and written by the Confluent serializers of Java, Python, Go or .NET. Subject naming,
+registration and the schema id encoding come from Confluent.SchemaRegistry; AvroConvert generates the schema of your
+type and writes the data.
+
+```csharp
+using var schemaRegistry = new CachedSchemaRegistryClient(new SchemaRegistryConfig { Url = "http://localhost:8081" });
+
+using var producer = new ProducerBuilder<string, Order>(producerConfig)
+    .SetAvroValueSerializer(schemaRegistry)          // registers the schema of Order under "{topic}-value"
+    .Build();
+
+using var consumer = new ConsumerBuilder<string, Order>(consumerConfig)
+    .SetAvroValueDeserializer(schemaRegistry)        // writer schema from the registry, resolved against Order
+    .Build();
+```
+
+| `AvroConvertSerializerConfig` | Default | |
+|---|---|---|
+| `AutoRegisterSchemas` | `true` | Register the schema of `T`; when `false` it must already be registered |
+| `UseLatestVersion` / `UseLatestWithMetadata` / `UseSchemaId` | – | Write with a registered schema instead of the schema of `T` |
+| `NormalizeSchemas` | `false` | Let the registry normalize the schema |
+| `SubjectNameStrategy` | `Topic` | `Topic`, `Record`, `TopicRecord` |
+| `SchemaIdStrategy` | `Prefix` | Schema id in front of the data (magic byte + 4 bytes) or in a message header |
+| `SerializerOptions` | – | `AvroConvertOptions` (naming policy, converters…), also used to generate the schema |
+
+`AvroConvertDeserializerConfig` has `SubjectNameStrategy`, `SchemaIdStrategy` (`Dual` by default: header if present,
+else prefix) and `SerializerOptions`. Keys work the same way with `SetAvroKeySerializer` / `SetAvroKeyDeserializer`.
+A null value is a null message (tombstone) in both directions. Schema references and data contract rules are not
+supported yet.
+
+Without a schema registry, `AvroConvertSerializer<T>` / `AvroConvertDeserializer<T>` (or `SetAvroValueSerializer()`
+without a client) write and read plain headless Avro, with the schema agreed out of band:
+
+```csharp
+.SetAvroValueSerializer(AvroSchema.Create<Order>())
+.SetAvroValueDeserializer(writerSchema: AvroSchema.Parse(schemaJson))
+```
+
+A runnable example with Kafka and Schema Registry in Docker is in `samples/KafkaApp`.
+
 ### Licence declaration
 
 AvroConvert is free for noncommercial use and for companies under 100 people / 1,000,000 USD revenue; other

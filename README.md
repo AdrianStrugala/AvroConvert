@@ -122,6 +122,9 @@ await foreach (var item in AvroConvert.Deserialize<CustomClass>(stream))
    - [Generate Avro schema for JSON data](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#avroschema)
    - [Logical types](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#logical-types)
    - [AvroSchema: canonical form, fingerprints, comparison and compatibility checks](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#avroschema)
+6. Integrations
+   - [HTTP: HttpClient extensions, MVC formatters, Minimal API](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#http)
+   - [Kafka: Confluent Schema Registry serializers](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#kafka)
 
 
 [Full documentation](https://github.com/AdrianStrugala/AvroConvert/tree/master/docs)
@@ -165,8 +168,8 @@ These amazing people have contributed to AvroConvert:
 ## Related Work  
 
 - [![](https://img.shields.io/badge/AvroConvertOnline-Try%20Now-blue.svg?logo=google-chrome)](https://adrianstrugala.github.io/AvroConvert/) – paste an Avro schema, get a C# model
-- [![Nuget](https://img.shields.io/badge/Soltechnology.Avro.Http-v3.0.0-blue?logo=nuget)](https://www.nuget.org/packages/SolTechnology.Avro.Http/) – Avro as the wire format between HTTP services
-- [![Nuget](https://img.shields.io/badge/Soltechnology.Avro.Kafka-v3.0.0-blue?logo=nuget)](https://www.nuget.org/packages/SolTechnology.Avro.Kafka/) – serializers for Confluent Kafka
+- [![Nuget](https://img.shields.io/nuget/vpre/SolTechnology.Avro.Http?label=SolTechnology.Avro.Http&logo=nuget)](https://www.nuget.org/packages/SolTechnology.Avro.Http/) – Avro as the wire format between HTTP services: HttpClient, MVC and Minimal API
+- [![Nuget](https://img.shields.io/nuget/vpre/SolTechnology.Avro.Kafka?label=SolTechnology.Avro.Kafka&logo=nuget)](https://www.nuget.org/packages/SolTechnology.Avro.Kafka/) – Confluent Schema Registry serializers for plain .NET objects, interoperable with Java/Python/Go
 - [Avro API article](https://www.c-sharpcorner.com/blogs/avro-rest-api-as-the-evolution-of-json-based-communication-between-mic) 
 
 ---

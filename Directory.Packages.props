@@ -36,6 +36,6 @@
     <PackageVersion Include="BrotliSharpLib" Version="0.3.3" />
     <PackageVersion Include="Equals.Fody" Version="4.0.2" />
     <PackageVersion Include="GroBuf" Version="1.9.2" />
-    <PackageVersion Include="MongoDB.Bson" Version="3.1.0" />
+    <PackageVersion Include="MongoDB.Bson" Version="3.13.0" />
   </ItemGroup>
 </Project>

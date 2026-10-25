@@ -9,9 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.15.*" />
-    <PackageReference Include="Apache.Avro" Version="1.12.2" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.*" />
+    <PackageReference Include="BenchmarkDotNet" />
+    <PackageReference Include="Apache.Avro" />
+    <PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>
 
   <ItemGroup>

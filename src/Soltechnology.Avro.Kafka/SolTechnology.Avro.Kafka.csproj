@@ -25,8 +25,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Confluent.Kafka" Version="2.16.0" />
-		<PackageReference Include="Confluent.SchemaRegistry" Version="2.16.0" />
+		<PackageReference Include="Confluent.Kafka" />
+		<PackageReference Include="Confluent.SchemaRegistry" />
 	</ItemGroup>
 
 	<ItemGroup>

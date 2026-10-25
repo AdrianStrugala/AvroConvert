@@ -1,0 +1,40 @@
+<Project>
+  <!-- Central Package Management: every package version in the repository is set here, exactly (no floating versions),
+       so builds are reproducible and the dependency ranges in the published nuspecs are deliberate. Dependabot keeps them current. -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <ItemGroup Label="Library dependencies (minimum versions in the published packages)">
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageVersion Include="IronSnappy" Version="1.3.1" />
+    <PackageVersion Include="ZstdSharp.Port" Version="0.8.8" />
+    <PackageVersion Include="Confluent.Kafka" Version="2.16.0" />
+    <PackageVersion Include="Confluent.SchemaRegistry" Version="2.16.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="Tests">
+    <PackageVersion Include="AutoFixture" Version="4.18.1" />
+    <PackageVersion Include="AwesomeAssertions" Version="9.6.0" />
+    <PackageVersion Include="Confluent.SchemaRegistry.Serdes.Avro" Version="2.16.0" />
+    <PackageVersion Include="Google.Protobuf" Version="3.29.3" />
+    <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageVersion Include="NUnit" Version="5.0.0" />
+    <PackageVersion Include="NUnit.Analyzers" Version="4.15.0" />
+    <PackageVersion Include="NUnit3TestAdapter" Version="6.3.1" />
+  </ItemGroup>
+
+  <ItemGroup Label="Benchmarks">
+    <PackageVersion Include="Apache.Avro" Version="1.12.2" />
+    <PackageVersion Include="Apache.Avro.File.Snappy" Version="1.12.2" />
+    <PackageVersion Include="Apache.Avro.File.Zstandard" Version="1.12.2" />
+    <!-- Published AvroConvert, compared against the current source. VersionsBenchmark overrides it with the oldest benchmarked version. -->
+    <PackageVersion Include="AvroConvert" Version="3.4.10" />
+    <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
+    <PackageVersion Include="BrotliSharpLib" Version="0.3.3" />
+    <PackageVersion Include="Equals.Fody" Version="4.0.2" />
+    <PackageVersion Include="GroBuf" Version="1.9.2" />
+    <PackageVersion Include="MongoDB.Bson" Version="3.1.0" />
+  </ItemGroup>
+</Project>

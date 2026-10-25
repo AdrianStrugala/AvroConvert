@@ -62,9 +62,9 @@
 
 
 	<ItemGroup>
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.*" />
-		<PackageReference Include="IronSnappy" Version="1.3.*" />
-		<PackageReference Include="ZstdSharp.Port" Version="0.8.*" />
+		<PackageReference Include="Newtonsoft.Json" />
+		<PackageReference Include="IronSnappy" />
+		<PackageReference Include="ZstdSharp.Port" />
 	</ItemGroup>
 
 

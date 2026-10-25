@@ -35,6 +35,7 @@ Changes:
 - New overloads: `Deserialize(byte[], Type, AvroConvertOptions)` and `DeserializeHeadless<T>(ReadOnlySpan<byte>, AvroSchema writer, AvroSchema reader, AvroConvertOptions)`
 - Serialization and deserialization compiled per schema and type; multiple times faster with a fraction of allocations
 - A one-element collection reads back as a collection
+- `Json2Avro` and `AvroSchema.InferFromJson` look at every element of a JSON array, not only the first: a field that is `null` or missing in any element becomes a union with `null` (3.x failed on such data)
 - Fixed `Merge` losing data after the first block
 - Fixed `GenerateModel` output differing between operating systems
 - Support for string-convertible map keys (e.g. `Dictionary<Uri, T>`)

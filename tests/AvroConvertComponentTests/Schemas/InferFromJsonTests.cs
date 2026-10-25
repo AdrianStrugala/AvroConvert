@@ -106,5 +106,20 @@ namespace AvroConvertComponentTests.Schemas
             result.Should().StartWith("{\"name\":\"UnknownObject\",\"type\":\"record\",\"fields\":");
         }
 
+
+        [Test]
+        public void Fields_null_or_missing_in_any_array_element_become_nullable()
+        {
+            //Arrange
+            var json = """[{ "id": 1, "note": "a" }, { "id": 2, "note": null }, { "id": 3, "added": 1.5 }]""";
+
+
+            //Act
+            var result = AvroSchema.InferFromJson(json).Json;
+
+
+            //Assert
+            result.Should().Be("{\"type\":\"array\",\"items\":{\"name\":\"UnknownObject\",\"type\":\"record\",\"fields\":[{\"name\":\"id\",\"type\":\"long\"},{\"name\":\"note\",\"type\":[\"null\",\"string\"]},{\"name\":\"added\",\"type\":[\"null\",\"double\"]}]}}");
+        }
     }
 }

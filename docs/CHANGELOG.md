@@ -132,7 +132,7 @@ Changes:
 **v. 3.4.1 (11.11.23)**
 - Significant performance improvements
 - BuildSchema supports Guid default value
-- AvroConvertOnline is back online
+- AvroConvertOnline is back online (moved to https://soltechnology.dev/avroconvert/online/ in 4.0)
 
 \
 **v. 3.4.0 (18.09.23)**

@@ -1,6 +1,6 @@
 <Project>
   <!-- Central Package Management: every package version in the repository is set here, exactly (no floating versions),
-       so builds are reproducible and the dependency ranges in the published nuspecs are deliberate. Dependabot keeps them current. -->
+       so builds are reproducible and the dependency ranges in the published nuspecs are deliberate. -->
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>

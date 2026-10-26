@@ -217,7 +217,7 @@ namespace SolTechnology.Avro
             if (!license.IsSignatureValid)
             {
                 return $"AvroConvert licence key {license.Id} ({license.Licensee}) could not be verified. " +
-                       "Paste the key exactly as received by e-mail or contact support@soltechnology.dev.";
+                       "Paste the key exactly as received by e-mail or contact contact@soltechnology.dev.";
             }
 
             if (license.ValidUntil is { } validUntil && validUntil < releaseDate)

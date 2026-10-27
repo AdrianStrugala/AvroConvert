@@ -69,6 +69,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
         /// <param name="datum"></param>
         public void WriteLong(long value)
         {
+            // Byte by byte on purpose: MemoryStream.WriteByte is an array store. Encoding into a stackalloc buffer and one
+            // Write(span) was measured 1.7x slower for typical 1-3 byte values (Write has more checks and a memmove).
             ulong n = (ulong)((value << 1) ^ (value >> 63));
             while ((n & ~0x7FUL) != 0)
             {

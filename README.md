@@ -99,37 +99,22 @@ await foreach (var item in AvroConvert.Deserialize<CustomClass>(stream))
   var resultJson = AvroConvert.Avro2Json(avroObject);
 ```
 
-**Extended list:** <br>
-1. Serialization of .NET object to Avro format
-   - [Standard, codecs, collections](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#serialization)
-   - [Excluding header](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#headless-serialization-and-deserialization)
-   - [Streaming](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#streaming)
-2. Deserialization of Avro data to .NET object
-   - [Standard, dynamic, unions](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#deserialization)
-   - [Excluding header](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#headless-serialization-and-deserialization)
-   - [Schema evolution: reading data written with another schema version](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#schema-evolution)
-   - [Processing collection items one by one](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#reading-items-one-by-one)
-3. Other Avro data related operations
-   - [Merge Avro objects](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#merge)
-   - [JSON to Avro conversion](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#json2avro)
-   - [Avro to JSON conversion](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#avro2json)
-   - [Avro JSON Encoding (spec format, avro-tools compatible)](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#avro-json-encoding)
-4. Customization
-   - [Options reference](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#options-reference)
-   - [Custom converters](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#custom-converters)
-   - [Naming policy](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#naming-policy)
-5. Schema related
-   - [Get schema from Avro data](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#reading-the-schema-of-avro-data)
-   - [Generate schema from .NET type: type mapping and attributes](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#generating-a-schema-from-c-types)
-   - [Generate .NET model from Avro data or schema](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#generate-model)
-   - [Generate Avro schema for JSON data](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#avroschema)
-   - [Logical types](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#logical-types)
-   - [AvroSchema: canonical form, fingerprints, comparison and compatibility checks](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#avroschema)
-6. Integrations
-   - [HTTP: HttpClient extensions, MVC formatters, Minimal API](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Http.md)
-   - [Kafka: Confluent Schema Registry serializers](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Kafka.md)
-   - [Command line: `avroconvert` tool with avro-tools commands, schema compatibility and Schema Registry checks for CI](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Cli.md)
+| ![Serialize](https://img.shields.io/badge/Serialize-0B1F33?style=for-the-badge) | ![Deserialize](https://img.shields.io/badge/Deserialize-0B1F33?style=for-the-badge) | ![Schemas](https://img.shields.io/badge/Schemas-0B1F33?style=for-the-badge) |
+|:--|:--|:--|
+| [.NET objects to Avro](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#serialization) | [Typed, `dynamic` and unions](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#deserialization) | [Schema from a .NET type](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#generating-a-schema-from-c-types) |
+| [Collections, one entry per item](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#serialization) | [Schema evolution](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#schema-evolution) | [Schema of Avro data](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#reading-the-schema-of-avro-data) |
+| [Codecs: Deflate, Snappy, Zstandard, GZip, Brotli](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#serialization) | [Single messages without header](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#headless-serialization-and-deserialization) | [Schema from JSON data](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#avroschema) |
+| [Single messages without header](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#headless-serialization-and-deserialization) | [Async streaming](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#streaming) | [C# model from a schema](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#generate-model) |
+| [Streaming to `Stream` and `IBufferWriter`](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#streaming) | [Large files item by item](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#reading-items-one-by-one) | [Logical types](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#logical-types) |
+|  |  | [Compare, compatibility, fingerprints](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#avroschema) |
 
+| ![Convert](https://img.shields.io/badge/Convert-0B1F33?style=for-the-badge) | ![Customize](https://img.shields.io/badge/Customize-0B1F33?style=for-the-badge) | ![Integrate](https://img.shields.io/badge/Integrate-0B1F33?style=for-the-badge) |
+|:--|:--|:--|
+| [JSON → Avro](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#json2avro) | [Options reference](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#options-reference) | [Kafka + Confluent Schema Registry](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Kafka.md) |
+| [Avro → JSON](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#avro2json) | [Naming policy](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#naming-policy) | [HTTP: HttpClient, MVC, Minimal API](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Http.md) |
+| [Avro JSON Encoding (spec, avro-tools)](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#avro-json-encoding) | [Custom converters](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#custom-converters) | [Command line: `avroconvert`](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Cli.md) |
+| [Merge Avro files](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#merge) | [Attributes and type mapping](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#generating-a-schema-from-c-types) | [Schema checks in CI](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Cli.md#compat-is-the-new-schema-compatible) |
+|  | [Trimming and Native AOT](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#trimming-and-native-aot) | [AvroConvert Online, in the browser](https://soltechnology.dev/avroconvert/online/) |
 
 [Full documentation](https://github.com/AdrianStrugala/AvroConvert/tree/master/docs)
 

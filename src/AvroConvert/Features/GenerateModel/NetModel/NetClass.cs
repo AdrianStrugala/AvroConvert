@@ -8,10 +8,16 @@ namespace SolTechnology.Avro.Features.GenerateModel.NetModel
     {
         public string Name { get; set; }
         public string ClassNamespace { get; set; }
+
+        /// <summary>Name and namespace of the record in the schema; kept with [DataContract] so the schema of the class is the same.</summary>
+        public string AvroName { get; set; }
+        public string AvroNamespace { get; set; }
+
         public List<NetClassField> Fields { get; set; } = new List<NetClassField>();
 
         public void Write(StringBuilder sb)
         {
+            NetEnum.WriteDataContract(sb, Name, AvroName, AvroNamespace);
             sb.AppendLine($"public class {Name}");
             sb.AppendLine("{");
             foreach (NetClassField field in Fields)
@@ -42,6 +48,11 @@ namespace SolTechnology.Avro.Features.GenerateModel.NetModel
                     sb.AppendLine($"	[DefaultValue({defaultVal})]");
                 }
 
+                foreach (var attribute in field.Attributes)
+                {
+                    sb.AppendLine($"\t{attribute}");
+                }
+
                 if (field.UnionMembers.Count > 0)
                 {
                     sb.AppendLine($"	[AvroUnion({string.Join(", ", field.UnionMembers.Select(m => $"typeof({m.FieldType})"))})]");
@@ -61,6 +72,9 @@ namespace SolTechnology.Avro.Features.GenerateModel.NetModel
         public string Namespace { get; set; }
         public string Default { get; set; }
         public string Doc { get; set; }
+
+        /// <summary>Attributes that keep the schema of the property, e.g. [AvroType(AvroTypeRepresentation.TimestampMilliseconds)].</summary>
+        public List<string> Attributes { get; } = new();
 
         /// <summary>Named types of a union field; the records among them become <c>[AvroUnion(typeof(...))]</c>.</summary>
         public List<NetClassField> UnionMembers { get; } = new();

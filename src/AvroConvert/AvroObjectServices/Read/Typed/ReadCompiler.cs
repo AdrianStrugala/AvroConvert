@@ -327,7 +327,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             return ws switch
             {
                 DateSchema when type == typeof(DateOnly) => Expression.Call(LogicalReader(nameof(LogicalReaders.ReadDate)), reader),
+                DateSchema when type == typeof(DateTime) => Expression.Call(LogicalReader(nameof(LogicalReaders.ReadDateAsDateTime)), reader),
                 TimeMillisecondsSchema when type == typeof(TimeOnly) => Expression.Call(LogicalReader(nameof(LogicalReaders.ReadTimeMillis)), reader),
+                TimeMillisecondsSchema when type == typeof(TimeSpan) => Expression.Call(LogicalReader(nameof(LogicalReaders.ReadTimeMillisAsTimeSpan)), reader),
                 TimeMicrosecondsSchema when type == typeof(TimeOnly) => Expression.Call(LogicalReader(nameof(LogicalReaders.ReadTimeMicros)), reader),
                 TimeMicrosecondsSchema when type == typeof(TimeSpan) => Expression.Call(LogicalReader(nameof(LogicalReaders.ReadTimeMicrosAsTimeSpan)), reader),
                 UuidSchema when type == typeof(Guid) => Expression.Call(

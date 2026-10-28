@@ -29,7 +29,10 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            resultClass.Should().Be("public class User\r\n" +
+            resultClass.Should().Be("using System.Runtime.Serialization;\r\n" +
+                "\r\n" +
+                "[DataContract(Namespace = \"example.avro\")]\r\n" +
+                "public class User\r\n" +
                 "{\r\n" +
                 "\tpublic string name { get; set; }\r\n" +
                 "\tpublic int? favorite_number { get; set; }\r\n" +
@@ -49,7 +52,10 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            resultClass.Should().Be("public class User\r\n" +
+            resultClass.Should().Be("using System.Runtime.Serialization;\r\n" +
+                "\r\n" +
+                "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
+                "public class User\r\n" +
                 "{\r\n" +
                 "\tpublic string name { get; set; }\r\n" +
                 "\tpublic int? favorite_number { get; set; }\r\n" +
@@ -70,13 +76,17 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            resultSchema.Should().Be("public class BaseTestClass\r\n" +
+            resultSchema.Should().Be("using System.Runtime.Serialization;\r\n" +
+                "\r\n" +
+                "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
+                "public class BaseTestClass\r\n" +
                 "{\r\n" +
                 "\tpublic string justSomeProperty { get; set; }\r\n" +
                 "\tpublic long andLongProperty { get; set; }\r\n" +
                 "\tpublic User objectProperty { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
+                "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
                 "public class User\r\n" +
                 "{\r\n" +
                 "\tpublic string? name { get; set; }\r\n" +
@@ -97,7 +107,11 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            resultSchema.Should().Be("public class ClassWithEnum\r\n" +
+            resultSchema.Should().Be("using System.ComponentModel;\r\n" +
+                "using System.Runtime.Serialization;\r\n" +
+                "\r\n" +
+                "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
+                "public class ClassWithEnum\r\n" +
                 "{\r\n" +
                 "\t[DefaultValue(1)]\r\n" +
                 "\tpublic TestEnum? EnumProp { get; set; }\r\n" +
@@ -105,6 +119,7 @@ namespace AvroConvertComponentTests.GenerateModel
                 "\tpublic TestEnum? SecondEnumProp { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
+                "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
                 "public enum TestEnum\r\n" +
                 "{\r\n" +
                 "\ta,\r\n" +
@@ -126,7 +141,11 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            resultSchema.Should().Be("public class VeryComplexClass\r\n" +
+            resultSchema.Should().Be("using System;\r\n" +
+                "using System.Runtime.Serialization;\r\n" +
+                "\r\n" +
+                "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
+                "public class VeryComplexClass\r\n" +
                 "{\r\n" +
                 "\tpublic ClassWithArray[] ClassesWithArray { get; set; }\r\n" +
                 "\tpublic ClassWithGuid[] ClassesWithGuid { get; set; }\r\n" +
@@ -139,16 +158,19 @@ namespace AvroConvertComponentTests.GenerateModel
                 "\tpublic int? Size { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
+                "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
                 "public class ClassWithArray\r\n" +
                 "{\r\n" +
                 "\tpublic int[] theArray { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
+                "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
                 "public class ClassWithGuid\r\n" +
                 "{\r\n" +
                 "\tpublic Guid theGuid { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
+                "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
                 "public class ClassWithConstructorPopulatingProperty\r\n" +
                 "{\r\n" +
                 "\tpublic BaseTestClass[] nestedList { get; set; }\r\n" +
@@ -156,6 +178,7 @@ namespace AvroConvertComponentTests.GenerateModel
                 "\tpublic string stringProperty { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
+                "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
                 "public class BaseTestClass\r\n" +
                 "{\r\n" +
                 "\tpublic string justSomeProperty { get; set; }\r\n" +
@@ -163,6 +186,7 @@ namespace AvroConvertComponentTests.GenerateModel
                 "\tpublic User objectProperty { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
+                "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
                 "public class User\r\n" +
                 "{\r\n" +
                 "\tpublic string? name { get; set; }\r\n" +
@@ -170,6 +194,7 @@ namespace AvroConvertComponentTests.GenerateModel
                 "\tpublic string favorite_color { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
+                "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
                 "public class ClassWithSimpleList\r\n" +
                 "{\r\n" +
                 "\tpublic int[] someList { get; set; }\r\n" +
@@ -188,7 +213,11 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            resultSchema.Should().Be("public class LogicalTypesClass\r\n" +
+            resultSchema.Should().Be("using System;\r\n" +
+                "using System.Runtime.Serialization;\r\n" +
+                "\r\n" +
+                "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
+                "public class LogicalTypesClass\r\n" +
                 "{\r\n" +
                 "\tpublic decimal One { get; set; }\r\n" +
                 "\tpublic Guid? Two { get; set; }\r\n" +
@@ -210,7 +239,10 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            resultSchema.Should().Be("public enum TestEnum\r\n" +
+            resultSchema.Should().Be("using System.Runtime.Serialization;\r\n" +
+                "\r\n" +
+                "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
+                "public enum TestEnum\r\n" +
                 "{\r\n" +
                 "\ta,\r\n" +
                 "\tbe,\r\n" +
@@ -274,17 +306,22 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            resultClass.Should().Be("public class BaseTestClass\r\n" +
+            resultClass.Should().Be("using System.Runtime.Serialization;\r\n" +
+                "\r\n" +
+                "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
+                "public class BaseTestClass\r\n" +
                 "{\r\n" +
                 "\tpublic FakeUserUser fakeUserProperty { get; set; }\r\n" +
                 "\tpublic AvroConvertComponentTestsUser objectProperty { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
+                "[DataContract(Name = \"User\", Namespace = \"FakeUser\")]\r\n" +
                 "public class FakeUserUser\r\n" +
                 "{\r\n" +
                 "\tpublic string name { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
+                "[DataContract(Name = \"User\", Namespace = \"AvroConvertComponentTests\")]\r\n" +
                 "public class AvroConvertComponentTestsUser\r\n" +
                 "{\r\n" +
                 "\tpublic string name { get; set; }\r\n" +
@@ -386,7 +423,9 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            resultClass.Should().Be("public class Result\r\n" +
+            resultClass.Should().Be("using System.Runtime.Serialization;\r\n" +
+                "\r\n" +
+                "public class Result\r\n" +
                 "{\r\n" +
                 "\tpublic module module { get; set; }\r\n" +
                 "\tpublic customerInfo customerInfo { get; set; }\r\n" +
@@ -401,6 +440,7 @@ namespace AvroConvertComponentTests.GenerateModel
                 "\tpublic int? instrumentId { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
+                "[DataContract(Name = \"module\", Namespace = \"data\")]\r\n" +
                 "public class datamodule\r\n" +
                 "{\r\n" +
                 "\tpublic bool? isControl { get; set; }\r\n" +
@@ -518,7 +558,9 @@ namespace AvroConvertComponentTests.GenerateModel
             string resultClass = AvroConvert.GenerateModel(schema);
 
             //Assert
-            resultClass.Should().Be("public class Result\r\n" +
+            resultClass.Should().Be("using System.ComponentModel;\r\n" +
+                "\r\n" +
+                "public class Result\r\n" +
                 "{\r\n" +
                 "\t[DefaultValue(\"Default String\")]\r\n" +
                 "\tpublic string testString { get; set; }\r\n" +
@@ -575,7 +617,9 @@ namespace AvroConvertComponentTests.GenerateModel
             }
 
             //Assert
-            resultClass.Should().Be("public class Result\r\n" +
+            resultClass.Should().Be("using System.ComponentModel;\r\n" +
+                "\r\n" +
+                "public class Result\r\n" +
                 "{\r\n" +
                 "\t[DefaultValue(1.23)]\r\n" +
                 "\tpublic float testFloat { get; set; }\r\n" +
@@ -606,7 +650,9 @@ namespace AvroConvertComponentTests.GenerateModel
             string resultClass = AvroConvert.GenerateModel(schema);
 
             //Assert
-            resultClass.Should().Be("public class exampleAvro\r\n" +
+            resultClass.Should().Be("using System.Collections.Generic;\r\n" +
+                "\r\n" +
+                "public class exampleAvro\r\n" +
                 "{\r\n" +
                 "\tpublic Dictionary<string,int> mapdata { get; set; }\r\n" +
                 "}\r\n" +
@@ -645,7 +691,9 @@ namespace AvroConvertComponentTests.GenerateModel
             string resultClass = AvroConvert.GenerateModel(schema);
 
             //Assert
-            resultClass.Should().Be("public class EventData\r\n" +
+            resultClass.Should().Be("using System.Collections.Generic;\r\n" +
+                "\r\n" +
+                "public class EventData\r\n" +
                 "{\r\n" +
                 "\tpublic Dictionary<string,object> SystemProperties { get; set; }\r\n" +
                 "\tpublic Dictionary<string,double?> Properties { get; set; }\r\n" +
@@ -798,7 +846,9 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            resultClass.Should().Be("public class ClassWithMultipleTypesProperties\r\n" +
+            resultClass.Should().Be("using SolTechnology.Avro.Infrastructure.Attributes;\r\n" +
+                "\r\n" +
+                "public class ClassWithMultipleTypesProperties\r\n" +
                 "{\r\n" +
                 "\t/// <summary>\r\n" +
                 "\t/// Data:Switchable_PersonName\r\n" +
@@ -838,5 +888,66 @@ namespace AvroConvertComponentTests.GenerateModel
             model.Should().Contain("\t[AvroUnion(typeof(Paid), typeof(Cancelled))]\r\n\tpublic object? Event { get; set; }\r\n");
             model.Should().Contain("public class Cancelled");
         }
+
+        private const string ShopOrderSchema = @"{""type"":""record"",""name"":""Order"",""namespace"":""com.acme.shop"",""fields"":[
+            {""name"":""createdAt"",""type"":{""type"":""long"",""logicalType"":""timestamp-millis""}},
+            {""name"":""shippedOn"",""type"":[""null"",{""type"":""int"",""logicalType"":""date""}],""default"":null},
+            {""name"":""openAt"",""type"":{""type"":""int"",""logicalType"":""time-millis""}},
+            {""name"":""total"",""type"":{""type"":""bytes"",""logicalType"":""decimal"",""precision"":10,""scale"":2}},
+            {""name"":""address"",""type"":{""type"":""record"",""name"":""Address"",""fields"":[{""name"":""city"",""type"":""string""}]}}]}";
+
+        [Test]
+        public void GenerateClass_LogicalTypesAndNamespace_KeepTheSchema()
+        {
+            //Act
+            var model = AvroConvert.GenerateModel(ShopOrderSchema);
+
+
+            //Assert
+            model.Should().StartWith("using System;\r\nusing System.Runtime.Serialization;\r\nusing SolTechnology.Avro.Infrastructure.Attributes;\r\n\r\n");
+            model.Should().Contain("[DataContract(Namespace = \"com.acme.shop\")]\r\npublic class Order\r\n");
+            model.Should().Contain("\t[AvroType(AvroTypeRepresentation.TimestampMilliseconds)]\r\n\tpublic DateTime createdAt { get; set; }\r\n");
+            model.Should().Contain("\tpublic DateOnly? shippedOn { get; set; }\r\n");
+            model.Should().Contain("\t[AvroType(AvroTypeRepresentation.TimeMilliseconds)]\r\n\tpublic TimeOnly openAt { get; set; }\r\n");
+            model.Should().Contain("\t[AvroDecimal(Precision = 10, Scale = 2)]\r\n\tpublic decimal total { get; set; }\r\n");
+            model.Should().Contain("[DataContract(Namespace = \"com.acme.shop\")]\r\npublic class Address\r\n", "a nested record inherits the namespace of the enclosing one");
+        }
+
+        [Test]
+        public void GeneratedModel_GivesBackTheSameSchema()
+        {
+            // The classes below are the output of GenerateModel(ShopOrderSchema).
+            var original = AvroSchema.Parse(ShopOrderSchema);
+
+            var fromModel = AvroSchema.Create<GeneratedShop.Order>();
+
+            fromModel.CanonicalForm.Should().Be(original.CanonicalForm);
+        }
+    }
+}
+
+namespace AvroConvertComponentTests.GenerateModel.GeneratedShop
+{
+    using System;
+    using System.Runtime.Serialization;
+    using SolTechnology.Avro.Infrastructure.Attributes;
+
+    [DataContract(Namespace = "com.acme.shop")]
+    public class Order
+    {
+        [AvroType(AvroTypeRepresentation.TimestampMilliseconds)]
+        public DateTime createdAt { get; set; }
+        public DateOnly? shippedOn { get; set; }
+        [AvroType(AvroTypeRepresentation.TimeMilliseconds)]
+        public TimeOnly openAt { get; set; }
+        [AvroDecimal(Precision = 10, Scale = 2)]
+        public decimal total { get; set; }
+        public Address address { get; set; }
+    }
+
+    [DataContract(Namespace = "com.acme.shop")]
+    public class Address
+    {
+        public string city { get; set; }
     }
 }

@@ -19,6 +19,7 @@ Breaking changes:
 - Reflection-based methods marked `[RequiresUnreferencedCode]` / `[RequiresDynamicCode]`
 - SolTechnology.Avro.Kafka rewritten on Confluent.SchemaRegistry 2.16: Confluent wire format, schema evolution, references, subject name strategies. Removed `KafkaConsumer`, `KafkaPropNames`, `ConfluentSchema`
 - SolTechnology.Avro.Http follows System.Net.Http.Json (`GetFromAvroAsync`, `PostAsAvroAsync`, `ReadFromAvroAsync`…), Minimal API results and streaming; old names are `[Obsolete]`
+- `GenerateModel`: `date` → `DateOnly`, `time-millis` / `time-micros` → `TimeOnly`; the code starts with `using` directives and has `[DataContract]`, `[AvroType]` and `[AvroDecimal]` where needed, so the classes give back the same schema
 
 Changes:
 - Serialization and deserialization compiled per schema and type: several times faster, a fraction of allocations
@@ -38,6 +39,7 @@ Changes:
 - Writing with a schema field missing in the type writes the field's default
 - Schema resolution promotes `string` ↔ `bytes`; field `order` and enum `default` are preserved
 - Dates and times in a `string` field are read and written as ISO 8601 text (`DateTime`, `DateTimeOffset`, `DateOnly`, `TimeOnly`, `TimeSpan`), like Chr.Avro writes them by default
+- `DateTime` reads and writes `date`, `TimeSpan` reads and writes `time-millis` / `time-micros` (the types of Apache.Avro `avrogen` classes)
 - `Json2Avro` and `InferFromJson` look at every array element, not only the first one
 - A failed serialization does not leave a data block that looks complete
 - Fix for `Merge` losing data after the first block

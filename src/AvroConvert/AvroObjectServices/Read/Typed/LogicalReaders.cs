@@ -32,8 +32,14 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         internal static DateOnly ReadDate(Reader reader) =>
             DateOnly.FromDayNumber(EpochDayNumber + reader.ReadInt());
 
+        internal static DateTime ReadDateAsDateTime(Reader reader) =>
+            ReadDate(reader).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+
         internal static TimeOnly ReadTimeMillis(Reader reader) =>
             DateTimeExtensions.UnixEpochTime.Add(TimeSpan.FromMilliseconds(reader.ReadInt()));
+
+        internal static TimeSpan ReadTimeMillisAsTimeSpan(Reader reader) =>
+            TimeSpan.FromMilliseconds(reader.ReadInt());
 
         internal static TimeSpan ReadTimeMicrosAsTimeSpan(Reader reader) =>
             TimeSpan.FromTicks(reader.ReadLong() * 10);

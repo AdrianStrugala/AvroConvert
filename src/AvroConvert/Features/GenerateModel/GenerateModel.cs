@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SolTechnology.Avro.Features.GenerateModel.NetModel;
@@ -70,8 +71,32 @@ namespace SolTechnology.Avro.Features.GenerateModel
                 ac.Write(sb);
             }
 
+            var usings = Usings(sb.ToString());
+            if (usings.Length > 0)
+            {
+                sb.Insert(0, usings + "\n");
+            }
+
             // Generated code uses CRLF regardless of the host platform so the output is deterministic.
             return sb.Replace("\r\n", "\n").Replace("\n", "\r\n").ToString();
+        }
+
+        /// <summary>The using directives the generated code needs, so that it compiles as it is.</summary>
+        private static string Usings(string code)
+        {
+            var usings = new List<string>();
+            if (Regex.IsMatch(code, @"\b(DateTime|DateOnly|TimeOnly|TimeSpan|Guid)\b"))
+                usings.Add("System");
+            if (code.Contains("Dictionary<"))
+                usings.Add("System.Collections.Generic");
+            if (code.Contains("[DefaultValue("))
+                usings.Add("System.ComponentModel");
+            if (code.Contains("[DataContract("))
+                usings.Add("System.Runtime.Serialization");
+            if (code.Contains("[AvroType(") || code.Contains("[AvroDecimal(") || code.Contains("[AvroUnion("))
+                usings.Add("SolTechnology.Avro.Infrastructure.Attributes");
+
+            return string.Concat(usings.Select(u => $"using {u};\n"));
         }
 
 
@@ -85,23 +110,29 @@ namespace SolTechnology.Avro.Features.GenerateModel
             }
         }
 
-        private void Resolve(object json, NetModel.NetModel model)
+        /// <param name="enclosingNamespace">Namespace of the closest named type around <paramref name="json"/>; a named type without its own namespace inherits it.</param>
+        private void Resolve(object json, NetModel.NetModel model, string enclosingNamespace = null)
         {
             if (json is JObject parent)
             {
+                var type = parent["type"] as JValue;
+                var ownNamespace = type?.ToString() is "record" or "error" or "enum" or "fixed"
+                    ? AvroNamespace(parent, enclosingNamespace)
+                    : enclosingNamespace;
+
                 foreach (var prop in parent)
                 {
                     if (prop.Key == "type" && prop.Value.ToString() == "record")
                     {
-                        ResolveRecord(parent, model);
+                        ResolveRecord(parent, model, ownNamespace);
                     }
                     else if (prop.Key == "type" && prop.Value.ToString() == "enum")
                     {
-                        _enumResolver.ResolveEnum(parent, model);
+                        _enumResolver.ResolveEnum(parent, model, ownNamespace);
                     }
                     else if (prop.Value is JObject)
                     {
-                        Resolve(prop.Value, model);
+                        Resolve(prop.Value, model, ownNamespace);
                     }
                     else if (prop.Value is JArray array)
                     {
@@ -110,7 +141,7 @@ namespace SolTechnology.Avro.Features.GenerateModel
                             switch (arrayItem)
                             {
                                 case JObject jObject:
-                                    Resolve(jObject, model);
+                                    Resolve(jObject, model, ownNamespace);
                                     break;
                                 case JValue _:
                                     // This could be any item in an array - for example nullable
@@ -132,13 +163,28 @@ namespace SolTechnology.Avro.Features.GenerateModel
             }
         }
 
-        private void ResolveRecord(JObject parent, NetModel.NetModel model)
+        /// <summary>Namespace of a named type as the Avro specification defines it: from a dotted name, the "namespace" attribute, or the enclosing type.</summary>
+        internal static string AvroNamespace(JObject named, string enclosingNamespace)
+        {
+            var name = named["name"]?.ToString() ?? "";
+            var dot = name.LastIndexOf('.');
+            if (dot >= 0)
+            {
+                return name.Substring(0, dot);
+            }
+
+            return named["namespace"]?.ToString() ?? enclosingNamespace;
+        }
+
+        private void ResolveRecord(JObject parent, NetModel.NetModel model, string avroNamespace)
         {
             var shortName = parent["name"].ToString().Split('.').Last();
             NetClass c = new NetClass()
             {
                 Name = shortName,
-                ClassNamespace = _namespaceHelper.ExtractNamespace(parent, parent["name"].ToString(), shortName)
+                ClassNamespace = _namespaceHelper.ExtractNamespace(parent, parent["name"].ToString(), shortName),
+                AvroName = shortName,
+                AvroNamespace = avroNamespace
             };
             model.NetTypes.Add(c);
 
@@ -260,8 +306,12 @@ namespace SolTechnology.Avro.Features.GenerateModel
                     break;
                 default:
                     {
-                        result.FieldType = (typeObj["logicalType"] != null ? _logicalResolver.ResolveLogical(typeObj) : null)
-                                           ?? objectType;
+                        var (logicalType, attribute) = typeObj["logicalType"] != null ? _logicalResolver.ResolveLogical(typeObj) : (null, null);
+                        result.FieldType = logicalType ?? objectType;
+                        if (attribute != null)
+                        {
+                            result.Attributes.Add(attribute);
+                        }
 
                         break;
                     }

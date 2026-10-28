@@ -1,0 +1,7 @@
+{"type":"record","name":"User","namespace":"LibrariesBenchmark.Specific","fields":[
+  {"name":"Id","type":"int"},{"name":"IsActive","type":"boolean"},{"name":"Name","type":"string"},{"name":"Age","type":"int"},
+  {"name":"Contact","type":{"type":"record","name":"Contact","fields":[
+    {"name":"Id","type":"int"},{"name":"Address","type":"string"},{"name":"HouseNumber","type":"long"},{"name":"City","type":"string"},{"name":"PostCode","type":"string"}]}},
+  {"name":"Offerings","type":{"type":"array","items":{"type":"record","name":"Offering","fields":[
+    {"name":"Id","type":"int"},{"name":"ProductNumber","type":"string"},{"name":"Price","type":"int"},{"name":"Currency","type":"string"},{"name":"Discount","type":"boolean"}]}}}
+]}

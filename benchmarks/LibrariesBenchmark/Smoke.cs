@@ -11,15 +11,30 @@ public static class Smoke
         {
             var users = Dataset.Users(count);
             var a = AvroConvert.Serialize(users);
-            var b = apache.Serialize(users);
+            var b = apache.Serialize(Dataset.SpecificUsers(count));
             var c = NewtonsoftJson.Serialize(users);
             Check(AvroConvert.Deserialize<List<User>>(a), users, "AvroConvert");
-            Check(apache.Deserialize(b), users, "ApacheAvro");
+            Check(apache.Deserialize(b).Select(Dataset.FromSpecific).ToList(), users, "ApacheAvro");
             Check(NewtonsoftJson.Deserialize(c), users, "NewtonsoftJson");
-            Check(apache.Deserialize(a), users, "ApacheAvro reads AvroConvert");
             Check(AvroConvert.Deserialize<List<User>>(b), users, "AvroConvert reads ApacheAvro");
+
+            // The container headers name the records in different namespaces (LibrariesBenchmark vs the avrogen
+            // classes in LibrariesBenchmark.Specific); the binary data itself has no names and must be identical.
+            var ours = users.SelectMany(u => AvroConvert.SerializeHeadless(u, Headless)).ToArray();
+            var theirs = Dataset.SpecificUsers(count).SelectMany(ApacheHeadless).ToArray();
+            if (!ours.AsSpan().SequenceEqual(theirs)) throw new Exception("Binary data differs");
+            Console.WriteLine("  ok  same binary data");
             Console.WriteLine($"{count,6} records: AvroConvert {a.Length:N0} B, Apache.Avro {b.Length:N0} B, Newtonsoft.Json {c.Length:N0} B");
         }
+    }
+
+    private static readonly AvroSchema Headless = AvroSchema.Parse(Dataset.ApacheSchema);
+
+    private static byte[] ApacheHeadless(LibrariesBenchmark.Specific.User user)
+    {
+        var stream = new MemoryStream();
+        new Avro.Specific.SpecificDatumWriter<LibrariesBenchmark.Specific.User>(LibrariesBenchmark.Specific.User._SCHEMA).Write(user, new Avro.IO.BinaryEncoder(stream));
+        return stream.ToArray();
     }
 
     private static void Check(List<User> actual, List<User> expected, string label)

@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- AvroConvert vs Apache.Avro (Avro.Reflect) vs Newtonsoft.Json on the same POCO dataset; Results: docs/benchmarks. -->
+  <!-- AvroConvert vs Apache.Avro (avrogen classes) vs Newtonsoft.Json on the same dataset. Results: docs/benchmarks. -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>

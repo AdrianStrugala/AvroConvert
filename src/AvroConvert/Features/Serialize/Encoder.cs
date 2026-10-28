@@ -50,6 +50,7 @@ namespace SolTechnology.Avro.Features.Serialize
         private int _blockCount;
         private readonly int _syncInterval;
         private readonly Header _header;
+        private bool _faulted;
 
         /// <summary>Writes a container to <paramref name="output"/>; disposing the encoder writes the last block and flushes it.</summary>
         internal Encoder(TypeSchema schema, Writer output, CodecType codecType, AvroConvertOptions options = null)
@@ -82,20 +83,28 @@ namespace SolTechnology.Avro.Features.Serialize
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal void Append(object datum)
         {
-            if (datum == null)
+            try
             {
-                WriteHelpers.WriteRootNull(_schema, _chunkWriter, _options);
-            }
-            else
-            {
-                var type = datum.GetType();
-                if (!ReferenceEquals(type, _typedRootType))
+                if (datum == null)
                 {
-                    _typedRootType = type;
-                    _typedWriteItem = WritePlanCache.Get(_schema, type, _options);
+                    WriteHelpers.WriteRootNull(_schema, _chunkWriter, _options);
                 }
+                else
+                {
+                    var type = datum.GetType();
+                    if (!ReferenceEquals(type, _typedRootType))
+                    {
+                        _typedRootType = type;
+                        _typedWriteItem = WritePlanCache.Get(_schema, type, _options);
+                    }
 
-                _typedWriteItem(datum, _chunkWriter);
+                    _typedWriteItem(datum, _chunkWriter);
+                }
+            }
+            catch
+            {
+                _faulted = true;
+                throw;
             }
 
             _blockCount++;
@@ -110,7 +119,16 @@ namespace SolTechnology.Avro.Features.Serialize
         /// <summary>Appends one container entry encoded directly by <paramref name="write"/>.</summary>
         internal void AppendEncoded(Action<Writer> write)
         {
-            write(_chunkWriter);
+            try
+            {
+                write(_chunkWriter);
+            }
+            catch
+            {
+                _faulted = true;
+                throw;
+            }
+
             _blockCount++;
 
             if (_chunkWriter.Length >= _syncInterval)
@@ -124,15 +142,23 @@ namespace SolTechnology.Avro.Features.Serialize
         internal void AppendAll<T>(IEnumerable<T> items)
         {
             var write = WritePlanCache.GetTyped<T>(_schema, _options);
-            foreach (var item in items)
+            try
             {
-                write(_chunkWriter, item);
-                _blockCount++;
-
-                if (_chunkWriter.Length >= _syncInterval)
+                foreach (var item in items)
                 {
-                    WriteBuffer();
+                    write(_chunkWriter, item);
+                    _blockCount++;
+
+                    if (_chunkWriter.Length >= _syncInterval)
+                    {
+                        WriteBuffer();
+                    }
                 }
+            }
+            catch
+            {
+                _faulted = true;
+                throw;
             }
         }
 
@@ -143,7 +169,16 @@ namespace SolTechnology.Avro.Features.Serialize
         /// <summary>Appends one container entry; returns true when the entry completed a data block written to the output.</summary>
         internal bool Append<T>(Action<Writer, T> write, T item)
         {
-            write(_chunkWriter, item);
+            try
+            {
+                write(_chunkWriter, item);
+            }
+            catch
+            {
+                _faulted = true;
+                throw;
+            }
+
             _blockCount++;
             if (_chunkWriter.Length >= _syncInterval)
             {
@@ -175,9 +210,17 @@ namespace SolTechnology.Avro.Features.Serialize
             }
         }
 
+        /// <summary>
+        /// Writes the last data block, unless an entry failed: then the block in progress (which holds part of the
+        /// failed entry) is dropped, so the output never ends with a block that looks complete but is not.
+        /// </summary>
         public void Dispose()
         {
-            WriteBuffer();
+            if (!_faulted)
+            {
+                WriteBuffer();
+            }
+
             _writer.Complete();
             _chunkWriter.Dispose();
             _compressedChunk?.Dispose();

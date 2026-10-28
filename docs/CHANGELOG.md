@@ -44,6 +44,7 @@ Changes:
 - Writing with a schema that has a field the .NET type does not have writes the field's `default` (for example a newer schema version from a registry); without a default it still throws
 - `AvroSchema.Parse(json, referencedSchemas)` parses a schema that uses named types defined in other schemas (any order); an unknown type name now fails with a message naming it instead of a `KeyNotFoundException`
 - Schemas of recursive types: `AvroSchema.Create<T>()` and every API that builds a schema from a type work for self-referencing (`Node Next`, `List<Node> Children`) and mutually referencing types. A record refers to itself by name, and a direct reference to a type that is still being built becomes a union with `null`. 3.x failed with "Maximum depth of object graph reached"
+- When writing a container fails in the middle (an entry that does not match its schema, an exception from the enumerated collection), the data block in progress is dropped. Earlier versions also wrote that block, so the output read back without errors but without the failed entry and the ones after it
 - Fixed `Merge` losing data after the first block
 - Fixed `GenerateModel` output differing between operating systems
 - Support for string-convertible map keys (e.g. `Dictionary<Uri, T>`)

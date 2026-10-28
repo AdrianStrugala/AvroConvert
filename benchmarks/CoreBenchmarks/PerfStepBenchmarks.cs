@@ -8,7 +8,7 @@ using SolTechnology.Avro.AvroObjectServices.Write;
 namespace CoreBenchmarks;
 
 /// <summary>
-/// End-to-end read and write through the public API, used to measure each optimisation step on its own.
+/// End-to-end read and write through the public API, next to hand-written code on the same Reader/Writer and on plain spans.
 /// Run: dotnet run -c Release -- --filter '*PerfStepBenchmarks*'
 /// </summary>
 [MemoryDiagnoser]

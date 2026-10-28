@@ -119,6 +119,23 @@ namespace AvroConvertComponentTests.Streaming
         }
 
         [Test]
+        public void Failed_entry_does_not_leave_a_block_that_looks_complete([Values(10, 5_000)] int itemsBeforeFailure)
+        {
+            // Entries before the failure that fit in earlier blocks are already on the stream; the block holding the
+            // failed entry is dropped, so the output reads back as whole blocks only.
+            var rows = Rows(itemsBeforeFailure);
+            rows.Add(new Row { Id = -1, Name = null });
+            using var output = new MemoryStream();
+
+            var act = () => AvroConvert.Serialize(rows, output);
+
+            act.Should().Throw<Exception>();
+            var written = AvroConvert.Deserialize<List<Row>>(output.ToArray());
+            written.Should().BeEquivalentTo(rows.Take(written.Count));
+            written.Count.Should().BeLessThan(itemsBeforeFailure);
+        }
+
+        [Test]
         public void Record_with_500_fields([ValueSource(typeof(Formats), nameof(Formats.Core))] Format format)
         {
             var type = WideType(500);

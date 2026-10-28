@@ -46,6 +46,12 @@ public static class Program
             await error.WriteLineAsync($"{e.InnerException.GetType().Name}: {e.InnerException.Message}");
             return Error;
         }
+        catch (Exception e)
+        {
+            // Anything else (an invalid schema, a file that is not an assembly, data that does not match): exit code 2, no stack trace.
+            await error.WriteLineAsync($"{e.GetType().Name}: {e.Message}");
+            return Error;
+        }
     }
 
     internal static RootCommand BuildCommand(TextWriter output)

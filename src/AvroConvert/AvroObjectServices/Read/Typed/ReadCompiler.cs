@@ -65,8 +65,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         private readonly AvroMissingFieldHandling _missingFieldHandling;
         private readonly Dictionary<Type, Func<IReader, object>> _converters;
         private readonly Dictionary<(TypeSchema, TypeSchema, Type), object> _recordHolders = new();
-        // Inlining pays off for small messages only: in one big method the JIT optimises worse than in several small
-        // ones (measured: 200+ inlined fields are slower than separate delegates). Records past the limit stay delegates.
+        // Records are inlined into the caller's plan up to this many fields in total; the JIT optimises several small
+        // methods better than one very large one, so records past the limit stay separate delegates.
         private const int InlinedFieldsLimit = 100;
         private int _inlinedFields;
         private readonly HashSet<(TypeSchema, TypeSchema, Type)> _recordsInProgress = new();

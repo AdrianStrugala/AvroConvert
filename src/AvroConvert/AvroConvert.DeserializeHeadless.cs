@@ -143,7 +143,8 @@ namespace SolTechnology.Avro
 
         /// <summary>
         /// Deserializes Avro data, which does not contain header, written with <paramref name="writerSchema"/> and resolved
-        /// against <paramref name="readerSchema"/> (schema evolution), to .NET type – without copying <paramref name="avroBytes"/>.
+        /// against <paramref name="readerSchema"/> (schema evolution), to .NET type. Up to 1 MB of <paramref name="avroBytes"/>
+        /// is copied to a pooled buffer for the read; larger input is read in place.
         /// </summary>
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static T DeserializeHeadless<T>(ReadOnlySpan<byte> avroBytes, AvroSchema writerSchema, AvroSchema readerSchema, AvroConvertOptions options = null)

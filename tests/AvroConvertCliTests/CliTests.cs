@@ -99,6 +99,33 @@ namespace AvroConvertCliTests
         }
 
         [Test]
+        public async Task Induce_FileThatIsNotAnAssembly_IsAnError()
+        {
+            var (code, _, error) = await Run("induce", File("notes.dll", "not an assembly"), "Order");
+
+            code.Should().Be(2);
+            error.Should().Contain("BadImageFormatException");
+        }
+
+        [Test]
+        public async Task Canonical_MalformedSchema_IsAnError()
+        {
+            var (code, _, error) = await Run("canonical", File("broken.avsc", @"{""type"":""record"",""name"":""Order"",""fields"":["));
+
+            code.Should().Be(2);
+            error.Should().NotBeEmpty();
+        }
+
+        [Test]
+        public async Task Fingerprint_UnknownTypeInSchema_IsAnError()
+        {
+            var (code, _, error) = await Run("fingerprint", File("unknown.avsc", @"{""type"":""record"",""name"":""Order"",""fields"":[{""name"":""a"",""type"":""Nope""}]}"));
+
+            code.Should().Be(2);
+            error.Should().NotBeEmpty();
+        }
+
+        [Test]
         public async Task Compile_SchemaToStandardOutput()
         {
             var (code, output, _) = await Run("compile", "schema", File("order.avsc", OrderV1), "-");

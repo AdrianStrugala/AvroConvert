@@ -4,6 +4,35 @@ AvroConvert 4.0 targets .NET 10 (`net10.0`); for .NET Framework and .NET 6–9 u
 methods of `AvroConvert` in the `SolTechnology.Avro` namespace. Schema-related features (type mapping, attributes,
 logical types, `AvroSchema`, model generation) are described in [Documentation.Schema.md](Documentation.Schema.md).
 
+### At a glance
+
+| | Task | Code |
+|---|---|---|
+| **Write** | [Compress with a codec](#serialization) | `AvroConvert.Serialize(orders, CodecType.Zstandard)` |
+| | [One message without header (Kafka, queues)](#headless-serialization-and-deserialization) | `AvroConvert.SerializeHeadless(order, schema)` |
+| | [Stream a large collection](#streaming) | `AvroConvert.Serialize(orders, fileStream)` |
+| | [Write into a buffer](#streaming) | `AvroConvert.Serialize(order, bufferWriter)` |
+| **Read** | [One message without header](#headless-serialization-and-deserialization) | `AvroConvert.DeserializeHeadless<Order>(bytes, schema)` |
+| | [Old data into a new class](#schema-evolution) | `AvroConvert.Deserialize<OrderV2>(avro)` |
+| | [Without a class](#deserialization) | `AvroConvert.Deserialize<List<dynamic>>(avro)` |
+| | [Item by item](#streaming) | `await foreach (var o in AvroConvert.Deserialize<Order>(stream))` |
+| **Schema** | [Of a .NET type](Documentation.Schema.md#generating-a-schema-from-c-types) | `AvroSchema.Create<Order>()` |
+| | [Of JSON data](Documentation.Schema.md#avroschema) | `AvroSchema.InferFromJson(json)` |
+| | [C# classes from a schema](Documentation.Schema.md#generate-model) | `AvroConvert.GenerateModel(schema)` |
+| | [Is v2 compatible with v1?](Documentation.Schema.md#avroschema) | `AvroSchema.CheckCompatibility(v1, v2, AvroCompatibilityMode.Backward)` |
+| | [Fingerprint, canonical form](Documentation.Schema.md#avroschema) | `schema.Fingerprint` · `schema.CanonicalForm` |
+| **Convert** | [JSON → Avro](#json2avro) | `AvroConvert.Json2Avro<Order>(json)` |
+| | [Avro → JSON](#avro2json) | `AvroConvert.Avro2Json(avro)` |
+| | [Merge files](#merge) | `AvroConvert.Merge<Order>(files)` |
+| **Customize** | [Options](#options-reference) | `new AvroConvertOptions { NamingPolicy = …, Codec = … }` |
+| | [Own conversion of a type](#custom-converters) | `options.AvroConverters.Add(new MoneyConverter())` |
+| **Integrate** | [Kafka + Schema Registry](Documentation.Kafka.md) | `producerBuilder.SetAvroValueSerializer(schemaRegistry)` |
+| | [HTTP client](Documentation.Http.md) | `await http.GetFromAvroAsync<Order>(url)` |
+| | [ASP.NET Core](Documentation.Http.md) | `services.AddControllers().AddAvroFormatters()` |
+| | [Schema check in CI](Documentation.Cli.md) | `avroconvert compat v1.avsc v2.avsc` |
+
+### Contents
+
 - [Serialization](#serialization)
 - [Deserialization](#deserialization)
 - [Schema evolution](#schema-evolution)

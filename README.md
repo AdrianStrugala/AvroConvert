@@ -31,25 +31,30 @@
 
 **Avro combines the self-describing schema of JSON with the size and speed of binary serialization.** AvroConvert brings it to .NET the way you already serialize JSON: plain C# objects in, `byte[]` out – no code generation, no `.avsc` files.
 
-|                                                                          |                 AvroConvert                 |               Apache.Avro                | Newtonsoft.Json |
-|--------------------------------------------------------------------------|:-------------------------------------------:|:----------------------------------------:|:---------------:|
-| Works on plain C# classes – no generated code or schema files            |                     ✔️                      |                    ❌                     |       ✔️        |
-| Native .NET types (`Dictionary`, `List`, `DateTime`, `Guid`, `decimal`…) |                     ✔️                      |                    ❌                     |       ✔️        |
-| Compact binary payload                                                   |                     ✔️                      |                    ✔️                     |       ❌        |
-| Schema stored with the data – readable, versionable, evolvable           |                     ✔️                      |                    ✔️                     |       ❌        |
-| Compression codecs                                                       | Deflate · Snappy · Zstandard · GZip · Brotli (built-in) |      Deflate (others via add-ons)       |       ❌        |
-| Serialization time                                                       |                     1×                      |                12× slower                 |   11× slower    |
-| Deserialization time                                                     |                     1×                      |                12× slower                 |    3× slower    |
-| Memory allocated                                                         |                     1×                      |                 8× more                   |     5× more     |
-| Payload size, uncompressed                                               |                     1×                      |                    1×                     |    2.9× larger  |
+|                                                                          |                       AvroConvert                       |         Apache.Avro          | Newtonsoft.Json |
+|--------------------------------------------------------------------------|:-------------------------------------------------------:|:----------------------------:|:---------------:|
+| Works on plain C# classes – no generated code or schema files            |                           ✔️                            |              ❌              |       ✔️        |
+| Native .NET types (`Dictionary`, `List`, `DateTime`, `Guid`, `decimal`…) |                           ✔️                            |              ❌              |       ✔️        |
+| Compact binary payload                                                   |                           ✔️                            |              ✔️              |       ❌        |
+| Schema stored with the data – readable, versionable, evolvable           |                           ✔️                            |              ✔️              |       ❌        |
+| Compression codecs                                                       | Deflate · Snappy · Zstandard · GZip · Brotli (built-in) | Deflate (others via add-ons) |       ❌        |
 
 What it means for your services:
 * **Smaller data** – a 1 000-record payload is 2.9× smaller than JSON before compression, and codecs shrink it further → lower storage and network cost
 * **Faster round trips** – less time spent in serialization and on the wire between microservices
 * **Safer by default** – binary on the wire is not readable in plain text, and the embedded schema protects against silent shape drift
 
-Benchmarks: [raw results](docs/benchmarks/2026-10-28-libraries-avroconvert-vs-apache-vs-newtonsoft.md) · `benchmarks/LibrariesBenchmark`
+### Benchmark
 
+1 000 records (`User` with a nested `Contact` and two `Offering`s), serialized to and deserialized from `byte[]`. BenchmarkDotNet, .NET 10, Apple M1 Max.
+
+| Library         | Serialize | Deserialize | Memory allocated (serialize + deserialize) | Payload size |
+|-----------------|----------:|------------:|-------------------------------------------:|-------------:|
+| AvroConvert     |    136 μs |      241 μs |                                     962 KB |       131 KB |
+| Apache.Avro     |  1 751 μs |    2 798 μs |                                   5 039 KB |       131 KB |
+| Newtonsoft.Json |  1 450 μs |    2 169 μs |                                   2 620 KB |       379 KB |
+
+Results for 1 and 20 000 records: [raw results](docs/benchmarks/2026-10-28-libraries-avroconvert-vs-apache-vs-newtonsoft.md) · `benchmarks/LibrariesBenchmark`
 
 ## Features
 

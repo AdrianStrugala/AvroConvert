@@ -37,6 +37,7 @@ Changes:
 - Optional licence declaration: `AvroConvert.License` or `AVROCONVERT_LICENSE`
 - Writing with a schema field missing in the type writes the field's default
 - Schema resolution promotes `string` ↔ `bytes`; field `order` and enum `default` are preserved
+- Dates and times in a `string` field are read and written as ISO 8601 text (`DateTime`, `DateTimeOffset`, `DateOnly`, `TimeOnly`, `TimeSpan`), like Chr.Avro writes them by default
 - `Json2Avro` and `InferFromJson` look at every array element, not only the first one
 - A failed serialization does not leave a data block that looks complete
 - Fix for `Merge` losing data after the first block

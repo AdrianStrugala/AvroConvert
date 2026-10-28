@@ -269,9 +269,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             {
                 return Expression.Convert(Expression.Call(typeof(Guid).GetMethod(nameof(Guid.Parse), new[] { typeof(string) })!, read), target);
             }
-            if (underlying == typeof(DateTimeOffset))
+            if (TemporalText.IsTemporal(underlying))
             {
-                return Expression.Convert(Expression.Call(typeof(DateTimeOffset).GetMethod(nameof(DateTimeOffset.Parse), new[] { typeof(string) })!, read), target);
+                return Expression.Convert(Expression.Call(TemporalText.ParseMethod(underlying), read), target);
             }
             if (target == typeof(Uri))
             {
@@ -497,7 +497,13 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                 var branchRs = rs is UnionSchema readerUnion ? FindBranch(readerUnion, branchWs) : rs;
 
                 Expression body;
-                if (branchRs == null || (rs is not UnionSchema && !rs.CanRead(branchWs)))
+                if (branchWs.Type == AvroType.String && TemporalText.IsTemporal(Nullable.GetUnderlyingType(target) ?? target)
+                    && (branchRs == null || (rs is not UnionSchema && !rs.CanRead(branchWs))))
+                {
+                    // Date and time written as ISO 8601 text: the target type decides, not the reader schema.
+                    body = Build(branchWs, branchWs, target, reader, candidates);
+                }
+                else if (branchRs == null || (rs is not UnionSchema && !rs.CanRead(branchWs)))
                 {
                     body = Expression.Throw(Expression.Constant(new AvroException($"Schema mismatch. Reader: {rs}, writer: {branchWs}")), target);
                 }

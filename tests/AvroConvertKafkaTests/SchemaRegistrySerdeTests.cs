@@ -160,4 +160,33 @@ public class SchemaRegistrySerdeTests
         registry.Schemas.Single().SchemaString.Should().Contain("com.example.orders");
         (await deserializer.DeserializeAsync(bytes, false, ValueContext)).Should().BeEquivalentTo(Samples.Order());
     }
+
+    [Test]
+    public async Task Date_and_time_registered_as_text_are_written_and_read_with_the_registered_schema()
+    {
+        // Schema registered by a producer that stores DateTime as ISO 8601 text (Chr.Avro's default).
+        var (client, registry) = InMemorySchemaRegistry.Create();
+        registry.Register("orders-value", """
+            {"type":"record","name":"Shipment","namespace":"AvroConvertKafkaTests","fields":[
+              {"name":"Id","type":"int"},{"name":"ShippedAt","type":"string"},{"name":"DeliveredAt","type":["null","string"]}]}
+            """);
+        var serializer = new AvroConvertSchemaRegistrySerializer<Shipment>(client, new AvroConvertSerializerConfig { AutoRegisterSchemas = false, UseLatestVersion = true });
+        var deserializer = new AvroConvertSchemaRegistryDeserializer<Shipment>(client);
+        var shipment = new Shipment { Id = 1, ShippedAt = new DateTime(2026, 10, 28, 12, 0, 0, DateTimeKind.Utc), DeliveredAt = null };
+
+        var bytes = await serializer.SerializeAsync(shipment, ValueContext);
+        var result = await deserializer.DeserializeAsync(bytes, false, ValueContext);
+
+        result.Should().BeEquivalentTo(shipment);
+        var record = await new AvroDeserializer<GenericRecord>(client, new AvroDeserializerConfig { SubjectNameStrategy = SubjectNameStrategy.Topic })
+            .DeserializeAsync(bytes, false, ValueContext);
+        record["ShippedAt"].Should().Be("2026-10-28T12:00:00.0000000Z");
+    }
+
+    public class Shipment
+    {
+        public int Id { get; set; }
+        public DateTime ShippedAt { get; set; }
+        public DateTime? DeliveredAt { get; set; }
+    }
 }

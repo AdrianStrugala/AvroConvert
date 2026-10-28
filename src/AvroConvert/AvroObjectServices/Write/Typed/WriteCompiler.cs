@@ -303,8 +303,15 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
             {
                 return Expression.Condition(
                     Expression.Property(value, "HasValue"),
-                    Expression.Call(Expression.Property(value, "Value"), underlying.GetMethod(nameof(ToString), Type.EmptyTypes)!),
+                    TemporalText.IsTemporal(underlying)
+                        ? Expression.Call(TemporalText.FormatMethod(underlying), Expression.Property(value, "Value"))
+                        : Expression.Call(Expression.Property(value, "Value"), underlying.GetMethod(nameof(ToString), Type.EmptyTypes)!),
                     OrEmpty(Expression.Constant(null, typeof(string)), Expression.Constant(string.Empty), schema));
+            }
+
+            if (TemporalText.IsTemporal(type))
+            {
+                return Expression.Call(TemporalText.FormatMethod(type), value);
             }
 
             var toString = Expression.Call(value, type.GetMethod(nameof(ToString), Type.EmptyTypes)!);
@@ -750,6 +757,18 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                 {
                     branchIndex = i; // first matching branch, like the classic resolver
                     break;
+                }
+            }
+
+            if (branchIndex < 0 && TemporalText.IsTemporal(valueType))
+            {
+                for (int i = 0; i < branches.Count; i++)
+                {
+                    if (branches[i].Type == AvroType.String)
+                    {
+                        branchIndex = i;
+                        break;
+                    }
                 }
             }
 

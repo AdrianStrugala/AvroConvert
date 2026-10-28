@@ -99,7 +99,7 @@ await foreach (var item in AvroConvert.Deserialize<CustomClass>(stream))
   var resultJson = AvroConvert.Avro2Json(avroObject);
 ```
 
-| ![Serialize](https://img.shields.io/badge/Serialize-0B1F33?style=for-the-badge) | ![Deserialize](https://img.shields.io/badge/Deserialize-0B1F33?style=for-the-badge) | ![Schemas](https://img.shields.io/badge/Schemas-0B1F33?style=for-the-badge) |
+| ![Serialize](https://raw.githubusercontent.com/AdrianStrugala/AvroConvert/master/docs/readme/serialize.svg) | ![Deserialize](https://raw.githubusercontent.com/AdrianStrugala/AvroConvert/master/docs/readme/deserialize.svg) | ![Schemas](https://raw.githubusercontent.com/AdrianStrugala/AvroConvert/master/docs/readme/schemas.svg) |
 |:--|:--|:--|
 | [.NET objects to Avro](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#serialization) | [Typed, `dynamic` and unions](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#deserialization) | [Schema from a .NET type](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#generating-a-schema-from-c-types) |
 | [Collections, one entry per item](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#serialization) | [Schema evolution](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#schema-evolution) | [Schema of Avro data](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#reading-the-schema-of-avro-data) |
@@ -108,7 +108,7 @@ await foreach (var item in AvroConvert.Deserialize<CustomClass>(stream))
 | [Streaming to `Stream` and `IBufferWriter`](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#streaming) | [Large files item by item](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#reading-items-one-by-one) | [Logical types](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#logical-types) |
 |  |  | [Compare, compatibility, fingerprints](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#avroschema) |
 
-| ![Convert](https://img.shields.io/badge/Convert-0B1F33?style=for-the-badge) | ![Customize](https://img.shields.io/badge/Customize-0B1F33?style=for-the-badge) | ![Integrate](https://img.shields.io/badge/Integrate-0B1F33?style=for-the-badge) |
+| ![Convert](https://raw.githubusercontent.com/AdrianStrugala/AvroConvert/master/docs/readme/convert.svg) | ![Customize](https://raw.githubusercontent.com/AdrianStrugala/AvroConvert/master/docs/readme/customize.svg) | ![Integrate](https://raw.githubusercontent.com/AdrianStrugala/AvroConvert/master/docs/readme/integrate.svg) |
 |:--|:--|:--|
 | [JSON → Avro](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#json2avro) | [Options reference](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#options-reference) | [Kafka + Confluent Schema Registry](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Kafka.md) |
 | [Avro → JSON](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#avro2json) | [Naming policy](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#naming-policy) | [HTTP: HttpClient, MVC, Minimal API](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Http.md) |

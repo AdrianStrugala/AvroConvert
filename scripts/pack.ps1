@@ -12,7 +12,7 @@ $ErrorActionPreference = 'Stop'
 Set-Location (Join-Path $PSScriptRoot '..')
 
 if (-not $SkipTests) {
-    dotnet test AvroConvert.sln -c $Configuration
+    dotnet test AvroConvert.slnx -c $Configuration
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
 

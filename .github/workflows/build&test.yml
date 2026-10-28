@@ -17,11 +17,11 @@ jobs:
       with:
         dotnet-version: 10.0.x
     - name: Restore dependencies
-      run: dotnet restore AvroConvert.sln
+      run: dotnet restore AvroConvert.slnx
     - name: Build
-      run: dotnet build AvroConvert.sln --no-restore -c Release
+      run: dotnet build AvroConvert.slnx --no-restore -c Release
     - name: Test
-      run: dotnet test AvroConvert.sln --no-build -c Release --verbosity normal
+      run: dotnet test AvroConvert.slnx --no-build -c Release --verbosity normal
     - name: Pack
       run: |
         dotnet pack src/AvroConvert/AvroConvert.csproj --no-build -c Release -o artifacts

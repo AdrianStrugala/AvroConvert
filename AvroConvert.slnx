@@ -1,0 +1,42 @@
+<Solution>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/Benchmark/GrandeBenchmark.csproj" />
+    <Project Path="benchmarks/CoreBenchmarks/CoreBenchmarks.csproj" />
+    <Project Path="benchmarks/LibrariesBenchmark/LibrariesBenchmark.csproj" />
+    <Project Path="benchmarks/PerformanceBenchmark/In-updateBenchmark.csproj" />
+    <Project Path="benchmarks/Profiler/Profiler.csproj" />
+  </Folder>
+  <Folder Name="/docs/">
+    <File Path="docs/CHANGELOG.md" />
+    <File Path="docs/Documentation.md" />
+    <File Path="docs/Documentation.Schema.md" />
+    <File Path="LICENSE.md" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/Http.Client/Http.Client.csproj" />
+    <Project Path="samples/Http.Server/Http.Server.csproj" />
+    <Project Path="samples/KafkaApp/KafkaApp.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".gitignore" />
+    <File Path="src/AvroConvert/AvroConvert.csproj.DotSettings" />
+    <File Path="src/AvroConvert/LICENSE" />
+    <File Path="src/AvroConvert/NOTICE" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/AvroConvert/AvroConvert.csproj" />
+    <Project Path="src/SolTechnology.Avro.Cli/SolTechnology.Avro.Cli.csproj" />
+    <Project Path="src/SolTechnology.Avro.Http/SolTechnology.Avro.Http.csproj" />
+    <Project Path="src/Soltechnology.Avro.Kafka/SolTechnology.Avro.Kafka.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AvroConvertCliTests/AvroConvertCliTests.csproj" />
+    <Project Path="tests/AvroConvertComponentTests/AvroConvertComponentTests.csproj" />
+    <Project Path="tests/AvroConvertHttpTests/AvroConvertHttpTests.csproj" />
+    <Project Path="tests/AvroConvertInteropTests/AvroConvertInteropTests.csproj" />
+    <Project Path="tests/AvroConvertKafkaIntegrationTests/AvroConvertKafkaIntegrationTests.csproj" />
+    <Project Path="tests/AvroConvertKafkaTests/AvroConvertKafkaTests.csproj" />
+    <Project Path="tests/AvroConvertUnitTests/AvroConvertUnitTests.csproj" />
+  </Folder>
+</Solution>

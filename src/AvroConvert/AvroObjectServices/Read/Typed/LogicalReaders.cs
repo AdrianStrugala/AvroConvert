@@ -20,30 +20,30 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                 ? checked(value * (nanosecondsPerUnit / 100))
                 : value / (100 / nanosecondsPerUnit);
 
-        internal static DateTime ReadDateTime(IReader reader, long nanosecondsPerUnit, DateTimeKind kind) =>
+        internal static DateTime ReadDateTime(Reader reader, long nanosecondsPerUnit, DateTimeKind kind) =>
             new(EpochTicks + TimestampTicks(reader.ReadLong(), nanosecondsPerUnit), kind);
 
-        internal static DateTimeOffset ReadDateTimeOffset(IReader reader, long nanosecondsPerUnit) =>
+        internal static DateTimeOffset ReadDateTimeOffset(Reader reader, long nanosecondsPerUnit) =>
             new(EpochTicks + TimestampTicks(reader.ReadLong(), nanosecondsPerUnit), TimeSpan.Zero);
 
-        internal static DateOnly ReadDateOnlyFromTimestamp(IReader reader, long nanosecondsPerUnit) =>
+        internal static DateOnly ReadDateOnlyFromTimestamp(Reader reader, long nanosecondsPerUnit) =>
             DateOnly.FromDateTime(ReadDateTime(reader, nanosecondsPerUnit, DateTimeKind.Utc));
 
-        internal static DateOnly ReadDate(IReader reader) =>
+        internal static DateOnly ReadDate(Reader reader) =>
             DateOnly.FromDayNumber(EpochDayNumber + reader.ReadInt());
 
-        internal static TimeOnly ReadTimeMillis(IReader reader) =>
+        internal static TimeOnly ReadTimeMillis(Reader reader) =>
             DateTimeExtensions.UnixEpochTime.Add(TimeSpan.FromMilliseconds(reader.ReadInt()));
 
-        internal static TimeSpan ReadTimeMicrosAsTimeSpan(IReader reader) =>
+        internal static TimeSpan ReadTimeMicrosAsTimeSpan(Reader reader) =>
             TimeSpan.FromTicks(reader.ReadLong() * 10);
 
-        internal static TimeOnly ReadTimeMicros(IReader reader) =>
+        internal static TimeOnly ReadTimeMicros(Reader reader) =>
             TimeOnly.FromTimeSpan(ReadTimeMicrosAsTimeSpan(reader));
 
-        internal static Guid ReadUuidString(IReader reader) => Guid.Parse(reader.ReadString());
+        internal static Guid ReadUuidString(Reader reader) => Guid.Parse(reader.ReadString());
 
-        internal static Guid ReadUuidFixed(IReader reader)
+        internal static Guid ReadUuidFixed(Reader reader)
         {
             if (reader is Reader concrete)
             {

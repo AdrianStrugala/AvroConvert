@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Authors>Adrian Strugala</Authors>
     <Company>SolTechnology</Company>
-    <Version>4.0.0-preview.2</Version>
+    <Version>4.0.0-preview.3</Version>
     <Description>Apache Avro over HTTP with AvroConvert: HttpClient extensions, MVC formatters, Minimal API results and request bodies, and streaming of IAsyncEnumerable in both directions.</Description>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageProjectUrl>https://soltechnology.dev/avroconvert/</PackageProjectUrl>

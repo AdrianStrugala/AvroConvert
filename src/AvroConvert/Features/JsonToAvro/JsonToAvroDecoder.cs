@@ -9,6 +9,7 @@ using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Infrastructure.Extensions;
 using System.Diagnostics.CodeAnalysis;
 using SolTechnology.Avro.Infrastructure;
+using SolTechnology.Avro.AvroObjectServices.Write;
 
 namespace SolTechnology.Avro.Features.JsonToAvro
 {
@@ -48,10 +49,10 @@ namespace SolTechnology.Avro.Features.JsonToAvro
 
         private byte[] SerializeJArray(JArray jArray, CodecType codecType)
         {
-            using MemoryStream resultStream = new MemoryStream();
+            using var output = new Writer();
             var schema = _jsonSchemaBuilder.BuildItemSchema(jArray);
 
-            using (var writer = new Serialize.Encoder(schema, resultStream, codecType))
+            using (var writer = new Serialize.Encoder(schema, output, codecType))
             {
                 foreach (var child in jArray)
                 {
@@ -59,8 +60,7 @@ namespace SolTechnology.Avro.Features.JsonToAvro
                 }
             }
 
-            var result = resultStream.ToArray();
-            return result;
+            return output.ToArray();
         }
     }
 }

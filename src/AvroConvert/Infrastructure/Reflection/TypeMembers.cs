@@ -39,9 +39,6 @@ namespace SolTechnology.Avro.Infrastructure.Reflection
 
         private readonly Dictionary<string, MemberAccessor> _exact = new(StringComparer.Ordinal);
         private readonly Dictionary<string, MemberAccessor> _ignoreCase = new(StringComparer.OrdinalIgnoreCase);
-        private readonly List<MemberAccessor> _members = new();
-
-        internal IReadOnlyList<MemberAccessor> Members => _members;
 
         internal static TypeMembers For(Type type) => Cache.GetOrAdd(type, Build);
 
@@ -104,7 +101,6 @@ namespace SolTechnology.Avro.Infrastructure.Reflection
             // Derived members win over hidden base members of the same name.
             if (_exact.TryAdd(member.Name, member))
             {
-                _members.Add(member);
                 _ignoreCase.TryAdd(member.Name, member);
             }
         }

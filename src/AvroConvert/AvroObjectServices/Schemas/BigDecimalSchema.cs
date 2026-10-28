@@ -58,11 +58,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
 
             int scale = (bits[3] >> 16) & 0xFF;
 
-            using var stream = new MemoryStream();
-            var writer = new Writer(stream);
+            using var writer = new Writer();
             writer.WriteBytes(unscaled.ToByteArray(isUnsigned: false, isBigEndian: true));
             writer.WriteInt(scale);
-            return stream.ToArray();
+            return writer.ToArray();
         }
 
         private static readonly BigInteger MaxDecimalMantissa = (BigInteger.One << 96) - 1;

@@ -21,7 +21,7 @@ using SolTechnology.Avro.Infrastructure;
 namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 {
     /// <summary>
-    /// Compiles a (writerSchema, readerSchema, T) triple into a strongly typed <c>Func&lt;IReader, T&gt;</c>.
+    /// Compiles a (writerSchema, readerSchema, T) triple into a strongly typed <c>Func&lt;Reader, T&gt;</c>.
     /// Schema resolution, member lookup, union branch mapping and conversions are decided once at compile time; the
     /// produced delegate performs no boxing for primitives and no per-value schema dispatch. Dynamic targets
     /// (<c>object</c>) materialise as ExpandoObject / List&lt;object&gt; / Dictionary&lt;string, object&gt;, or as a CLR type
@@ -30,22 +30,23 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
     [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
     internal sealed class ReadCompiler
     {
-        private static readonly MethodInfo ReadBooleanMethod = typeof(IReader).GetMethod(nameof(IReader.ReadBoolean))!;
-        private static readonly MethodInfo ReadIntMethod = typeof(IReader).GetMethod(nameof(IReader.ReadInt))!;
-        private static readonly MethodInfo ReadLongMethod = typeof(IReader).GetMethod(nameof(IReader.ReadLong))!;
-        private static readonly MethodInfo ReadFloatMethod = typeof(IReader).GetMethod(nameof(IReader.ReadFloat))!;
-        private static readonly MethodInfo ReadDoubleMethod = typeof(IReader).GetMethod(nameof(IReader.ReadDouble))!;
-        private static readonly MethodInfo ReadStringMethod = typeof(IReader).GetMethod(nameof(IReader.ReadString))!;
-        private static readonly MethodInfo ReadBytesMethod = typeof(IReader).GetMethod(nameof(IReader.ReadBytes))!;
-        private static readonly MethodInfo ReadEnumMethod = typeof(IReader).GetMethod(nameof(IReader.ReadEnum))!;
-        private static readonly MethodInfo ReadUnionIndexMethod = typeof(IReader).GetMethod(nameof(IReader.ReadUnionIndex))!;
-        private static readonly MethodInfo ReadFixedMethod = typeof(IReader).GetMethod(nameof(IReader.ReadFixed), new[] { typeof(byte[]) })!;
+        private static readonly MethodInfo ReadBooleanMethod = typeof(Reader).GetMethod(nameof(IReader.ReadBoolean))!;
+        private static readonly MethodInfo ReadIntMethod = typeof(Reader).GetMethod(nameof(IReader.ReadInt))!;
+        private static readonly MethodInfo ReadLongMethod = typeof(Reader).GetMethod(nameof(IReader.ReadLong))!;
+        private static readonly MethodInfo ReadFloatMethod = typeof(Reader).GetMethod(nameof(IReader.ReadFloat))!;
+        private static readonly MethodInfo ReadDoubleMethod = typeof(Reader).GetMethod(nameof(IReader.ReadDouble))!;
+        private static readonly MethodInfo ReadStringMethod = typeof(Reader).GetMethod(nameof(IReader.ReadString))!;
+        private static readonly MethodInfo ReadBytesMethod = typeof(Reader).GetMethod(nameof(IReader.ReadBytes))!;
+        private static readonly MethodInfo ReadEnumMethod = typeof(Reader).GetMethod(nameof(IReader.ReadEnum))!;
+        private static readonly MethodInfo ReadUnionIndexMethod = typeof(Reader).GetMethod(nameof(IReader.ReadUnionIndex))!;
+        private static readonly MethodInfo ReadArrayStartMethod = typeof(Reader).GetMethod(nameof(IReader.ReadArrayStart))!;
+        private static readonly MethodInfo ReadArrayNextMethod = typeof(Reader).GetMethod(nameof(IReader.ReadArrayNext))!;
+        private static readonly MethodInfo ReadFixedMethod = typeof(Reader).GetMethod(nameof(IReader.ReadFixed), new[] { typeof(byte[]) })!;
         private static readonly MethodInfo SkipMethod = typeof(Skipper).GetMethod(nameof(Skipper.Skip), BindingFlags.Instance | BindingFlags.NonPublic)!;
         private static readonly MethodInfo Utf8GetStringMethod = typeof(Encoding).GetMethod(nameof(Encoding.GetString), new[] { typeof(byte[]) })!;
         private static readonly MethodInfo Utf8GetBytesMethod = typeof(Encoding).GetMethod(nameof(Encoding.GetBytes), new[] { typeof(string) })!;
         private static readonly MethodInfo ConvertToLogicalMethod = typeof(LogicalTypeSchema).GetMethod(nameof(LogicalTypeSchema.ConvertToLogicalValue), BindingFlags.Instance | BindingFlags.NonPublic)!;
         private static readonly MethodInfo GetUninitializedObjectMethod = typeof(RuntimeHelpers).GetMethod(nameof(RuntimeHelpers.GetUninitializedObject))!;
-        private static readonly MethodInfo ReadListMethod = Helper(nameof(ReadHelpers.ReadList));
         private static readonly ConstructorInfo ReaderFromBytesCtor = typeof(Reader).GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(byte[]) }, null)!;
         private static readonly MethodInfo ReadCountIntoMethod = Helper(nameof(ReadHelpers.ReadCountInto));
         private static readonly MethodInfo ReadArraysIntoMethod = Helper(nameof(ReadHelpers.ReadArraysInto));
@@ -64,6 +65,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         private readonly AvroMissingFieldHandling _missingFieldHandling;
         private readonly Dictionary<Type, Func<IReader, object>> _converters;
         private readonly Dictionary<(TypeSchema, TypeSchema, Type), object> _recordHolders = new();
+        // Records are inlined into the caller's plan up to this many fields in total; the JIT optimises several small
+        // methods better than one very large one, so records past the limit stay separate delegates.
+        private const int InlinedFieldsLimit = 100;
+        private int _inlinedFields;
+        private readonly HashSet<(TypeSchema, TypeSchema, Type)> _recordsInProgress = new();
 
         internal ReadCompiler(AvroConvertOptions options)
         {
@@ -74,11 +80,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                 : null;
         }
 
-        internal Func<IReader, T> CompileOne<T>(TypeSchema writerSchema, TypeSchema readerSchema)
+        internal Func<Reader, T> CompileOne<T>(TypeSchema writerSchema, TypeSchema readerSchema)
         {
-            var reader = Expression.Parameter(typeof(IReader), "reader");
+            var reader = Expression.Parameter(typeof(Reader), "reader");
             var body = Build(writerSchema, readerSchema, typeof(T), reader);
-            return Expression.Lambda<Func<IReader, T>>(body, reader).Compile();
+            return Expression.Lambda<Func<Reader, T>>(body, reader).Compile();
         }
 
         /// <summary>Block-wise reader of top-level container entries into a collection T; null when T is not a collection.</summary>
@@ -103,7 +109,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             }
 
             var listType = typeof(List<>).MakeGenericType(itemType);
-            var reader = Expression.Parameter(typeof(IReader), "reader");
+            var reader = Expression.Parameter(typeof(Reader), "reader");
             var count = Expression.Parameter(typeof(long), "count");
             var accumulator = Expression.Parameter(typeof(object), "accumulator");
             var itemFn = CompileItem(itemWriter, itemReader, itemType);
@@ -121,7 +127,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             return new ManyPlan<T>
             {
                 NewAccumulator = Expression.Lambda<Func<object>>(Expression.Convert(Expression.New(listType), typeof(object))).Compile(),
-                Append = Expression.Lambda<Action<IReader, long, object>>(append, reader, count, accumulator).Compile(),
+                Append = Expression.Lambda<Action<Reader, long, object>>(append, reader, count, accumulator).Compile(),
                 Finish = Expression.Lambda<Func<object, T>>(finishBody, accumulator).Compile()
             };
         }
@@ -418,9 +424,41 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             }
 
             var itemType = target == typeof(object) ? typeof(object) : CollectionItemType(target) ?? throw new NotSupportedException($"Array cannot be read as {target}");
-            var itemFn = CompileItem(ws.ItemSchema, itemRs, itemType);
-            var list = Expression.Call(ReadListMethod.MakeGenericMethod(itemType), reader, Expression.Constant(itemFn));
+            var list = BuildListLoop(Build(ws.ItemSchema, itemRs, itemType, reader), itemType, reader);
             return AdaptCollection(list, itemType, target) ?? throw new NotSupportedException($"Array cannot be read as {target}");
+        }
+
+        /// <summary>The array blocks read in a loop inside the plan, with the item expression inlined (no delegate per item).</summary>
+        private static Expression BuildListLoop(Expression item, Type itemType, ParameterExpression reader)
+        {
+            var listType = typeof(List<>).MakeGenericType(itemType);
+            var list = Expression.Variable(listType, "list");
+            var n = Expression.Variable(typeof(long), "n");
+            var i = Expression.Variable(typeof(long), "i");
+            var outerEnd = Expression.Label("outerEnd");
+            var innerEnd = Expression.Label("innerEnd");
+
+            var capacity = Expression.Condition(
+                Expression.AndAlso(Expression.GreaterThan(n, Expression.Constant(0L)), Expression.LessThan(n, Expression.Constant(1024L))),
+                Expression.Convert(n, typeof(int)),
+                Expression.Constant(4));
+
+            return Expression.Block(listType, new[] { list, n, i },
+                Expression.Assign(n, Expression.Call(reader, ReadArrayStartMethod)),
+                Expression.Assign(list, Expression.New(listType.GetConstructor(new[] { typeof(int) })!, capacity)),
+                Expression.Loop(
+                    Expression.Block(
+                        Expression.IfThen(Expression.Equal(n, Expression.Constant(0L)), Expression.Break(outerEnd)),
+                        Expression.Assign(i, Expression.Constant(0L)),
+                        Expression.Loop(
+                            Expression.Block(
+                                Expression.IfThen(Expression.GreaterThanOrEqual(i, n), Expression.Break(innerEnd)),
+                                Expression.Call(list, listType.GetMethod(nameof(List<object>.Add))!, item),
+                                Expression.PreIncrementAssign(i)),
+                            innerEnd),
+                        Expression.Assign(n, Expression.Call(reader, ReadArrayNextMethod))),
+                    outerEnd),
+                list);
         }
 
         private Expression BuildMap(MapSchema ws, TypeSchema rs, Type target, ParameterExpression reader)
@@ -442,8 +480,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             }
 
             // Non-string key type: convert each string key the same way a string value would be converted.
-            var keyReader = Expression.Parameter(typeof(IReader), "reader");
-            var keyFn = Expression.Lambda(typeof(Func<,>).MakeGenericType(typeof(IReader), kv.Key), BuildString(keyReader, kv.Key), keyReader).Compile();
+            var keyReader = Expression.Parameter(typeof(Reader), "reader");
+            var keyFn = Expression.Lambda(typeof(Func<,>).MakeGenericType(typeof(Reader), kv.Key), BuildString(keyReader, kv.Key), keyReader).Compile();
             var map = Expression.Call(ReadMapKeyedMethod.MakeGenericMethod(kv.Key, kv.Value), reader, Expression.Constant(keyFn), Expression.Constant(valueFn));
             return Expression.Convert(map, target);
         }
@@ -517,14 +555,37 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                 throw new NotSupportedException($"Record cannot be read as {target}");
             }
 
-            // Records are compiled into their own delegates (via a holder) so recursive schemas terminate.
+            // Non-recursive records are inlined into the caller's tree. A record that refers back to itself gets its own
+            // delegate (via a holder) so the tree terminates; the reference is detected while its body is being built.
             var key = (ws, (TypeSchema)rs, target);
             if (!_recordHolders.TryGetValue(key, out var holderObj))
             {
-                holderObj = Activator.CreateInstance(typeof(DelegateHolder<>).MakeGenericType(target))!;
-                _recordHolders.Add(key, holderObj);
-                var holderField = holderObj.GetType().GetField(nameof(DelegateHolder<object>.Fn))!;
-                holderField.SetValue(holderObj, CompileRecordDelegate(ws, rs, target));
+                if (_recordsInProgress.Contains(key))
+                {
+                    // A reference back to a record whose body is being built: filled in when that body is complete.
+                    holderObj = Activator.CreateInstance(typeof(DelegateHolder<>).MakeGenericType(target))!;
+                    _recordHolders.Add(key, holderObj);
+                }
+                else if (_inlinedFields + ws.Fields.Count <= InlinedFieldsLimit)
+                {
+                    _inlinedFields += ws.Fields.Count;
+                    _recordsInProgress.Add(key);
+                    var inline = BuildRecordBody(ws, rs, target, reader);
+                    _recordsInProgress.Remove(key);
+
+                    if (!_recordHolders.TryGetValue(key, out holderObj))
+                    {
+                        return inline;
+                    }
+
+                    holderObj.GetType().GetField(nameof(DelegateHolder<object>.Fn))!.SetValue(holderObj, CompileRecordDelegate(ws, rs, target));
+                }
+                else
+                {
+                    holderObj = Activator.CreateInstance(typeof(DelegateHolder<>).MakeGenericType(target))!;
+                    _recordHolders.Add(key, holderObj);
+                    holderObj.GetType().GetField(nameof(DelegateHolder<object>.Fn))!.SetValue(holderObj, CompileRecordDelegate(ws, rs, target));
+                }
             }
 
             var fn = Expression.Field(Expression.Constant(holderObj), nameof(DelegateHolder<object>.Fn));
@@ -533,12 +594,18 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 
         private Delegate CompileRecordDelegate(RecordSchema ws, RecordSchema rs, Type target)
         {
-            var reader = Expression.Parameter(typeof(IReader), "reader");
+            var reader = Expression.Parameter(typeof(Reader), "reader");
+            var lambda = Expression.Lambda(typeof(Func<,>).MakeGenericType(typeof(Reader), target), BuildRecordBody(ws, rs, target, reader), reader);
+            return lambda.Compile();
+        }
+
+        private Expression BuildRecordBody(RecordSchema ws, RecordSchema rs, Type target, ParameterExpression reader)
+        {
             var instance = Expression.Variable(target, "instance");
             var members = TypeMembers.For(target);
             var body = new List<Expression>
             {
-                Expression.Assign(instance, Expression.Convert(Expression.Call(GetUninitializedObjectMethod, Expression.Constant(target)), target))
+                Expression.Assign(instance, NewInstance(target))
             };
 
             foreach (var wf in ws.Fields)
@@ -588,18 +655,40 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 
                 bool clrNullable = !member.Type.IsValueType || Nullable.GetUnderlyingType(member.Type) != null;
                 var value = ResolveMissingReaderField(rs, rf, member.Type, clrNullable);
-                if (value == null && !clrNullable)
+                if (value == null)
                 {
-                    // UseDefault on a non-nullable value type: leave the CLR default rather than assigning null.
-                    continue;
+                    // No value from the schema: keep what the constructor set (as System.Text.Json does).
+                    // Only an explicit "default": null overwrites it.
+                    if (!rf.HasDefaultValue || !clrNullable)
+                    {
+                        continue;
+                    }
+
+                    value = Expression.Constant(null, member.Type);
                 }
 
-                body.Add(Expression.Assign(Expression.MakeMemberAccess(instance, member.Info), value ?? Expression.Constant(null, member.Type)));
+                body.Add(Expression.Assign(Expression.MakeMemberAccess(instance, member.Info), value));
             }
 
             body.Add(instance);
-            var lambda = Expression.Lambda(typeof(Func<,>).MakeGenericType(typeof(IReader), target), Expression.Block(target, new[] { instance }, body), reader);
-            return lambda.Compile();
+            return Expression.Block(target, new[] { instance }, body);
+        }
+
+        /// <summary>
+        /// The public parameterless constructor when there is one (field initialisers and constructor logic run, as in
+        /// System.Text.Json); otherwise an uninitialized instance (records with only a primary constructor, private constructors).
+        /// </summary>
+        private static Expression NewInstance(Type target)
+        {
+            if (target.IsValueType)
+            {
+                return Expression.New(target);
+            }
+
+            var ctor = target.GetConstructor(Type.EmptyTypes);
+            return ctor != null
+                ? Expression.New(ctor)
+                : Expression.Convert(Expression.Call(GetUninitializedObjectMethod, Expression.Constant(target)), target);
         }
 
         private static Type[] UnionCandidates(MemberInfo member) =>
@@ -729,9 +818,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 
         private Delegate CompileItem(TypeSchema ws, TypeSchema rs, Type itemType)
         {
-            var reader = Expression.Parameter(typeof(IReader), "reader");
+            var reader = Expression.Parameter(typeof(Reader), "reader");
             var body = Build(ws, rs, itemType, reader);
-            return Expression.Lambda(typeof(Func<,>).MakeGenericType(typeof(IReader), itemType), body, reader).Compile();
+            return Expression.Lambda(typeof(Func<,>).MakeGenericType(typeof(Reader), itemType), body, reader).Compile();
         }
 
         // ------------------------------------------------------------------ helpers
@@ -944,7 +1033,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         private sealed class DelegateHolder<T>
         {
 #pragma warning disable CS0649 // assigned through reflection in BuildRecord
-            public Func<IReader, T> Fn;
+            public Func<Reader, T> Fn;
 #pragma warning restore CS0649
         }
     }

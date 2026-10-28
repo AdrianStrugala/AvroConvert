@@ -54,20 +54,21 @@ namespace SolTechnology.Avro
             ArgumentNullException.ThrowIfNull(items);
             ArgumentNullException.ThrowIfNull(output);
             var codec = options?.Codec ?? CodecType.Null;
+            using var writer = new Writer(output);
 
             if (IsSingleValue(items))
             {
-                SerializeTo(items, output, codec, options);
+                SerializeTo(items, writer, codec, options);
                 return;
             }
 
             if (!HasStreamableSchema(typeof(T)))
             {
-                SerializeCollected(items.ToList(), output, codec, options);
+                SerializeCollected(items.ToList(), writer, codec, options);
                 return;
             }
 
-            using var encoder = new Encoder(Schema.Create(typeof(T), options), output, codec, options, leaveOpen: true);
+            using var encoder = new Encoder(Schema.Create(typeof(T), options), writer, codec, options);
             encoder.AppendAll(items);
         }
 
@@ -83,7 +84,7 @@ namespace SolTechnology.Avro
             ArgumentNullException.ThrowIfNull(items);
             ArgumentNullException.ThrowIfNull(output);
             var codec = options?.Codec ?? CodecType.Null;
-            using var buffer = new MemoryStream();
+            using var buffer = new Writer();
 
             if (!HasStreamableSchema(typeof(T)))
             {
@@ -97,7 +98,7 @@ namespace SolTechnology.Avro
             }
             else
             {
-                using var encoder = new Encoder(Schema.Create(typeof(T), options), buffer, codec, options, leaveOpen: true);
+                using var encoder = new Encoder(Schema.Create(typeof(T), options), buffer, codec, options);
                 var write = encoder.TypedWriter<T>();
                 await foreach (var item in items.WithCancellation(cancellationToken).ConfigureAwait(false))
                 {
@@ -134,7 +135,8 @@ namespace SolTechnology.Avro
         public static void Serialize(object obj, IBufferWriter<byte> output, AvroConvertOptions options = null)
         {
             ArgumentNullException.ThrowIfNull(output);
-            SerializeTo(obj, new BufferWriterStream(output), options?.Codec ?? CodecType.Null, options);
+            using var writer = new Writer(output);
+            SerializeTo(obj, writer, options?.Codec ?? CodecType.Null, options);
         }
 
         /// <summary>
@@ -145,7 +147,9 @@ namespace SolTechnology.Avro
         {
             ArgumentNullException.ThrowIfNull(output);
             ArgumentNullException.ThrowIfNull(schema);
-            ResolveWriter(schema.TypeSchema, obj, options)(obj, new Writer(new BufferWriterStream(output)));
+            using var writer = new Writer(output);
+            ResolveWriter(schema.TypeSchema, obj, options)(obj, writer);
+            writer.Flush();
         }
 
         private static bool HasStreamableSchema(Type type) =>
@@ -155,7 +159,7 @@ namespace SolTechnology.Avro
 
         /// <summary>Items whose schema comes from their runtime type, which they must share.</summary>
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
-        private static void SerializeCollected<T>(List<T> items, Stream output, CodecType codec, AvroConvertOptions options)
+        private static void SerializeCollected<T>(List<T> items, Writer output, CodecType codec, AvroConvertOptions options)
         {
             var types = items.Select(i => i?.GetType()).Distinct().ToList();
             if (types.Count > 1 || types.Contains(null))
@@ -171,22 +175,22 @@ namespace SolTechnology.Avro
                     ? new JsonSchemaBuilder().BuildSchema(items.Cast<ExpandoObject>())
                     : Schema.Create(types[0], options);
 
-            using var encoder = new Encoder(schema, output, codec, options, leaveOpen: true);
+            using var encoder = new Encoder(schema, output, codec, options);
             foreach (var item in items)
             {
                 encoder.Append(item);
             }
         }
 
-        private static async Task DrainAsync(MemoryStream buffer, Stream output, CancellationToken cancellationToken)
+        private static async Task DrainAsync(Writer buffer, Stream output, CancellationToken cancellationToken)
         {
             if (buffer.Length == 0)
             {
                 return;
             }
 
-            await output.WriteAsync(buffer.GetBuffer().AsMemory(0, (int)buffer.Length), cancellationToken).ConfigureAwait(false);
-            buffer.SetLength(0);
+            await output.WriteAsync(buffer.WrittenMemory, cancellationToken).ConfigureAwait(false);
+            buffer.Reset();
         }
     }
 }

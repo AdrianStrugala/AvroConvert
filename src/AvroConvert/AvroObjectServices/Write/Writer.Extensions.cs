@@ -15,6 +15,7 @@
 */
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using SolTechnology.Avro.AvroObjectServices.FileHeader;
@@ -55,6 +56,13 @@ namespace SolTechnology.Avro.AvroObjectServices.Write
             WriteStream(data);
 
             // write sync marker 
+            WriteFixed(syncData);
+        }
+
+        internal void WriteDataBlock(ReadOnlySpan<byte> data, byte[] syncData, int blockCount)
+        {
+            WriteLong(blockCount);
+            WriteBytes(data);
             WriteFixed(syncData);
         }
     }

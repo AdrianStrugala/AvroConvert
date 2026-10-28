@@ -27,6 +27,7 @@ using System.Reflection;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.AvroObjectServices.Read.Typed;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
+using SolTechnology.Avro.AvroObjectServices.Write;
 using SolTechnology.Avro.Features.JsonToAvro;
 using SolTechnology.Avro.Features.Serialize;
 using SolTechnology.Avro.Policies;
@@ -40,14 +41,15 @@ namespace SolTechnology.Avro
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private static byte[] SerializeToArray(object obj, CodecType codecType, AvroConvertOptions options)
         {
-            using var resultStream = new MemoryStream();
-            SerializeTo(obj, resultStream, codecType, options);
-            return resultStream.ToArray();
+            // A container starts with the schema in its header, so it is rarely small.
+            using var output = new Writer(Writer.TargetBufferSize);
+            SerializeTo(obj, output, codecType, options);
+            return output.ToArray();
         }
 
-        /// <summary>Writes an Avro container with <paramref name="obj"/> to <paramref name="output"/>, leaving the stream open.</summary>
+        /// <summary>Writes an Avro container with <paramref name="obj"/> to <paramref name="output"/> and flushes it.</summary>
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
-        private static void SerializeTo(object obj, Stream output, CodecType codecType, AvroConvertOptions options)
+        private static void SerializeTo(object obj, Writer output, CodecType codecType, AvroConvertOptions options)
         {
             var itemType = options == null || options.CollectionMode == AvroCollectionMode.Entries ? EntryItemType(obj) : null;
             if (itemType != null)
@@ -57,7 +59,7 @@ namespace SolTechnology.Avro
             }
 
             var schema = Schema.Create(obj, options);
-            using var writer = new Encoder(schema, output, codecType, options, leaveOpen: true);
+            using var writer = new Encoder(schema, output, codecType, options);
             writer.Append(obj);
         }
 
@@ -65,12 +67,12 @@ namespace SolTechnology.Avro
         /// Writes every element of a top-level collection as its own container entry (schema = element schema).
         /// </summary>
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
-        private static void SerializeEntries(IEnumerable items, Type itemType, Stream output, CodecType codecType, AvroConvertOptions options)
+        private static void SerializeEntries(IEnumerable items, Type itemType, Writer output, CodecType codecType, AvroConvertOptions options)
         {
             var schema = itemType == typeof(ExpandoObject)
                 ? new JsonSchemaBuilder().BuildSchema(items.Cast<ExpandoObject>())
                 : Schema.Create(itemType, options);
-            using var writer = new Encoder(schema, output, codecType, options, leaveOpen: true);
+            using var writer = new Encoder(schema, output, codecType, options);
             EntryAppenders.GetOrAdd(itemType, CompileAppender)(writer, items);
         }
 

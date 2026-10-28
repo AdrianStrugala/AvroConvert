@@ -35,13 +35,11 @@ namespace SolTechnology.Avro.Features.Serialize
 {
     internal class Encoder : IDisposable
     {
-        internal delegate void WriteItem(object value, IWriter encoder);
+        internal delegate void WriteItem(object value, Writer encoder);
 
         private readonly AbstractCodec _codec;
-        private readonly Stream _outStream;
         private readonly Writer _writer;
 
-        private readonly MemoryStream _memoryChunk;
         private readonly MemoryStream _compressedChunk;
         private readonly Writer _chunkWriter;
 
@@ -52,22 +50,19 @@ namespace SolTechnology.Avro.Features.Serialize
         private int _blockCount;
         private readonly int _syncInterval;
         private readonly Header _header;
-        private readonly bool _leaveOpen;
+        private bool _faulted;
 
-
-        internal Encoder(TypeSchema schema, Stream outOutStream, CodecType codecType, AvroConvertOptions options = null, bool leaveOpen = false)
+        /// <summary>Writes a container to <paramref name="output"/>; disposing the encoder writes the last block and flushes it.</summary>
+        internal Encoder(TypeSchema schema, Writer output, CodecType codecType, AvroConvertOptions options = null)
         {
-            _leaveOpen = leaveOpen;
             _codec = AbstractCodec.CreateCodec(codecType);
-            _outStream = outOutStream;
             _header = new Header();
             _syncInterval = DataFileConstants.DefaultSyncInterval;
 
             _blockCount = 0;
-            _writer = new Writer(_outStream);
-            _memoryChunk = new MemoryStream();
+            _writer = output;
             _compressedChunk = _codec is NullCodec ? null : new MemoryStream();
-            _chunkWriter = new Writer(_memoryChunk);
+            _chunkWriter = new Writer();
 
             GenerateSyncData();
             _header.AddMetadata(DataFileConstants.CodecMetadataKey, _codec.Name);
@@ -77,6 +72,7 @@ namespace SolTechnology.Avro.Features.Serialize
             _options = options;
 
             _writer.WriteHeader(_header);
+            _writer.Flush();
         }
         private void GenerateSyncData()
         {
@@ -87,38 +83,55 @@ namespace SolTechnology.Avro.Features.Serialize
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal void Append(object datum)
         {
-            if (datum == null)
+            try
             {
-                WriteHelpers.WriteRootNull(_schema, _chunkWriter, _options);
-            }
-            else
-            {
-                var type = datum.GetType();
-                if (!ReferenceEquals(type, _typedRootType))
+                if (datum == null)
                 {
-                    _typedRootType = type;
-                    _typedWriteItem = WritePlanCache.Get(_schema, type, _options);
+                    WriteHelpers.WriteRootNull(_schema, _chunkWriter, _options);
                 }
+                else
+                {
+                    var type = datum.GetType();
+                    if (!ReferenceEquals(type, _typedRootType))
+                    {
+                        _typedRootType = type;
+                        _typedWriteItem = WritePlanCache.Get(_schema, type, _options);
+                    }
 
-                _typedWriteItem(datum, _chunkWriter);
+                    _typedWriteItem(datum, _chunkWriter);
+                }
+            }
+            catch
+            {
+                _faulted = true;
+                throw;
             }
 
             _blockCount++;
 
             //write buffer if bigger than sync interval
-            if (_memoryChunk.Position >= _syncInterval)
+            if (_chunkWriter.Length >= _syncInterval)
             {
                 WriteBuffer();
             }
         }
 
         /// <summary>Appends one container entry encoded directly by <paramref name="write"/>.</summary>
-        internal void AppendEncoded(Action<IWriter> write)
+        internal void AppendEncoded(Action<Writer> write)
         {
-            write(_chunkWriter);
+            try
+            {
+                write(_chunkWriter);
+            }
+            catch
+            {
+                _faulted = true;
+                throw;
+            }
+
             _blockCount++;
 
-            if (_memoryChunk.Position >= _syncInterval)
+            if (_chunkWriter.Length >= _syncInterval)
             {
                 WriteBuffer();
             }
@@ -129,28 +142,45 @@ namespace SolTechnology.Avro.Features.Serialize
         internal void AppendAll<T>(IEnumerable<T> items)
         {
             var write = WritePlanCache.GetTyped<T>(_schema, _options);
-            foreach (var item in items)
+            try
             {
-                write(_chunkWriter, item);
-                _blockCount++;
-
-                if (_memoryChunk.Position >= _syncInterval)
+                foreach (var item in items)
                 {
-                    WriteBuffer();
+                    write(_chunkWriter, item);
+                    _blockCount++;
+
+                    if (_chunkWriter.Length >= _syncInterval)
+                    {
+                        WriteBuffer();
+                    }
                 }
+            }
+            catch
+            {
+                _faulted = true;
+                throw;
             }
         }
 
         /// <summary>Typed writer for <see cref="Append{T}"/>; fetch once and reuse for every item.</summary>
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
-        internal Action<IWriter, T> TypedWriter<T>() => WritePlanCache.GetTyped<T>(_schema, _options);
+        internal Action<Writer, T> TypedWriter<T>() => WritePlanCache.GetTyped<T>(_schema, _options);
 
         /// <summary>Appends one container entry; returns true when the entry completed a data block written to the output.</summary>
-        internal bool Append<T>(Action<IWriter, T> write, T item)
+        internal bool Append<T>(Action<Writer, T> write, T item)
         {
-            write(_chunkWriter, item);
+            try
+            {
+                write(_chunkWriter, item);
+            }
+            catch
+            {
+                _faulted = true;
+                throw;
+            }
+
             _blockCount++;
-            if (_memoryChunk.Position >= _syncInterval)
+            if (_chunkWriter.Length >= _syncInterval)
             {
                 WriteBuffer();
                 return true;
@@ -165,31 +195,35 @@ namespace SolTechnology.Avro.Features.Serialize
             {
                 if (_compressedChunk == null)
                 {
-                    _writer.WriteDataBlock(_memoryChunk, _header.SyncData, _blockCount);
+                    _writer.WriteDataBlock(_chunkWriter.WrittenSpan, _header.SyncData, _blockCount);
                 }
                 else
                 {
                     _compressedChunk.SetLength(0);
-                    _memoryChunk.TryGetBuffer(out var raw);
-                    _codec.Compress(raw, _compressedChunk);
+                    _codec.Compress(_chunkWriter.WrittenSpan, _compressedChunk);
                     _writer.WriteDataBlock(_compressedChunk, _header.SyncData, _blockCount);
                 }
 
+                _writer.Flush();
                 _blockCount = 0;
-                _memoryChunk.SetLength(0);
+                _chunkWriter.Reset();
             }
         }
 
+        /// <summary>
+        /// Writes the last data block, unless an entry failed: then the block in progress (which holds part of the
+        /// failed entry) is dropped, so the output never ends with a block that looks complete but is not.
+        /// </summary>
         public void Dispose()
         {
-            WriteBuffer();
-            _memoryChunk.Dispose();
-            _compressedChunk?.Dispose();
-            _outStream.Flush();
-            if (!_leaveOpen)
+            if (!_faulted)
             {
-                _outStream.Dispose();
+                WriteBuffer();
             }
+
+            _writer.Complete();
+            _chunkWriter.Dispose();
+            _compressedChunk?.Dispose();
         }
     }
 }

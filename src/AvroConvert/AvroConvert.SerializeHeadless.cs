@@ -35,15 +35,13 @@ namespace SolTechnology.Avro
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] SerializeHeadless(object obj, string schema, AvroConvertOptions options = null)
         {
-            using var resultStream = new MemoryStream();
-            var encoder = new Writer(resultStream);
+            using var encoder = new Writer();
             var schemaObject = Schema.Parse(schema);
             var writer = ResolveWriter(schemaObject, obj, options);
 
             writer(obj, encoder);
 
-            var result = resultStream.ToArray();
-            return result;
+            return encoder.ToArray();
         }
 
         /// <summary>
@@ -52,15 +50,13 @@ namespace SolTechnology.Avro
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] SerializeHeadless(object obj, Type objectType, AvroConvertOptions options = null)
         {
-            using var resultStream = new MemoryStream();
-            var encoder = new Writer(resultStream);
+            using var encoder = new Writer();
             var schemaObject = Schema.Create(objectType, options);
             var writer = ResolveWriter(schemaObject, obj, options);
 
             writer(obj, encoder);
 
-            var result = resultStream.ToArray();
-            return result;
+            return encoder.ToArray();
         }
 
         /// <summary>
@@ -69,10 +65,9 @@ namespace SolTechnology.Avro
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] SerializeHeadless(object obj, AvroSchema schema, AvroConvertOptions options = null)
         {
-            using var resultStream = new MemoryStream();
-            var encoder = new Writer(resultStream);
+            using var encoder = new Writer();
             ResolveWriter(schema.TypeSchema, obj, options)(obj, encoder);
-            return resultStream.ToArray();
+            return encoder.ToArray();
         }
 
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]

@@ -45,7 +45,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
 
         internal ReadPlan<T> GetPlan<T>() => ReadPlanCache.Get<T>(_writerSchema, _readerSchema, _options);
 
-        internal T Resolve<T>(IReader reader, long itemsCount = 0)
+        internal T Resolve<T>(Reader reader, long itemsCount = 0)
         {
             try
             {

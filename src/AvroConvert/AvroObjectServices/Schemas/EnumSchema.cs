@@ -35,7 +35,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
     internal sealed class EnumSchema : NamedSchema
     {
         private readonly List<string> symbols;
-        private readonly List<long> avroToCSharpValueMapping;
         private readonly Dictionary<string, int> symbolToValue;
         private readonly Dictionary<int, string> valueToSymbol;
 
@@ -69,13 +68,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             this.symbols = new List<string>();
             this.symbolToValue = new Dictionary<string, int>();
             this.valueToSymbol = new Dictionary<int, string>();
-            this.avroToCSharpValueMapping = new List<long>();
         }
         
         internal ReadOnlyCollection<string> Symbols => new (this.symbols);
-
-        internal bool TryGetSymbolValue(string symbol, out int value) =>
-            this.symbolToValue.TryGetValue(symbol, out value);
 
         internal int GetSymbolPosition(string symbol) =>
             this.symbols.IndexOf(symbol);
@@ -84,8 +79,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         {
             return this.valueToSymbol[value];
         }
-
-        internal long[] AvroToCSharpValueMapping => this.avroToCSharpValueMapping.ToArray();
 
         /// <summary>Symbol used by a reader when the writer's symbol is unknown to it (Avro 1.9+); null when not declared.</summary>
         internal string Default { get; set; }
@@ -122,15 +115,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             this.symbols.Add(symbol);
             this.symbolToValue.Add(symbol, this.symbolToValue.Count);
             this.valueToSymbol.Add(this.valueToSymbol.Count, symbol);
-
-            if (this.avroToCSharpValueMapping.Any())
-            {
-                this.avroToCSharpValueMapping.Add(this.avroToCSharpValueMapping.Last() + 1);
-            }
-            else
-            {
-                this.avroToCSharpValueMapping.Add(0);
-            }
         }
 
         internal override AvroType Type { get; set; } = AvroType.Enum;

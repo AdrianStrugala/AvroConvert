@@ -30,7 +30,6 @@ namespace SolTechnology.Avro.Features.Merge
     {
         private readonly AbstractCodec _codec;
         private readonly Stream _stream;
-        private readonly MemoryStream _tempBuffer;
         private readonly Writer _writer;
         private readonly Writer _tempWriter;
         private bool _isOpen;
@@ -49,8 +48,7 @@ namespace SolTechnology.Avro.Features.Merge
             _blockCount = 0;
             _writer = new Writer(_stream);
 
-            _tempBuffer = new MemoryStream();
-            _tempWriter = new Writer(_tempBuffer);
+            _tempWriter = new Writer();
 
             _isOpen = true;
             _header = new Header();
@@ -70,6 +68,7 @@ namespace SolTechnology.Avro.Features.Merge
             _header.AddMetadata(DataFileConstants.SchemaMetadataKey, schema);
 
             _writer.WriteHeader(_header);
+            _writer.Flush();
         }
 
         internal void WriteData(List<DataBlock> dataBlocks)
@@ -95,7 +94,7 @@ namespace SolTechnology.Avro.Features.Merge
 
         private void WriteIfBlockFull()
         {
-            if (_tempBuffer.Position >= _syncInterval)
+            if (_tempWriter.Length >= _syncInterval)
                 WriteBlock();
         }
 
@@ -103,10 +102,11 @@ namespace SolTechnology.Avro.Features.Merge
         {
             if (_blockCount > 0)
             {
-                _writer.WriteDataBlock(_tempBuffer, _header.SyncData, _blockCount);
+                _writer.WriteDataBlock(_tempWriter.WrittenSpan, _header.SyncData, _blockCount);
+                _writer.Flush();
 
                 _blockCount = 0;
-                _tempBuffer.SetLength(0);
+                _tempWriter.Reset();
             }
         }
 
@@ -119,6 +119,8 @@ namespace SolTechnology.Avro.Features.Merge
         public void Dispose()
         {
             Sync();
+            _writer.Dispose();
+            _tempWriter.Dispose();
             _stream.Flush();
             _stream.Dispose();
             _isOpen = false;

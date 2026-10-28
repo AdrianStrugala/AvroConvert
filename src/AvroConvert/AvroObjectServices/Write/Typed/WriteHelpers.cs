@@ -13,21 +13,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
     /// <summary>Loop and dynamic-dispatch helpers called from compiled write plans.</summary>
     internal static class WriteHelpers
     {
-        internal static void WriteArray<T>(IWriter writer, T[] items, Action<IWriter, T> writeItem)
-        {
-            writer.WriteArrayStart();
-            if (items != null)
-            {
-                writer.WriteItemCount(items.Length);
-                for (int i = 0; i < items.Length; i++)
-                {
-                    writeItem(writer, items[i]);
-                }
-            }
-            writer.WriteArrayEnd();
-        }
-
-        internal static void WriteList<T>(IWriter writer, IReadOnlyList<T> items, Action<IWriter, T> writeItem)
+        internal static void WriteList<T>(Writer writer, IReadOnlyList<T> items, Action<Writer, T> writeItem)
         {
             writer.WriteArrayStart();
             if (items != null)
@@ -41,7 +27,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
             writer.WriteArrayEnd();
         }
 
-        internal static void WriteEnumerable<T>(IWriter writer, IEnumerable<T> items, Action<IWriter, T> writeItem)
+        internal static void WriteEnumerable<T>(Writer writer, IEnumerable<T> items, Action<Writer, T> writeItem)
         {
             writer.WriteArrayStart();
             if (items != null)
@@ -70,7 +56,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
         }
 
         /// <summary>Non-generic enumerable (object[], ArrayList, JArray-derived arrays): items dispatched by runtime type.</summary>
-        internal static void WriteUntypedEnumerable(IWriter writer, IEnumerable items, Action<IWriter, object> writeItem)
+        internal static void WriteUntypedEnumerable(Writer writer, IEnumerable items, Action<Writer, object> writeItem)
         {
             writer.WriteArrayStart();
             if (items != null)
@@ -91,7 +77,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
             writer.WriteArrayEnd();
         }
 
-        internal static void WriteMap<TKey, TValue>(IWriter writer, IEnumerable<KeyValuePair<TKey, TValue>> entries, int count, Action<IWriter, TValue> writeValue)
+        internal static void WriteMap<TKey, TValue>(Writer writer, IEnumerable<KeyValuePair<TKey, TValue>> entries, int count, Action<Writer, TValue> writeValue)
         {
             writer.WriteMapStart();
             writer.WriteItemCount(count);
@@ -103,7 +89,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
             writer.WriteMapEnd();
         }
 
-        internal static void WriteUntypedMap(IWriter writer, IDictionary map, Action<IWriter, object> writeValue)
+        internal static void WriteUntypedMap(Writer writer, IDictionary map, Action<Writer, object> writeValue)
         {
             writer.WriteMapStart();
             if (map != null)
@@ -119,7 +105,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
         }
 
         /// <summary>Record given as a property bag (ExpandoObject / IDictionary&lt;string, object&gt;): fields looked up by name.</summary>
-        internal static void WriteDictionaryRecord(IWriter writer, IDictionary<string, object> values, string[] fieldNames, Action<IWriter, object>[] fieldWriters)
+        internal static void WriteDictionaryRecord(Writer writer, IDictionary<string, object> values, string[] fieldNames, Action<Writer, object>[] fieldWriters)
         {
             for (int i = 0; i < fieldNames.Length; i++)
             {
@@ -141,7 +127,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
         }
 
         /// <summary>Record given as a Newtonsoft JObject: values unwrapped to CLR primitives, arrays to object[].</summary>
-        internal static void WriteJsonRecord(IWriter writer, JObject json, string[] fieldNames, Action<IWriter, object>[] fieldWriters)
+        internal static void WriteJsonRecord(Writer writer, JObject json, string[] fieldNames, Action<Writer, object>[] fieldWriters)
         {
             for (int i = 0; i < fieldNames.Length; i++)
             {
@@ -169,7 +155,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
             }
         }
 
-        internal static void WriteEnumSymbol(IWriter writer, string symbol, EnumSchema schema)
+        internal static void WriteEnumSymbol(Writer writer, string symbol, EnumSchema schema)
         {
             var position = schema.GetSymbolPosition(symbol);
             if (position < 0)
@@ -202,7 +188,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
         };
 
         /// <summary>A null root value (whole object or a collection entry): null branch, error or empty value per the options.</summary>
-        internal static void WriteRootNull(TypeSchema schema, IWriter writer, AvroConvertOptions options)
+        internal static void WriteRootNull(TypeSchema schema, Writer writer, AvroConvertOptions options)
         {
             if ((options?.NullValueHandling ?? AvroNullValueHandling.Throw) == AvroNullValueHandling.Throw && !CanBeNull(schema))
             {
@@ -216,7 +202,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
         /// Representation of a missing (null) value for a schema: the null branch of a union, otherwise the type's empty value
         /// (empty string/bytes/array/map, zero, false; records field by field). Types without an empty value cannot be null.
         /// </summary>
-        internal static void WriteNullValue(TypeSchema schema, IWriter writer)
+        internal static void WriteNullValue(TypeSchema schema, Writer writer)
         {
             switch (schema.Type)
             {

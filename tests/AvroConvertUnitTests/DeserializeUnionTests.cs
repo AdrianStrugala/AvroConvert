@@ -8,6 +8,7 @@ using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using NUnit.Framework;
 using SolTechnology.Avro.Features.Serialize;
+using SolTechnology.Avro.AvroObjectServices.Write;
 
 namespace AvroConvertUnitTests
 {
@@ -85,13 +86,13 @@ namespace AvroConvertUnitTests
         private string ToJsonViaAvro<T>(T data, TypeSchema schema)
         {
             byte[] result;
-            using (MemoryStream resultStream = new MemoryStream())
+            using (var output = new Writer())
             {
-                using (var writer = new Encoder(schema, resultStream, CodecType.Null))
+                using (var writer = new Encoder(schema, output, CodecType.Null))
                 {
                     writer.Append(data);
                 }
-                result = resultStream.ToArray();
+                result = output.ToArray();
             }
 
             var avro2Json = AvroConvert.Avro2Json(result, schema.ToString());

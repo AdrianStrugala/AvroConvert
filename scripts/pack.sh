@@ -9,7 +9,7 @@ CONFIGURATION="${CONFIGURATION:-Release}"
 OUTPUT="${OUTPUT:-artifacts}"
 
 if [[ "${SKIP_TESTS:-0}" != "1" ]]; then
-  dotnet test AvroConvert.sln -c "$CONFIGURATION"
+  dotnet test AvroConvert.slnx -c "$CONFIGURATION"
 fi
 
 rm -rf "$OUTPUT"

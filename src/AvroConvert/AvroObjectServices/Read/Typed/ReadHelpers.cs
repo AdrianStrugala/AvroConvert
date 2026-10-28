@@ -6,29 +6,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
     /// <summary>Loop helpers called from compiled read plans; keep the expression trees small and the item delegates typed.</summary>
     internal static class ReadHelpers
     {
-        internal static List<T> ReadList<T>(IReader reader, Func<IReader, T> readItem)
-        {
-            long n = reader.ReadArrayStart();
-            var list = new List<T>(n > 0 && n < 1024 ? (int)n : 4);
-            for (; n != 0; n = reader.ReadArrayNext())
-            {
-                for (long i = 0; i < n; i++)
-                {
-                    list.Add(readItem(reader));
-                }
-            }
 
-            return list;
-        }
-
-        internal static List<T> ReadCount<T>(IReader reader, long count, Func<IReader, T> readItem)
-        {
-            var list = new List<T>(count < 1024 ? (int)count : 1024);
-            ReadCountInto(reader, count, readItem, list);
-            return list;
-        }
-
-        internal static void ReadCountInto<T>(IReader reader, long count, Func<IReader, T> readItem, List<T> list)
+        internal static void ReadCountInto<T>(Reader reader, long count, Func<Reader, T> readItem, List<T> list)
         {
             for (long i = 0; i < count; i++)
             {
@@ -40,7 +19,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         /// Reads <paramref name="count"/> container entries that are each an array of items and flattens them. When the
         /// entry schema is a union of null and the array, <paramref name="nullIndex"/> is the null branch (-1 otherwise).
         /// </summary>
-        internal static void ReadArraysInto<T>(IReader reader, long count, Func<IReader, T> readItem, List<T> list, int nullIndex)
+        internal static void ReadArraysInto<T>(Reader reader, long count, Func<Reader, T> readItem, List<T> list, int nullIndex)
         {
             for (long i = 0; i < count; i++)
             {
@@ -59,7 +38,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             }
         }
 
-        internal static Dictionary<string, T> ReadMap<T>(IReader reader, Func<IReader, T> readValue)
+        internal static Dictionary<string, T> ReadMap<T>(Reader reader, Func<Reader, T> readValue)
         {
             var result = new Dictionary<string, T>();
             for (long n = reader.ReadMapStart(); n != 0; n = reader.ReadMapNext())
@@ -75,7 +54,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         }
 
         /// <summary>Map whose string keys are converted to <typeparamref name="TKey"/> (Uri, Guid, ...).</summary>
-        internal static Dictionary<TKey, TValue> ReadMapKeyed<TKey, TValue>(IReader reader, Func<IReader, TKey> readKey, Func<IReader, TValue> readValue)
+        internal static Dictionary<TKey, TValue> ReadMapKeyed<TKey, TValue>(Reader reader, Func<Reader, TKey> readKey, Func<Reader, TValue> readValue)
         {
             var result = new Dictionary<TKey, TValue>();
             for (long n = reader.ReadMapStart(); n != 0; n = reader.ReadMapNext())
@@ -91,7 +70,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         }
 
         /// <summary>Dictionary with arbitrary key type, encoded as an array of {Key, Value} records.</summary>
-        internal static Dictionary<TKey, TValue> ReadDictionary<TKey, TValue>(IReader reader, Func<IReader, TKey> readKey, Func<IReader, TValue> readValue)
+        internal static Dictionary<TKey, TValue> ReadDictionary<TKey, TValue>(Reader reader, Func<Reader, TKey> readKey, Func<Reader, TValue> readValue)
         {
             var result = new Dictionary<TKey, TValue>();
             for (long n = reader.ReadArrayStart(); n != 0; n = reader.ReadArrayNext())

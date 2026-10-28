@@ -108,6 +108,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         private readonly Dictionary<Type, TypeSchema> _customSchemaMapping;
         private readonly AvroContractResolver _resolver;
         private readonly IAvroNamingPolicy _namingPolicy;
+        private readonly HashSet<Type> _recordsInProgress = new();
 
         internal ReflectionSchemaBuilder(AvroConvertOptions options = null)
         {
@@ -433,25 +434,44 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 attr,
                 type);
 
-
             var members = _resolver.ResolveMembers(type);
+
+            // KeyValuePair records are named after their fields, so they are registered after them (they never recurse).
+            bool isKeyValuePair = record.Name == "KeyValuePair2";
+            if (!isKeyValuePair)
+            {
+                // Registered before its fields: a member of the same type refers back to this record by name.
+                schemas.Add(type.ToString(), record);
+                _recordsInProgress.Add(type);
+            }
+
             var fields = BuildRecordFields(members, schemas, currentDepth, record);
+            _recordsInProgress.Remove(type);
 
             //Dictionary
-            if (record.Name == "KeyValuePair2")
+            if (isKeyValuePair)
             {
+                // A recursive value type may have built (and registered) this KeyValuePair already.
+                if (schemas.TryGetValue(type.ToString(), out var registered))
+                {
+                    return registered;
+                }
+
                 attr = new NamedEntityAttributes(
                     new SchemaName(record.Name, $"{fields.First().TypeSchema.Name}_{fields.Last().TypeSchema.Name}"),
                     record.Aliases,
                     record.Doc);
                 record = new RecordSchema(attr, type);
+                schemas.Add(type.ToString(), record);
             }
 
-            schemas.Add(type.ToString(), record);
             fields.ForEach(f => record.AddField(f));
 
             return record;
         }
+
+        private bool IsRecursiveReference(Type memberType) =>
+            _recordsInProgress.Contains(Nullable.GetUnderlyingType(memberType) ?? memberType);
 
         private TypeSchema TryBuildUnionSchema(Type memberType, MemberInfo memberInfo, Dictionary<string, NamedSchema> schemas, uint currentDepth, AvroTypeRepresentation? representation)
         {
@@ -472,7 +492,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
             var typeInfo = _resolver.ResolveType(memberType, memberInfo);
 
-            if (typeInfo.Nullable)
+            if (typeInfo.Nullable || result.Any(IsRecursiveReference))
             {
                 unionSchemas.Insert(0, new NullSchema());
             }
@@ -512,6 +532,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         {
             int index = 0;
             var result = new List<RecordFieldSchema>();
+            bool isKeyValuePair = record.Name == "KeyValuePair2";
             foreach (MemberSerializationInfo info in members)
             {
                 var property = info.MemberInfo as PropertyInfo;
@@ -534,9 +555,14 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                             $"Type member '{info.MemberInfo.GetType().Name}' is not supported."));
                 }
 
+                // A member of a record type that is still being built (a recursive reference) must allow null,
+                // otherwise no finite value of the type could be written. KeyValuePair records (dictionaries with
+                // non-string keys) are left as they are: an empty dictionary ends the recursion, and their name comes from the value type.
+                bool nullable = info.Nullable || !isKeyValuePair && IsRecursiveReference(memberType);
+
                 TypeSchema fieldSchema = TryBuildUnionSchema(memberType, info.MemberInfo, schemas, currentDepth, info.AvroTypeRepresentation)
                                          ?? TryBuildFixedSchema(memberType, info.MemberInfo, record)
-                                         ?? CreateSchema(info.Nullable, memberType, schemas, currentDepth + 1, info.AvroTypeRepresentation, info.DefaultValue?.GetType(), info.MemberInfo);
+                                         ?? CreateSchema(nullable, memberType, schemas, currentDepth + 1, info.AvroTypeRepresentation, info.DefaultValue?.GetType(), info.MemberInfo);
 
                 var recordField = new RecordFieldSchema(
                     new NamedEntityAttributes(new SchemaName(info.Name), info.Aliases, info.Doc),

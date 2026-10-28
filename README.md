@@ -56,67 +56,35 @@ Results for 1 and 20 000 records: [raw results](docs/benchmarks/2026-10-28-libra
 
 ## Features
 
-
-* Serialization
+#### Files and APIs
 ```csharp
- byte[] avroObject = AvroConvert.Serialize(object yourObject);
-```
-<br/>
-
-* Deserialization
-```csharp
-CustomClass deserializedObject = AvroConvert.Deserialize<CustomClass>(byte[] avroObject);
-```
-<br/>
-
-* Read schema from Avro object
-
-```csharp
-string schemaInJsonFormat = AvroConvert.GetSchema(byte[] avroObject)
-```
-<br/>
-
-* Streaming of large collections, item by item
-
-```csharp
-AvroConvert.Serialize(items, fileStream);
-
-await foreach (var item in AvroConvert.Deserialize<CustomClass>(stream))
-{
-    // process item
-}
+byte[] avro = AvroConvert.Serialize(orders, CodecType.Zstandard);   // schema travels with the data
+List<Order> read = AvroConvert.Deserialize<List<Order>>(avro);
 ```
 
-* Generation of C# models from Avro file or schema
-
+#### Kafka with Confluent Schema Registry
 ```csharp
-  string resultModel = AvroConvert.GenerateModel(avroObject);
+var producer = new ProducerBuilder<string, Order>(config)
+    .SetAvroValueSerializer(schemaRegistry)                           // plain C# class, no avrogen
+    .Build();
 ```
 
-* Conversion of Avro to JSON directly
-
+#### Schema evolution
 ```csharp
-  var resultJson = AvroConvert.Avro2Json(avroObject);
+OrderV2 order = AvroConvert.Deserialize<OrderV2>(writtenByV1);      // data from the old version, new class
 ```
 
-| ![Serialize](https://raw.githubusercontent.com/AdrianStrugala/AvroConvert/master/docs/readme/serialize.svg) | ![Deserialize](https://raw.githubusercontent.com/AdrianStrugala/AvroConvert/master/docs/readme/deserialize.svg) | ![Schemas](https://raw.githubusercontent.com/AdrianStrugala/AvroConvert/master/docs/readme/schemas.svg) |
-|:--|:--|:--|
-| [.NET objects to Avro](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#serialization) | [Typed, `dynamic` and unions](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#deserialization) | [Schema from a .NET type](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#generating-a-schema-from-c-types) |
-| [Collections, one entry per item](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#serialization) | [Schema evolution](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#schema-evolution) | [Schema of Avro data](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#reading-the-schema-of-avro-data) |
-| [Codecs: Deflate, Snappy, Zstandard, GZip, Brotli](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#serialization) | [Single messages without header](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#headless-serialization-and-deserialization) | [Schema from JSON data](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#avroschema) |
-| [Single messages without header](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#headless-serialization-and-deserialization) | [Async streaming](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#streaming) | [C# model from a schema](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#generate-model) |
-| [Streaming to `Stream` and `IBufferWriter`](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#streaming) | [Large files item by item](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#reading-items-one-by-one) | [Logical types](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#logical-types) |
-|  |  | [Compare, compatibility, fingerprints](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#avroschema) |
+#### Large files
+```csharp
+await foreach (var order in AvroConvert.Deserialize<Order>(fileStream)) { /* one at a time */ }
+```
 
-| ![Convert](https://raw.githubusercontent.com/AdrianStrugala/AvroConvert/master/docs/readme/convert.svg) | ![Customize](https://raw.githubusercontent.com/AdrianStrugala/AvroConvert/master/docs/readme/customize.svg) | ![Integrate](https://raw.githubusercontent.com/AdrianStrugala/AvroConvert/master/docs/readme/integrate.svg) |
-|:--|:--|:--|
-| [JSON → Avro](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#json2avro) | [Options reference](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#options-reference) | [Kafka + Confluent Schema Registry](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Kafka.md) |
-| [Avro → JSON](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#avro2json) | [Naming policy](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#naming-policy) | [HTTP: HttpClient, MVC, Minimal API](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Http.md) |
-| [Avro JSON Encoding (spec, avro-tools)](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#avro-json-encoding) | [Custom converters](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#custom-converters) | [Command line: `avroconvert`](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Cli.md) |
-| [Merge Avro files](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#merge) | [Attributes and type mapping](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Schema.md#generating-a-schema-from-c-types) | [Schema checks in CI](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Cli.md#compat-is-the-new-schema-compatible) |
-|  | [Trimming and Native AOT](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#trimming-and-native-aot) | [AvroConvert Online, in the browser](https://soltechnology.dev/avroconvert/online/) |
+#### Schema check in CI
+```bash
+avroconvert compat v1.avsc v2.avsc        # exit code 1 when consumers would break
+```
 
-[Full documentation](https://github.com/AdrianStrugala/AvroConvert/tree/master/docs)
+All features with one line of code each: [documentation](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.md#at-a-glance)
 
 
 ## License

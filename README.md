@@ -46,13 +46,11 @@ What it means for your services:
 
 ### Benchmark
 
-1 000 records (`User` with a nested `Contact` and two `Offering`s), serialized to and deserialized from `byte[]`. BenchmarkDotNet, .NET 10, Apple M1 Max.
+1 000 records (`User` with a nested `Contact` and two `Offering`s), serialized to and deserialized from `byte[]`:
 
-| Library         | Serialize | Deserialize | Memory allocated (serialize + deserialize) | Payload size |
-|-----------------|----------:|------------:|-------------------------------------------:|-------------:|
-| AvroConvert     |    136 μs |      241 μs |                                     962 KB |       131 KB |
-| Apache.Avro     |  1 751 μs |    2 798 μs |                                   5 039 KB |       131 KB |
-| Newtonsoft.Json |  1 450 μs |    2 169 μs |                                   2 620 KB |       379 KB |
+![AvroConvert vs Apache.Avro vs Newtonsoft.Json, 1 000 records](https://raw.githubusercontent.com/AdrianStrugala/AvroConvert/master/docs/benchmarks/readme.png)
+
+Memory allocated (serialize + deserialize): AvroConvert 962 KB, Apache.Avro 5 039 KB, Newtonsoft.Json 2 620 KB.
 
 Results for 1 and 20 000 records: [raw results](docs/benchmarks/2026-10-28-libraries-avroconvert-vs-apache-vs-newtonsoft.md) · `benchmarks/LibrariesBenchmark`
 

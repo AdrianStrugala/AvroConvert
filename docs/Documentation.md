@@ -8,46 +8,36 @@ logical types, `AvroSchema`, model generation) are described in [Documentation.S
 
 | | Task | Code |
 |---|---|---|
-| **Write** | [Compress with a codec](#serialization) | `AvroConvert.Serialize(orders, CodecType.Zstandard)` |
+| **Write** | [Objects to an Avro file, with a codec](#serialization) | `AvroConvert.Serialize(orders, CodecType.Zstandard)` |
 | | [One message without header (Kafka, queues)](#headless-serialization-and-deserialization) | `AvroConvert.SerializeHeadless(order, schema)` |
 | | [Stream a large collection](#streaming) | `AvroConvert.Serialize(orders, fileStream)` |
 | | [Write into a buffer](#streaming) | `AvroConvert.Serialize(order, bufferWriter)` |
-| **Read** | [One message without header](#headless-serialization-and-deserialization) | `AvroConvert.DeserializeHeadless<Order>(bytes, schema)` |
+| **Read** | [An Avro file into objects](#deserialization) | `AvroConvert.Deserialize<List<Order>>(avro)` |
+| | [One message without header](#headless-serialization-and-deserialization) | `AvroConvert.DeserializeHeadless<Order>(bytes, schema)` |
 | | [Old data into a new class](#schema-evolution) | `AvroConvert.Deserialize<OrderV2>(avro)` |
 | | [Without a class](#deserialization) | `AvroConvert.Deserialize<List<dynamic>>(avro)` |
-| | [Item by item](#streaming) | `await foreach (var o in AvroConvert.Deserialize<Order>(stream))` |
+| | [Item by item, async](#streaming) | `await foreach (var o in AvroConvert.Deserialize<Order>(stream))` |
+| | [Item by item, sync](#reading-items-one-by-one) | `AvroConvert.OpenDeserializer<Order>(stream).ReadNext()` |
 | **Schema** | [Of a .NET type](Documentation.Schema.md#generating-a-schema-from-c-types) | `AvroSchema.Create<Order>()` |
+| | [Of Avro data](Documentation.Schema.md#reading-the-schema-of-avro-data) | `AvroConvert.GetSchema(avro)` |
 | | [Of JSON data](Documentation.Schema.md#avroschema) | `AvroSchema.InferFromJson(json)` |
 | | [C# classes from a schema](Documentation.Schema.md#generate-model) | `AvroConvert.GenerateModel(schema)` |
+| | [Logical types (dates, decimals, UUID)](Documentation.Schema.md#logical-types) | `[AvroType(AvroTypeRepresentation.TimestampNanoseconds)]` |
 | | [Is v2 compatible with v1?](Documentation.Schema.md#avroschema) | `AvroSchema.CheckCompatibility(v1, v2, AvroCompatibilityMode.Backward)` |
 | | [Fingerprint, canonical form](Documentation.Schema.md#avroschema) | `schema.Fingerprint` · `schema.CanonicalForm` |
 | **Convert** | [JSON → Avro](#json2avro) | `AvroConvert.Json2Avro<Order>(json)` |
 | | [Avro → JSON](#avro2json) | `AvroConvert.Avro2Json(avro)` |
+| | [Avro JSON Encoding (spec, avro-tools)](#avro-json-encoding) | `AvroConvert.Avro2JsonEncoding(avro)` |
 | | [Merge files](#merge) | `AvroConvert.Merge<Order>(files)` |
-| **Customize** | [Options](#options-reference) | `new AvroConvertOptions { NamingPolicy = …, Codec = … }` |
+| **Customize** | [Options](#options-reference) | `new AvroConvertOptions { Codec = …, NullValueHandling = … }` |
+| | [Naming policy](#naming-policy) | `new AvroConvertOptions { NamingPolicy = new JavaAvroNamingPolicy("com.acme") }` |
 | | [Own conversion of a type](#custom-converters) | `options.AvroConverters.Add(new MoneyConverter())` |
 | **Integrate** | [Kafka + Schema Registry](Documentation.Kafka.md) | `producerBuilder.SetAvroValueSerializer(schemaRegistry)` |
 | | [HTTP client](Documentation.Http.md) | `await http.GetFromAvroAsync<Order>(url)` |
 | | [ASP.NET Core](Documentation.Http.md) | `services.AddControllers().AddAvroFormatters()` |
-| | [Schema check in CI](Documentation.Cli.md) | `avroconvert compat v1.avsc v2.avsc` |
-
-### Contents
-
-- [Serialization](#serialization)
-- [Deserialization](#deserialization)
-- [Schema evolution](#schema-evolution)
-- [Streaming](#streaming)
-- [Reading items one by one](#reading-items-one-by-one)
-- [Headless serialization and deserialization](#headless-serialization-and-deserialization)
-- [Merge](#merge)
-- [Avro2Json](#avro2json) / [Json2Avro](#json2avro)
-- [Avro JSON Encoding](#avro-json-encoding)
-- [Custom converters](#custom-converters)
-- [Naming policy](#naming-policy)
-- [HTTP, Kafka and the command line](#http-kafka-and-the-command-line)
-- [Licence declaration](#licence-declaration)
-- [Options reference](#options-reference)
-- [Trimming and Native AOT](#trimming-and-native-aot)
+| | [Command line, schema check in CI](Documentation.Cli.md) | `avroconvert compat v1.avsc v2.avsc` |
+| **Run** | [Licence declaration](#licence-declaration) | `AvroConvert.License = AvroLicense.SmallBusiness` |
+| | [Trimming and Native AOT](#trimming-and-native-aot) | `[RequiresUnreferencedCode]` warnings show where reflection is used |
 
 ### Serialization
 

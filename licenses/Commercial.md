@@ -7,7 +7,7 @@ Młodych Techników 4/38, 53-646 Wrocław, Poland, NIP 8971889807, trading as So
 ("SolTechnology").
 Licensee: the organisation named on the purchase invoice ("Customer").
 Software: the AvroConvert library in version 4.0 and later **and the 3.4.x maintenance releases**, its
-satellite packages published by SolTechnology (SolTechnology.Avro.Http, SolTechnology.Avro.Kafka) and
+satellite packages published by SolTechnology (SolTechnology.Avro.Http, SolTechnology.Avro.Kafka, SolTechnology.Avro.Cli) and
 their documentation. The 3.4.x releases are otherwise published under CC BY-NC-SA 3.0; this Licence
 grants the Customer the additional right to use them commercially, so that an organisation that
 cannot yet move to .NET 10 can be licensed today and upgrade when ready.

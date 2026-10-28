@@ -22,7 +22,7 @@ using SolTechnology.Avro.Infrastructure;
 namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
 {
     /// <summary>
-    /// Compiles a (schema, T) pair into a strongly typed <c>Action&lt;IWriter, T&gt;</c>: member access, conversions,
+    /// Compiles a (schema, T) pair into a strongly typed <c>Action&lt;Writer, T&gt;</c>: member access, conversions,
     /// enum positions and union branches are decided once at compile time for the static type. Values whose static type
     /// is <c>object</c> (or an interface/abstract class) are dispatched at runtime to the plan compiled for their actual
     /// type, which is how polymorphism, ExpandoObject and JSON tokens are handled.
@@ -30,18 +30,19 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
     [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
     internal sealed class WriteCompiler
     {
-        private static readonly MethodInfo WriteNullMethod = typeof(IWriter).GetMethod(nameof(IWriter.WriteNull))!;
-        private static readonly MethodInfo WriteBooleanMethod = typeof(IWriter).GetMethod(nameof(IWriter.WriteBoolean))!;
-        private static readonly MethodInfo WriteIntMethod = typeof(IWriter).GetMethod(nameof(IWriter.WriteInt))!;
-        private static readonly MethodInfo WriteLongMethod = typeof(IWriter).GetMethod(nameof(IWriter.WriteLong))!;
-        private static readonly MethodInfo WriteFloatMethod = typeof(IWriter).GetMethod(nameof(IWriter.WriteFloat))!;
-        private static readonly MethodInfo WriteDoubleMethod = typeof(IWriter).GetMethod(nameof(IWriter.WriteDouble))!;
-        private static readonly MethodInfo WriteStringMethod = typeof(IWriter).GetMethod(nameof(IWriter.WriteString))!;
-        private static readonly MethodInfo WriteBytesMethod = typeof(IWriter).GetMethod(nameof(IWriter.WriteBytes), new[] { typeof(byte[]) })!;
-        private static readonly MethodInfo WriteFixedMethod = typeof(IWriter).GetMethod(nameof(IWriter.WriteFixed), new[] { typeof(byte[]) })!;
-        private static readonly MethodInfo WriteEnumMethod = typeof(IWriter).GetMethod(nameof(IWriter.WriteEnum))!;
-        private static readonly MethodInfo WriteUnionIndexMethod = typeof(IWriter).GetMethod(nameof(IWriter.WriteUnionIndex))!;
-        private static readonly MethodInfo WriteArrayMethod = Helper(nameof(WriteHelpers.WriteArray));
+        private static readonly MethodInfo WriteNullMethod = typeof(Writer).GetMethod(nameof(IWriter.WriteNull))!;
+        private static readonly MethodInfo WriteBooleanMethod = typeof(Writer).GetMethod(nameof(IWriter.WriteBoolean))!;
+        private static readonly MethodInfo WriteIntMethod = typeof(Writer).GetMethod(nameof(IWriter.WriteInt))!;
+        private static readonly MethodInfo WriteLongMethod = typeof(Writer).GetMethod(nameof(IWriter.WriteLong))!;
+        private static readonly MethodInfo WriteFloatMethod = typeof(Writer).GetMethod(nameof(IWriter.WriteFloat))!;
+        private static readonly MethodInfo WriteDoubleMethod = typeof(Writer).GetMethod(nameof(IWriter.WriteDouble))!;
+        private static readonly MethodInfo WriteStringMethod = typeof(Writer).GetMethod(nameof(IWriter.WriteString))!;
+        private static readonly MethodInfo WriteBytesMethod = typeof(Writer).GetMethod(nameof(IWriter.WriteBytes), new[] { typeof(byte[]) })!;
+        private static readonly MethodInfo WriteFixedMethod = typeof(Writer).GetMethod(nameof(IWriter.WriteFixed), new[] { typeof(byte[]) })!;
+        private static readonly MethodInfo WriteEnumMethod = typeof(Writer).GetMethod(nameof(IWriter.WriteEnum))!;
+        private static readonly MethodInfo WriteUnionIndexMethod = typeof(Writer).GetMethod(nameof(IWriter.WriteUnionIndex))!;
+        private static readonly MethodInfo WriteItemCountMethod = typeof(Writer).GetMethod(nameof(IWriter.WriteItemCount))!;
+        private static readonly MethodInfo WriteArrayEndMethod = typeof(Writer).GetMethod(nameof(IWriter.WriteArrayEnd))!;
         private static readonly MethodInfo WriteListMethod = Helper(nameof(WriteHelpers.WriteList));
         private static readonly MethodInfo WriteEnumerableMethod = Helper(nameof(WriteHelpers.WriteEnumerable));
         private static readonly MethodInfo WriteUntypedEnumerableMethod = Helper(nameof(WriteHelpers.WriteUntypedEnumerable));
@@ -75,8 +76,13 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
         private readonly AvroConvertOptions _options;
         private readonly AvroNumberHandling _numberHandling;
         private readonly AvroNullValueHandling _nullHandling;
-        private readonly Dictionary<Type, Action<object, IWriter>> _converters;
+        private readonly Dictionary<Type, Action<object, Writer>> _converters;
         private readonly Dictionary<(TypeSchema, Type), object> _recordHolders = new();
+        // Inlining pays off for small messages only: in one big method the JIT optimises worse than in several small
+        // ones (measured: 200+ inlined fields are slower than separate delegates). Records past the limit stay delegates.
+        private const int InlinedFieldsLimit = 100;
+        private int _inlinedFields;
+        private readonly HashSet<(TypeSchema, Type)> _recordsInProgress = new();
 
         // Where in the schema the code being compiled writes ("User.name", "User.tags[]"); null for the root value.
         // Only used to make the null-value error point at the member.
@@ -88,7 +94,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
             _numberHandling = options?.NumberHandling ?? AvroNumberHandling.Strict;
             _nullHandling = options?.NullValueHandling ?? AvroNullValueHandling.Throw;
             _converters = options?.AvroConverters.Count > 0
-                ? options.AvroConverters.ToDictionary(c => c.TypeSchema.RuntimeType, c => (Action<object, IWriter>)c.Serialize)
+                ? options.AvroConverters.ToDictionary(c => c.TypeSchema.RuntimeType, c => (Action<object, Writer>)c.Serialize)
                 : null;
         }
 
@@ -96,22 +102,22 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
         internal Encoder.WriteItem Compile(TypeSchema schema, Type type)
         {
             var value = Expression.Parameter(typeof(object), "value");
-            var writer = Expression.Parameter(typeof(IWriter), "writer");
+            var writer = Expression.Parameter(typeof(Writer), "writer");
             var body = Build(schema, type, Expression.Convert(value, type), writer);
             return Expression.Lambda<Encoder.WriteItem>(body, value, writer).Compile();
         }
 
-        internal Action<IWriter, T> CompileTyped<T>(TypeSchema schema)
+        internal Action<Writer, T> CompileTyped<T>(TypeSchema schema)
         {
             var value = Expression.Parameter(typeof(T), "value");
-            var writer = Expression.Parameter(typeof(IWriter), "writer");
+            var writer = Expression.Parameter(typeof(Writer), "writer");
             var body = Build(schema, typeof(T), value, writer);
-            return Expression.Lambda<Action<IWriter, T>>(body, writer, value).Compile();
+            return Expression.Lambda<Action<Writer, T>>(body, writer, value).Compile();
         }
 
         /// <summary>Runtime dispatch for values whose static type carries no information (object, interfaces, JSON tokens).</summary>
         /// <param name="nullMessage">Error for a null value; null when a null value is written (schema allows it or WriteEmpty).</param>
-        private void WriteDynamic(TypeSchema schema, string nullMessage, object value, IWriter writer)
+        private void WriteDynamic(TypeSchema schema, string nullMessage, object value, Writer writer)
         {
             if (value == null)
             {
@@ -490,27 +496,55 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
             var key = ((TypeSchema)schema, type);
             if (!_recordHolders.TryGetValue(key, out var holderObj))
             {
-                holderObj = Activator.CreateInstance(typeof(DelegateHolder<>).MakeGenericType(type))!;
-                _recordHolders.Add(key, holderObj);
-                holderObj.GetType().GetField(nameof(DelegateHolder<object>.Fn))!.SetValue(holderObj, CompileRecordDelegate(schema, type));
+                // Non-recursive records are inlined into the caller's tree; a record that refers back to itself gets its
+                // own delegate (via a holder) so the tree terminates.
+                if (_recordsInProgress.Contains(key))
+                {
+                    // A reference back to a record whose body is being built: filled in when that body is complete.
+                    holderObj = Activator.CreateInstance(typeof(DelegateHolder<>).MakeGenericType(type))!;
+                    _recordHolders.Add(key, holderObj);
+                }
+                else if (_inlinedFields + schema.Fields.Count <= InlinedFieldsLimit)
+                {
+                    _inlinedFields += schema.Fields.Count;
+                    _recordsInProgress.Add(key);
+                    var instance = Expression.Variable(type, "instance");
+                    var inline = Expression.Block(typeof(void), new[] { instance },
+                        Expression.Assign(instance, value),
+                        BuildRecordFields(schema, type, instance, writer));
+                    _recordsInProgress.Remove(key);
+
+                    if (!_recordHolders.TryGetValue(key, out holderObj))
+                    {
+                        return inline;
+                    }
+
+                    holderObj.GetType().GetField(nameof(DelegateHolder<object>.Fn))!.SetValue(holderObj, CompileRecordDelegate(schema, type));
+                }
+                else
+                {
+                    holderObj = Activator.CreateInstance(typeof(DelegateHolder<>).MakeGenericType(type))!;
+                    _recordHolders.Add(key, holderObj);
+                    holderObj.GetType().GetField(nameof(DelegateHolder<object>.Fn))!.SetValue(holderObj, CompileRecordDelegate(schema, type));
+                }
             }
 
             var fn = Expression.Field(Expression.Constant(holderObj), nameof(DelegateHolder<object>.Fn));
             return Expression.Invoke(fn, writer, value);
         }
 
-        private (string[] Names, Action<IWriter, object>[] Writers) DynamicFieldWriters(RecordSchema schema)
+        private (string[] Names, Action<Writer, object>[] Writers) DynamicFieldWriters(RecordSchema schema)
         {
             var names = new string[schema.Fields.Count];
-            var writers = new Action<IWriter, object>[schema.Fields.Count];
+            var writers = new Action<Writer, object>[schema.Fields.Count];
             for (int i = 0; i < names.Length; i++)
             {
                 var field = schema.Fields[i];
                 names[i] = field.Aliases.FirstOrDefault() ?? field.Name;
-                var writer = Expression.Parameter(typeof(IWriter), "writer");
+                var writer = Expression.Parameter(typeof(Writer), "writer");
                 var item = Expression.Parameter(typeof(object), "value");
                 var body = InContext($"{schema.Name}.{field.Name}", () => Build(field.TypeSchema, typeof(object), item, writer));
-                writers[i] = Expression.Lambda<Action<IWriter, object>>(body, writer, item).Compile();
+                writers[i] = Expression.Lambda<Action<Writer, object>>(body, writer, item).Compile();
             }
 
             return (names, writers);
@@ -518,8 +552,14 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
 
         private Delegate CompileRecordDelegate(RecordSchema schema, Type type)
         {
-            var writer = Expression.Parameter(typeof(IWriter), "writer");
+            var writer = Expression.Parameter(typeof(Writer), "writer");
             var instance = Expression.Parameter(type, "instance");
+            var body = BuildRecordFields(schema, type, instance, writer);
+            return Expression.Lambda(typeof(Action<,>).MakeGenericType(typeof(Writer), type), body, writer, instance).Compile();
+        }
+
+        private Expression BuildRecordFields(RecordSchema schema, Type type, ParameterExpression instance, ParameterExpression writer)
+        {
             var members = TypeMembers.For(type);
             var fields = new List<Expression>(schema.Fields.Count);
 
@@ -556,7 +596,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                     body);
             }
 
-            return Expression.Lambda(typeof(Action<,>).MakeGenericType(typeof(IWriter), type), body, writer, instance).Compile();
+            return body;
         }
 
         /// <summary>Writer of the default value of <paramref name="field"/>; null when the default cannot be written as its schema.</summary>
@@ -576,6 +616,35 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
 
         // ------------------------------------------------------------------ collections
 
+        /// <summary>T[] and List&lt;T&gt;: one block with the item expression inlined in a loop (no delegate per item).</summary>
+        private Expression InlineListLoop(ArraySchema schema, Type type, Type itemType, Expression value, ParameterExpression writer)
+        {
+            var items = Expression.Variable(type, "items");
+            var count = Expression.Variable(typeof(int), "count");
+            var i = Expression.Variable(typeof(int), "i");
+            var item = Expression.Variable(itemType, "item");
+            var end = Expression.Label("end");
+
+            Expression length = type.IsArray ? Expression.ArrayLength(items) : Expression.Property(items, nameof(List<object>.Count));
+            Expression at = type.IsArray ? Expression.ArrayIndex(items, i) : Expression.Property(items, "Item", i);
+            var writeItem = InContext(ItemContext(), () => Build(schema.ItemSchema, itemType, item, writer));
+
+            return Expression.Block(typeof(void), new[] { items, count, i },
+                Expression.Assign(items, value),
+                Expression.IfThen(Expression.NotEqual(items, Expression.Constant(null, type)),
+                    Expression.Block(
+                        Expression.Assign(count, length),
+                        Expression.Call(writer, WriteItemCountMethod, Expression.Convert(count, typeof(long))),
+                        Expression.Assign(i, Expression.Constant(0)),
+                        Expression.Loop(
+                            Expression.Block(new[] { item },
+                                Expression.IfThen(Expression.GreaterThanOrEqual(i, count), Expression.Break(end)),
+                                Expression.Assign(item, at),
+                                writeItem,
+                                Expression.PreIncrementAssign(i)),
+                            end))),
+                Expression.Call(writer, WriteArrayEndMethod));
+        }
         private Expression BuildArray(ArraySchema schema, Type type, Expression value, ParameterExpression writer) =>
             GuardNull(type, value, schema, writer, BuildArrayBody(schema, type, value, writer));
 
@@ -593,12 +662,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                 throw new NotSupportedException($"[IEnumerable] required to write against [Array] schema but found [{type}]");
             }
 
-            var itemFn = InContext(ItemContext(), () => CompileItem(schema.ItemSchema, itemType));
-
-            if (type.IsArray)
+            if (type.IsArray || type == typeof(List<>).MakeGenericType(itemType))
             {
-                return Expression.Call(WriteArrayMethod.MakeGenericMethod(itemType), writer, value, Expression.Constant(itemFn));
+                return InlineListLoop(schema, type, itemType, value, writer);
             }
+
+            var itemFn = InContext(ItemContext(), () => CompileItem(schema.ItemSchema, itemType));
 
             var readOnlyList = typeof(IReadOnlyList<>).MakeGenericType(itemType);
             if (readOnlyList.IsAssignableFrom(type))
@@ -653,9 +722,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
             return Expression.Call(WriteMapMethod.MakeGenericMethod(keyType, valueType), writer, safeEntries, count, Expression.Constant(valueFn));
         }
 
-        private static Action<IWriter, JToken> WrapJsonValueWriter(Delegate dynamicValue)
+        private static Action<Writer, JToken> WrapJsonValueWriter(Delegate dynamicValue)
         {
-            var write = (Action<IWriter, object>)dynamicValue;
+            var write = (Action<Writer, object>)dynamicValue;
             return (writer, token) => write(writer, WriteHelpers.UnwrapJson(token));
         }
 
@@ -752,16 +821,16 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
 
         private Delegate CompileItem(TypeSchema schema, Type itemType)
         {
-            var writer = Expression.Parameter(typeof(IWriter), "writer");
+            var writer = Expression.Parameter(typeof(Writer), "writer");
             var item = Expression.Parameter(itemType, "item");
             var body = Build(schema, itemType, item, writer);
-            return Expression.Lambda(typeof(Action<,>).MakeGenericType(typeof(IWriter), itemType), body, writer, item).Compile();
+            return Expression.Lambda(typeof(Action<,>).MakeGenericType(typeof(Writer), itemType), body, writer, item).Compile();
         }
 
         private sealed class DelegateHolder<T>
         {
 #pragma warning disable CS0649 // assigned through reflection in BuildRecord
-            public Action<IWriter, T> Fn;
+            public Action<Writer, T> Fn;
 #pragma warning restore CS0649
         }
     }

@@ -1,6 +1,6 @@
 name: Publish
 
-# Push a tag like v4.0.0-preview.1 or v4.0.0 to publish AvroConvert, SolTechnology.Avro.Http and SolTechnology.Avro.Kafka
+# Push a tag like v4.0.0-preview.1 or v4.0.0 to publish AvroConvert, SolTechnology.Avro.Http, SolTechnology.Avro.Kafka and SolTechnology.Avro.Cli
 # to nuget.org. The tag must match <Version> in the csproj files. A tag with a hyphen is a prerelease.
 #
 # nuget.org uses Trusted Publishing (OIDC, no stored API key). One-time setup on nuget.org → your profile → Trusted Publishing:
@@ -30,7 +30,7 @@ jobs:
     - name: Check tag matches the package version
       run: |
         version="${GITHUB_REF_NAME#v}"
-        for project in src/AvroConvert/AvroConvert.csproj src/SolTechnology.Avro.Http/SolTechnology.Avro.Http.csproj src/Soltechnology.Avro.Kafka/SolTechnology.Avro.Kafka.csproj; do
+        for project in src/AvroConvert/AvroConvert.csproj src/SolTechnology.Avro.Http/SolTechnology.Avro.Http.csproj src/Soltechnology.Avro.Kafka/SolTechnology.Avro.Kafka.csproj src/SolTechnology.Avro.Cli/SolTechnology.Avro.Cli.csproj; do
           grep -q "<Version>$version</Version>" "$project" || { echo "::error::$project does not have <Version>$version</Version>"; exit 1; }
         done
 
@@ -45,6 +45,7 @@ jobs:
         dotnet pack src/AvroConvert/AvroConvert.csproj --no-build -c Release -o artifacts
         dotnet pack src/SolTechnology.Avro.Http/SolTechnology.Avro.Http.csproj --no-build -c Release -o artifacts
         dotnet pack src/Soltechnology.Avro.Kafka/SolTechnology.Avro.Kafka.csproj --no-build -c Release -o artifacts
+        dotnet pack src/SolTechnology.Avro.Cli/SolTechnology.Avro.Cli.csproj --no-build -c Release -o artifacts
 
     - name: NuGet login (OIDC → temporary API key)
       uses: NuGet/login@v1

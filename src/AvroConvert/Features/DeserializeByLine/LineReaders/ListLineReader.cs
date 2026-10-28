@@ -19,12 +19,12 @@ namespace SolTechnology.Avro.Features.DeserializeByLine.LineReaders
 {
     internal class ListLineReader<T> : ILineReader<T>
     {
-        private readonly IReader reader;
+        private readonly Reader reader;
         private readonly Resolver resolver;
         private long itemsCount;
         private bool finished;
 
-        public ListLineReader(IReader reader, Resolver resolver)
+        public ListLineReader(Reader reader, Resolver resolver)
         {
             this.reader = reader;
             this.resolver = resolver;

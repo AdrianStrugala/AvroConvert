@@ -74,27 +74,6 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
                                             t.GetGenericTypeDefinition() == typeof(IEnumerable<>)) != null;
         }
 
-        private static readonly HashSet<Type> SupportedInterfaces = new HashSet<Type>
-        {
-            typeof(IList<>),
-            typeof(IDictionary<,>),
-            typeof(IEnumerable<>)
-        };
-
-        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
-        private static bool ImplementsSupportedInterface(this Type type)
-        {
-            foreach (var interfaceType in type.GetInterfaces())
-            {
-                if (SupportedInterfaces.Contains(interfaceType.GetGenericTypeDefinition()))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         internal static bool IsAnonymous(this Type type)
         {
             return type.IsClass()
@@ -102,33 +81,6 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
                 && !type.IsNested
                 && type.Name.StartsWith("<>", StringComparison.Ordinal)
                 && type.Name.Contains("__Anonymous");
-        }
-
-        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
-        internal static PropertyInfo GetPropertyByName(
-            this Type type, string name, BindingFlags flags = BindingFlags.Public | BindingFlags.FlattenHierarchy | BindingFlags.Instance)
-        {
-            return type.GetProperty(name, flags);
-        }
-
-        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
-        internal static MethodInfo GetMethodByName(this Type type, string shortName, params Type[] arguments)
-        {
-            var result = type
-                .GetMethods(BindingFlags.Instance | BindingFlags.Public)
-                .SingleOrDefault(m => m.Name == shortName && m.GetParameters().Select(p => p.ParameterType).SequenceEqual(arguments));
-
-            if (result != null)
-            {
-                return result;
-            }
-
-            return
-                type
-                .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
-                .FirstOrDefault(m => (m.Name.EndsWith(shortName, StringComparison.Ordinal) ||
-                                       m.Name.EndsWith("." + shortName, StringComparison.Ordinal))
-                                 && m.GetParameters().Select(p => p.ParameterType).SequenceEqual(arguments));
         }
 
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
@@ -327,50 +279,6 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
             return args.Any() && type.IsAssignableFrom(instanceType.GetGenericTypeDefinition().MakeGenericType(args));
         }
 
-        internal static IEnumerable<Type> GetAllKnownTypes(this Type t)
-        {
-            if (t == null)
-            {
-                return Enumerable.Empty<Type>();
-            }
-
-            return t.GetTypeInfo().GetCustomAttributes(true)
-                .OfType<KnownTypeAttribute>()
-                .Select(a => a.Type);
-        }
-
-        internal static void CheckPropertyGetters(IEnumerable<PropertyInfo> properties)
-        {
-            var missingGetter = properties.FirstOrDefault(p => p.GetGetMethod(true) == null);
-            if (missingGetter != null)
-            {
-                throw new SerializationException(
-                    string.Format(CultureInfo.InvariantCulture, "Property '{0}' of class '{1}' does not have a getter.", missingGetter.Name, missingGetter.DeclaringType.FullName));
-            }
-        }
-
-        internal static DataMemberAttribute GetDataMemberAttribute(this PropertyInfo property)
-        {
-            return property
-                .GetCustomAttributes(false)
-                .OfType<DataMemberAttribute>()
-                .SingleOrDefault();
-        }
-
-        internal static IList<PropertyInfo> RemoveDuplicates(IEnumerable<PropertyInfo> properties)
-        {
-            var result = new List<PropertyInfo>();
-            foreach (var p in properties)
-            {
-                if (result.Find(s => s.Name == p.Name) == null)
-                {
-                    result.Add(p);
-                }
-            }
-
-            return result;
-        }
-
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static Type FindEnumerableType(this Type type)
         {
@@ -412,11 +320,6 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
         internal static bool IsEnumerable(this Type type)
         {
             return type.IsGenericType() && type.GetGenericTypeDefinition() == typeof(IEnumerable<>);
-        }
-
-        internal static bool IsGuid(this Type type)
-        {
-            return type == typeof(Guid);
         }
 
         internal static bool IsAbstract(this Type type)

@@ -16,6 +16,7 @@
 #endregion
 
 using System;
+using System.Buffers;
 using System.IO;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.AvroObjectServices.Read;
@@ -113,17 +114,11 @@ namespace SolTechnology.Avro
         /// Deserializes Avro object, which does not contain header, to .NET type
         /// </summary>
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
-        public static unsafe T DeserializeHeadless<T>(ReadOnlySpan<byte> avroBytes, string schema)
+        public static T DeserializeHeadless<T>(ReadOnlySpan<byte> avroBytes, string schema)
         {
-            fixed (byte* ptr = avroBytes)
-            {
-                using UnmanagedMemoryStream stream = new(ptr, avroBytes.Length);
-                var reader = new Reader(stream);
-                var writeSchema = Schema.Parse(schema);
-                var readSchema = ReadSchemaOrWriter(BuildSchema(typeof(T)), writeSchema);
-                var resolver = new Resolver(writeSchema, readSchema);
-                return resolver.ResolveToEnd<T>(reader);
-            }
+            var writeSchema = Schema.Parse(schema);
+            var readSchema = ReadSchemaOrWriter(BuildSchema(typeof(T)), writeSchema);
+            return ResolveToEnd<T>(avroBytes, new Resolver(writeSchema, readSchema));
         }
 
 
@@ -151,16 +146,38 @@ namespace SolTechnology.Avro
         /// against <paramref name="readerSchema"/> (schema evolution), to .NET type – without copying <paramref name="avroBytes"/>.
         /// </summary>
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
-        public static unsafe T DeserializeHeadless<T>(ReadOnlySpan<byte> avroBytes, AvroSchema writerSchema, AvroSchema readerSchema, AvroConvertOptions options = null)
+        public static T DeserializeHeadless<T>(ReadOnlySpan<byte> avroBytes, AvroSchema writerSchema, AvroSchema readerSchema, AvroConvertOptions options = null)
         {
             ArgumentNullException.ThrowIfNull(writerSchema);
             ArgumentNullException.ThrowIfNull(readerSchema);
+            return ResolveToEnd<T>(avroBytes, new Resolver(writerSchema.TypeSchema, ReadSchemaOrWriter(readerSchema.TypeSchema, writerSchema.TypeSchema), options));
+        }
+
+        private const int PooledCopyLimit = 1024 * 1024;
+
+        // The array reader is much faster than reading through a stream, and Reader copies every value out of the buffer,
+        // so a pooled copy is safe to return. Above the limit the data is read in place instead of copied.
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
+        private static unsafe T ResolveToEnd<T>(ReadOnlySpan<byte> avroBytes, Resolver resolver)
+        {
+            if (avroBytes.Length <= PooledCopyLimit)
+            {
+                var buffer = ArrayPool<byte>.Shared.Rent(avroBytes.Length);
+                try
+                {
+                    avroBytes.CopyTo(buffer);
+                    return resolver.ResolveToEnd<T>(new Reader(buffer, 0, avroBytes.Length));
+                }
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(buffer);
+                }
+            }
+
             fixed (byte* ptr = avroBytes)
             {
                 using UnmanagedMemoryStream stream = new(ptr, avroBytes.Length);
-                var reader = new Reader(stream);
-                var resolver = new Resolver(writerSchema.TypeSchema, ReadSchemaOrWriter(readerSchema.TypeSchema, writerSchema.TypeSchema), options);
-                return resolver.ResolveToEnd<T>(reader);
+                return resolver.ResolveToEnd<T>(new Reader(stream));
             }
         }
 

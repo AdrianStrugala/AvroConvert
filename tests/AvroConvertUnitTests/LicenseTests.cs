@@ -168,6 +168,31 @@ namespace AvroConvertUnitTests
             }
         }
 
+        [Test, NonParallelizable]
+        public void EnsureLicenseNotice_ChecksOncePerProcess()
+        {
+            var previousLicense = AvroConvert.License;
+            var previousError = Console.Error;
+            var stderr = new System.IO.StringWriter();
+            try
+            {
+                Console.SetError(stderr);
+                AvroConvert.License = AvroLicense.SmallBusiness;
+                AvroConvert.ResetLicenseNoticeForTesting();
+                AvroConvert.EnsureLicenseNotice();
+
+                AvroConvert.License = null;
+                AvroConvert.EnsureLicenseNotice();
+
+                stderr.ToString().Should().BeEmpty();
+            }
+            finally
+            {
+                Console.SetError(previousError);
+                AvroConvert.License = previousLicense;
+            }
+        }
+
         [Test]
         public void Declaration_DoesNotAffectSerialization()
         {

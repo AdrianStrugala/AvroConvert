@@ -5,7 +5,7 @@
 		<TargetFramework>net10.0</TargetFramework>
 		<Authors>Adrian Strugala</Authors>
 		<Company>SolTechnology</Company>
-		<Version>4.0.0-preview.2</Version>
+		<Version>4.0.0-preview.3</Version>
 		<Description>AvroConvert serializers for Confluent Kafka: plain .NET objects in the Confluent Schema Registry wire format, interoperable with the Confluent serializers of any language.</Description>
 		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
 		<PackageProjectUrl>https://soltechnology.dev/avroconvert/</PackageProjectUrl>

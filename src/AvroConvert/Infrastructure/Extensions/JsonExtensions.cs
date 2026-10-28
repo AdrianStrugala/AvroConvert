@@ -55,19 +55,6 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
         }
 
         /// <summary>
-        ///     Gets the required array property.
-        /// </summary>
-        /// <typeparam name="T">Type of elements.</typeparam>
-        /// <param name="token">The token.</param>
-        /// <param name="propertyName">Name of the property.</param>
-        /// <param name="func">The function for property value conversion.</param>
-        /// <returns>List of property values.</returns>
-        internal static List<T> RequiredArrayProperty<T>(this JToken token, string propertyName, Func<JToken, int, T> func)
-        {
-            return ReadArrayProperty(token, propertyName, false, func);
-        }
-
-        /// <summary>
         ///     Gets the optional array property.
         /// </summary>
         /// <typeparam name="T">Type of elements.</typeparam>

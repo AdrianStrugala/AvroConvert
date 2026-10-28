@@ -22,6 +22,7 @@ using System;
 using System.Buffers;
 using System.Buffers.Binary;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
@@ -31,7 +32,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
     /// IDecoder for Avro binary format. Reads either from a <see cref="Stream"/> or, on the hot path, directly from an
     /// in-memory block (<see cref="Reader(byte[], int, int)"/>) without virtual per-byte calls or intermediate copies.
     /// </summary>
-    internal partial class Reader : IReader
+    internal sealed partial class Reader : IReader
     {
         private readonly Stream _stream;
         private readonly byte[] _buffer;
@@ -73,7 +74,25 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         /// a boolean is written as a single byte 
         /// whose value is either 0 (false) or 1 (true).
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool ReadBoolean()
+        {
+            var buffer = _buffer;
+            int pos = _pos;
+            if (buffer != null && pos < _end)
+            {
+                byte value = buffer[pos];
+                if (value <= 1)
+                {
+                    _pos = pos + 1;
+                    return value == 1;
+                }
+            }
+
+            return ReadBooleanSlow();
+        }
+
+        private bool ReadBooleanSlow()
         {
             byte b = Read();
             if (b == 0) return false;
@@ -84,6 +103,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         /// <summary>
         /// int and long values are written using variable-length, zig-zag coding.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int ReadInt()
         {
             return (int)ReadLong();
@@ -92,7 +112,26 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         /// <summary>
         /// int and long values are written using variable-length, zig-zag coding.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public long ReadLong()
+        {
+            // Fast path, inlined into the compiled plans: a one-byte varint (-64..63) from the in-memory buffer.
+            var buffer = _buffer;
+            int pos = _pos;
+            if (buffer != null && pos < _end)
+            {
+                long b = buffer[pos];
+                if (b < 0x80)
+                {
+                    _pos = pos + 1;
+                    return (b >> 1) ^ -(b & 1);
+                }
+            }
+
+            return ReadLongSlow();
+        }
+
+        private long ReadLongSlow()
         {
             ulong n;
             if (_buffer != null)
@@ -161,12 +200,22 @@ namespace SolTechnology.Avro.AvroObjectServices.Read
         public string ReadString()
         {
             int length = ReadInt();
+            var buffer = _buffer;
+            int pos = _pos;
+            if (buffer != null && (uint)length <= (uint)(_end - pos))
+            {
+                _pos = pos + length;
+                return Encoding.UTF8.GetString(buffer, pos, length);
+            }
+
+            return ReadStringSlow(length);
+        }
+
+        private string ReadStringSlow(int length)
+        {
             if (_buffer != null)
             {
-                EnsureAvailable(length);
-                var result = Encoding.UTF8.GetString(_buffer, _pos, length);
-                _pos += length;
-                return result;
+                throw new EndOfStreamException();
             }
 
             if (length <= 512)

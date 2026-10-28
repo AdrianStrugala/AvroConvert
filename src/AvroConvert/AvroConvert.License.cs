@@ -170,18 +170,18 @@ namespace SolTechnology.Avro
         internal static DateOnly ReleaseDate { get; } = ReadReleaseDate();
 
         /// <summary>
-        /// Writes the licence notice to standard error once per process when no or a problematic licence has been
-        /// declared. Never throws.
+        /// Checks the declared licence once per process, at the first call that needs it, and writes the notice to
+        /// standard error if there is no or a problematic licence. Never throws.
         /// </summary>
         internal static void EnsureLicenseNotice()
         {
-            if (_noticeShown != 0)
+            if (Volatile.Read(ref _noticeShown) != 0)
             {
                 return;
             }
 
             var message = LicenseNotice(License, ReleaseDate);
-            if (message == null || Interlocked.Exchange(ref _noticeShown, 1) != 0)
+            if (Interlocked.Exchange(ref _noticeShown, 1) != 0 || message == null)
             {
                 return;
             }

@@ -38,9 +38,9 @@
 | Compact binary payload                                                   |                     ✔️                      |                    ✔️                     |       ❌        |
 | Schema stored with the data – readable, versionable, evolvable           |                     ✔️                      |                    ✔️                     |       ❌        |
 | Compression codecs                                                       | Deflate · Snappy · Zstandard · GZip · Brotli (built-in) |      Deflate (others via add-ons)       |       ❌        |
-| Serialization time                                                       |                     1×                      |                 6× slower                 |    5× slower    |
-| Deserialization time                                                     |                     1×                      |                 9× slower                 |    3× slower    |
-| Memory allocated                                                         |                     1×                      |                 3× more                   |     2× more     |
+| Serialization time                                                       |                     1×                      |                12× slower                 |   11× slower    |
+| Deserialization time                                                     |                     1×                      |                12× slower                 |    3× slower    |
+| Memory allocated                                                         |                     1×                      |                 8× more                   |     5× more     |
 | Payload size, uncompressed                                               |                     1×                      |                    1×                     |    2.9× larger  |
 
 What it means for your services:
@@ -48,7 +48,7 @@ What it means for your services:
 * **Faster round trips** – less time spent in serialization and on the wire between microservices
 * **Safer by default** – binary on the wire is not readable in plain text, and the embedded schema protects against silent shape drift
 
-Benchmarks: [raw results](docs/benchmarks/2026-10-08-libraries-avroconvert-vs-apache-vs-newtonsoft.md) · `benchmarks/LibrariesBenchmark`
+Benchmarks: [raw results](docs/benchmarks/2026-10-28-libraries-avroconvert-vs-apache-vs-newtonsoft.md) · `benchmarks/LibrariesBenchmark`
 
 
 ## Features
@@ -170,6 +170,7 @@ These amazing people have contributed to AvroConvert:
 - [![](https://img.shields.io/badge/AvroConvertOnline-Try%20Now-blue.svg?logo=google-chrome)](https://soltechnology.dev/avroconvert/online/) – schema → C# model, Avro file viewer, JSON → Avro, schema compatibility checker, Kafka message decoder; runs in your browser
 - [![Nuget](https://img.shields.io/nuget/vpre/SolTechnology.Avro.Http?label=SolTechnology.Avro.Http&logo=nuget)](https://www.nuget.org/packages/SolTechnology.Avro.Http/) – Avro as the wire format between HTTP services: HttpClient, MVC and Minimal API
 - [![Nuget](https://img.shields.io/nuget/vpre/SolTechnology.Avro.Kafka?label=SolTechnology.Avro.Kafka&logo=nuget)](https://www.nuget.org/packages/SolTechnology.Avro.Kafka/) – Confluent Schema Registry serializers for plain .NET objects, interoperable with Java/Python/Go
+- [![Nuget](https://img.shields.io/nuget/vpre/SolTechnology.Avro.Cli?label=SolTechnology.Avro.Cli&logo=nuget)](https://www.nuget.org/packages/SolTechnology.Avro.Cli/) – `avroconvert` command line tool with the avro-tools commands (induce, compile, tojson, getschema, canonical, fingerprint), compatibility and Schema Registry checks for CI
 - [Avro API article](https://www.c-sharpcorner.com/blogs/avro-rest-api-as-the-evolution-of-json-based-communication-between-mic) 
 
 ---

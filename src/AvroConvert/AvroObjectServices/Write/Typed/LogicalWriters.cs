@@ -11,7 +11,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
     /// <summary>Encoders for logical types whose representation is not a plain primitive conversion.</summary>
     internal static class LogicalWriters
     {
-        internal static void WriteDecimal(IWriter writer, decimal value, DecimalSchema schema, AvroNumberHandling numberHandling)
+        internal static void WriteDecimal(Writer writer, decimal value, DecimalSchema schema, AvroNumberHandling numberHandling)
         {
             var avroDecimal = new AvroDecimal(value);
             var logicalScale = schema.Scale;
@@ -70,24 +70,24 @@ Consider adding following attribute to your property:
             writer.WriteFixed(padded);
         }
 
-        internal static void WriteBigDecimal(IWriter writer, decimal value)
+        internal static void WriteBigDecimal(Writer writer, decimal value)
         {
             writer.WriteBytes(BigDecimalSchema.Encode(value));
         }
 
-        internal static void WriteUuidFixed(IWriter writer, Guid value)
+        internal static void WriteUuidFixed(Writer writer, Guid value)
         {
             Span<byte> buffer = stackalloc byte[16];
             value.TryWriteBytes(buffer, bigEndian: true, out _);
             writer.WriteFixed(buffer);
         }
 
-        internal static void WriteTimestamp(IWriter writer, long ticksSinceEpoch, TimestampSchema schema)
+        internal static void WriteTimestamp(Writer writer, long ticksSinceEpoch, TimestampSchema schema)
         {
             writer.WriteLong(schema.FromTicks(ticksSinceEpoch));
         }
 
-        internal static void WriteDuration(IWriter writer, TimeSpan duration, DurationSchema schema)
+        internal static void WriteDuration(Writer writer, TimeSpan duration, DurationSchema schema)
         {
             var baseSchema = (FixedSchema)schema.BaseTypeSchema;
             Span<byte> buffer = stackalloc byte[baseSchema.Size];
@@ -98,21 +98,21 @@ Consider adding following attribute to your property:
             writer.WriteFixed(buffer);
         }
 
-        internal static void WriteTimeMicros(IWriter writer, TimeOnly time)
+        internal static void WriteTimeMicros(Writer writer, TimeOnly time)
         {
             if (time > TimeMicrosecondsSchema.MaxTime)
                 throw new ArgumentOutOfRangeException(nameof(time), "A 'time-micros' value can only have the range '00:00:00' to '23:59:59'.");
             writer.WriteLong((time - DateTimeExtensions.UnixEpochTime).Ticks / 10);
         }
 
-        internal static void WriteTimeMillis(IWriter writer, TimeOnly time)
+        internal static void WriteTimeMillis(Writer writer, TimeOnly time)
         {
             if (time > TimeMillisecondsSchema.MaxTime)
                 throw new ArgumentOutOfRangeException(nameof(time), "A 'time-millis' value can only have the range '00:00:00' to '23:59:59'.");
             writer.WriteInt((int)(time - DateTimeExtensions.UnixEpochTime).TotalMilliseconds);
         }
 
-        internal static void WriteFixed(IWriter writer, AvroFixed value, FixedSchema schema)
+        internal static void WriteFixed(Writer writer, AvroFixed value, FixedSchema schema)
         {
             if (value == null || value.Schema.FullName != schema.FullName || value.Schema.Size != schema.Size)
             {

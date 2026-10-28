@@ -27,6 +27,7 @@ jobs:
         dotnet pack src/AvroConvert/AvroConvert.csproj --no-build -c Release -o artifacts
         dotnet pack src/SolTechnology.Avro.Http/SolTechnology.Avro.Http.csproj --no-build -c Release -o artifacts
         dotnet pack src/Soltechnology.Avro.Kafka/SolTechnology.Avro.Kafka.csproj --no-build -c Release -o artifacts
+        dotnet pack src/SolTechnology.Avro.Cli/SolTechnology.Avro.Cli.csproj --no-build -c Release -o artifacts
     - uses: actions/upload-artifact@v4
       with:
         name: nupkg

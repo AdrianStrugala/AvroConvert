@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<PackAsTool>true</PackAsTool>
+		<ToolCommandName>avroconvert</ToolCommandName>
+		<Authors>Adrian Strugala</Authors>
+		<Company>SolTechnology</Company>
+		<Version>4.0.0-preview.3</Version>
+		<Description>AvroConvert on the command line, with Apache avro-tools command names: induce, compile, tojson, getschema, canonical, fingerprint; plus schema compatibility and Schema Registry checks for CI.</Description>
+		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+		<PackageProjectUrl>https://soltechnology.dev/avroconvert/</PackageProjectUrl>
+		<PackageTags>avro apache.avro cli dotnet-tool schema schema-registry confluent kafka codegen</PackageTags>
+		<PackageId>SolTechnology.Avro.Cli</PackageId>
+		<RepositoryUrl>https://github.com/AdrianStrugala/AvroConvert</RepositoryUrl>
+		<AssemblyName>avroconvert</AssemblyName>
+		<RootNamespace>SolTechnology.Avro.Cli</RootNamespace>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageIcon>avroconvert-icon.png</PackageIcon>
+		<!-- The tool loads user types by reflection; trimming is not used for a dotnet tool. -->
+		<NoWarn>$(NoWarn);IL2026;IL3050</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\..\LICENSE.md" Pack="true" PackagePath="\" />
+		<None Include="..\..\licenses\PolyForm-Noncommercial-1.0.0.md" Pack="true" PackagePath="licenses\" />
+		<None Include="..\..\licenses\PolyForm-Small-Business-1.0.0.md" Pack="true" PackagePath="licenses\" />
+		<None Include="..\..\licenses\Commercial.md" Pack="true" PackagePath="licenses\" />
+		<None Include="..\..\docs\avroconvert-icon.png" Pack="true" Visible="false" PackagePath="\" />
+		<None Include="README.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Confluent.SchemaRegistry" />
+		<PackageReference Include="System.CommandLine" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\AvroConvert\AvroConvert.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="AvroConvertCliTests" />
+	</ItemGroup>
+
+</Project>

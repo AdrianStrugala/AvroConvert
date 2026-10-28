@@ -128,6 +128,7 @@ await foreach (var item in AvroConvert.Deserialize<CustomClass>(stream))
 6. Integrations
    - [HTTP: HttpClient extensions, MVC formatters, Minimal API](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Http.md)
    - [Kafka: Confluent Schema Registry serializers](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Kafka.md)
+   - [Command line: `avroconvert` tool with avro-tools commands, schema compatibility and Schema Registry checks for CI](https://github.com/AdrianStrugala/AvroConvert/blob/master/docs/Documentation.Cli.md)
 
 
 [Full documentation](https://github.com/AdrianStrugala/AvroConvert/tree/master/docs)

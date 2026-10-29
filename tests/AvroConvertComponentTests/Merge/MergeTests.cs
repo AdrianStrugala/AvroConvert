@@ -6,6 +6,7 @@ using AwesomeAssertions;
 using SolTechnology.Avro;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 using NUnit.Framework;
+using OldRow = AvroConvertComponentTests.Merge.Old.Row;
 
 namespace AvroConvertComponentTests.Merge
 {
@@ -134,5 +135,54 @@ namespace AvroConvertComponentTests.Merge
             //Assert
             toCheck.Should().HaveCount(2000);
         }
+
+        [Test]
+        public void Merge_ObjectsWrittenWithAnOlderClass_AreReadWithTheirWriterSchema()
+        {
+            //Arrange: the files have the fields in another order than the class they are merged into
+            var rows = new[] { new OldRow { Name = "a", Id = 1 }, new OldRow { Name = "b", Id = 2 } };
+            var files = rows.Select(r => AvroConvert.Serialize(r));
+
+
+            //Act
+            var result = AvroConvert.Merge<Row>(files);
+
+
+            //Assert
+            AvroConvert.Deserialize<List<Row>>(result).Should().BeEquivalentTo(rows);
+        }
+
+        [Test]
+        public void Merge_ObjectsWrittenWithDifferentSchemas_Throws()
+        {
+            //Arrange
+            var files = new[] { AvroConvert.Serialize(new OldRow { Name = "a", Id = 1 }), AvroConvert.Serialize(new Row { Id = 2, Name = "b" }) };
+
+
+            //Act
+            var act = () => AvroConvert.Merge<Row>(files);
+
+
+            //Assert
+            act.Should().Throw<InvalidAvroObjectException>().WithMessage("*another schema*");
+        }
+    }
+}
+
+namespace AvroConvertComponentTests.Merge
+{
+    public class Row
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+}
+
+namespace AvroConvertComponentTests.Merge.Old
+{
+    public class Row
+    {
+        public string Name { get; set; }
+        public int Id { get; set; }
     }
 }

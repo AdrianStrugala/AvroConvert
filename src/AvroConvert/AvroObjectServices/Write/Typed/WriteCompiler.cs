@@ -819,7 +819,13 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                 case AvroType.String: return type == typeof(string) || type == typeof(Guid) || type == typeof(decimal) || type == typeof(DateTimeOffset) || type == typeof(Uri) || type.IsEnum;
                 case AvroType.Bytes: return type == typeof(byte[]);
                 case AvroType.Enum: return type.IsEnum || type == typeof(string);
-                case AvroType.Array: return type != typeof(byte[]) && type != typeof(string) && typeof(IEnumerable).IsAssignableFrom(type) && !typeof(IDictionary).IsAssignableFrom(type) && type.GetDictionaryArguments() == null && type != typeof(JObject);
+                case AvroType.Array:
+                    if (type.GetDictionaryArguments() != null)
+                    {
+                        // A dictionary with non-string keys is an array of {Key, Value} records.
+                        return ((ArraySchema)branch).ItemSchema is RecordSchema item && item.TryGetField("Key", out _) && item.TryGetField("Value", out _);
+                    }
+                    return type != typeof(byte[]) && type != typeof(string) && typeof(IEnumerable).IsAssignableFrom(type) && !typeof(IDictionary).IsAssignableFrom(type) && type != typeof(JObject);
                 case AvroType.Map: return type.GetDictionaryArguments() != null || typeof(IDictionary).IsAssignableFrom(type) || type == typeof(JObject);
                 case AvroType.Record:
                 case AvroType.Error:
@@ -827,7 +833,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                         return true;
                     return !type.IsPrimitive && !type.IsEnum && type != typeof(string) && type != typeof(byte[]) && !type.IsArray && type != typeof(object)
                            && ReadCompiler.CollectionItemType(type) == null && type.GetDictionaryArguments() == null
-                           && (type.Name.Equals(((RecordSchema)branch).Name) || type.IsAnonymous() || ((RecordSchema)branch).RuntimeType == type);
+                           && (type.Name.Equals(((RecordSchema)branch).Name) || type.GetAvroName() == ((RecordSchema)branch).Name || type.IsAnonymous() || ((RecordSchema)branch).RuntimeType == type);
                 case AvroType.Fixed: return type == typeof(AvroFixed) || type == typeof(byte[]);
                 case AvroType.Logical:
                     return ((LogicalTypeSchema)branch).LogicalTypeName switch

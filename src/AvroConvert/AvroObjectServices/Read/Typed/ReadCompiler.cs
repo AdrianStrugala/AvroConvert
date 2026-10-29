@@ -884,6 +884,17 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                 }
             }
 
+            // A record read into ["null", record] with another name (anonymous type, ExpandoObject, a renamed class):
+            // the only record branch is taken, as a record would be read without the union.
+            if (writerSchema is RecordSchema)
+            {
+                var records = readerUnion.Schemas.Where(s => s is RecordSchema).ToList();
+                if (records.Count == 1)
+                {
+                    return records[0];
+                }
+            }
+
             return null;
         }
 

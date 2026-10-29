@@ -44,6 +44,8 @@ Changes:
 - `Json2Avro` and `InferFromJson` look at every array element, not only the first one
 - A failed serialization does not leave a data block that looks complete
 - Fix for `Merge` losing data after the first block
+- Fix for `Merge` of objects written with another schema than `T`: the result keeps the schema they were written with; objects written with different schemas throw instead of giving unreadable data
+- Fix for nullable members holding a generic record (with a schema given as JSON), a dictionary with non-string keys, or a record written under another name (anonymous type, `ExpandoObject`)
 - Fix for `GenerateModel` output differing between operating systems
 - Fix for `decimal` on `fixed`
 - Fix for defaults of logical type fields

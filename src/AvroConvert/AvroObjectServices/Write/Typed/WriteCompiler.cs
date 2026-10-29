@@ -816,7 +816,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                 case AvroType.Double:
                     // Any numeric CLR type converts to any numeric Avro type (e.g. int? marked [AvroType(Double)]).
                     return type.IsEnum || (type.IsPrimitive && type != typeof(bool) && type != typeof(IntPtr) && type != typeof(UIntPtr)) || type == typeof(decimal);
-                case AvroType.String: return type == typeof(string) || type == typeof(Guid) || type == typeof(decimal) || type == typeof(DateTimeOffset) || type == typeof(Uri) || type.IsEnum;
+                case AvroType.String: return type == typeof(string) || type == typeof(Guid) || type == typeof(decimal) || type == typeof(Uri) || type.IsEnum;
                 case AvroType.Bytes: return type == typeof(byte[]);
                 case AvroType.Enum: return type.IsEnum || type == typeof(string);
                 case AvroType.Array:

@@ -65,5 +65,47 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
             result.City!.Name.Should().Be("Wroclaw");
         }
+
+        public class Cat
+        {
+            public string Name { get; set; } = "";
+            public int Lives { get; set; }
+        }
+
+        public class Dog
+        {
+            public string Name { get; set; } = "";
+            public string Breed { get; set; } = "";
+        }
+
+        public class LookalikeDog
+        {
+            public string Name { get; set; } = "";
+            public int Lives { get; set; }
+        }
+
+        public class PetWritten
+        {
+            [SolTechnology.Avro.Infrastructure.Attributes.AvroUnion(typeof(Cat), typeof(Dog), typeof(LookalikeDog))]
+            public object? Animal { get; set; }
+        }
+
+        public class PetRead
+        {
+            public Cat? Animal { get; set; }
+        }
+
+        [Test]
+        public void Union_of_records_read_into_one_of_them_reads_that_one_and_rejects_the_others()
+        {
+            AvroConvert.Deserialize<PetRead>(AvroConvert.Serialize(new PetWritten { Animal = new Cat { Name = "Tom", Lives = 9 } }))
+                .Animal!.Lives.Should().Be(9);
+
+            var dog = () => AvroConvert.Deserialize<PetRead>(AvroConvert.Serialize(new PetWritten { Animal = new Dog { Name = "Rex", Breed = "Beagle" } }));
+            dog.Should().Throw<System.Exception>();
+
+            var lookalike = () => AvroConvert.Deserialize<PetRead>(AvroConvert.Serialize(new PetWritten { Animal = new LookalikeDog { Name = "Rex", Lives = 1 } }));
+            lookalike.Should().Throw<System.Exception>("a record of another name is not read as Cat when the writer had several records to choose from");
+        }
     }
 }

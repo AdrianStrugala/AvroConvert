@@ -41,7 +41,7 @@ namespace SolTechnology.Avro
 
             List<DataBlock> avroDataBlocks = new List<DataBlock>();
             TypeSchema writerSchema = null;
-            string writerCanonicalForm = null;
+            string writerSchemaJson = null;
 
             avroObjects = avroObjects.ToList();
             for (int i = 0; i < avroObjects.Count(); i++)
@@ -52,14 +52,15 @@ namespace SolTechnology.Avro
                     throw new InvalidAvroObjectException($"Schema from object of index [{i}] is not compatible with schema of type [{typeof(T)}]");
                 }
 
-                // Data blocks are copied without re-encoding, so all objects have to be written with the same schema.
-                var canonicalForm = AvroSchema.Parse(avroFileContent.Header.Schema.ToString()).CanonicalForm;
+                // Data blocks are copied without re-encoding, so all objects have to be written with the same schema,
+                // logical types, precision and scale included (the parsing canonical form leaves them out).
+                var schemaJson = AvroSchema.Parse(avroFileContent.Header.Schema.ToString()).Json;
                 if (writerSchema == null)
                 {
                     writerSchema = avroFileContent.Header.Schema;
-                    writerCanonicalForm = canonicalForm;
+                    writerSchemaJson = schemaJson;
                 }
-                else if (canonicalForm != writerCanonicalForm)
+                else if (schemaJson != writerSchemaJson)
                 {
                     throw new InvalidAvroObjectException($"Object of index [{i}] is written with another schema than the first one. Merge copies the data without re-encoding it, so all objects need the same writer schema");
                 }
@@ -71,7 +72,8 @@ namespace SolTechnology.Avro
             {
                 using (var encoder = new MergeEncoder(resultStream))
                 {
-                    // The result is one array of the copied items, so its items have the schema they were written with.
+                    // The result is one array of the copied items: its items get the schema they were written with.
+                    // Objects holding a whole array per entry keep the schema of List<T>.
                     var resultSchema = writerSchema != null && writerSchema.Type != AvroType.Array
                         ? "{\"type\":\"array\",\"items\":" + writerSchema + "}"
                         : Schema.Create(typeof(List<T>)).ToString();

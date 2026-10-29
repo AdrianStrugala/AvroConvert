@@ -34,7 +34,14 @@ namespace SolTechnology.Avro.AvroObjectServices
             DateTime.Parse(text, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
 
         internal static DateTimeOffset ParseDateTimeOffset(string text) =>
-            DateTimeOffset.Parse(text, CultureInfo.InvariantCulture);
+            IsIsoDate(text)
+                ? DateTimeOffset.Parse(text, CultureInfo.InvariantCulture)
+                : DateTimeOffset.Parse(text, CultureInfo.CurrentCulture); // text from DateTimeOffset.ToString() in the current culture
+
+        /// <summary>True for text starting with an ISO 8601 date (yyyy-MM-dd), which reads the same in every culture.</summary>
+        private static bool IsIsoDate(string text) =>
+            text.Length >= 10 && char.IsAsciiDigit(text[0]) && char.IsAsciiDigit(text[1]) && char.IsAsciiDigit(text[2]) && char.IsAsciiDigit(text[3])
+            && text[4] == '-' && char.IsAsciiDigit(text[5]) && char.IsAsciiDigit(text[6]) && text[7] == '-' && char.IsAsciiDigit(text[8]) && char.IsAsciiDigit(text[9]);
 
         internal static TimeSpan ParseTimeSpan(string text) =>
             text.StartsWith('P') || text.StartsWith("-P", StringComparison.Ordinal)

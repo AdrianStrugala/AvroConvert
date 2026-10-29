@@ -1,6 +1,7 @@
 ﻿using AwesomeAssertions;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using SolTechnology.Avro;
 using NUnit.Framework;
@@ -916,12 +917,34 @@ namespace AvroConvertComponentTests.GenerateModel
         [Test]
         public void GeneratedModel_GivesBackTheSameSchema()
         {
-            // The classes below are the output of GenerateModel(ShopOrderSchema).
-            var original = AvroSchema.Parse(ShopOrderSchema);
+            // The classes below are the output of GenerateModel(ShopOrderSchema). The canonical form leaves out logical
+            // types, precision and scale, so the full schemas are compared (without "default": null, which is not generated).
+            var original = AvroSchema.Parse(ShopOrderSchema).Json;
 
-            var fromModel = AvroSchema.Create<GeneratedShop.Order>();
+            var fromModel = AvroSchema.Create<GeneratedShop.Order>().Json;
 
-            fromModel.CanonicalForm.Should().Be(original.CanonicalForm);
+            WithoutDefaults(fromModel).Should().Be(WithoutDefaults(original));
+        }
+
+        private static string WithoutDefaults(string json)
+        {
+            var node = System.Text.Json.Nodes.JsonNode.Parse(json);
+            Strip(node);
+            return node!.ToJsonString();
+
+            static void Strip(System.Text.Json.Nodes.JsonNode node)
+            {
+                switch (node)
+                {
+                    case System.Text.Json.Nodes.JsonObject obj:
+                        obj.Remove("default");
+                        foreach (var property in obj.ToList()) Strip(property.Value);
+                        break;
+                    case System.Text.Json.Nodes.JsonArray array:
+                        foreach (var item in array) Strip(item);
+                        break;
+                }
+            }
         }
     }
 }

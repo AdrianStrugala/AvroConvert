@@ -6,6 +6,7 @@ using AwesomeAssertions;
 using SolTechnology.Avro;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 using NUnit.Framework;
+using SolTechnology.Avro.Infrastructure.Attributes;
 using OldRow = AvroConvertComponentTests.Merge.Old.Row;
 
 namespace AvroConvertComponentTests.Merge
@@ -161,6 +162,31 @@ namespace AvroConvertComponentTests.Merge
 
             //Act
             var act = () => AvroConvert.Merge<Row>(files);
+
+
+            //Assert
+            act.Should().Throw<InvalidAvroObjectException>().WithMessage("*another schema*");
+        }
+
+        public class Stamp
+        {
+            public System.DateTime At { get; set; }
+        }
+
+        [Test]
+        public void Merge_ObjectsWithDifferentLogicalTypes_Throws()
+        {
+            //Arrange: timestamp-micros and timestamp-millis have the same parsing canonical form
+            var at = new System.DateTime(2024, 5, 6, 7, 8, 9, System.DateTimeKind.Utc);
+            var files = new[]
+            {
+                AvroConvert.Serialize(new Stamp { At = at }),
+                AvroConvert.Serialize(new Stamp { At = at }, new AvroConvertOptions { DateTimeRepresentation = AvroTypeRepresentation.TimestampMilliseconds })
+            };
+
+
+            //Act
+            var act = () => AvroConvert.Merge<Stamp>(files);
 
 
             //Assert

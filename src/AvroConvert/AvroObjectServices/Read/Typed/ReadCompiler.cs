@@ -145,7 +145,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 
             if (ws.Type != AvroType.Union && rs is UnionSchema readerUnion)
             {
-                rs = FindBranch(readerUnion, ws) ?? rs;
+                rs = FindBranch(readerUnion, ws, renamedRecord: true) ?? rs;
             }
 
             if (target == typeof(object) && ws is PrimitiveTypeSchema && rs is PrimitiveTypeSchema && ws.Type != rs.Type
@@ -525,10 +525,13 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             var index = Expression.Call(reader, ReadUnionIndexMethod);
             var cases = new List<SwitchCase>(ws.Schemas.Count);
 
+            // A writer record of another name maps to the reader's record only when the writer has no other record to choose from.
+            var renamedRecord = ws.Schemas.Count(s => s is RecordSchema) == 1;
+
             for (int i = 0; i < ws.Schemas.Count; i++)
             {
                 var branchWs = ws.Schemas[i];
-                var branchRs = rs is UnionSchema readerUnion ? FindBranch(readerUnion, branchWs) : rs;
+                var branchRs = rs is UnionSchema readerUnion ? FindBranch(readerUnion, branchWs, renamedRecord) : rs;
 
                 Expression body;
                 if (branchWs.Type == AvroType.String && TemporalText.IsTemporal(Nullable.GetUnderlyingType(target) ?? target)
@@ -543,7 +546,15 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                 }
                 else
                 {
-                    body = Build(branchWs, branchRs, target, reader, candidates);
+                    try
+                    {
+                        body = Build(branchWs, branchRs, target, reader, candidates);
+                    }
+                    catch (Exception e) when (e is SerializationException or AvroException)
+                    {
+                        // A branch that cannot be read fails when the data holds it, not for every value of the union.
+                        body = Expression.Throw(Expression.Constant(e), target);
+                    }
                 }
 
                 cases.Add(Expression.SwitchCase(body, Expression.Constant(i)));
@@ -866,7 +877,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         // ------------------------------------------------------------------ helpers
 
         /// <summary>The reader branch of the same type (and name) as the writer's, otherwise the first one that can read it.</summary>
-        private static TypeSchema FindBranch(UnionSchema readerUnion, TypeSchema writerSchema)
+        private static TypeSchema FindBranch(UnionSchema readerUnion, TypeSchema writerSchema, bool renamedRecord)
         {
             foreach (var candidate in readerUnion.Schemas)
             {
@@ -886,7 +897,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 
             // A record read into ["null", record] with another name (anonymous type, ExpandoObject, a renamed class):
             // the only record branch is taken, as a record would be read without the union.
-            if (writerSchema is RecordSchema)
+            if (renamedRecord && writerSchema is RecordSchema)
             {
                 var records = readerUnion.Schemas.Where(s => s is RecordSchema).ToList();
                 if (records.Count == 1)

@@ -140,19 +140,47 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
         {
             const string schema = """
                 {"type":"record","name":"Stamp","fields":[
-                  {"name":"At","type":["null","string",{"type":"long","logicalType":"timestamp-micros"}]}]}
+                  {"name":"At","type":["null","string",{"type":"long","logicalType":"timestamp-micros"}]},
+                  {"name":"AtOffset","type":["null","string",{"type":"long","logicalType":"timestamp-micros"}]}]}
                 """;
             var at = new DateTime(2026, 10, 28, 12, 0, 0, DateTimeKind.Utc);
 
-            var data = AvroConvert.SerializeHeadless(new Stamp { At = at }, schema);
+            var data = AvroConvert.SerializeHeadless(new Stamp { At = at, AtOffset = new DateTimeOffset(at) }, schema);
 
             data[0].Should().Be(4, "union index 2 (the timestamp branch), zig-zag encoded");
-            AvroConvert.DeserializeHeadless<Stamp>(data, schema).At.Should().Be(at);
+            AvroConvert.Avro2JsonEncoding(data, schema).Should().NotContain("\"string\"", "neither DateTime nor DateTimeOffset goes to the text branch");
+            var result = AvroConvert.DeserializeHeadless<Stamp>(data, schema);
+            result.At.Should().Be(at);
+            result.AtOffset.Should().Be(new DateTimeOffset(at));
         }
 
         public class Stamp
         {
             public DateTime? At { get; set; }
+            public DateTimeOffset? AtOffset { get; set; }
+        }
+
+        [TestCase("en-GB", "05/10/2026 11:00:00 +01:00")]
+        [TestCase("de-DE", "05.10.2026 11:00:00 +01:00")]
+        public void DateTimeOffset_text_in_the_current_culture_is_read(string cultureName, string text)
+        {
+            var culture = Thread.CurrentThread.CurrentCulture;
+            try
+            {
+                Thread.CurrentThread.CurrentCulture = new CultureInfo(cultureName);
+                var data = AvroConvert.SerializeHeadless(new EventText
+                {
+                    DateTime = "2026-10-05T11:00:00", DateTimeOffset = text, TimeSpan = "PT1H", DateOnly = "2026-10-05", TimeOnly = "11:00"
+                }, TextSchema);
+
+                var result = AvroConvert.DeserializeHeadless<Event>(data, TextSchema);
+
+                result.DateTimeOffset.Should().Be(new DateTimeOffset(2026, 10, 5, 11, 0, 0, TimeSpan.FromHours(1)));
+            }
+            finally
+            {
+                Thread.CurrentThread.CurrentCulture = culture;
+            }
         }
     }
 }

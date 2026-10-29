@@ -304,17 +304,13 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             }
 
             // Dictionary
-            Type dictionaryType = type
-                .GetAllInterfaces()
-                .SingleOrDefault(t => t.IsGenericType() && t.GetGenericTypeDefinition() == typeof(IDictionary<,>));
+            var dictionaryArguments = type.GetDictionaryArguments();
 
-            if (dictionaryType != null
-                && (dictionaryType.GetGenericArguments()[0] == typeof(string)
-                 || dictionaryType.GetGenericArguments()[0] == typeof(Uri)))
+            if (dictionaryArguments is { } kv && (kv.Key == typeof(string) || kv.Key == typeof(Uri)))
             {
                 return new MapSchema(
-                    this.CreateNotNullableSchema(dictionaryType.GetGenericArguments()[0], schemas, currentDepth + 1, info, representation),
-                    this.CreateSchema(false, dictionaryType.GetGenericArguments()[1], schemas, currentDepth + 1, representation),
+                    this.CreateNotNullableSchema(kv.Key, schemas, currentDepth + 1, info, representation),
+                    this.CreateSchema(false, kv.Value, schemas, currentDepth + 1, representation),
                     type);
             }
 

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -13,6 +13,7 @@ using SolTechnology.Avro.AvroObjectServices.Skip;
 using SolTechnology.Avro.Features.JsonEncoding;
 using SolTechnology.Avro.Infrastructure.Attributes;
 using SolTechnology.Avro.Infrastructure.Exceptions;
+using SolTechnology.Avro.Infrastructure.Extensions;
 using SolTechnology.Avro.Infrastructure.Reflection;
 using SolTechnology.Avro.Policies;
 using System.Diagnostics.CodeAnalysis;
@@ -53,6 +54,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         private static readonly MethodInfo ReadMapMethod = Helper(nameof(ReadHelpers.ReadMap));
         private static readonly MethodInfo ReadMapKeyedMethod = Helper(nameof(ReadHelpers.ReadMapKeyed));
         private static readonly MethodInfo ReadDictionaryMethod = Helper(nameof(ReadHelpers.ReadDictionary));
+        private static readonly MethodInfo CopyMapMethod = Helper(nameof(ReadHelpers.CopyMap));
         private static readonly MethodInfo FoldMethod = Helper(nameof(ReadHelpers.Fold));
         private static readonly MethodInfo AddAllMethod = Helper(nameof(ReadHelpers.AddAll));
         private static readonly MethodInfo UnionIndexOutOfRangeMethod = Helper(nameof(ReadHelpers.UnionIndexOutOfRange));
@@ -143,7 +145,13 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 
             if (ws.Type != AvroType.Union && rs is UnionSchema readerUnion)
             {
-                rs = FindBranch(readerUnion, ws) ?? rs;
+                rs = FindBranch(readerUnion, ws) ?? FindRecordBranch(readerUnion, ws, target) ?? rs;
+            }
+
+            if (ws is PrimitiveTypeSchema && rs is LogicalTypeSchema readerLogical && readerLogical.BaseTypeSchema.Type == ws.Type)
+            {
+                // Same encoding: the reader's logical type gives the meaning (e.g. long written, timestamp-micros read).
+                ws = rs;
             }
 
             if (target == typeof(object) && ws is PrimitiveTypeSchema && rs is PrimitiveTypeSchema && ws.Type != rs.Type
@@ -269,9 +277,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             {
                 return Expression.Convert(Expression.Call(typeof(Guid).GetMethod(nameof(Guid.Parse), new[] { typeof(string) })!, read), target);
             }
-            if (underlying == typeof(DateTimeOffset))
+            if (TemporalText.IsTemporal(underlying))
             {
-                return Expression.Convert(Expression.Call(typeof(DateTimeOffset).GetMethod(nameof(DateTimeOffset.Parse), new[] { typeof(string) })!, read), target);
+                return Expression.Convert(Expression.Call(TemporalText.ParseMethod(underlying), read), target);
             }
             if (target == typeof(Uri))
             {
@@ -327,7 +335,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             return ws switch
             {
                 DateSchema when type == typeof(DateOnly) => Expression.Call(LogicalReader(nameof(LogicalReaders.ReadDate)), reader),
+                DateSchema when type == typeof(DateTime) => Expression.Call(LogicalReader(nameof(LogicalReaders.ReadDateAsDateTime)), reader),
                 TimeMillisecondsSchema when type == typeof(TimeOnly) => Expression.Call(LogicalReader(nameof(LogicalReaders.ReadTimeMillis)), reader),
+                TimeMillisecondsSchema when type == typeof(TimeSpan) => Expression.Call(LogicalReader(nameof(LogicalReaders.ReadTimeMillisAsTimeSpan)), reader),
                 TimeMicrosecondsSchema when type == typeof(TimeOnly) => Expression.Call(LogicalReader(nameof(LogicalReaders.ReadTimeMicros)), reader),
                 TimeMicrosecondsSchema when type == typeof(TimeSpan) => Expression.Call(LogicalReader(nameof(LogicalReaders.ReadTimeMicrosAsTimeSpan)), reader),
                 UuidSchema when type == typeof(Guid) => Expression.Call(
@@ -410,7 +420,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             }
 
             // Dictionaries with non-string keys are encoded as an array of {Key, Value} records.
-            if (DictionaryArguments(target) is { } kv && ws.ItemSchema is RecordSchema itemRecord
+            if (target.GetDictionaryArguments() is { } kv && ws.ItemSchema is RecordSchema itemRecord
                 && itemRecord.TryGetField("Key", out var keyField) && itemRecord.TryGetField("Value", out var valueField))
             {
                 var readerRecord = itemRs as RecordSchema ?? itemRecord;
@@ -420,7 +430,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                 var keyFn = CompileItem(keyField.TypeSchema, readerKey?.TypeSchema ?? keyField.TypeSchema, kv.Key);
                 var valueFn = CompileItem(valueField.TypeSchema, readerValue?.TypeSchema ?? valueField.TypeSchema, kv.Value);
                 var dictionary = Expression.Call(ReadDictionaryMethod.MakeGenericMethod(kv.Key, kv.Value), reader, Expression.Constant(keyFn), Expression.Constant(valueFn));
-                return Expression.Convert(dictionary, target);
+                return AdaptMap(dictionary, kv.Key, kv.Value, target);
             }
 
             var itemType = target == typeof(object) ? typeof(object) : CollectionItemType(target) ?? throw new NotSupportedException($"Array cannot be read as {target}");
@@ -471,19 +481,49 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                 return Expression.Convert(Expression.Call(ReadMapMethod.MakeGenericMethod(typeof(object)), reader, Expression.Constant(dynamicValueFn)), typeof(object));
             }
 
-            var kv = DictionaryArguments(target) ?? throw new NotSupportedException($"Map cannot be read as {target}");
+            var kv = target.GetDictionaryArguments() ?? throw new NotSupportedException($"Map cannot be read as {target}");
             var valueFn = CompileItem(ws.ValueSchema, valueRs, kv.Value);
 
             if (kv.Key == typeof(string))
             {
-                return Expression.Convert(Expression.Call(ReadMapMethod.MakeGenericMethod(kv.Value), reader, Expression.Constant(valueFn)), target);
+                return AdaptMap(Expression.Call(ReadMapMethod.MakeGenericMethod(kv.Value), reader, Expression.Constant(valueFn)), kv.Key, kv.Value, target);
             }
 
             // Non-string key type: convert each string key the same way a string value would be converted.
             var keyReader = Expression.Parameter(typeof(Reader), "reader");
             var keyFn = Expression.Lambda(typeof(Func<,>).MakeGenericType(typeof(Reader), kv.Key), BuildString(keyReader, kv.Key), keyReader).Compile();
             var map = Expression.Call(ReadMapKeyedMethod.MakeGenericMethod(kv.Key, kv.Value), reader, Expression.Constant(keyFn), Expression.Constant(valueFn));
-            return Expression.Convert(map, target);
+            return AdaptMap(map, kv.Key, kv.Value, target);
+        }
+
+        /// <summary>
+        /// Turns a <c>Dictionary&lt;TKey, TValue&gt;</c> expression into the requested dictionary type: as it is when assignable,
+        /// through a constructor taking IDictionary&lt;,&gt; (SortedDictionary, ReadOnlyDictionary), or by copying the entries
+        /// into a new instance (a class deriving from Dictionary).
+        /// </summary>
+        private static Expression AdaptMap(Expression dictionary, Type keyType, Type valueType, Type target)
+        {
+            if (target.IsAssignableFrom(dictionary.Type))
+            {
+                return Expression.Convert(dictionary, target);
+            }
+
+            var dictionaryInterface = typeof(IDictionary<,>).MakeGenericType(keyType, valueType);
+            if (!target.IsAbstract && !target.IsInterface)
+            {
+                var fromDictionary = target.GetConstructor(new[] { dictionaryInterface });
+                if (fromDictionary != null)
+                {
+                    return Expression.New(fromDictionary, Expression.Convert(dictionary, dictionaryInterface));
+                }
+
+                if (dictionaryInterface.IsAssignableFrom(target) && target.GetConstructor(Type.EmptyTypes) != null)
+                {
+                    return Expression.Call(CopyMapMethod.MakeGenericMethod(target, keyType, valueType), dictionary);
+                }
+            }
+
+            throw new NotSupportedException($"Map cannot be read as {target}");
         }
 
         private Expression BuildUnion(UnionSchema ws, TypeSchema rs, Type target, ParameterExpression reader, Type[] candidates = null)
@@ -494,16 +534,30 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             for (int i = 0; i < ws.Schemas.Count; i++)
             {
                 var branchWs = ws.Schemas[i];
-                var branchRs = rs is UnionSchema readerUnion ? FindBranch(readerUnion, branchWs) : rs;
+                var branchRs = rs is UnionSchema readerUnion ? FindBranch(readerUnion, branchWs) ?? FindRecordBranch(readerUnion, branchWs, target) : rs;
 
                 Expression body;
-                if (branchRs == null || (rs is not UnionSchema && !rs.CanRead(branchWs)))
+                if (branchWs.Type == AvroType.String && TemporalText.IsTemporal(Nullable.GetUnderlyingType(target) ?? target)
+                    && (branchRs == null || (rs is not UnionSchema && !rs.CanRead(branchWs))))
+                {
+                    // Date and time written as ISO 8601 text: the target type decides, not the reader schema.
+                    body = Build(branchWs, branchWs, target, reader, candidates);
+                }
+                else if (branchRs == null || (rs is not UnionSchema && !rs.CanRead(branchWs)))
                 {
                     body = Expression.Throw(Expression.Constant(new AvroException($"Schema mismatch. Reader: {rs}, writer: {branchWs}")), target);
                 }
                 else
                 {
-                    body = Build(branchWs, branchRs, target, reader, candidates);
+                    try
+                    {
+                        body = Build(branchWs, branchRs, target, reader, candidates);
+                    }
+                    catch (Exception e) when (e is SerializationException or AvroException or FormatException or InvalidCastException)
+                    {
+                        // A branch that cannot be read fails when the data holds it, not for every value of the union.
+                        body = Expression.Throw(Expression.Constant(e), target);
+                    }
                 }
 
                 cases.Add(Expression.SwitchCase(body, Expression.Constant(i)));
@@ -517,6 +571,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 
         private Expression BuildRecord(RecordSchema ws, RecordSchema rs, Type target, ParameterExpression reader, Type[] candidates = null)
         {
+            if (Nullable.GetUnderlyingType(target) is { } underlying)
+            {
+                // A struct record read into S?: built for S, then wrapped.
+                return Expression.Convert(BuildRecord(ws, rs, underlying, reader, candidates), target);
+            }
+
             if (candidates != null && (target == typeof(object) || target.IsAbstract || target.IsInterface))
             {
                 // [AvroUnion] names the alternatives explicitly, so matching on the simple name is unambiguous.
@@ -550,7 +610,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             }
 
             if (target.IsAbstract || target.IsInterface || target.IsPrimitive || target == typeof(string) || target.IsArray || target.IsEnum
-                || DictionaryArguments(target) != null || CollectionItemType(target) != null)
+                || target.GetDictionaryArguments() != null || CollectionItemType(target) != null)
             {
                 throw new NotSupportedException($"Record cannot be read as {target}");
             }
@@ -610,7 +670,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 
             foreach (var wf in ws.Fields)
             {
-                if (!rs.TryGetField(wf.Name, out var rf))
+                if (ReaderField(rs, wf) is not { } rf)
                 {
                     body.Add(Skip(wf.TypeSchema, reader));
                     continue;
@@ -642,7 +702,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 
             foreach (var rf in rs.Fields)
             {
-                if (ws.TryGetField(rf.Name, out _))
+                if (WriterHasField(ws, rs, rf))
                 {
                     continue;
                 }
@@ -705,7 +765,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 
             foreach (var wf in ws.Fields)
             {
-                if (!rs.TryGetField(wf.Name, out var rf))
+                if (ReaderField(rs, wf) is not { } rf)
                 {
                     body.Add(Skip(wf.TypeSchema, reader));
                     continue;
@@ -724,7 +784,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 
             foreach (var rf in rs.Fields)
             {
-                if (ws.TryGetField(rf.Name, out _))
+                if (WriterHasField(ws, rs, rf))
                 {
                     continue;
                 }
@@ -847,9 +907,98 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             return null;
         }
 
+        /// <summary>
+        /// A writer record with no reader branch of its name goes to the first reader record it can be read into, the same
+        /// rule as for a record outside a union: record names do not have to match, the fields have to resolve.
+        /// Classes chosen by [AvroUnion] (object, abstract, interface targets) are matched by name only.
+        /// </summary>
+        private TypeSchema FindRecordBranch(UnionSchema readerUnion, TypeSchema writerSchema, Type target)
+        {
+            var clrType = Nullable.GetUnderlyingType(target) ?? target;
+            if (writerSchema is not RecordSchema writerRecord || clrType == typeof(object) || clrType.IsAbstract || clrType.IsInterface)
+            {
+                return null;
+            }
+
+            return readerUnion.Schemas.OfType<RecordSchema>().FirstOrDefault(readerRecord => RecordResolves(writerRecord, readerRecord, clrType));
+        }
+
+        /// <summary>
+        /// True when <see cref="BuildRecordBody"/> can read the writer record into the reader record and <paramref name="target"/>:
+        /// the reader fields missing from the writer go through the same <see cref="ResolveMissingReaderField"/>, and nested
+        /// records are checked the same way.
+        /// </summary>
+        private bool RecordResolves(RecordSchema ws, RecordSchema rs, Type target) =>
+            RecordResolves(ws, rs, target, new HashSet<(RecordSchema, RecordSchema, Type)>());
+
+        private bool RecordResolves(RecordSchema ws, RecordSchema rs, Type target, HashSet<(RecordSchema, RecordSchema, Type)> visited)
+        {
+            if (target == typeof(ExpandoObject) || target == typeof(IDictionary<string, object>) || !visited.Add((ws, rs, target)))
+            {
+                return true;
+            }
+
+            var members = TypeMembers.For(target);
+            foreach (var wf in ws.Fields)
+            {
+                if (ReaderField(rs, wf) is not { } rf || members.Find(rf.GetAliasOrDefault() ?? wf.Name) is not { CanWrite: true } member)
+                {
+                    continue;
+                }
+
+                var memberType = Nullable.GetUnderlyingType(member.Type) ?? member.Type;
+                if (SingleRecord(wf.TypeSchema) is { } writerRecord && SingleRecord(rf.TypeSchema) is { } readerRecord
+                    && memberType != typeof(object) && !memberType.IsAbstract && !memberType.IsInterface
+                    && !RecordResolves(writerRecord, readerRecord, memberType, visited))
+                {
+                    return false;
+                }
+            }
+
+            foreach (var rf in rs.Fields)
+            {
+                if (WriterHasField(ws, rs, rf) || members.Find(rf.GetAliasOrDefault() ?? rf.Name) is not { CanWrite: true } member)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    bool clrNullable = !member.Type.IsValueType || Nullable.GetUnderlyingType(member.Type) != null;
+                    ResolveMissingReaderField(rs, rf, member.Type, clrNullable);
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>The record of a record schema or of a union with exactly one record branch; null otherwise.</summary>
+        private static RecordSchema SingleRecord(TypeSchema schema) => schema switch
+        {
+            RecordSchema record => record,
+            UnionSchema union when union.Schemas.OfType<RecordSchema>().Count() == 1 => union.Schemas.OfType<RecordSchema>().Single(),
+            _ => null
+        };
+
+        /// <summary>The reader field for a writer field: the same name, or a reader field with the writer's name among its aliases.</summary>
+        private static RecordFieldSchema ReaderField(RecordSchema rs, RecordFieldSchema wf) =>
+            rs.TryGetField(wf.Name, out var byName) ? byName : rs.Fields.FirstOrDefault(rf => rf.Aliases.Contains(wf.Name));
+
+        /// <summary>True when some writer field is read into <paramref name="rf"/> (see <see cref="ReaderField"/>).</summary>
+        private static bool WriterHasField(RecordSchema ws, RecordSchema rs, RecordFieldSchema rf) =>
+            ws.Fields.Any(wf => ReaderField(rs, wf) == rf);
+
+        /// <summary>Named types resolve by unqualified name, or by an alias of the reader.</summary>
+        private static bool NamesMatch(NamedSchema writer, NamedSchema reader) =>
+            writer.Name == reader.Name || reader.Aliases.Contains(writer.Name) || reader.Aliases.Contains(writer.FullName);
+
         private static bool IsSameType(TypeSchema reader, TypeSchema writer) =>
             reader.Type == writer.Type
-            && (reader is not NamedSchema readerNamed || writer is NamedSchema writerNamed && readerNamed.Name == writerNamed.Name)
+            && (reader is not NamedSchema readerNamed || writer is NamedSchema writerNamed && NamesMatch(writerNamed, readerNamed))
             && (reader is not LogicalTypeSchema readerLogical || writer is LogicalTypeSchema writerLogical && readerLogical.LogicalTypeName == writerLogical.LogicalTypeName);
 
         /// <summary>Element type for arrays, generic collections and their common interfaces; null when not a collection.</summary>
@@ -914,7 +1063,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 
         internal static Type CollectionItemType(Type type)
         {
-            if (type == typeof(string) || type == typeof(byte[]) || type == typeof(object) || DictionaryArguments(type) != null)
+            if (type == typeof(string) || type == typeof(byte[]) || type == typeof(object) || type.GetDictionaryArguments() != null)
             {
                 return null;
             }
@@ -935,25 +1084,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             }
 
             return null;
-        }
-
-        /// <summary>(Key, Value) for generic dictionary types and interfaces; null otherwise.</summary>
-        internal static (Type Key, Type Value)? DictionaryArguments(Type type)
-        {
-            if (!type.IsGenericType)
-            {
-                return null;
-            }
-
-            var args = type.GetGenericArguments();
-            if (args.Length != 2)
-            {
-                return null;
-            }
-
-            var readOnly = typeof(IReadOnlyDictionary<,>).MakeGenericType(args);
-            var mutable = typeof(IDictionary<,>).MakeGenericType(args);
-            return readOnly.IsAssignableFrom(type) || mutable.IsAssignableFrom(type) ? (args[0], args[1]) : null;
         }
 
         /// <summary>Turns a <c>List&lt;TItem&gt;</c> expression into the requested collection type; null when unsupported.</summary>

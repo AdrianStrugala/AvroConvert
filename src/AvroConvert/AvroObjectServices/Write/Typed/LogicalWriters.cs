@@ -112,6 +112,15 @@ Consider adding following attribute to your property:
             writer.WriteInt((int)(time - DateTimeExtensions.UnixEpochTime).TotalMilliseconds);
         }
 
+        internal static void WriteDateFromDateTime(Writer writer, DateTime value) =>
+            writer.WriteInt(DateOnly.FromDateTime(value).DayNumber - DateTimeExtensions.UnixEpochDate.DayNumber);
+
+        internal static void WriteTimeMicrosFromTimeSpan(Writer writer, TimeSpan value) =>
+            WriteTimeMicros(writer, TimeOnly.FromTimeSpan(value));
+
+        internal static void WriteTimeMillisFromTimeSpan(Writer writer, TimeSpan value) =>
+            WriteTimeMillis(writer, TimeOnly.FromTimeSpan(value));
+
         internal static void WriteFixed(Writer writer, AvroFixed value, FixedSchema schema)
         {
             if (value == null || value.Schema.FullName != schema.FullName || value.Schema.Size != schema.Size)

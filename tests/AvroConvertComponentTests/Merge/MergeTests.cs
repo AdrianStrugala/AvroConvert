@@ -6,6 +6,8 @@ using AwesomeAssertions;
 using SolTechnology.Avro;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 using NUnit.Framework;
+using SolTechnology.Avro.Infrastructure.Attributes;
+using OldRow = AvroConvertComponentTests.Merge.Old.Row;
 
 namespace AvroConvertComponentTests.Merge
 {
@@ -134,5 +136,99 @@ namespace AvroConvertComponentTests.Merge
             //Assert
             toCheck.Should().HaveCount(2000);
         }
+
+        [Test]
+        public void Merge_ObjectsWrittenWithAnOlderClass_AreReadWithTheirWriterSchema()
+        {
+            //Arrange: the files have the fields in another order than the class they are merged into
+            var rows = new[] { new OldRow { Name = "a", Id = 1 }, new OldRow { Name = "b", Id = 2 } };
+            var files = rows.Select(r => AvroConvert.Serialize(r));
+
+
+            //Act
+            var result = AvroConvert.Merge<Row>(files);
+
+
+            //Assert
+            AvroConvert.Deserialize<List<Row>>(result).Should().BeEquivalentTo(rows);
+        }
+
+        [Test]
+        public void Merge_SingleArrayFilesWithAnotherFieldOrder_EveryItemIsRead()
+        {
+            //Arrange: each file holds one entry, an array of rows
+            var options = new AvroConvertOptions { CollectionMode = SolTechnology.Avro.Policies.AvroCollectionMode.SingleArray };
+            var files = new[]
+            {
+                AvroConvert.Serialize(new List<OldRow> { new() { Name = "a", Id = 1 }, new() { Name = "b", Id = 2 } }, options),
+                AvroConvert.Serialize(new List<OldRow> { new() { Name = "c", Id = 3 } }, options)
+            };
+
+
+            //Act
+            var result = AvroConvert.Merge<Row>(files);
+
+
+            //Assert
+            AvroConvert.Deserialize<List<Row>>(result).Select(r => (r.Id, r.Name)).Should().Equal((1, "a"), (2, "b"), (3, "c"));
+        }
+
+        [Test]
+        public void Merge_ObjectsWrittenWithDifferentSchemas_Throws()
+        {
+            //Arrange
+            var files = new[] { AvroConvert.Serialize(new OldRow { Name = "a", Id = 1 }), AvroConvert.Serialize(new Row { Id = 2, Name = "b" }) };
+
+
+            //Act
+            var act = () => AvroConvert.Merge<Row>(files);
+
+
+            //Assert
+            act.Should().Throw<InvalidAvroObjectException>().WithMessage("*another schema*");
+        }
+
+        public class Stamp
+        {
+            public System.DateTime At { get; set; }
+        }
+
+        [Test]
+        public void Merge_ObjectsWithDifferentLogicalTypes_Throws()
+        {
+            //Arrange: timestamp-micros and timestamp-millis have the same parsing canonical form
+            var at = new System.DateTime(2024, 5, 6, 7, 8, 9, System.DateTimeKind.Utc);
+            var files = new[]
+            {
+                AvroConvert.Serialize(new Stamp { At = at }),
+                AvroConvert.Serialize(new Stamp { At = at }, new AvroConvertOptions { DateTimeRepresentation = AvroTypeRepresentation.TimestampMilliseconds })
+            };
+
+
+            //Act
+            var act = () => AvroConvert.Merge<Stamp>(files);
+
+
+            //Assert
+            act.Should().Throw<InvalidAvroObjectException>().WithMessage("*another schema*");
+        }
+    }
+}
+
+namespace AvroConvertComponentTests.Merge
+{
+    public class Row
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+}
+
+namespace AvroConvertComponentTests.Merge.Old
+{
+    public class Row
+    {
+        public string Name { get; set; }
+        public int Id { get; set; }
     }
 }

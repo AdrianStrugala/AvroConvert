@@ -19,6 +19,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
+using SolTechnology.Avro.AvroObjectServices.Schemas;
+using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Features.Merge;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 using System.Diagnostics.CodeAnalysis;
@@ -35,18 +37,34 @@ namespace SolTechnology.Avro
         public static byte[] Merge<T>(IEnumerable<byte[]> avroObjects)
         {
             var itemSchema = Schema.Create(typeof(T));
-            var targetSchema = Schema.Create(typeof(List<T>));
             var mergeDecoder = new MergeDecoder();
 
             List<DataBlock> avroDataBlocks = new List<DataBlock>();
+            TypeSchema writerSchema = null;
+            string writerSchemaJson = null;
 
             avroObjects = avroObjects.ToList();
             for (int i = 0; i < avroObjects.Count(); i++)
             {
                 var avroFileContent = mergeDecoder.ExtractAvroObjectContent(avroObjects.ElementAt(i));
-                if (!itemSchema.CanRead(avroFileContent.Header.Schema))
+                var fileSchema = avroFileContent.Header.Schema;
+                var entrySchema = fileSchema is ArraySchema array ? array.ItemSchema : fileSchema;
+                if (!itemSchema.CanRead(entrySchema))
                 {
                     throw new InvalidAvroObjectException($"Schema from object of index [{i}] is not compatible with schema of type [{typeof(T)}]");
+                }
+
+                // Data blocks are copied without re-encoding, so all objects have to be written with the same schema,
+                // logical types, precision and scale included (the parsing canonical form leaves them out).
+                var schemaJson = AvroSchema.Parse(avroFileContent.Header.Schema.ToString()).Json;
+                if (writerSchema == null)
+                {
+                    writerSchema = avroFileContent.Header.Schema;
+                    writerSchemaJson = schemaJson;
+                }
+                else if (schemaJson != writerSchemaJson)
+                {
+                    throw new InvalidAvroObjectException($"Object of index [{i}] is written with another schema than the first one. Merge copies the data without re-encoding it, so all objects need the same writer schema");
                 }
 
                 avroDataBlocks.AddRange(avroFileContent.DataBlocks);
@@ -56,7 +74,9 @@ namespace SolTechnology.Avro
             {
                 using (var encoder = new MergeEncoder(resultStream))
                 {
-                    encoder.WriteHeader(targetSchema.ToString(), CodecType.Null);
+                    // The blocks keep their layout, so the header is the schema they were written with.
+                    var resultSchema = writerSchema?.ToString() ?? itemSchema.ToString();
+                    encoder.WriteHeader(resultSchema, CodecType.Null);
 
                     encoder.WriteData(avroDataBlocks);
                 }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
@@ -65,6 +65,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
         private static readonly MethodInfo WriteTimestampMethod = typeof(LogicalWriters).GetMethod(nameof(LogicalWriters.WriteTimestamp), BindingFlags.Static | BindingFlags.NonPublic)!;
         private static readonly MethodInfo GuidParseMethod = typeof(Guid).GetMethod(nameof(Guid.Parse), new[] { typeof(string) })!;
         private static readonly MethodInfo WriteAvroFixedMethod = typeof(LogicalWriters).GetMethod(nameof(LogicalWriters.WriteFixed), BindingFlags.Static | BindingFlags.NonPublic)!;
+
+        private static MethodInfo LogicalWriter(string name) =>
+            typeof(LogicalWriters).GetMethod(name, BindingFlags.Static | BindingFlags.NonPublic)!;
         private static readonly MethodInfo WriteDynamicMethod = typeof(WriteCompiler).GetMethod(nameof(WriteDynamic), BindingFlags.Instance | BindingFlags.NonPublic)!;
         private static readonly PropertyInfo DateTimeTicks = typeof(DateTime).GetProperty(nameof(DateTime.Ticks))!;
         private static readonly PropertyInfo DateTimeOffsetDateTime = typeof(DateTimeOffset).GetProperty(nameof(DateTimeOffset.DateTime))!;
@@ -260,7 +263,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
         }
 
         private static bool IsKnownCollectionInterface(Type type) =>
-            ReadCompiler.CollectionItemType(type) != null || ReadCompiler.DictionaryArguments(type) != null || type == typeof(IDictionary<string, object>);
+            ReadCompiler.CollectionItemType(type) != null || type.GetDictionaryArguments() != null || type == typeof(IDictionary<string, object>);
 
         /// <summary>Numeric / enum / nullable conversion of a primitive; throws NotSupported otherwise.</summary>
         private Expression Convert(Expression value, Type target, TypeSchema schema)
@@ -303,8 +306,15 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
             {
                 return Expression.Condition(
                     Expression.Property(value, "HasValue"),
-                    Expression.Call(Expression.Property(value, "Value"), underlying.GetMethod(nameof(ToString), Type.EmptyTypes)!),
+                    TemporalText.IsTemporal(underlying)
+                        ? Expression.Call(TemporalText.FormatMethod(underlying), Expression.Property(value, "Value"))
+                        : Expression.Call(Expression.Property(value, "Value"), underlying.GetMethod(nameof(ToString), Type.EmptyTypes)!),
                     OrEmpty(Expression.Constant(null, typeof(string)), Expression.Constant(string.Empty), schema));
+            }
+
+            if (TemporalText.IsTemporal(type))
+            {
+                return Expression.Call(TemporalText.FormatMethod(type), value);
             }
 
             var toString = Expression.Call(value, type.GetMethod(nameof(ToString), Type.EmptyTypes)!);
@@ -348,6 +358,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                 case LogicalTypeSchema.LogicalTypeEnum.Date when type == typeof(DateOnly) && schema.BaseTypeSchema.Type == AvroType.Int:
                     return Expression.Call(writer, WriteIntMethod,
                         Expression.Subtract(Expression.Property(value, DateOnlyDayNumber), Expression.Constant(DateTimeExtensions.UnixEpochDate.DayNumber)));
+                case LogicalTypeSchema.LogicalTypeEnum.Date when type == typeof(DateTime) && schema.BaseTypeSchema.Type == AvroType.Int:
+                    return Expression.Call(LogicalWriter(nameof(LogicalWriters.WriteDateFromDateTime)), writer, value);
 
                 case var _ when schema is TimestampSchema timestampSchema && (type == typeof(DateTime) || type == typeof(DateTimeOffset)):
                     return Expression.Call(WriteTimestampMethod, writer, TicksSinceEpoch(type, value, timestampSchema.IsLocal), Expression.Constant(timestampSchema));
@@ -365,6 +377,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                     return Expression.Call(WriteTimeMicrosMethod, writer, value);
                 case LogicalTypeSchema.LogicalTypeEnum.TimeMilliseconds when type == typeof(TimeOnly):
                     return Expression.Call(WriteTimeMillisMethod, writer, value);
+                case LogicalTypeSchema.LogicalTypeEnum.TimeMicrosecond when type == typeof(TimeSpan):
+                    return Expression.Call(LogicalWriter(nameof(LogicalWriters.WriteTimeMicrosFromTimeSpan)), writer, value);
+                case LogicalTypeSchema.LogicalTypeEnum.TimeMilliseconds when type == typeof(TimeSpan):
+                    return Expression.Call(LogicalWriter(nameof(LogicalWriters.WriteTimeMillisFromTimeSpan)), writer, value);
 
                 case LogicalTypeSchema.LogicalTypeEnum.Uuid:
                 case LogicalTypeSchema.LogicalTypeEnum.TimestampMicroseconds:
@@ -488,7 +504,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                 return Expression.Call(WriteJsonRecordMethod, writer, value, Expression.Constant(names), Expression.Constant(writers));
             }
 
-            if (type.IsPrimitive || type == typeof(string) || type.IsArray || type.IsEnum || ReadCompiler.CollectionItemType(type) != null || ReadCompiler.DictionaryArguments(type) != null)
+            if (type.IsPrimitive || type == typeof(string) || type.IsArray || type.IsEnum || ReadCompiler.CollectionItemType(type) != null || type.GetDictionaryArguments() != null)
             {
                 throw new NotSupportedException($"[{type}] cannot be written against a record schema");
             }
@@ -694,7 +710,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                     Expression.Constant(WrapJsonValueWriter(dynamicValue)));
             }
 
-            var kv = ReadCompiler.DictionaryArguments(type);
+            var kv = type.GetDictionaryArguments();
             if (kv == null)
             {
                 if (typeof(IDictionary).IsAssignableFrom(type))
@@ -753,6 +769,32 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                 }
             }
 
+            if (branchIndex < 0 && TemporalText.IsTemporal(valueType))
+            {
+                for (int i = 0; i < branches.Count; i++)
+                {
+                    if (branches[i].Type == AvroType.String)
+                    {
+                        branchIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            if (branchIndex < 0)
+            {
+                // A class with no record branch of its name goes to the first record it can be written as, the same rule as
+                // for a record outside a union: the names do not have to match, every field needs a value.
+                for (int i = 0; i < branches.Count; i++)
+                {
+                    if (branches[i] is RecordSchema record && WritesAsRecord(record, valueType))
+                    {
+                        branchIndex = i;
+                        break;
+                    }
+                }
+            }
+
             Expression nonNullValue = underlying != null ? Expression.Property(value, "Value") : value;
             Expression writeBranch = branchIndex >= 0
                 ? Expression.Block(
@@ -776,6 +818,26 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
             return Expression.IfThenElse(isNull, writeNull, writeBranch);
         }
 
+        /// <summary>
+        /// True when <see cref="BuildRecordFields"/> writes <paramref name="type"/> as <paramref name="schema"/> without a missing
+        /// value: every field has a readable member, a default, can hold null, or empty values are allowed.
+        /// </summary>
+        private bool WritesAsRecord(RecordSchema schema, Type type)
+        {
+            if (type.IsPrimitive || type.IsEnum || type == typeof(string) || type == typeof(byte[]) || type.IsArray || type == typeof(object)
+                || type.IsAbstract || type.IsInterface || ReadCompiler.CollectionItemType(type) != null || type.GetDictionaryArguments() != null)
+            {
+                return false;
+            }
+
+            var members = TypeMembers.For(type);
+            return schema.Fields.All(field =>
+                members.Find(field.Aliases.FirstOrDefault() ?? field.Name) is { CanRead: true }
+                || field.HasDefaultValue && field.DefaultValue != null
+                || WriteHelpers.CanBeNull(field.TypeSchema)
+                || _nullHandling == AvroNullValueHandling.WriteEmpty);
+        }
+
         /// <summary>Static branch matching for a known CLR type (mirrors the classic runtime matcher).</summary>
         private static bool BranchAccepts(TypeSchema branch, Type type)
         {
@@ -788,18 +850,24 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                 case AvroType.Double:
                     // Any numeric CLR type converts to any numeric Avro type (e.g. int? marked [AvroType(Double)]).
                     return type.IsEnum || (type.IsPrimitive && type != typeof(bool) && type != typeof(IntPtr) && type != typeof(UIntPtr)) || type == typeof(decimal);
-                case AvroType.String: return type == typeof(string) || type == typeof(Guid) || type == typeof(decimal) || type == typeof(DateTimeOffset) || type == typeof(Uri) || type.IsEnum;
+                case AvroType.String: return type == typeof(string) || type == typeof(Guid) || type == typeof(decimal) || type == typeof(Uri) || type.IsEnum;
                 case AvroType.Bytes: return type == typeof(byte[]);
                 case AvroType.Enum: return type.IsEnum || type == typeof(string);
-                case AvroType.Array: return type != typeof(byte[]) && type != typeof(string) && typeof(IEnumerable).IsAssignableFrom(type) && !typeof(IDictionary).IsAssignableFrom(type) && ReadCompiler.DictionaryArguments(type) == null && type != typeof(JObject);
-                case AvroType.Map: return ReadCompiler.DictionaryArguments(type) != null || typeof(IDictionary).IsAssignableFrom(type) || type == typeof(JObject);
+                case AvroType.Array:
+                    if (type.GetDictionaryArguments() != null)
+                    {
+                        // A dictionary with non-string keys is an array of {Key, Value} records.
+                        return ((ArraySchema)branch).ItemSchema is RecordSchema item && item.TryGetField("Key", out _) && item.TryGetField("Value", out _);
+                    }
+                    return type != typeof(byte[]) && type != typeof(string) && typeof(IEnumerable).IsAssignableFrom(type) && !typeof(IDictionary).IsAssignableFrom(type) && type != typeof(JObject);
+                case AvroType.Map: return type.GetDictionaryArguments() != null || typeof(IDictionary).IsAssignableFrom(type) || type == typeof(JObject);
                 case AvroType.Record:
                 case AvroType.Error:
                     if (type == typeof(ExpandoObject) || type == typeof(JObject) || typeof(IDictionary<string, object>).IsAssignableFrom(type) && type.IsClass)
                         return true;
                     return !type.IsPrimitive && !type.IsEnum && type != typeof(string) && type != typeof(byte[]) && !type.IsArray && type != typeof(object)
-                           && ReadCompiler.CollectionItemType(type) == null && ReadCompiler.DictionaryArguments(type) == null
-                           && (type.Name.Equals(((RecordSchema)branch).Name) || type.IsAnonymous() || ((RecordSchema)branch).RuntimeType == type);
+                           && ReadCompiler.CollectionItemType(type) == null && type.GetDictionaryArguments() == null
+                           && (type.Name.Equals(((RecordSchema)branch).Name) || type.GetAvroName() == ((RecordSchema)branch).Name || type.IsAnonymous() || ((RecordSchema)branch).RuntimeType == type);
                 case AvroType.Fixed: return type == typeof(AvroFixed) || type == typeof(byte[]);
                 case AvroType.Logical:
                     return ((LogicalTypeSchema)branch).LogicalTypeName switch
@@ -809,8 +877,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                         LogicalTypeSchema.LogicalTypeEnum.TimestampMicroseconds or LogicalTypeSchema.LogicalTypeEnum.TimestampMilliseconds
                             or LogicalTypeSchema.LogicalTypeEnum.TimestampNanoseconds or LogicalTypeSchema.LogicalTypeEnum.LocalTimestampMilliseconds
                             or LogicalTypeSchema.LogicalTypeEnum.LocalTimestampMicroseconds or LogicalTypeSchema.LogicalTypeEnum.LocalTimestampNanoseconds => type == typeof(DateTime) || type == typeof(DateTimeOffset) || type == typeof(long),
-                        LogicalTypeSchema.LogicalTypeEnum.Date => type == typeof(DateOnly),
-                        LogicalTypeSchema.LogicalTypeEnum.TimeMicrosecond or LogicalTypeSchema.LogicalTypeEnum.TimeMilliseconds => type == typeof(TimeOnly),
+                        LogicalTypeSchema.LogicalTypeEnum.Date => type == typeof(DateOnly) || type == typeof(DateTime),
+                        LogicalTypeSchema.LogicalTypeEnum.TimeMicrosecond or LogicalTypeSchema.LogicalTypeEnum.TimeMilliseconds => type == typeof(TimeOnly) || type == typeof(TimeSpan),
                         LogicalTypeSchema.LogicalTypeEnum.Duration => type == typeof(TimeSpan),
                         _ => BranchAccepts(((LogicalTypeSchema)branch).BaseTypeSchema, type)
                     };

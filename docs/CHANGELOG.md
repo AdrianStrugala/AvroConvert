@@ -11,7 +11,7 @@ Breaking changes:
 - Read objects are created with their public parameterless constructor, like in System.Text.Json; a field missing in the data keeps its initialiser
 - `DateTimeOffset` is written as its UTC instant instead of the wall-clock time
 - Snappy blocks include the CRC-32 required by the specification
-- Generated schemas differ slightly, data stays compatible: names of generic records (#159), `time-micros`, non-public `[DataMember]` members (#51)
+- Generated schemas differ slightly, data stays compatible: names of generic records (#159), `time-micros`, non-public `[DataMember]` members (#51), `IDictionary<string, T>` / `IReadOnlyDictionary<string, T>` members are maps instead of arrays of key-value records
 - Multidimensional arrays (`int[,]`) throw; use jagged arrays (#26)
 - Numbers read into `dynamic` follow the reader schema type
 - Unknown `logicalType` is read as its underlying type
@@ -19,6 +19,7 @@ Breaking changes:
 - Reflection-based methods marked `[RequiresUnreferencedCode]` / `[RequiresDynamicCode]`
 - SolTechnology.Avro.Kafka rewritten on Confluent.SchemaRegistry 2.16: Confluent wire format, schema evolution, references, subject name strategies. Removed `KafkaConsumer`, `KafkaPropNames`, `ConfluentSchema`
 - SolTechnology.Avro.Http follows System.Net.Http.Json (`GetFromAvroAsync`, `PostAsAvroAsync`, `ReadFromAvroAsync`…), Minimal API results and streaming; old names are `[Obsolete]`
+- `GenerateModel`: `date` → `DateOnly`, `time-millis` / `time-micros` → `TimeOnly`; the code starts with `using` directives and has `[DataContract]` / `[DataMember]`, `[AvroType]` and `[AvroDecimal]` where needed, so the classes give back the same schema
 
 Changes:
 - Serialization and deserialization compiled per schema and type: several times faster, a fraction of allocations
@@ -33,13 +34,24 @@ Changes:
 - Added support for `ExpandoObject` (#112) and `DeserializeHeadless<dynamic>` (#107)
 - Added support for union of records read into `object` / `dynamic` (#174)
 - Added support for map keys convertible from string (e.g. `Dictionary<Uri, T>`)
+- Added support for dictionary types other than `Dictionary<,>`: `IReadOnlyDictionary<,>`, `SortedDictionary<,>`, `ReadOnlyDictionary<,>` and classes deriving from `Dictionary<,>`
 - Added `Deserialize(byte[], Type, options)` and `DeserializeHeadless<T>(ReadOnlySpan<byte>, writer, reader, options)`
 - Optional licence declaration: `AvroConvert.License` or `AVROCONVERT_LICENSE`
 - Writing with a schema field missing in the type writes the field's default
 - Schema resolution promotes `string` ↔ `bytes`; field `order` and enum `default` are preserved
+- Dates and times in a `string` field are read and written as ISO 8601 text (`DateTime`, `DateTimeOffset`, `DateOnly`, `TimeOnly`, `TimeSpan`), like Chr.Avro writes them by default
+- `DateTime` reads and writes `date`, `TimeSpan` reads and writes `time-millis` / `time-micros` (the types of Apache.Avro `avrogen` classes)
 - `Json2Avro` and `InferFromJson` look at every array element, not only the first one
 - A failed serialization does not leave a data block that looks complete
 - Fix for `Merge` losing data after the first block
+- Fix for `Merge` of objects written with another schema than `T`: the result keeps the schema they were written with; objects written with different schemas throw instead of giving unreadable data
+- Fix for `Merge` of files written with `CollectionMode = SingleArray`
+- Fix for field and record aliases on read: a renamed field (`[DataMember(Name)]` with the old name in the data) and a union record matched by alias
+- Fix for a union of records on read: the branch is chosen by name or alias first, then by the first record the data resolves into, the same rule as outside a union
+- Fix for nullable struct records (`Point?`)
+- Fix for `long` read into a `timestamp-*` field of the reader schema
+- Fix for `IncludeOnlyDataContractMembers` with `DateOnly`, `TimeOnly` and `TimeSpan` members
+- Fix for nullable members holding a generic record (with a schema given as JSON), a dictionary with non-string keys, or a record written under another name (anonymous type, `ExpandoObject`)
 - Fix for `GenerateModel` output differing between operating systems
 - Fix for `decimal` on `fixed`
 - Fix for defaults of logical type fields

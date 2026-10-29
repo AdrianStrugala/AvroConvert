@@ -21,7 +21,7 @@ namespace SolTechnology.Avro.Features.GenerateModel.Resolvers
 {
     internal class EnumModelResolver
     {
-        internal void ResolveEnum(JToken propValue, NetModel.NetModel model)
+        internal void ResolveEnum(JToken propValue, NetModel.NetModel model, string avroNamespace)
         {
             var result = new NetEnum();
 
@@ -29,6 +29,8 @@ namespace SolTechnology.Avro.Features.GenerateModel.Resolvers
             var symbols = (JArray)propValue["symbols"];
 
             result.Name = name;
+            result.AvroName = name;
+            result.AvroNamespace = avroNamespace;
             result.Symbols = symbols.Select(s => s.ToString()).ToList();
 
             model.NetTypes.Add(result);

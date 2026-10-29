@@ -17,7 +17,8 @@ namespace SolTechnology.Avro.Features.GenerateModel.NetModel
 
         public void Write(StringBuilder sb)
         {
-            NetEnum.WriteDataContract(sb, Name, AvroName, AvroNamespace);
+            // With [DataContract] every property is a [DataMember], so the schema is the same with IncludeOnlyDataContractMembers.
+            var dataContract = NetEnum.WriteDataContract(sb, Name, AvroName, AvroNamespace);
             sb.AppendLine($"public class {Name}");
             sb.AppendLine("{");
             foreach (NetClassField field in Fields)
@@ -56,6 +57,10 @@ namespace SolTechnology.Avro.Features.GenerateModel.NetModel
                 if (field.UnionMembers.Count > 0)
                 {
                     sb.AppendLine($"	[AvroUnion({string.Join(", ", field.UnionMembers.Select(m => $"typeof({m.FieldType})"))})]");
+                }
+                if (dataContract)
+                {
+                    sb.AppendLine("\t[DataMember]");
                 }
                 sb.AppendLine($"	public {field.FieldType} {field.Name} {{ get; set; }}");
             }

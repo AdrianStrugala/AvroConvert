@@ -59,6 +59,9 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
             typeof(byte[]),
             typeof(DateTime),
             typeof(DateTimeOffset),
+            typeof(DateOnly),
+            typeof(TimeOnly),
+            typeof(TimeSpan),
             typeof(Guid)
         };
 

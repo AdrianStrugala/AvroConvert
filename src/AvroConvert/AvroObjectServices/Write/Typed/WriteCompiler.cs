@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
@@ -781,6 +781,20 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                 }
             }
 
+            if (branchIndex < 0)
+            {
+                // A class with no record branch of its name goes to the first record it can be written as, the same rule as
+                // for a record outside a union: the names do not have to match, every field needs a value.
+                for (int i = 0; i < branches.Count; i++)
+                {
+                    if (branches[i] is RecordSchema record && WritesAsRecord(record, valueType))
+                    {
+                        branchIndex = i;
+                        break;
+                    }
+                }
+            }
+
             Expression nonNullValue = underlying != null ? Expression.Property(value, "Value") : value;
             Expression writeBranch = branchIndex >= 0
                 ? Expression.Block(
@@ -802,6 +816,26 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                 : Expression.Throw(Expression.Call(NoUnionBranchMethod, Expression.Constant(null, typeof(object)), Expression.Constant(schema)));
 
             return Expression.IfThenElse(isNull, writeNull, writeBranch);
+        }
+
+        /// <summary>
+        /// True when <see cref="BuildRecordFields"/> writes <paramref name="type"/> as <paramref name="schema"/> without a missing
+        /// value: every field has a readable member, a default, can hold null, or empty values are allowed.
+        /// </summary>
+        private bool WritesAsRecord(RecordSchema schema, Type type)
+        {
+            if (type.IsPrimitive || type.IsEnum || type == typeof(string) || type == typeof(byte[]) || type.IsArray || type == typeof(object)
+                || type.IsAbstract || type.IsInterface || ReadCompiler.CollectionItemType(type) != null || type.GetDictionaryArguments() != null)
+            {
+                return false;
+            }
+
+            var members = TypeMembers.For(type);
+            return schema.Fields.All(field =>
+                members.Find(field.Aliases.FirstOrDefault() ?? field.Name) is { CanRead: true }
+                || field.HasDefaultValue && field.DefaultValue != null
+                || WriteHelpers.CanBeNull(field.TypeSchema)
+                || _nullHandling == AvroNullValueHandling.WriteEmpty);
         }
 
         /// <summary>Static branch matching for a known CLR type (mirrors the classic runtime matcher).</summary>

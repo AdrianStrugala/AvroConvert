@@ -47,7 +47,9 @@ namespace SolTechnology.Avro
             for (int i = 0; i < avroObjects.Count(); i++)
             {
                 var avroFileContent = mergeDecoder.ExtractAvroObjectContent(avroObjects.ElementAt(i));
-                if (!itemSchema.CanRead(avroFileContent.Header.Schema))
+                var fileSchema = avroFileContent.Header.Schema;
+                var entrySchema = fileSchema is ArraySchema array ? array.ItemSchema : fileSchema;
+                if (!itemSchema.CanRead(entrySchema))
                 {
                     throw new InvalidAvroObjectException($"Schema from object of index [{i}] is not compatible with schema of type [{typeof(T)}]");
                 }
@@ -72,11 +74,8 @@ namespace SolTechnology.Avro
             {
                 using (var encoder = new MergeEncoder(resultStream))
                 {
-                    // The result is one array of the copied items: its items get the schema they were written with.
-                    // Objects holding a whole array per entry keep the schema of List<T>.
-                    var resultSchema = writerSchema != null && writerSchema.Type != AvroType.Array
-                        ? "{\"type\":\"array\",\"items\":" + writerSchema + "}"
-                        : Schema.Create(typeof(List<T>)).ToString();
+                    // The blocks keep their layout, so the header is the schema they were written with.
+                    var resultSchema = writerSchema?.ToString() ?? itemSchema.ToString();
                     encoder.WriteHeader(resultSchema, CodecType.Null);
 
                     encoder.WriteData(avroDataBlocks);

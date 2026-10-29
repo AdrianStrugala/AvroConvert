@@ -35,8 +35,11 @@ namespace AvroConvertComponentTests.GenerateModel
                 "[DataContract(Namespace = \"example.avro\")]\r\n" +
                 "public class User\r\n" +
                 "{\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic string name { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic int? favorite_number { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic string? favorite_color { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n");
@@ -58,8 +61,11 @@ namespace AvroConvertComponentTests.GenerateModel
                 "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
                 "public class User\r\n" +
                 "{\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic string name { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic int? favorite_number { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic string favorite_color { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n");
@@ -82,16 +88,22 @@ namespace AvroConvertComponentTests.GenerateModel
                 "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
                 "public class BaseTestClass\r\n" +
                 "{\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic string justSomeProperty { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic long andLongProperty { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic User objectProperty { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
                 "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
                 "public class User\r\n" +
                 "{\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic string? name { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic int? favorite_number { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic string favorite_color { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n");
@@ -115,8 +127,10 @@ namespace AvroConvertComponentTests.GenerateModel
                 "public class ClassWithEnum\r\n" +
                 "{\r\n" +
                 "\t[DefaultValue(1)]\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic TestEnum? EnumProp { get; set; }\r\n" +
                 "\t[DefaultValue(ca)]\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic TestEnum? SecondEnumProp { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
@@ -148,56 +162,77 @@ namespace AvroConvertComponentTests.GenerateModel
                 "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
                 "public class VeryComplexClass\r\n" +
                 "{\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic ClassWithArray[] ClassesWithArray { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic ClassWithGuid[] ClassesWithGuid { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic ClassWithConstructorPopulatingProperty anotherClass { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic User simpleClass { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic int simpleObject { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic bool[] bools { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic double doubleProperty { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic float floatProperty { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic int? Size { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
                 "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
                 "public class ClassWithArray\r\n" +
                 "{\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic int[] theArray { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
                 "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
                 "public class ClassWithGuid\r\n" +
                 "{\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic Guid theGuid { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
                 "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
                 "public class ClassWithConstructorPopulatingProperty\r\n" +
                 "{\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic BaseTestClass[] nestedList { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic ClassWithSimpleList[] anotherList { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic string stringProperty { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
                 "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
                 "public class BaseTestClass\r\n" +
                 "{\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic string justSomeProperty { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic long andLongProperty { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic User objectProperty { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
                 "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
                 "public class User\r\n" +
                 "{\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic string? name { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic int? favorite_number { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic string favorite_color { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
                 "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
                 "public class ClassWithSimpleList\r\n" +
                 "{\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic int[] someList { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n");
@@ -220,10 +255,15 @@ namespace AvroConvertComponentTests.GenerateModel
                 "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
                 "public class LogicalTypesClass\r\n" +
                 "{\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic decimal One { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic Guid? Two { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic TimeSpan Three { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic DateTime? Four { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic DateTime Five { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n");
@@ -312,21 +352,27 @@ namespace AvroConvertComponentTests.GenerateModel
                 "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
                 "public class BaseTestClass\r\n" +
                 "{\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic FakeUserUser fakeUserProperty { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic AvroConvertComponentTestsUser objectProperty { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
                 "[DataContract(Name = \"User\", Namespace = \"FakeUser\")]\r\n" +
                 "public class FakeUserUser\r\n" +
                 "{\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic string name { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
                 "[DataContract(Name = \"User\", Namespace = \"AvroConvertComponentTests\")]\r\n" +
                 "public class AvroConvertComponentTestsUser\r\n" +
                 "{\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic string name { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic int? favorite_number { get; set; }\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic string favorite_color { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n");
@@ -444,6 +490,7 @@ namespace AvroConvertComponentTests.GenerateModel
                 "[DataContract(Name = \"module\", Namespace = \"data\")]\r\n" +
                 "public class datamodule\r\n" +
                 "{\r\n" +
+                "\t[DataMember]\r\n" +
                 "\tpublic bool? isControl { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
@@ -886,7 +933,7 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            model.Should().Contain("\t[AvroUnion(typeof(Paid), typeof(Cancelled))]\r\n\tpublic object? Event { get; set; }\r\n");
+            model.Should().Contain("\t[AvroUnion(typeof(Paid), typeof(Cancelled))]\r\n\t[DataMember]\r\n\tpublic object? Event { get; set; }\r\n");
             model.Should().Contain("public class Cancelled");
         }
 
@@ -907,10 +954,10 @@ namespace AvroConvertComponentTests.GenerateModel
             //Assert
             model.Should().StartWith("using System;\r\nusing System.Runtime.Serialization;\r\nusing SolTechnology.Avro.Infrastructure.Attributes;\r\n\r\n");
             model.Should().Contain("[DataContract(Namespace = \"com.acme.shop\")]\r\npublic class Order\r\n");
-            model.Should().Contain("\t[AvroType(AvroTypeRepresentation.TimestampMilliseconds)]\r\n\tpublic DateTime createdAt { get; set; }\r\n");
-            model.Should().Contain("\tpublic DateOnly? shippedOn { get; set; }\r\n");
-            model.Should().Contain("\t[AvroType(AvroTypeRepresentation.TimeMilliseconds)]\r\n\tpublic TimeOnly openAt { get; set; }\r\n");
-            model.Should().Contain("\t[AvroDecimal(Precision = 10, Scale = 2)]\r\n\tpublic decimal total { get; set; }\r\n");
+            model.Should().Contain("\t[AvroType(AvroTypeRepresentation.TimestampMilliseconds)]\r\n\t[DataMember]\r\n\tpublic DateTime createdAt { get; set; }\r\n");
+            model.Should().Contain("\t[DataMember]\r\n\tpublic DateOnly? shippedOn { get; set; }\r\n");
+            model.Should().Contain("\t[AvroType(AvroTypeRepresentation.TimeMilliseconds)]\r\n\t[DataMember]\r\n\tpublic TimeOnly openAt { get; set; }\r\n");
+            model.Should().Contain("\t[AvroDecimal(Precision = 10, Scale = 2)]\r\n\t[DataMember]\r\n\tpublic decimal total { get; set; }\r\n");
             model.Should().Contain("[DataContract(Namespace = \"com.acme.shop\")]\r\npublic class Address\r\n", "a nested record inherits the namespace of the enclosing one");
         }
 
@@ -922,6 +969,16 @@ namespace AvroConvertComponentTests.GenerateModel
             var original = AvroSchema.Parse(ShopOrderSchema).Json;
 
             var fromModel = AvroSchema.Create<GeneratedShop.Order>().Json;
+
+            WithoutDefaults(fromModel).Should().Be(WithoutDefaults(original));
+        }
+
+        [Test]
+        public void GeneratedModel_WithIncludeOnlyDataContractMembers_KeepsEveryField()
+        {
+            var original = AvroSchema.Parse(ShopOrderSchema).Json;
+
+            var fromModel = AvroSchema.Create<GeneratedShop.Order>(new AvroConvertOptions { IncludeOnlyDataContractMembers = true }).Json;
 
             WithoutDefaults(fromModel).Should().Be(WithoutDefaults(original));
         }
@@ -959,18 +1016,24 @@ namespace AvroConvertComponentTests.GenerateModel.GeneratedShop
     public class Order
     {
         [AvroType(AvroTypeRepresentation.TimestampMilliseconds)]
+        [DataMember]
         public DateTime createdAt { get; set; }
+        [DataMember]
         public DateOnly? shippedOn { get; set; }
         [AvroType(AvroTypeRepresentation.TimeMilliseconds)]
+        [DataMember]
         public TimeOnly openAt { get; set; }
         [AvroDecimal(Precision = 10, Scale = 2)]
+        [DataMember]
         public decimal total { get; set; }
+        [DataMember]
         public Address address { get; set; }
     }
 
     [DataContract(Namespace = "com.acme.shop")]
     public class Address
     {
+        [DataMember]
         public string city { get; set; }
     }
 }

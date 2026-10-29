@@ -19,7 +19,7 @@ Breaking changes:
 - Reflection-based methods marked `[RequiresUnreferencedCode]` / `[RequiresDynamicCode]`
 - SolTechnology.Avro.Kafka rewritten on Confluent.SchemaRegistry 2.16: Confluent wire format, schema evolution, references, subject name strategies. Removed `KafkaConsumer`, `KafkaPropNames`, `ConfluentSchema`
 - SolTechnology.Avro.Http follows System.Net.Http.Json (`GetFromAvroAsync`, `PostAsAvroAsync`, `ReadFromAvroAsync`…), Minimal API results and streaming; old names are `[Obsolete]`
-- `GenerateModel`: `date` → `DateOnly`, `time-millis` / `time-micros` → `TimeOnly`; the code starts with `using` directives and has `[DataContract]`, `[AvroType]` and `[AvroDecimal]` where needed, so the classes give back the same schema
+- `GenerateModel`: `date` → `DateOnly`, `time-millis` / `time-micros` → `TimeOnly`; the code starts with `using` directives and has `[DataContract]` / `[DataMember]`, `[AvroType]` and `[AvroDecimal]` where needed, so the classes give back the same schema
 
 Changes:
 - Serialization and deserialization compiled per schema and type: several times faster, a fraction of allocations
@@ -45,6 +45,12 @@ Changes:
 - A failed serialization does not leave a data block that looks complete
 - Fix for `Merge` losing data after the first block
 - Fix for `Merge` of objects written with another schema than `T`: the result keeps the schema they were written with; objects written with different schemas throw instead of giving unreadable data
+- Fix for `Merge` of files written with `CollectionMode = SingleArray`
+- Fix for field and record aliases on read: a renamed field (`[DataMember(Name)]` with the old name in the data) and a union record matched by alias
+- Fix for a union of records on read: the branch is chosen by name or alias first, then by the first record the data resolves into, the same rule as outside a union
+- Fix for nullable struct records (`Point?`)
+- Fix for `long` read into a `timestamp-*` field of the reader schema
+- Fix for `IncludeOnlyDataContractMembers` with `DateOnly`, `TimeOnly` and `TimeSpan` members
 - Fix for nullable members holding a generic record (with a schema given as JSON), a dictionary with non-string keys, or a record written under another name (anonymous type, `ExpandoObject`)
 - Fix for `GenerateModel` output differing between operating systems
 - Fix for `decimal` on `fixed`

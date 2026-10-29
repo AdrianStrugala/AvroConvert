@@ -26,39 +26,18 @@ using SolTechnology.Avro.Infrastructure.Exceptions;
 
 namespace SolTechnology.Avro.Features.Merge
 {
+    /// <summary>Writes an object container file from data blocks of other files, copied as they are (no re-encoding).</summary>
     internal class MergeEncoder : IDisposable
     {
-        private readonly AbstractCodec _codec;
         private readonly Stream _stream;
         private readonly Writer _writer;
-        private readonly Writer _tempWriter;
-        private bool _isOpen;
-        private int _blockCount;
-        private readonly int _syncInterval;
         private readonly Header _header;
-
 
         internal MergeEncoder(Stream outStream)
         {
-            _codec = new NullCodec();
             _stream = outStream;
-
-            _syncInterval = DataFileConstants.DefaultSyncInterval;
-
-            _blockCount = 0;
             _writer = new Writer(_stream);
-
-            _tempWriter = new Writer();
-
-            _isOpen = true;
             _header = new Header();
-        }
-
-        internal long Sync()
-        {
-            AssertOpen();
-            WriteBlock();
-            return _stream.Position;
         }
 
         internal void WriteHeader(string schema, CodecType codecType)
@@ -71,43 +50,15 @@ namespace SolTechnology.Avro.Features.Merge
             _writer.Flush();
         }
 
+        /// <summary>Each block keeps its entries and their count, so the result has the layout of the files it comes from.</summary>
         internal void WriteData(List<DataBlock> dataBlocks)
         {
-            _tempWriter.WriteArrayStart();
-            _tempWriter.WriteItemCount(dataBlocks.Select(x => x.ItemsCount).Sum());
-
             foreach (var dataBlock in dataBlocks)
             {
-                _tempWriter.WriteBytesRaw(dataBlock.Data);
+                _writer.WriteDataBlock(dataBlock.Data, _header.SyncData, checked((int)dataBlock.ItemsCount));
             }
 
-            _tempWriter.WriteArrayEnd();
-
-            _blockCount++;
-            WriteIfBlockFull();
-        }
-
-        private void AssertOpen()
-        {
-            if (!_isOpen) throw new AvroRuntimeException("Cannot complete operation: avro file/stream not open");
-        }
-
-        private void WriteIfBlockFull()
-        {
-            if (_tempWriter.Length >= _syncInterval)
-                WriteBlock();
-        }
-
-        private void WriteBlock()
-        {
-            if (_blockCount > 0)
-            {
-                _writer.WriteDataBlock(_tempWriter.WrittenSpan, _header.SyncData, _blockCount);
-                _writer.Flush();
-
-                _blockCount = 0;
-                _tempWriter.Reset();
-            }
+            _writer.Flush();
         }
 
         private void GenerateSyncData()
@@ -118,12 +69,9 @@ namespace SolTechnology.Avro.Features.Merge
 
         public void Dispose()
         {
-            Sync();
             _writer.Dispose();
-            _tempWriter.Dispose();
             _stream.Flush();
             _stream.Dispose();
-            _isOpen = false;
         }
     }
 }

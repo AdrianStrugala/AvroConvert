@@ -20,7 +20,8 @@ namespace SolTechnology.Avro.Features.GenerateModel.NetModel
             sb.AppendLine();
         }
 
-        internal static void WriteDataContract(StringBuilder sb, string name, string avroName, string avroNamespace)
+        /// <returns>True when [DataContract] was written.</returns>
+        internal static bool WriteDataContract(StringBuilder sb, string name, string avroName, string avroNamespace)
         {
             var arguments = new List<string>();
             if (!string.IsNullOrEmpty(avroName) && avroName != name)
@@ -31,10 +32,13 @@ namespace SolTechnology.Avro.Features.GenerateModel.NetModel
             {
                 arguments.Add($"Namespace = \"{avroNamespace}\"");
             }
-            if (arguments.Count > 0)
+            if (arguments.Count == 0)
             {
-                sb.AppendLine($"[DataContract({string.Join(", ", arguments)})]");
+                return false;
             }
+
+            sb.AppendLine($"[DataContract({string.Join(", ", arguments)})]");
+            return true;
         }
     }
 }

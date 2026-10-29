@@ -154,6 +154,26 @@ namespace AvroConvertComponentTests.Merge
         }
 
         [Test]
+        public void Merge_SingleArrayFilesWithAnotherFieldOrder_EveryItemIsRead()
+        {
+            //Arrange: each file holds one entry, an array of rows
+            var options = new AvroConvertOptions { CollectionMode = SolTechnology.Avro.Policies.AvroCollectionMode.SingleArray };
+            var files = new[]
+            {
+                AvroConvert.Serialize(new List<OldRow> { new() { Name = "a", Id = 1 }, new() { Name = "b", Id = 2 } }, options),
+                AvroConvert.Serialize(new List<OldRow> { new() { Name = "c", Id = 3 } }, options)
+            };
+
+
+            //Act
+            var result = AvroConvert.Merge<Row>(files);
+
+
+            //Assert
+            AvroConvert.Deserialize<List<Row>>(result).Select(r => (r.Id, r.Name)).Should().Equal((1, "a"), (2, "b"), (3, "c"));
+        }
+
+        [Test]
         public void Merge_ObjectsWrittenWithDifferentSchemas_Throws()
         {
             //Arrange

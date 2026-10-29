@@ -182,5 +182,29 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
                 Thread.CurrentThread.CurrentCulture = culture;
             }
         }
+
+        [Test]
+        public void Date_and_time_text_in_the_current_culture_is_read()
+        {
+            var culture = Thread.CurrentThread.CurrentCulture;
+            try
+            {
+                Thread.CurrentThread.CurrentCulture = new CultureInfo("en-GB");
+                var data = AvroConvert.SerializeHeadless(new EventText
+                {
+                    DateTime = "01/02/2026 10:00:00", DateTimeOffset = "2026-02-01T10:00:00+00:00", TimeSpan = "PT1H", DateOnly = "01/02/2026", TimeOnly = "10:00:00"
+                }, TextSchema);
+
+                var result = AvroConvert.DeserializeHeadless<Event>(data, TextSchema);
+
+                result.DateTime.Should().Be(new DateTime(2026, 2, 1, 10, 0, 0));
+                result.DateOnly.Should().Be(new DateOnly(2026, 2, 1));
+                result.TimeOnly.Should().Be(new TimeOnly(10, 0));
+            }
+            finally
+            {
+                Thread.CurrentThread.CurrentCulture = culture;
+            }
+        }
     }
 }

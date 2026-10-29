@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -13,6 +13,7 @@ using SolTechnology.Avro.AvroObjectServices.Skip;
 using SolTechnology.Avro.Features.JsonEncoding;
 using SolTechnology.Avro.Infrastructure.Attributes;
 using SolTechnology.Avro.Infrastructure.Exceptions;
+using SolTechnology.Avro.Infrastructure.Extensions;
 using SolTechnology.Avro.Infrastructure.Reflection;
 using SolTechnology.Avro.Policies;
 using System.Diagnostics.CodeAnalysis;
@@ -53,6 +54,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         private static readonly MethodInfo ReadMapMethod = Helper(nameof(ReadHelpers.ReadMap));
         private static readonly MethodInfo ReadMapKeyedMethod = Helper(nameof(ReadHelpers.ReadMapKeyed));
         private static readonly MethodInfo ReadDictionaryMethod = Helper(nameof(ReadHelpers.ReadDictionary));
+        private static readonly MethodInfo CopyMapMethod = Helper(nameof(ReadHelpers.CopyMap));
         private static readonly MethodInfo FoldMethod = Helper(nameof(ReadHelpers.Fold));
         private static readonly MethodInfo AddAllMethod = Helper(nameof(ReadHelpers.AddAll));
         private static readonly MethodInfo UnionIndexOutOfRangeMethod = Helper(nameof(ReadHelpers.UnionIndexOutOfRange));
@@ -412,7 +414,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             }
 
             // Dictionaries with non-string keys are encoded as an array of {Key, Value} records.
-            if (DictionaryArguments(target) is { } kv && ws.ItemSchema is RecordSchema itemRecord
+            if (target.GetDictionaryArguments() is { } kv && ws.ItemSchema is RecordSchema itemRecord
                 && itemRecord.TryGetField("Key", out var keyField) && itemRecord.TryGetField("Value", out var valueField))
             {
                 var readerRecord = itemRs as RecordSchema ?? itemRecord;
@@ -422,7 +424,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                 var keyFn = CompileItem(keyField.TypeSchema, readerKey?.TypeSchema ?? keyField.TypeSchema, kv.Key);
                 var valueFn = CompileItem(valueField.TypeSchema, readerValue?.TypeSchema ?? valueField.TypeSchema, kv.Value);
                 var dictionary = Expression.Call(ReadDictionaryMethod.MakeGenericMethod(kv.Key, kv.Value), reader, Expression.Constant(keyFn), Expression.Constant(valueFn));
-                return Expression.Convert(dictionary, target);
+                return AdaptMap(dictionary, kv.Key, kv.Value, target);
             }
 
             var itemType = target == typeof(object) ? typeof(object) : CollectionItemType(target) ?? throw new NotSupportedException($"Array cannot be read as {target}");
@@ -473,19 +475,49 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                 return Expression.Convert(Expression.Call(ReadMapMethod.MakeGenericMethod(typeof(object)), reader, Expression.Constant(dynamicValueFn)), typeof(object));
             }
 
-            var kv = DictionaryArguments(target) ?? throw new NotSupportedException($"Map cannot be read as {target}");
+            var kv = target.GetDictionaryArguments() ?? throw new NotSupportedException($"Map cannot be read as {target}");
             var valueFn = CompileItem(ws.ValueSchema, valueRs, kv.Value);
 
             if (kv.Key == typeof(string))
             {
-                return Expression.Convert(Expression.Call(ReadMapMethod.MakeGenericMethod(kv.Value), reader, Expression.Constant(valueFn)), target);
+                return AdaptMap(Expression.Call(ReadMapMethod.MakeGenericMethod(kv.Value), reader, Expression.Constant(valueFn)), kv.Key, kv.Value, target);
             }
 
             // Non-string key type: convert each string key the same way a string value would be converted.
             var keyReader = Expression.Parameter(typeof(Reader), "reader");
             var keyFn = Expression.Lambda(typeof(Func<,>).MakeGenericType(typeof(Reader), kv.Key), BuildString(keyReader, kv.Key), keyReader).Compile();
             var map = Expression.Call(ReadMapKeyedMethod.MakeGenericMethod(kv.Key, kv.Value), reader, Expression.Constant(keyFn), Expression.Constant(valueFn));
-            return Expression.Convert(map, target);
+            return AdaptMap(map, kv.Key, kv.Value, target);
+        }
+
+        /// <summary>
+        /// Turns a <c>Dictionary&lt;TKey, TValue&gt;</c> expression into the requested dictionary type: as it is when assignable,
+        /// through a constructor taking IDictionary&lt;,&gt; (SortedDictionary, ReadOnlyDictionary), or by copying the entries
+        /// into a new instance (a class deriving from Dictionary).
+        /// </summary>
+        private static Expression AdaptMap(Expression dictionary, Type keyType, Type valueType, Type target)
+        {
+            if (target.IsAssignableFrom(dictionary.Type))
+            {
+                return Expression.Convert(dictionary, target);
+            }
+
+            var dictionaryInterface = typeof(IDictionary<,>).MakeGenericType(keyType, valueType);
+            if (!target.IsAbstract && !target.IsInterface)
+            {
+                var fromDictionary = target.GetConstructor(new[] { dictionaryInterface });
+                if (fromDictionary != null)
+                {
+                    return Expression.New(fromDictionary, Expression.Convert(dictionary, dictionaryInterface));
+                }
+
+                if (dictionaryInterface.IsAssignableFrom(target) && target.GetConstructor(Type.EmptyTypes) != null)
+                {
+                    return Expression.Call(CopyMapMethod.MakeGenericMethod(target, keyType, valueType), dictionary);
+                }
+            }
+
+            throw new NotSupportedException($"Map cannot be read as {target}");
         }
 
         private Expression BuildUnion(UnionSchema ws, TypeSchema rs, Type target, ParameterExpression reader, Type[] candidates = null)
@@ -558,7 +590,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             }
 
             if (target.IsAbstract || target.IsInterface || target.IsPrimitive || target == typeof(string) || target.IsArray || target.IsEnum
-                || DictionaryArguments(target) != null || CollectionItemType(target) != null)
+                || target.GetDictionaryArguments() != null || CollectionItemType(target) != null)
             {
                 throw new NotSupportedException($"Record cannot be read as {target}");
             }
@@ -922,7 +954,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 
         internal static Type CollectionItemType(Type type)
         {
-            if (type == typeof(string) || type == typeof(byte[]) || type == typeof(object) || DictionaryArguments(type) != null)
+            if (type == typeof(string) || type == typeof(byte[]) || type == typeof(object) || type.GetDictionaryArguments() != null)
             {
                 return null;
             }
@@ -943,25 +975,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             }
 
             return null;
-        }
-
-        /// <summary>(Key, Value) for generic dictionary types and interfaces; null otherwise.</summary>
-        internal static (Type Key, Type Value)? DictionaryArguments(Type type)
-        {
-            if (!type.IsGenericType)
-            {
-                return null;
-            }
-
-            var args = type.GetGenericArguments();
-            if (args.Length != 2)
-            {
-                return null;
-            }
-
-            var readOnly = typeof(IReadOnlyDictionary<,>).MakeGenericType(args);
-            var mutable = typeof(IDictionary<,>).MakeGenericType(args);
-            return readOnly.IsAssignableFrom(type) || mutable.IsAssignableFrom(type) ? (args[0], args[1]) : null;
         }
 
         /// <summary>Turns a <c>List&lt;TItem&gt;</c> expression into the requested collection type; null when unsupported.</summary>

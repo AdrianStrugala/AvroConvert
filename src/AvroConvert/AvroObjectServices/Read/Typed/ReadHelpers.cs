@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
@@ -48,6 +48,18 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                     var key = reader.ReadString();
                     result[key] = readValue(reader);
                 }
+            }
+
+            return result;
+        }
+
+        /// <summary>A dictionary type with a parameterless constructor (e.g. a class deriving from Dictionary) filled with the read entries.</summary>
+        internal static TTarget CopyMap<TTarget, TKey, TValue>(Dictionary<TKey, TValue> source) where TTarget : IDictionary<TKey, TValue>, new()
+        {
+            var result = new TTarget();
+            foreach (var entry in source)
+            {
+                result.Add(entry.Key, entry.Value);
             }
 
             return result;

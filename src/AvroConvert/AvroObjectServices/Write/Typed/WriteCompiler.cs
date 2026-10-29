@@ -263,7 +263,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
         }
 
         private static bool IsKnownCollectionInterface(Type type) =>
-            ReadCompiler.CollectionItemType(type) != null || ReadCompiler.DictionaryArguments(type) != null || type == typeof(IDictionary<string, object>);
+            ReadCompiler.CollectionItemType(type) != null || type.GetDictionaryArguments() != null || type == typeof(IDictionary<string, object>);
 
         /// <summary>Numeric / enum / nullable conversion of a primitive; throws NotSupported otherwise.</summary>
         private Expression Convert(Expression value, Type target, TypeSchema schema)
@@ -504,7 +504,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                 return Expression.Call(WriteJsonRecordMethod, writer, value, Expression.Constant(names), Expression.Constant(writers));
             }
 
-            if (type.IsPrimitive || type == typeof(string) || type.IsArray || type.IsEnum || ReadCompiler.CollectionItemType(type) != null || ReadCompiler.DictionaryArguments(type) != null)
+            if (type.IsPrimitive || type == typeof(string) || type.IsArray || type.IsEnum || ReadCompiler.CollectionItemType(type) != null || type.GetDictionaryArguments() != null)
             {
                 throw new NotSupportedException($"[{type}] cannot be written against a record schema");
             }
@@ -710,7 +710,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                     Expression.Constant(WrapJsonValueWriter(dynamicValue)));
             }
 
-            var kv = ReadCompiler.DictionaryArguments(type);
+            var kv = type.GetDictionaryArguments();
             if (kv == null)
             {
                 if (typeof(IDictionary).IsAssignableFrom(type))
@@ -819,14 +819,14 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                 case AvroType.String: return type == typeof(string) || type == typeof(Guid) || type == typeof(decimal) || type == typeof(DateTimeOffset) || type == typeof(Uri) || type.IsEnum;
                 case AvroType.Bytes: return type == typeof(byte[]);
                 case AvroType.Enum: return type.IsEnum || type == typeof(string);
-                case AvroType.Array: return type != typeof(byte[]) && type != typeof(string) && typeof(IEnumerable).IsAssignableFrom(type) && !typeof(IDictionary).IsAssignableFrom(type) && ReadCompiler.DictionaryArguments(type) == null && type != typeof(JObject);
-                case AvroType.Map: return ReadCompiler.DictionaryArguments(type) != null || typeof(IDictionary).IsAssignableFrom(type) || type == typeof(JObject);
+                case AvroType.Array: return type != typeof(byte[]) && type != typeof(string) && typeof(IEnumerable).IsAssignableFrom(type) && !typeof(IDictionary).IsAssignableFrom(type) && type.GetDictionaryArguments() == null && type != typeof(JObject);
+                case AvroType.Map: return type.GetDictionaryArguments() != null || typeof(IDictionary).IsAssignableFrom(type) || type == typeof(JObject);
                 case AvroType.Record:
                 case AvroType.Error:
                     if (type == typeof(ExpandoObject) || type == typeof(JObject) || typeof(IDictionary<string, object>).IsAssignableFrom(type) && type.IsClass)
                         return true;
                     return !type.IsPrimitive && !type.IsEnum && type != typeof(string) && type != typeof(byte[]) && !type.IsArray && type != typeof(object)
-                           && ReadCompiler.CollectionItemType(type) == null && ReadCompiler.DictionaryArguments(type) == null
+                           && ReadCompiler.CollectionItemType(type) == null && type.GetDictionaryArguments() == null
                            && (type.Name.Equals(((RecordSchema)branch).Name) || type.IsAnonymous() || ((RecordSchema)branch).RuntimeType == type);
                 case AvroType.Fixed: return type == typeof(AvroFixed) || type == typeof(byte[]);
                 case AvroType.Logical:

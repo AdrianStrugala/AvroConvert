@@ -43,5 +43,45 @@ namespace AvroConvertComponentTests.GenerateSchema
             AvroConvert.Deserialize<WithIReadOnlyDictionary>(AvroConvert.Serialize(new WithIReadOnlyDictionary { Values = values }))
                 .Values.Should().BeEquivalentTo(values);
         }
+
+        public class Prices : Dictionary<string, decimal>
+        {
+        }
+
+        public class WithPrices
+        {
+            public Prices Prices { get; set; }
+        }
+
+        [Test]
+        public void Class_deriving_from_a_dictionary_is_a_map()
+        {
+            var value = new WithPrices { Prices = new Prices { ["apple"] = 1.5m } };
+
+            AvroSchema.Create<WithPrices>().Json.Should().Contain("{\"name\":\"Prices\",\"type\":{\"type\":\"map\"");
+            AvroConvert.Deserialize<WithPrices>(AvroConvert.Serialize(value)).Prices.Should().BeEquivalentTo(value.Prices);
+        }
+
+        public class WithOtherDictionaries
+        {
+            public SortedDictionary<string, int> Sorted { get; set; }
+            public System.Collections.ObjectModel.ReadOnlyDictionary<string, int> ReadOnly { get; set; }
+        }
+
+        [Test]
+        public void Sorted_and_read_only_dictionaries_round_trip()
+        {
+            var values = new Dictionary<string, int> { ["b"] = 2, ["a"] = 1 };
+            var value = new WithOtherDictionaries
+            {
+                Sorted = new SortedDictionary<string, int>(values),
+                ReadOnly = new System.Collections.ObjectModel.ReadOnlyDictionary<string, int>(values)
+            };
+
+            var result = AvroConvert.Deserialize<WithOtherDictionaries>(AvroConvert.Serialize(value));
+
+            result.Sorted.Should().BeEquivalentTo(values);
+            result.ReadOnly.Should().BeEquivalentTo(values);
+        }
     }
 }

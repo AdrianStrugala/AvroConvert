@@ -34,6 +34,7 @@ Changes:
 - Added support for `ExpandoObject` (#112) and `DeserializeHeadless<dynamic>` (#107)
 - Added support for union of records read into `object` / `dynamic` (#174)
 - Added support for map keys convertible from string (e.g. `Dictionary<Uri, T>`)
+- Added support for dictionary types other than `Dictionary<,>`: `IReadOnlyDictionary<,>`, `SortedDictionary<,>`, `ReadOnlyDictionary<,>` and classes deriving from `Dictionary<,>`
 - Added `Deserialize(byte[], Type, options)` and `DeserializeHeadless<T>(ReadOnlySpan<byte>, writer, reader, options)`
 - Optional licence declaration: `AvroConvert.License` or `AVROCONVERT_LICENSE`
 - Writing with a schema field missing in the type writes the field's default

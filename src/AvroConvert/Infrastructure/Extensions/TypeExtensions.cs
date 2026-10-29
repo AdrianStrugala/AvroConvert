@@ -253,6 +253,29 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
             return type.IsGenericType() && type.GetGenericTypeDefinition() == typeof(KeyValuePair<,>);
         }
 
+        /// <summary>
+        /// (Key, Value) when the type is or implements IDictionary&lt;,&gt; or IReadOnlyDictionary&lt;,&gt;; null otherwise.
+        /// One check for the schema builder, the reader and the writer, so they agree on what a map is.
+        /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
+        internal static (Type Key, Type Value)? GetDictionaryArguments(this Type type)
+        {
+            var dictionary = FindGenericInterface(type, typeof(IDictionary<,>)) ?? FindGenericInterface(type, typeof(IReadOnlyDictionary<,>));
+            if (dictionary == null)
+            {
+                return null;
+            }
+
+            var arguments = dictionary.GetGenericArguments();
+            return (arguments[0], arguments[1]);
+        }
+
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
+        private static Type FindGenericInterface(Type type, Type definition) =>
+            type.IsGenericType() && type.GetGenericTypeDefinition() == definition
+                ? type
+                : type.GetAllInterfaces().SingleOrDefault(t => t.IsGenericType() && t.GetGenericTypeDefinition() == definition);
+
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal static bool CanBeKnownTypeOf(this Type type, Type baseType)
         {

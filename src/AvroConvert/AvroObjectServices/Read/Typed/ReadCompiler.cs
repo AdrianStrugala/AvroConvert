@@ -145,7 +145,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 
             if (ws.Type != AvroType.Union && rs is UnionSchema readerUnion)
             {
-                rs = FindBranch(readerUnion, ws, renamedRecord: true) ?? rs;
+                rs = FindBranch(readerUnion, ws) ?? FindRecordBranch(readerUnion, ws, target) ?? rs;
             }
 
             if (target == typeof(object) && ws is PrimitiveTypeSchema && rs is PrimitiveTypeSchema && ws.Type != rs.Type
@@ -525,13 +525,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             var index = Expression.Call(reader, ReadUnionIndexMethod);
             var cases = new List<SwitchCase>(ws.Schemas.Count);
 
-            // A writer record of another name maps to the reader's record only when the writer has no other record to choose from.
-            var renamedRecord = ws.Schemas.Count(s => s is RecordSchema) == 1;
-
             for (int i = 0; i < ws.Schemas.Count; i++)
             {
                 var branchWs = ws.Schemas[i];
-                var branchRs = rs is UnionSchema readerUnion ? FindBranch(readerUnion, branchWs, renamedRecord) : rs;
+                var branchRs = rs is UnionSchema readerUnion ? FindBranch(readerUnion, branchWs) ?? FindRecordBranch(readerUnion, branchWs, target) : rs;
 
                 Expression body;
                 if (branchWs.Type == AvroType.String && TemporalText.IsTemporal(Nullable.GetUnderlyingType(target) ?? target)
@@ -877,7 +874,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         // ------------------------------------------------------------------ helpers
 
         /// <summary>The reader branch of the same type (and name) as the writer's, otherwise the first one that can read it.</summary>
-        private static TypeSchema FindBranch(UnionSchema readerUnion, TypeSchema writerSchema, bool renamedRecord)
+        private static TypeSchema FindBranch(UnionSchema readerUnion, TypeSchema writerSchema)
         {
             foreach (var candidate in readerUnion.Schemas)
             {
@@ -895,18 +892,63 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                 }
             }
 
-            // A record read into ["null", record] with another name (anonymous type, ExpandoObject, a renamed class):
-            // the only record branch is taken, as a record would be read without the union.
-            if (renamedRecord && writerSchema is RecordSchema)
+            return null;
+        }
+
+        /// <summary>
+        /// A writer record with no reader branch of its name goes to the first reader record it can be read into, the same
+        /// rule as for a record outside a union: record names do not have to match, the fields have to resolve.
+        /// Classes chosen by [AvroUnion] (object, abstract, interface targets) are matched by name only.
+        /// </summary>
+        private TypeSchema FindRecordBranch(UnionSchema readerUnion, TypeSchema writerSchema, Type target)
+        {
+            var clrType = Nullable.GetUnderlyingType(target) ?? target;
+            if (writerSchema is not RecordSchema writerRecord || clrType == typeof(object) || clrType.IsAbstract || clrType.IsInterface)
             {
-                var records = readerUnion.Schemas.Where(s => s is RecordSchema).ToList();
-                if (records.Count == 1)
+                return null;
+            }
+
+            return readerUnion.Schemas.OfType<RecordSchema>().FirstOrDefault(readerRecord => RecordResolves(writerRecord, readerRecord, clrType));
+        }
+
+        /// <summary>
+        /// True when <see cref="BuildRecordBody"/> can read the writer record into the reader record and <paramref name="target"/>:
+        /// every reader field missing from the writer has a default, can hold null, or MissingFieldHandling.UseDefault is set.
+        /// </summary>
+        private bool RecordResolves(RecordSchema ws, RecordSchema rs, Type target)
+        {
+            if (target == typeof(ExpandoObject) || target == typeof(IDictionary<string, object>))
+            {
+                return true;
+            }
+
+            var members = TypeMembers.For(target);
+            foreach (var rf in rs.Fields)
+            {
+                if (ws.TryGetField(rf.Name, out _))
                 {
-                    return records[0];
+                    continue;
+                }
+
+                var member = members.Find(rf.GetAliasOrDefault() ?? rf.Name);
+                if (member is not { CanWrite: true })
+                {
+                    continue;
+                }
+
+                bool resolves = rf.DefaultJson != null
+                                || rf.HasDefaultValue
+                                || !member.Type.IsValueType || Nullable.GetUnderlyingType(member.Type) != null
+                                || rf.TypeSchema.Type == AvroType.Null
+                                || rf.TypeSchema is UnionSchema union && union.Schemas.Any(s => s.Type == AvroType.Null)
+                                || _missingFieldHandling == AvroMissingFieldHandling.UseDefault;
+                if (!resolves)
+                {
+                    return false;
                 }
             }
 
-            return null;
+            return true;
         }
 
         private static bool IsSameType(TypeSchema reader, TypeSchema writer) =>

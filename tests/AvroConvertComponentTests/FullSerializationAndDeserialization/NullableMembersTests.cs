@@ -95,17 +95,27 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             public Cat? Animal { get; set; }
         }
 
-        [Test]
-        public void Union_of_records_read_into_one_of_them_reads_that_one_and_rejects_the_others()
+        public class PetReadWithoutUnion
         {
+            public Cat Animal { get; set; } = new();
+        }
+
+        [Test]
+        public void Record_in_a_union_is_read_like_the_same_record_outside_a_union()
+        {
+            // Cat: same name. LookalikeDog: another name, its fields resolve into Cat. Dog: Lives is missing and has no default.
             AvroConvert.Deserialize<PetRead>(AvroConvert.Serialize(new PetWritten { Animal = new Cat { Name = "Tom", Lives = 9 } }))
                 .Animal!.Lives.Should().Be(9);
 
+            AvroConvert.Deserialize<PetRead>(AvroConvert.Serialize(new PetWritten { Animal = new LookalikeDog { Name = "Rex", Lives = 1 } }))
+                .Animal!.Lives.Should().Be(1);
+            AvroConvert.Deserialize<PetReadWithoutUnion>(AvroConvert.Serialize(new { Animal = new LookalikeDog { Name = "Rex", Lives = 1 } }))
+                .Animal.Lives.Should().Be(1, "outside a union the record is read the same way");
+
             var dog = () => AvroConvert.Deserialize<PetRead>(AvroConvert.Serialize(new PetWritten { Animal = new Dog { Name = "Rex", Breed = "Beagle" } }));
             dog.Should().Throw<System.Exception>();
-
-            var lookalike = () => AvroConvert.Deserialize<PetRead>(AvroConvert.Serialize(new PetWritten { Animal = new LookalikeDog { Name = "Rex", Lives = 1 } }));
-            lookalike.Should().Throw<System.Exception>("a record of another name is not read as Cat when the writer had several records to choose from");
+            var dogWithoutUnion = () => AvroConvert.Deserialize<PetReadWithoutUnion>(AvroConvert.Serialize(new { Animal = new Dog { Name = "Rex", Breed = "Beagle" } }));
+            dogWithoutUnion.Should().Throw<System.Exception>("outside a union the record is rejected the same way");
         }
     }
 }

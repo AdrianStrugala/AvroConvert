@@ -95,6 +95,10 @@ The file carries the schema it was written with (the writer schema); the target 
 are resolved as the Avro specification defines:
 
 - fields are matched by name or alias (`[DataMember(Name = …)]` keeps the old name as an alias);
+- records are matched by their fields, the record name does not have to be the same (data written as `com.acme.User`
+  reads into `UserModel`). In a union, a record goes to the reader's record of the same name, otherwise to the first
+  record its fields resolve into. `AvroSchema.CheckCompatibility` and Schema Registry follow the specification, where
+  record names have to match (or an alias), so they are stricter than reading;
 - writer fields unknown to the reader are skipped;
 - a reader field missing in the writer gets its default (`[DefaultValue]`), or `null` when it can hold `null`;
   otherwise reading throws. `MissingFieldHandling = AvroMissingFieldHandling.UseDefault`

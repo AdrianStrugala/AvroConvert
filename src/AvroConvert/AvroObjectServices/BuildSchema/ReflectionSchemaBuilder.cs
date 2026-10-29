@@ -304,9 +304,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             }
 
             // Dictionary
-            Type dictionaryType = type
-                .GetAllInterfaces()
-                .SingleOrDefault(t => t.IsGenericType() && t.GetGenericTypeDefinition() == typeof(IDictionary<,>));
+            Type dictionaryType = DictionaryInterface(type, typeof(IDictionary<,>)) ?? DictionaryInterface(type, typeof(IReadOnlyDictionary<,>));
 
             if (dictionaryType != null
                 && (dictionaryType.GetGenericArguments()[0] == typeof(string)
@@ -345,6 +343,12 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             throw new SerializationException(
                 string.Format(CultureInfo.InvariantCulture, "Type '{0}' is not supported.", type));
         }
+
+        /// <summary>The <paramref name="definition"/> interface (e.g. IDictionary&lt;,&gt;) of a type, also when the type is that interface itself.</summary>
+        private static Type DictionaryInterface(Type type, Type definition) =>
+            type.IsGenericType() && type.GetGenericTypeDefinition() == definition
+                ? type
+                : type.GetAllInterfaces().SingleOrDefault(t => t.IsGenericType() && t.GetGenericTypeDefinition() == definition);
 
         /// <summary>
         ///     Builds the enumeration type schema.

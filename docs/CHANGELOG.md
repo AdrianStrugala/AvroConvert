@@ -11,7 +11,7 @@ Breaking changes:
 - Read objects are created with their public parameterless constructor, like in System.Text.Json; a field missing in the data keeps its initialiser
 - `DateTimeOffset` is written as its UTC instant instead of the wall-clock time
 - Snappy blocks include the CRC-32 required by the specification
-- Generated schemas differ slightly, data stays compatible: names of generic records (#159), `time-micros`, non-public `[DataMember]` members (#51)
+- Generated schemas differ slightly, data stays compatible: names of generic records (#159), `time-micros`, non-public `[DataMember]` members (#51), `IDictionary<string, T>` / `IReadOnlyDictionary<string, T>` members are maps instead of arrays of key-value records
 - Multidimensional arrays (`int[,]`) throw; use jagged arrays (#26)
 - Numbers read into `dynamic` follow the reader schema type
 - Unknown `logicalType` is read as its underlying type

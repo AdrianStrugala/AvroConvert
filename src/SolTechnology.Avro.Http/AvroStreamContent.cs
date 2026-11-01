@@ -29,7 +29,7 @@ public sealed class AvroStreamContent<T> : HttpContent
         SerializeToStreamAsync(stream, context, CancellationToken.None);
 
     protected override Task SerializeToStreamAsync(Stream stream, TransportContext context, CancellationToken cancellationToken) =>
-        AvroConvert.Serialize(_items, stream, _options, cancellationToken);
+        AvroConvert.SerializeAsync(_items, stream, _options, cancellationToken);
 
     protected override bool TryComputeLength(out long length)
     {

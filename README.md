@@ -58,7 +58,7 @@ Results for 1 and 20 000 records: [raw results](docs/benchmarks/2026-10-28-libra
 
 #### Files and APIs
 ```csharp
-byte[] avro = AvroConvert.Serialize(orders, CodecType.Zstandard);   // schema travels with the data
+byte[] avro = AvroConvert.Serialize(orders, new AvroConvertOptions { Codec = CodecType.Zstandard });   // schema travels with the data
 List<Order> read = AvroConvert.Deserialize<List<Order>>(avro);
 ```
 
@@ -76,7 +76,7 @@ OrderV2 order = AvroConvert.Deserialize<OrderV2>(writtenByV1);      // data from
 
 #### Large files
 ```csharp
-await foreach (var order in AvroConvert.Deserialize<Order>(fileStream)) { /* one at a time */ }
+await foreach (var order in AvroConvert.DeserializeAsyncEnumerable<Order>(fileStream)) { /* one at a time */ }
 ```
 
 #### Schema check in CI

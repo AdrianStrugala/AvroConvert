@@ -128,7 +128,7 @@ namespace AvroConvertComponentTests.SchemaAttributes
         [Test]
         public void Attributes_stay_in_the_schema_of_a_json_encoded_file()
         {
-            var avro = AvroConvert.JsonEncoding2Avro(AvroConvert.Avro2JsonEncoding(AvroConvert.SerializeHeadless(Value, Manifest), Manifest), Manifest);
+            var avro = AvroConvert.JsonEncoding2Avro(AvroConvert.Avro2JsonEncoding(AvroConvert.SerializeHeadless(Value, AvroSchema.Parse(Manifest)), AvroSchema.Parse(Manifest)), AvroSchema.Parse(Manifest));
 
             JToken.DeepEquals(JToken.Parse(HeaderSchema(avro)), JToken.Parse(Manifest)).Should().BeTrue(HeaderSchema(avro));
         }

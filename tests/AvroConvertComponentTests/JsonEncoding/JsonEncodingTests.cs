@@ -30,7 +30,7 @@ namespace AvroConvertComponentTests.JsonEncoding
 
 
             //Act
-            var json = AvroConvert.Avro2JsonEncoding(avro, OptionalFieldSchema);
+            var json = AvroConvert.Avro2JsonEncoding(avro, AvroSchema.Parse(OptionalFieldSchema));
 
 
             //Assert
@@ -46,7 +46,7 @@ namespace AvroConvertComponentTests.JsonEncoding
 
 
             //Act
-            var json = AvroConvert.Avro2JsonEncoding(avro, OptionalFieldSchema);
+            var json = AvroConvert.Avro2JsonEncoding(avro, AvroSchema.Parse(OptionalFieldSchema));
 
 
             //Assert
@@ -69,7 +69,7 @@ namespace AvroConvertComponentTests.JsonEncoding
 
 
             //Act
-            var avro = AvroConvert.JsonEncoding2Avro(json, schema);
+            var avro = AvroConvert.JsonEncoding2Avro(json, AvroSchema.Parse(schema));
             var result = AvroConvert.Avro2JsonEncoding(avro);
 
 
@@ -106,7 +106,7 @@ namespace AvroConvertComponentTests.JsonEncoding
 
 
             //Act
-            var avro = AvroConvert.JsonEncoding2Avro(json, OptionalFieldSchema, CodecType.Deflate);
+            var avro = AvroConvert.JsonEncoding2Avro(json, AvroSchema.Parse(OptionalFieldSchema), new AvroConvertOptions { Codec = CodecType.Deflate });
 
 
             //Assert
@@ -118,7 +118,7 @@ namespace AvroConvertComponentTests.JsonEncoding
         {
             //Arrange
             var schema = @"""long""";
-            var avro = AvroConvert.JsonEncoding2Avro("1 2 3", schema);
+            var avro = AvroConvert.JsonEncoding2Avro("1 2 3", AvroSchema.Parse(schema));
 
 
             //Act
@@ -127,7 +127,7 @@ namespace AvroConvertComponentTests.JsonEncoding
 
             //Assert
             json.Should().Be("1\n2\n3");
-            AvroConvert.Avro2JsonEncoding(new byte[] { 2, 4, 6 }, schema).Should().Be("1\n2\n3");
+            AvroConvert.Avro2JsonEncoding(new byte[] { 2, 4, 6 }, AvroSchema.Parse(schema)).Should().Be("1\n2\n3");
         }
 
         [Test]
@@ -141,7 +141,7 @@ namespace AvroConvertComponentTests.JsonEncoding
 
 
             //Act
-            var avro = AvroConvert.JsonEncoding2Avro(@"{""a"":1,""ignored"":true}", schema);
+            var avro = AvroConvert.JsonEncoding2Avro(@"{""a"":1,""ignored"":true}", AvroSchema.Parse(schema));
 
 
             //Assert
@@ -157,8 +157,8 @@ namespace AvroConvertComponentTests.JsonEncoding
 
 
             //Act
-            var fullName = AvroConvert.Avro2JsonEncoding(AvroConvert.JsonEncoding2Avro(@"{""v"":{""ns.Inner"":{""x"":1}}}", schema));
-            var shortName = AvroConvert.Avro2JsonEncoding(AvroConvert.JsonEncoding2Avro(@"{""v"":{""Inner"":{""x"":1}}}", schema));
+            var fullName = AvroConvert.Avro2JsonEncoding(AvroConvert.JsonEncoding2Avro(@"{""v"":{""ns.Inner"":{""x"":1}}}", AvroSchema.Parse(schema)));
+            var shortName = AvroConvert.Avro2JsonEncoding(AvroConvert.JsonEncoding2Avro(@"{""v"":{""Inner"":{""x"":1}}}", AvroSchema.Parse(schema)));
 
 
             //Assert
@@ -173,7 +173,7 @@ namespace AvroConvertComponentTests.JsonEncoding
         public void JsonEncoding2Avro_InvalidJson_ThrowsWithPath(string json, string expectedMessagePart)
         {
             //Act
-            var act = () => AvroConvert.JsonEncoding2Avro(json, OptionalFieldSchema);
+            var act = () => AvroConvert.JsonEncoding2Avro(json, AvroSchema.Parse(OptionalFieldSchema));
 
 
             //Assert

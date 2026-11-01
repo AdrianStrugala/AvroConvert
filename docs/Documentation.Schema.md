@@ -79,7 +79,7 @@ collection or `0` instead, like 3.x). Multidimensional arrays (`int[,]`) are not
 #### Members and attributes
 
 Public properties and fields are serialized, plus non-public ones marked with `[DataMember]`. `[IgnoreDataMember]`
-excludes a member; `IncludeOnlyDataContractMembers = true` (or `GenerateSchema(type, true)`) keeps only `[DataMember]`
+excludes a member; `IncludeOnlyDataContractMembers = true` keeps only `[DataMember]`
 members.
 
 | Attribute | Effect |
@@ -275,7 +275,7 @@ var schema = AvroSchema.Parse("""
 
 byte[] avro = AvroConvert.Serialize(entries, schema);                       // options: Serialize(entries, schema, options)
 AvroConvert.Serialize(entries, fileStream, schema);                         // items are streamed, never collected
-await AvroConvert.Serialize(asyncEntries, fileStream, schema);
+await AvroConvert.SerializeAsync(asyncEntries, fileStream, schema);
 AvroConvert.Serialize(entries, bufferWriter, schema);
 ```
 

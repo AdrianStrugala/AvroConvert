@@ -24,7 +24,7 @@ namespace SolTechnology.Avro.Features.JsonToAvro
             _jsonSchemaBuilder = new JsonSchemaBuilder();
         }
 
-        internal byte[] DecodeJson(string json, CodecType codecType)
+        internal byte[] DecodeJson(string json, AvroConvertOptions options)
         {
             JsonReader jsonReader = new JsonTextReader(new StringReader(json));
             // jsonReader.FloatParseHandling = FloatParseHandling.Decimal;
@@ -34,26 +34,26 @@ namespace SolTechnology.Avro.Features.JsonToAvro
             //Array
             if (token.Type == JTokenType.Array)
             {
-                return SerializeJArray((JArray)token, codecType);
+                return SerializeJArray((JArray)token, options);
             }
 
             //Class
             if (token.Type == JTokenType.Object)
             {
-                return SerializeJArray(new JArray(token), codecType);
+                return SerializeJArray(new JArray(token), options);
             }
 
             //Assume Primitive
-            return AvroConvert.Serialize(token.ToObject<object>(), codecType);
+            return options == null ? AvroConvert.Serialize(token.ToObject<object>()) : AvroConvert.Serialize(token.ToObject<object>(), options);
 
         }
 
-        private byte[] SerializeJArray(JArray jArray, CodecType codecType)
+        private byte[] SerializeJArray(JArray jArray, AvroConvertOptions options)
         {
             using var output = new Writer();
-            var schema = RuntimeSchema.Intern(_jsonSchemaBuilder.BuildItemSchema(jArray), null);
+            var schema = RuntimeSchema.Intern(_jsonSchemaBuilder.BuildItemSchema(jArray), options);
 
-            using (var writer = new Serialize.Encoder(schema, output, codecType))
+            using (var writer = new Serialize.Encoder(schema, output, options?.Codec ?? CodecType.Null, options))
             {
                 foreach (var child in jArray)
                 {

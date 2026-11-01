@@ -15,6 +15,9 @@
 */
 #endregion
 
+using System.Collections.Concurrent;
+using System.ComponentModel;
+using System.Reflection;
 using System;
 using System.Buffers;
 using System.IO;
@@ -30,27 +33,7 @@ namespace SolTechnology.Avro
     public static partial class AvroConvert
     {
         /// <summary>
-        /// Deserializes Avro object, which does not contain header, to .NET type.
-        /// When <typeparamref name="T"/> is a collection and <paramref name="schema"/> describes one item, the items written one
-        /// after another (e.g. rows from the BigQuery Storage API) are read until the end of the data.
-        /// </summary>
-        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
-        public static T DeserializeHeadless<T>(byte[] avroBytes, string schema)
-        {
-            return DeserializeHeadless<T>(avroBytes, Schema.Parse(schema), BuildSchema(typeof(T)), null);
-        }
-
-        /// <summary>
-        /// Deserializes Avro object, which does not contain header, to .NET type
-        /// </summary>
-        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
-        public static T DeserializeHeadless<T>(byte[] avroBytes, string schema, int numberOfRows)
-        {
-            return DeserializeHeadless<T>(avroBytes, Schema.Parse(schema), BuildSchema(typeof(T)), numberOfRows);
-        }
-
-        /// <summary>
-        /// Deserializes Avro object, which does not contain header, to .NET type
+        /// Deserializes Avro object, which does not contain header, to .NET type, with the schema of <typeparamref name="T"/>.
         /// </summary>
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static T DeserializeHeadless<T>(byte[] avroBytes)
@@ -85,100 +68,139 @@ namespace SolTechnology.Avro
         }
 
         /// <summary>
-        /// Deserializes Avro object, which does not contain header, to .NET type
+        /// Deserializes Avro object, which does not contain header, written with <paramref name="writerSchema"/> to .NET type.
+        /// When <typeparamref name="T"/> is a collection and <paramref name="writerSchema"/> describes one item, the items written
+        /// one after another (e.g. rows from the BigQuery Storage API) are read until the end of the data.
+        /// </summary>
+        /// <param name="avroBytes">The data.</param>
+        /// <param name="writerSchema">The schema the data was written with.</param>
+        /// <param name="readerSchema">The schema to resolve against (schema evolution); null uses the schema of <typeparamref name="T"/>.</param>
+        /// <param name="options">The Avro conversion options; null uses the defaults.</param>
+        /// <param name="numberOfRows">Rows to read into a collection <typeparamref name="T"/>; null reads until the end of the data.</param>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
+        public static T DeserializeHeadless<T>(byte[] avroBytes, AvroSchema writerSchema, AvroSchema readerSchema = null, AvroConvertOptions options = null, int? numberOfRows = null)
+        {
+            ArgumentNullException.ThrowIfNull(writerSchema);
+            return DeserializeHeadless<T>(avroBytes, writerSchema.TypeSchema, readerSchema?.TypeSchema ?? Schema.Create(typeof(T), options), numberOfRows, options);
+        }
+
+        /// <summary>
+        /// Deserializes Avro data, which does not contain header, written with <paramref name="writerSchema"/> to .NET type. Up to
+        /// 1 MB of <paramref name="avroBytes"/> is copied to a pooled buffer for the read; larger input is read in place.
+        /// </summary>
+        /// <param name="avroBytes">The data.</param>
+        /// <param name="writerSchema">The schema the data was written with.</param>
+        /// <param name="readerSchema">The schema to resolve against (schema evolution); null uses the schema of <typeparamref name="T"/>.</param>
+        /// <param name="options">The Avro conversion options; null uses the defaults.</param>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
+        public static T DeserializeHeadless<T>(ReadOnlySpan<byte> avroBytes, AvroSchema writerSchema, AvroSchema readerSchema = null, AvroConvertOptions options = null)
+        {
+            ArgumentNullException.ThrowIfNull(writerSchema);
+            var readSchema = ReadSchemaOrWriter(readerSchema?.TypeSchema ?? Schema.Create(typeof(T), options), writerSchema.TypeSchema);
+            return ResolveToEnd<T>(avroBytes, new Resolver(writerSchema.TypeSchema, readSchema, options));
+        }
+
+        /// <summary>
+        /// Deserializes Avro object, which does not contain header, to a type known only at runtime, with the schema of that type.
         /// </summary>
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
-        public static dynamic DeserializeHeadless(byte[] avroBytes, Type targetType)
-        {
-            object result = typeof(AvroConvert)
-                .GetMethod(nameof(DeserializeHeadless), new[] { typeof(byte[]) })
-                ?.MakeGenericMethod(targetType)
-                .Invoke(null, new object[] { avroBytes });
+        public static dynamic DeserializeHeadless(byte[] avroBytes, Type targetType) =>
+            BoxedHeadlessReader(targetType)(avroBytes, null, null, null, null);
 
-            return result;
+        /// <summary>
+        /// Deserializes Avro object, which does not contain header, written with <paramref name="writerSchema"/> to a type known
+        /// only at runtime. See <see cref="DeserializeHeadless{T}(byte[], AvroSchema, AvroSchema, AvroConvertOptions, int?)"/>.
+        /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
+        public static object DeserializeHeadless(byte[] avroBytes, AvroSchema writerSchema, Type targetType, AvroSchema readerSchema = null, AvroConvertOptions options = null, int? numberOfRows = null)
+        {
+            ArgumentNullException.ThrowIfNull(writerSchema);
+            return BoxedHeadlessReader(targetType)(avroBytes, writerSchema, readerSchema, options, numberOfRows);
+        }
+
+        private delegate object BoxedHeadlessRead(byte[] avroBytes, AvroSchema writerSchema, AvroSchema readerSchema, AvroConvertOptions options, int? numberOfRows);
+
+        // DeserializeHeadless<T> for a type known only at runtime: the generic method is bound once per type, then called directly.
+        private static readonly ConcurrentDictionary<Type, BoxedHeadlessRead> BoxedHeadlessReaders = new();
+
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
+        private static BoxedHeadlessRead BoxedHeadlessReader(Type targetType)
+        {
+            ArgumentNullException.ThrowIfNull(targetType);
+            return BoxedHeadlessReaders.GetOrAdd(targetType, static type =>
+                typeof(AvroConvert).GetMethod(nameof(DeserializeHeadlessBoxed), BindingFlags.NonPublic | BindingFlags.Static)!
+                    .MakeGenericMethod(type)
+                    .CreateDelegate<BoxedHeadlessRead>());
+        }
+
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
+        private static object DeserializeHeadlessBoxed<T>(byte[] avroBytes, AvroSchema writerSchema, AvroSchema readerSchema, AvroConvertOptions options, int? numberOfRows) =>
+            writerSchema == null ? DeserializeHeadless<T>(avroBytes) : DeserializeHeadless<T>(avroBytes, writerSchema, readerSchema, options, numberOfRows);
+
+        /// <summary>
+        /// Deserializes Avro object, which does not contain header, to .NET type.
+        /// When <typeparamref name="T"/> is a collection and <paramref name="schema"/> describes one item, the items written one
+        /// after another (e.g. rows from the BigQuery Storage API) are read until the end of the data.
+        /// </summary>
+        /// <remarks>Kept for 3.x code and hidden from IntelliSense. Use the overload taking <see cref="AvroSchema"/>.</remarks>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
+        public static T DeserializeHeadless<T>(byte[] avroBytes, string schema)
+        {
+            return DeserializeHeadless<T>(avroBytes, Schema.Parse(schema), BuildSchema(typeof(T)), null);
         }
 
         /// <summary>
         /// Deserializes Avro object, which does not contain header, to .NET type
         /// </summary>
+        /// <remarks>Kept for 3.x code and hidden from IntelliSense. Use the overload taking <see cref="AvroSchema"/>.</remarks>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
-        public static dynamic DeserializeHeadless(byte[] avroBytes, string schema, Type targetType)
+        public static T DeserializeHeadless<T>(byte[] avroBytes, string schema, int numberOfRows)
         {
-            object result = typeof(AvroConvert)
-                .GetMethod(nameof(DeserializeHeadless), new[] { typeof(byte[]), typeof(string) })
-                ?.MakeGenericMethod(targetType)
-                .Invoke(null, new object[] { avroBytes, schema });
-
-            return result;
+            return DeserializeHeadless<T>(avroBytes, Schema.Parse(schema), BuildSchema(typeof(T)), numberOfRows);
         }
-
 
         /// <summary>
         /// Deserializes Avro object, which does not contain header, to .NET type
         /// </summary>
+        /// <remarks>Kept for 3.x code and hidden from IntelliSense. Use the overload taking <see cref="AvroSchema"/>.</remarks>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
+        public static dynamic DeserializeHeadless(byte[] avroBytes, string schema, Type targetType) =>
+            BoxedHeadlessReader(targetType)(avroBytes, AvroSchema.Parse(schema), null, null, null);
+
+        /// <summary>
+        /// Deserializes Avro object, which does not contain header, to .NET type
+        /// </summary>
+        /// <remarks>Kept for 3.x code and hidden from IntelliSense. Use the overload taking <see cref="AvroSchema"/>.</remarks>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static T DeserializeHeadless<T>(byte[] avroBytes, string writeSchema, string readSchema, int numberOfRows)
         {
             return DeserializeHeadless<T>(avroBytes, Schema.Parse(writeSchema), Schema.Parse(readSchema), numberOfRows);
         }
 
-
         /// <summary>
         /// Deserializes Avro object, which does not contain header, to .NET type
         /// </summary>
+        /// <remarks>Kept for 3.x code and hidden from IntelliSense. Use the overload taking <see cref="AvroSchema"/>.</remarks>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
-        public static dynamic DeserializeHeadless(byte[] avroBytes, string writeSchema, string readSchema, Type targetType)
-        {
-            var result = typeof(AvroConvert)
-                .GetMethod(nameof(DeserializeHeadless), new[] { typeof(byte[]), typeof(string), typeof(string), typeof(int) })
-                ?.MakeGenericMethod(targetType)
-                .Invoke(null, new object[] { avroBytes, writeSchema, readSchema, 1 });
-
-            return result;
-        }
+        public static dynamic DeserializeHeadless(byte[] avroBytes, string writeSchema, string readSchema, Type targetType) =>
+            BoxedHeadlessReader(targetType)(avroBytes, AvroSchema.Parse(writeSchema), AvroSchema.Parse(readSchema), null, null);
 
         /// <summary>
         /// Deserializes Avro object, which does not contain header, to .NET type
         /// </summary>
+        /// <remarks>Kept for 3.x code and hidden from IntelliSense. Use the overload taking <see cref="AvroSchema"/>.</remarks>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static T DeserializeHeadless<T>(ReadOnlySpan<byte> avroBytes, string schema)
         {
             var writeSchema = Schema.Parse(schema);
             var readSchema = ReadSchemaOrWriter(BuildSchema(typeof(T)), writeSchema);
             return ResolveToEnd<T>(avroBytes, new Resolver(writeSchema, readSchema));
-        }
-
-
-        /// <summary>
-        /// Deserializes Avro object, which does not contain header, written with <paramref name="writerSchema"/> to .NET type
-        /// </summary>
-        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
-        public static T DeserializeHeadless<T>(byte[] avroBytes, AvroSchema writerSchema)
-        {
-            return DeserializeHeadless<T>(avroBytes, writerSchema.TypeSchema, BuildSchema(typeof(T)), null);
-        }
-
-        /// <summary>
-        /// Deserializes Avro object, which does not contain header, written with <paramref name="writerSchema"/> and resolved
-        /// against <paramref name="readerSchema"/> (schema evolution), to .NET type
-        /// </summary>
-        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
-        public static T DeserializeHeadless<T>(byte[] avroBytes, AvroSchema writerSchema, AvroSchema readerSchema)
-        {
-            return DeserializeHeadless<T>(avroBytes, writerSchema.TypeSchema, readerSchema.TypeSchema, null);
-        }
-
-        /// <summary>
-        /// Deserializes Avro data, which does not contain header, written with <paramref name="writerSchema"/> and resolved
-        /// against <paramref name="readerSchema"/> (schema evolution), to .NET type. Up to 1 MB of <paramref name="avroBytes"/>
-        /// is copied to a pooled buffer for the read; larger input is read in place.
-        /// </summary>
-        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
-        public static T DeserializeHeadless<T>(ReadOnlySpan<byte> avroBytes, AvroSchema writerSchema, AvroSchema readerSchema, AvroConvertOptions options = null)
-        {
-            ArgumentNullException.ThrowIfNull(writerSchema);
-            ArgumentNullException.ThrowIfNull(readerSchema);
-            return ResolveToEnd<T>(avroBytes, new Resolver(writerSchema.TypeSchema, ReadSchemaOrWriter(readerSchema.TypeSchema, writerSchema.TypeSchema), options));
         }
 
         private const int PooledCopyLimit = 1024 * 1024;
@@ -211,10 +233,10 @@ namespace SolTechnology.Avro
 
         /// <param name="numberOfRows">Rows to read into a collection <typeparamref name="T"/>; null reads until the end of the data.</param>
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
-        private static T DeserializeHeadless<T>(byte[] avroBytes, TypeSchema writeSchema, TypeSchema readSchema, int? numberOfRows)
+        private static T DeserializeHeadless<T>(byte[] avroBytes, TypeSchema writeSchema, TypeSchema readSchema, int? numberOfRows, AvroConvertOptions options = null)
         {
             var reader = new Reader(avroBytes);
-            var resolver = new Resolver(writeSchema, ReadSchemaOrWriter(readSchema, writeSchema));
+            var resolver = new Resolver(writeSchema, ReadSchemaOrWriter(readSchema, writeSchema), options);
             return numberOfRows is { } rows ? resolver.Resolve<T>(reader, rows) : resolver.ResolveToEnd<T>(reader);
         }
 

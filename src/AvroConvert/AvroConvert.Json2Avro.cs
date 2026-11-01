@@ -13,6 +13,7 @@
 * Required Notice: Copyright Adrian Strugała (https://soltechnology.dev)
 */
 #endregion
+using System.ComponentModel;
 using Newtonsoft.Json;
 using SolTechnology.Avro.Features.JsonToAvro;
 using System.Diagnostics.CodeAnalysis;
@@ -30,8 +31,19 @@ namespace SolTechnology.Avro
         public static byte[] Json2Avro(string json)
         {
             var decoder = new JsonToAvroDecoder();
-            return decoder.DecodeJson(json, CodecType.Null);
+            return decoder.DecodeJson(json, null);
 
+        }
+
+        /// <summary>
+        ///  Converts JSON object directly to Avro format, with the given options (codec and other settings)
+        /// Warning! The dynamic implementations is an experimental feature. Use generic overload if possible.
+        /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
+        public static byte[] Json2Avro(string json, AvroConvertOptions options)
+        {
+            var decoder = new JsonToAvroDecoder();
+            return decoder.DecodeJson(json, options);
         }
 
 
@@ -40,11 +52,12 @@ namespace SolTechnology.Avro
         /// Choosing <paramref name="codecType"/> reduces output object size
         /// Warning! The dynamic implementations is an experimental feature. Use generic overload if possible.
         /// </summary>
+        /// <remarks>Kept for 3.x code and hidden from IntelliSense. Use the overload taking <see cref="AvroConvertOptions"/>.</remarks>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] Json2Avro(string json, CodecType codecType)
         {
-            var decoder = new JsonToAvroDecoder();
-            return decoder.DecodeJson(json, codecType);
+            return Json2Avro(json, new AvroConvertOptions { Codec = codecType });
         }
 
 
@@ -60,18 +73,29 @@ namespace SolTechnology.Avro
             return result;
         }
 
+        /// <summary>
+        ///  Converts JSON object directly to Avro format, with the given options (codec and other settings)
+        /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
+        public static byte[] Json2Avro<T>(string json, AvroConvertOptions options)
+        {
+            var deserializedJson = JsonConvert.DeserializeObject<T>(json);
+            var result = options == null ? AvroConvert.Serialize(deserializedJson) : AvroConvert.Serialize(deserializedJson, options);
+
+            return result;
+        }
+
 
         /// <summary>
         ///  Converts JSON object directly to Avro format
         ///  Choosing <paramref name="codecType"/> reduces output object size
         /// </summary>
+        /// <remarks>Kept for 3.x code and hidden from IntelliSense. Use the overload taking <see cref="AvroConvertOptions"/>.</remarks>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] Json2Avro<T>(string json, CodecType codecType)
         {
-            var deserializedJson = JsonConvert.DeserializeObject<T>(json);
-            var result = AvroConvert.Serialize(deserializedJson, codecType);
-
-            return result;
+            return Json2Avro<T>(json, new AvroConvertOptions { Codec = codecType });
         }
     }
 }

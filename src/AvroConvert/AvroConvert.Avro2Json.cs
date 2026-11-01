@@ -13,6 +13,7 @@
 * Required Notice: Copyright Adrian Strugała (https://soltechnology.dev)
 */
 #endregion
+using System.ComponentModel;
 using System.IO;
 using Newtonsoft.Json;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
@@ -44,6 +45,8 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Converts Avro object compatible with given <paramref name="avroSchema"/> directly to JSON format
         /// </summary>
+        /// <remarks>Kept for 3.x code and hidden from IntelliSense. Use the overload taking <see cref="AvroSchema"/>.</remarks>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static string Avro2Json(byte[] avro, string avroSchema)
         {

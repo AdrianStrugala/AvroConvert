@@ -21,6 +21,7 @@ using System.IO;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.AvroObjectServices.Read;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
+using SolTechnology.Avro.Infrastructure.Exceptions;
 using System.Diagnostics.CodeAnalysis;
 using SolTechnology.Avro.Infrastructure;
 
@@ -54,7 +55,33 @@ namespace SolTechnology.Avro
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static T DeserializeHeadless<T>(byte[] avroBytes)
         {
-            return DeserializeHeadless<T>(avroBytes, BuildSchema(typeof(T)), BuildSchema(typeof(T)), null);
+            var schema = BuildSchema(typeof(T));
+            return RuntimeSchema.IsOpen(schema) ? DeserializeWithoutObjectValues<T>(avroBytes, schema) : DeserializeHeadless<T>(avroBytes, schema, schema, null);
+        }
+
+        /// <summary>
+        /// The schema of <typeparamref name="T"/> says nothing about its values of type <c>object</c>, so only data without such
+        /// values can be read (e.g. an empty dictionary). Anything else fails to read, or leaves bytes behind.
+        /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
+        private static T DeserializeWithoutObjectValues<T>(byte[] avroBytes, TypeSchema schema)
+        {
+            static string Message() =>
+                $"[{typeof(T)}] holds values of type object, whose schema is not known from the type, and headless data does not carry it. " +
+                "Give the schema the data was written with: DeserializeHeadless<T>(bytes, schema).";
+
+            var reader = new Reader(avroBytes);
+            T result;
+            try
+            {
+                result = new Resolver(schema, schema).ResolveToEnd<T>(reader);
+            }
+            catch (Exception e)
+            {
+                throw new MissingSchemaException(Message(), e);
+            }
+
+            return reader.IsReadToEnd() ? result : throw new MissingSchemaException(Message());
         }
 
         /// <summary>

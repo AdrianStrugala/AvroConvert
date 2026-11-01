@@ -46,6 +46,66 @@ namespace AvroConvertComponentTests.Merge
         }
 
 
+        private byte[] FileWith(CodecType codec, params (string Key, string Value)[] keys)
+        {
+            var metadata = keys.ToDictionary(k => k.Key, k => (AvroMetadataValue)k.Value);
+            return AvroConvert.Serialize(_fixture.Create<User>(), AvroSchema.Create<User>(), new AvroConvertOptions { Codec = codec }, metadata);
+        }
+
+        [Test]
+        public void Merge_MetadataSharedByAllFiles_IsKept([ValueSource(typeof(Formats), nameof(Formats.Codecs))] CodecType codec)
+        {
+            var avroObjects = Enumerable.Range(0, 3).Select(_ => FileWith(codec, ("format-version", "2")));
+
+            var result = AvroConvert.Merge<User>(avroObjects);
+
+            System.Text.Encoding.UTF8.GetString(AvroConvert.GetMetadata(result)["format-version"]).Should().Be("2");
+            AvroConvert.Deserialize<List<User>>(result).Should().HaveCount(3);
+        }
+
+        [Test]
+        public void Merge_MetadataDifferentBetweenFiles_IsDropped()
+        {
+            var first = FileWith(CodecType.Null, ("same", "1"), ("differs", "a"), ("only-first", "x"));
+            var second = FileWith(CodecType.Null, ("same", "1"), ("differs", "b"), ("only-second", "y"));
+
+            var result = AvroConvert.Merge<User>(new[] { first, second });
+
+            AvroConvert.GetMetadata(result).Keys.Should().BeEquivalentTo("avro.schema", "avro.codec", "same");
+        }
+
+        [Test]
+        public void Merge_FileWithoutMetadata_DropsTheMetadataOfTheOthers()
+        {
+            var first = FileWith(CodecType.Null, ("key", "1"));
+            var second = AvroConvert.Serialize(_fixture.Create<User>());
+
+            var result = AvroConvert.Merge<User>(new[] { first, second });
+
+            AvroConvert.GetMetadata(result).Keys.Should().BeEquivalentTo("avro.schema", "avro.codec");
+        }
+
+        [Test]
+        public void Merge_HeaderOfTheResult_DescribesTheResult()
+        {
+            var first = FileWith(CodecType.Deflate, ("key", "1"));
+
+            var result = AvroConvert.Merge<User>(new[] { first });
+
+            System.Text.Encoding.UTF8.GetString(AvroConvert.GetMetadata(result)["avro.codec"]).Should().Be("null");
+        }
+
+        [Test]
+        public void Merge_SchemaWithCustomAttributes_KeepsThem()
+        {
+            const string schema = @"{""type"":""record"",""name"":""User"",""fields"":[{""name"":""name"",""type"":""string"",""field-id"":1},{""name"":""favorite_number"",""type"":[""null"",""int""],""field-id"":2},{""name"":""favorite_color"",""type"":[""null"",""string""],""field-id"":3}]}";
+            var avroObjects = _fixture.CreateMany<User>(2).Select(user => AvroConvert.Serialize(user, AvroSchema.Parse(schema)));
+
+            var result = AvroConvert.Merge<User>(avroObjects);
+
+            AvroConvert.GetSchema(result).Should().Contain(@"""field-id"":3");
+        }
+
         [Test]
         public void Merge_FileWithHeaderOnly_DoesNotThrowException()
         {

@@ -53,8 +53,10 @@ namespace SolTechnology.Avro.Features.Serialize
         private bool _faulted;
 
         /// <summary>Writes a container to <paramref name="output"/>; disposing the encoder writes the last block and flushes it.</summary>
-        internal Encoder(TypeSchema schema, Writer output, CodecType codecType, AvroConvertOptions options = null)
+        internal Encoder(TypeSchema schema, Writer output, CodecType codecType, AvroConvertOptions options = null, IReadOnlyDictionary<string, AvroMetadataValue> metadata = null)
         {
+            ValidateMetadata(metadata);
+
             _codec = AbstractCodec.CreateCodec(codecType);
             _header = new Header();
             _syncInterval = DataFileConstants.DefaultSyncInterval;
@@ -67,6 +69,13 @@ namespace SolTechnology.Avro.Features.Serialize
             GenerateSyncData();
             _header.AddMetadata(DataFileConstants.CodecMetadataKey, _codec.Name);
             _header.AddMetadata(DataFileConstants.SchemaMetadataKey, schema.ToString());
+            if (metadata != null)
+            {
+                foreach (var entry in metadata)
+                {
+                    _header.AddMetadata(entry.Key, entry.Value.Bytes);
+                }
+            }
 
             _schema = schema;
             _options = options;
@@ -74,6 +83,23 @@ namespace SolTechnology.Avro.Features.Serialize
             _writer.WriteHeader(_header);
             _writer.Flush();
         }
+
+        private static void ValidateMetadata(IReadOnlyDictionary<string, AvroMetadataValue> metadata)
+        {
+            if (metadata == null)
+            {
+                return;
+            }
+
+            foreach (var key in metadata.Keys)
+            {
+                if (key.StartsWith(DataFileConstants.MetaDataReserved, StringComparison.Ordinal))
+                {
+                    throw new ArgumentException($"Metadata key [{key}] is reserved by the Avro specification.", nameof(metadata));
+                }
+            }
+        }
+
         private void GenerateSyncData()
         {
             _header.SyncData = new byte[16];

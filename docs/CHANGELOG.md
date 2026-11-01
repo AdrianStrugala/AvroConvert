@@ -36,13 +36,37 @@ Changes:
 - Added support for map keys convertible from string (e.g. `Dictionary<Uri, T>`)
 - Added support for dictionary types other than `Dictionary<,>`: `IReadOnlyDictionary<,>`, `SortedDictionary<,>`, `ReadOnlyDictionary<,>` and classes deriving from `Dictionary<,>`
 - Added `Deserialize(byte[], Type, options)` and `DeserializeHeadless<T>(ReadOnlySpan<byte>, writer, reader, options)`
+- Added reading a record into a dictionary of objects, with nested records as dictionaries (#197)
+- Added `metadata` argument of `Serialize` with a schema, and `AvroConvert.GetMetadata`: own keys in the container header (#196). `Merge` keeps the keys all the files agree on
+- Added `AvroSchema.FromItems`: the schema of the entries of a file, completed from all of them where they hold `object`
+- Added `Serialize` overloads taking an `AvroSchema`: a container written with a given schema
+- Added `AvroSchema.FromValue`: the schema of a value, for headless data with `object` values
+- `ExpandoObject` and `Json2Avro` reuse the compiled plan of a schema they have seen, instead of compiling one for every call
+- JSON objects with one key holding different fields keep them: the records get names of their own
+- `Dictionary<string, object>`, `object` members, `List<object>` and `ExpandoObject` members take their schema from the values being written. A string in them threw, and a class lost its fields without an error. `List<object>` is written as one entry per item, like other lists
+- A value written against the empty schema of `object` throws instead of losing its fields (`SerializeHeadless(value, typeof(T))`)
+- A union takes the branch of exactly the value's type first: a `double` next to a `long` branch is not truncated, a `DateTime` next to a `date` branch keeps its time, a class goes to its own record, not to the first that looks like it
+- A dictionary, `ExpandoObject` or `JObject` written to a union of records goes to the record that takes all its keys, and throws when there is none
+- Fields of a dictionary written as a record are found by name, then by alias
+- `Serialize<object>(items, stream)` writes items of different types as a union; only an interface or an abstract class needs one runtime type
+- Unions of logical types (e.g. `date` and `timestamp-micros`) and of records of one name in different namespaces are parsed and read
+- A named type used in several places of a schema is defined once
+- Fix for `Avro2Json` of a union whose branches have one short name: it read the first of them
+- `Json2Avro` and `InferFromJson`: different values in a JSON array give a union; a number next to text was written as text
+- Text that looks like a date stays text in schema attributes and defaults
+- A reference cycle throws instead of ending the process or never returning
+- Schemas keep the attributes the specification does not define (e.g. `field-id`), logical types Avro does not know, and enum aliases. The canonical form and fingerprints are not affected
 - Optional licence declaration: `AvroConvert.License` or `AVROCONVERT_LICENSE`
-- Writing with a schema field missing in the type writes the field's default
+- Writing with a schema field missing in the type writes the field's default; the same for a key missing in a dictionary, `ExpandoObject` or `JObject` written as a record
 - Schema resolution promotes `string` ↔ `bytes`; field `order` and enum `default` are preserved
 - Dates and times in a `string` field are read and written as ISO 8601 text (`DateTime`, `DateTimeOffset`, `DateOnly`, `TimeOnly`, `TimeSpan`), like Chr.Avro writes them by default
 - `DateTime` reads and writes `date`, `TimeSpan` reads and writes `time-millis` / `time-micros` (the types of Apache.Avro `avrogen` classes)
 - `Json2Avro` and `InferFromJson` look at every array element, not only the first one
 - A failed serialization does not leave a data block that looks complete
+- Fix for a recursive record without a matching class read into `dynamic` or `ExpandoObject`: it ended the process with a stack overflow
+- Data nested too deep and schemas without an end throw instead of ending the process with a stack overflow
+- Fix for `OpenDeserializer<ExpandoObject>` returning objects without fields
+- Fix for `GetSchema(path)` on read-only files and files open elsewhere
 - Fix for `Merge` losing data after the first block
 - Fix for `Merge` of objects written with another schema than `T`: the result keeps the schema they were written with; objects written with different schemas throw instead of giving unreadable data
 - Fix for `Merge` of files written with `CollectionMode = SingleArray`

@@ -48,10 +48,19 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
 
         internal override string Name => this.attributes.Name.Name;
 
+        internal override string UnionKey => FullName;
+
         internal string Namespace => this.attributes.Name.Namespace;
 
         internal ReadOnlyCollection<string> Aliases => this.attributes.Aliases.AsReadOnly();
 
         internal string Doc => this.attributes.Doc;
+
+        /// <summary>
+        /// True when this type is written already, so a reference to its name is enough. Decided by the name, because one
+        /// name can come as several objects: a schema completed from values is put together from the schemas of many types.
+        /// </summary>
+        internal bool IsDefined(HashSet<NamedSchema> seenSchemas) =>
+            seenSchemas.Contains(this) || seenSchemas is BuildSchema.SchemaWriteContext context && !context.TryDefine(context.EffectiveFullName(this));
     }
 }

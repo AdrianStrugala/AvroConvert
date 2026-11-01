@@ -31,7 +31,18 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
         
         internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
         {
-            writer.WriteValue(CultureInfo.InvariantCulture.TextInfo.ToLower(this.Type.ToString()));
+            var name = CultureInfo.InvariantCulture.TextInfo.ToLower(this.Type.ToString());
+            if (Attributes.Count == 0)
+            {
+                writer.WriteValue(name);
+                return;
+            }
+
+            writer.WriteStartObject();
+            writer.WritePropertyName("type");
+            writer.WriteValue(name);
+            WriteAttributes(writer);
+            writer.WriteEndObject();
         }
 
         internal override bool CanRead(TypeSchema writerSchema)

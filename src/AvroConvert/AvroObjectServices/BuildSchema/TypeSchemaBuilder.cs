@@ -18,8 +18,10 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SolTechnology.Avro.AvroObjectServices.FileHeader;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
@@ -69,7 +71,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 throw new ArgumentNullException("schema");
             }
 
-            JToken token = JToken.Parse(schema);
+            JToken token = ParseJson(schema);
             if (token == null)
             {
                 throw new SerializationException(
@@ -92,7 +94,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             }
 
             var namedSchemas = new Dictionary<string, NamedSchema>();
-            var pending = referencedSchemas.Select(JToken.Parse).ToList();
+            var pending = referencedSchemas.Select(ParseJson).ToList();
             while (pending.Count > 0)
             {
                 var parsedAny = false;
@@ -121,8 +123,31 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 }
             }
 
-            return this.Parse(JToken.Parse(schema), null, namedSchemas);
+            return this.Parse(ParseJson(schema), null, namedSchemas);
         }
+
+        /// <summary>Schema JSON as it is written: text that looks like a date stays text, in attributes and defaults alike.</summary>
+        private static JToken ParseJson(string json)
+        {
+            using var reader = new JsonTextReader(new StringReader(json)) { DateParseHandling = DateParseHandling.None };
+            var token = JToken.ReadFrom(reader);
+            while (reader.Read())
+            {
+                if (reader.TokenType != JsonToken.Comment)
+                {
+                    throw new SerializationException(string.Format(CultureInfo.InvariantCulture, "'{0}' is invalid JSON.", json));
+                }
+            }
+
+            return token;
+        }
+
+        /// <summary>
+        /// What has to differ between the branches of a parsed union. Weaker than <see cref="TypeSchema.UnionKey"/>: files with
+        /// a logical type next to its underlying type exist, also written by AvroConvert, so they stay readable.
+        /// </summary>
+        private static string ParsedUnionKey(TypeSchema schema) =>
+            schema is LogicalTypeSchema logical ? logical.LogicalTypeName : schema.UnionKey;
 
         /// <summary>
         /// Parses the specified token.
@@ -209,6 +234,9 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                         _logicalNamedSchemas[fixedBase.FullName] = logicalSchema;
                     }
 
+                    // One JSON object holds both schemas: its attributes stay with the logical one, which writes it.
+                    logicalSchema.Attributes = token.GetAttributesNotIn(StandardProperties.Logical);
+                    baseSchema.Attributes.Clear();
                     return logicalSchema;
                 }
 
@@ -274,13 +302,12 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                         string.Format(CultureInfo.InvariantCulture, "Union schemas cannot be nested:'{0}'.", unionToken));
                 }
 
-                if (types.Contains(schema.Name))
+                if (!types.Add(ParsedUnionKey(schema)))
                 {
                     throw new SerializationException(
-                        string.Format(CultureInfo.InvariantCulture, "Unions cannot contains schemas of the same type: '{0}'.", schema.Name));
+                        string.Format(CultureInfo.InvariantCulture, "Unions cannot contains schemas of the same type: '{0}'.", ParsedUnionKey(schema)));
                 }
 
-                types.Add(schema.Name);
                 schemas.Add(schema);
             }
 
@@ -358,7 +385,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             }
 
             var elementSchema = this.Parse(itemType, parent, namedSchemas);
-            return new ArraySchema(elementSchema, typeof(Array));
+            return new ArraySchema(elementSchema, typeof(Array), array.GetAttributesNotIn(StandardProperties.Array));
         }
 
         /// <summary>
@@ -382,7 +409,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             }
 
             var valueSchema = this.Parse(valueType, parent, namedSchemas);
-            return new MapSchema(new StringSchema(), valueSchema, typeof(Dictionary<string, object>));
+            return new MapSchema(new StringSchema(), valueSchema, typeof(Dictionary<string, object>), map.GetAttributesNotIn(StandardProperties.Map));
         }
 
         /// <summary>
@@ -510,7 +537,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             var fieldName = new SchemaName(name);
             var attributes = new NamedEntityAttributes(fieldName, aliases, doc);
 
-            return new RecordFieldSchema(attributes, type, hasDefaultValue, defaultValue, position)
+            return new RecordFieldSchema(attributes, type, hasDefaultValue, defaultValue, position, field.GetAttributesNotIn(StandardProperties.Field))
             {
                 Order = order,
                 DefaultJson = hasDefaultValue ? field[AvroKeywords.Default].DeepClone() : null
@@ -582,7 +609,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             var aliases = this.GetAliases(type, fixedName.Namespace);
             var attributes = new NamedEntityAttributes(fixedName, aliases, string.Empty);
 
-            var customAttributes = type.GetAttributesNotIn(StandardProperties.Record);
+            var customAttributes = type.GetAttributesNotIn(StandardProperties.Fixed);
             var result = new FixedSchema(attributes, size, typeof(byte[]), customAttributes);
             if (namedSchemas.TryGetValue(result.FullName, out var existing))
             {

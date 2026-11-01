@@ -26,7 +26,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
     /// Schema resolution, member lookup, union branch mapping and conversions are decided once at compile time; the
     /// produced delegate performs no boxing for primitives and no per-value schema dispatch. Dynamic targets
     /// (<c>object</c>) materialise as ExpandoObject / List&lt;object&gt; / Dictionary&lt;string, object&gt;, or as a CLR type
-    /// whose name matches the record schema.
+    /// whose name matches the record schema. Records read into a dictionary of objects are dictionaries all the way down.
     /// </summary>
     [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
     internal sealed class ReadCompiler
@@ -48,6 +48,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         private static readonly MethodInfo Utf8GetBytesMethod = typeof(Encoding).GetMethod(nameof(Encoding.GetBytes), new[] { typeof(string) })!;
         private static readonly MethodInfo ConvertToLogicalMethod = typeof(LogicalTypeSchema).GetMethod(nameof(LogicalTypeSchema.ConvertToLogicalValue), BindingFlags.Instance | BindingFlags.NonPublic)!;
         private static readonly MethodInfo GetUninitializedObjectMethod = typeof(RuntimeHelpers).GetMethod(nameof(RuntimeHelpers.GetUninitializedObject))!;
+        private static readonly MethodInfo EnsureStackMethod = typeof(RuntimeHelpers).GetMethod(nameof(RuntimeHelpers.EnsureSufficientExecutionStack))!;
         private static readonly ConstructorInfo ReaderFromBytesCtor = typeof(Reader).GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(byte[]) }, null)!;
         private static readonly MethodInfo ReadCountIntoMethod = Helper(nameof(ReadHelpers.ReadCountInto));
         private static readonly MethodInfo ReadArraysIntoMethod = Helper(nameof(ReadHelpers.ReadArraysInto));
@@ -72,6 +73,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         private const int InlinedFieldsLimit = 100;
         private int _inlinedFields;
         private readonly HashSet<(TypeSchema, TypeSchema, Type)> _recordsInProgress = new();
+
+        // True while the fields of a record read into a dictionary are built: `object` there means a dictionary as well,
+        // whatever classes are loaded. An `object` member next to the dictionary stays dynamic.
+        private bool _recordsAsDictionaries;
 
         internal ReadCompiler(AvroConvertOptions options)
         {
@@ -190,6 +195,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                         return BuildLogical((LogicalTypeSchema)ws, rs, target, reader);
                     case AvroType.Record:
                     case AvroType.Error:
+                        if (rs is MapSchema && rs.CanRead(ws) && IsRecordDictionary(target))
+                        {
+                            // The map comes from the dictionary type and says nothing about the record: all its fields are read.
+                            rs = ws;
+                        }
+
                         if (rs is not RecordSchema readerRecord)
                         {
                             throw new NotSupportedException($"Schema mismatch: reader schema [{rs.Type}] cannot read a record");
@@ -587,12 +598,17 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                 }
             }
 
+            // A CLR `object` or ExpandoObject is described by an empty "System.Object" record; the writer schema is the only useful one.
+            if ((target == typeof(object) || target == typeof(ExpandoObject)) && rs.Fields.Count == 0 && rs.FullName == typeof(object).FullName)
+            {
+                rs = ws;
+            }
+
             if (target == typeof(object))
             {
-                // A CLR `object` member is described by an empty "System.Object" record; the writer schema is the only useful one.
-                if (rs.Fields.Count == 0 && rs.FullName == typeof(object).FullName)
+                if (_recordsAsDictionaries)
                 {
-                    rs = ws;
+                    return Expression.Convert(BuildRecord(ws, rs, typeof(Dictionary<string, object>), reader), typeof(object));
                 }
 
                 var clrType = ClrTypeCache.Find(rs);
@@ -601,16 +617,17 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                     return Expression.Convert(BuildRecord(ws, rs, clrType, reader), typeof(object));
                 }
 
-                return BuildExpando(ws, rs, reader);
+                return Expression.Convert(BuildRecord(ws, rs, typeof(ExpandoObject), reader), typeof(object));
             }
 
-            if (target == typeof(ExpandoObject) || typeof(IDictionary<string, object>) == target)
+            if (target != typeof(Dictionary<string, object>) && IsRecordDictionary(target))
             {
-                return Expression.Convert(BuildExpando(ws, rs, reader), target);
+                return AdaptMap(BuildRecord(ws, rs, typeof(Dictionary<string, object>), reader), typeof(string), typeof(object), target);
             }
 
-            if (target.IsAbstract || target.IsInterface || target.IsPrimitive || target == typeof(string) || target.IsArray || target.IsEnum
-                || target.GetDictionaryArguments() != null || CollectionItemType(target) != null)
+            if (target != typeof(ExpandoObject) && target != typeof(Dictionary<string, object>)
+                && (target.IsAbstract || target.IsInterface || target.IsPrimitive || target == typeof(string) || target.IsArray || target.IsEnum
+                    || target.GetDictionaryArguments() != null || CollectionItemType(target) != null))
             {
                 throw new NotSupportedException($"Record cannot be read as {target}");
             }
@@ -655,12 +672,19 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         private Delegate CompileRecordDelegate(RecordSchema ws, RecordSchema rs, Type target)
         {
             var reader = Expression.Parameter(typeof(Reader), "reader");
-            var lambda = Expression.Lambda(typeof(Func<,>).MakeGenericType(typeof(Reader), target), BuildRecordBody(ws, rs, target, reader), reader);
+            // Recursion goes through these delegates. How deep it gets depends on the file, and a stack overflow cannot be caught.
+            var body = Expression.Block(target, Expression.Call(EnsureStackMethod), BuildRecordBody(ws, rs, target, reader));
+            var lambda = Expression.Lambda(typeof(Func<,>).MakeGenericType(typeof(Reader), target), body, reader);
             return lambda.Compile();
         }
 
         private Expression BuildRecordBody(RecordSchema ws, RecordSchema rs, Type target, ParameterExpression reader)
         {
+            if (target == typeof(ExpandoObject) || target == typeof(Dictionary<string, object>))
+            {
+                return BuildDynamicRecord(ws, rs, target, reader);
+            }
+
             var instance = Expression.Variable(target, "instance");
             var members = TypeMembers.For(target);
             var body = new List<Expression>
@@ -754,13 +778,30 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         private static Type[] UnionCandidates(MemberInfo member) =>
             member.GetCustomAttribute<AvroUnionAttribute>(false)?.TypeAlternatives.ToArray();
 
-        /// <summary>Dynamic record: an ExpandoObject with one entry per reader field (arrays as List&lt;object&gt;).</summary>
-        private Expression BuildExpando(RecordSchema ws, RecordSchema rs, ParameterExpression reader)
+        /// <summary>
+        /// Dynamic record: an ExpandoObject or a Dictionary&lt;string, object&gt; with one entry per reader field (arrays as
+        /// List&lt;object&gt;). Dictionary keys are the field names of the schema; ExpandoObject takes the member name a field has an alias for.
+        /// </summary>
+        private Expression BuildDynamicRecord(RecordSchema ws, RecordSchema rs, Type target, ParameterExpression reader)
         {
-            var dictionary = Expression.Variable(typeof(IDictionary<string, object>), "expando");
+            var previous = _recordsAsDictionaries;
+            _recordsAsDictionaries = target == typeof(Dictionary<string, object>);
+            try
+            {
+                return BuildDynamicRecordEntries(ws, rs, target, reader);
+            }
+            finally
+            {
+                _recordsAsDictionaries = previous;
+            }
+        }
+
+        private Expression BuildDynamicRecordEntries(RecordSchema ws, RecordSchema rs, Type target, ParameterExpression reader)
+        {
+            var dictionary = Expression.Variable(typeof(IDictionary<string, object>), "record");
             var body = new List<Expression>
             {
-                Expression.Assign(dictionary, Expression.Convert(Expression.New(typeof(ExpandoObject)), typeof(IDictionary<string, object>)))
+                Expression.Assign(dictionary, Expression.Convert(Expression.New(target), typeof(IDictionary<string, object>)))
             };
 
             foreach (var wf in ws.Fields)
@@ -771,7 +812,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                     continue;
                 }
 
-                string name = rf.Aliases.FirstOrDefault() ?? wf.Name;
+                string name = _recordsAsDictionaries ? rf.Name : rf.Aliases.FirstOrDefault() ?? wf.Name;
                 var targetType = wf.TypeSchema.Type == AvroType.Array ? typeof(List<object>) : typeof(object);
                 Expression value = Expression.Convert(Build(wf.TypeSchema, rf.TypeSchema, targetType, reader), typeof(object));
                 if (wf.DefaultValue != null)
@@ -789,14 +830,18 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                     continue;
                 }
 
-                string name = rf.Aliases.FirstOrDefault() ?? rf.Name;
+                string name = _recordsAsDictionaries ? rf.Name : rf.Aliases.FirstOrDefault() ?? rf.Name;
                 var value = ResolveMissingReaderField(rs, rf, typeof(object), clrNullable: true);
                 body.Add(Expression.Call(dictionary, ExpandoAddMethod, Expression.Constant(name), value ?? Expression.Constant(null, typeof(object))));
             }
 
-            body.Add(Expression.Convert(dictionary, typeof(object)));
-            return Expression.Block(typeof(object), new[] { dictionary }, body);
+            body.Add(Expression.Convert(dictionary, target));
+            return Expression.Block(target, new[] { dictionary }, body);
         }
+
+        /// <summary>A dictionary that holds the fields of a record: string keys and values of any type.</summary>
+        private static bool IsRecordDictionary(Type target) =>
+            target != typeof(ExpandoObject) && target.GetDictionaryArguments() is { } kv && kv.Key == typeof(string) && kv.Value == typeof(object);
 
         /// <summary>
         /// Avro schema resolution for a reader field absent from the writer: an expression producing the reader's default
@@ -885,9 +930,14 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 
         // ------------------------------------------------------------------ helpers
 
-        /// <summary>The reader branch of the same type (and name) as the writer's, otherwise the first one that can read it.</summary>
+        /// <summary>The reader branch of the same full name, of the same type (and name) as the writer's, otherwise the first one that can read it.</summary>
         private static TypeSchema FindBranch(UnionSchema readerUnion, TypeSchema writerSchema)
         {
+            if (writerSchema is NamedSchema writerNamed && readerUnion.Schemas.OfType<NamedSchema>().FirstOrDefault(named => named.FullName == writerNamed.FullName) is { } sameName)
+            {
+                return sameName;
+            }
+
             foreach (var candidate in readerUnion.Schemas)
             {
                 if (IsSameType(candidate, writerSchema))
@@ -933,7 +983,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 
         private bool RecordResolves(RecordSchema ws, RecordSchema rs, Type target, HashSet<(RecordSchema, RecordSchema, Type)> visited)
         {
-            if (target == typeof(ExpandoObject) || target == typeof(IDictionary<string, object>) || !visited.Add((ws, rs, target)))
+            if (target == typeof(ExpandoObject) || IsRecordDictionary(target) || !visited.Add((ws, rs, target)))
             {
                 return true;
             }
@@ -1013,6 +1063,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
             int arrayDepth = ArrayDepth(writerSchema);
             return arrayDepth < depth || openEnded && arrayDepth == depth;
         }
+
+        /// <summary>True when <paramref name="schema"/>, given by the caller, describes a whole <paramref name="collectionType"/>, not one of its items.</summary>
+        internal static bool SchemaHoldsCollection(TypeSchema schema, Type collectionType) =>
+            ArrayDepth(schema) >= CollectionDepth(collectionType, out _);
 
         /// <summary>The array schema of <paramref name="schema"/>, also when it is a union of null and one array; null otherwise.</summary>
         private static ArraySchema AsArray(TypeSchema schema, out int nullIndex)

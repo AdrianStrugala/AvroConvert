@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using SolTechnology.Avro.AvroObjectServices.FileHeader;
 using SolTechnology.Avro.AvroObjectServices.Read;
@@ -8,7 +9,11 @@ namespace SolTechnology.Avro.Features.GetSchema
 {
     internal class HeaderDecoder
     {
-        internal string GetSchema(Stream stream)
+        internal string GetSchema(Stream stream) => ReadHeader(stream).GetMetadata(DataFileConstants.SchemaMetadataKey);
+
+        internal IReadOnlyDictionary<string, byte[]> GetMetadata(Stream stream) => ReadHeader(stream).GetRawMetadata();
+
+        private static Header ReadHeader(Stream stream)
         {
             var reader = new Reader(stream);
 
@@ -29,12 +34,8 @@ namespace SolTechnology.Avro.Features.GetSchema
             {
                 throw new InvalidAvroObjectException("Object does not contain Avro Header");
             }
-            else
-            {
-                var header = reader.ReadHeader();
 
-                return header.GetMetadata(DataFileConstants.SchemaMetadataKey);
-            }
+            return reader.ReadHeader();
         }
     }
 }

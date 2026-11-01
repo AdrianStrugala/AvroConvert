@@ -12,10 +12,14 @@ logical types, `AvroSchema`, model generation) are described in [Documentation.S
 | | [One message without header (Kafka, queues)](#headless-serialization-and-deserialization) | `AvroConvert.SerializeHeadless(order, schema)` |
 | | [Stream a large collection](#streaming) | `AvroConvert.Serialize(orders, fileStream)` |
 | | [Write into a buffer](#streaming) | `AvroConvert.Serialize(order, bufferWriter)` |
+| | [With a given schema](Documentation.Schema.md#writing-with-a-given-schema) | `AvroConvert.Serialize(orders, schema)` |
+| | [Own keys in the file header](#header-metadata) | `AvroConvert.Serialize(entries, schema, metadata: keys)` |
 | **Read** | [An Avro file into objects](#deserialization) | `AvroConvert.Deserialize<List<Order>>(avro)` |
 | | [One message without header](#headless-serialization-and-deserialization) | `AvroConvert.DeserializeHeadless<Order>(bytes, schema)` |
 | | [Old data into a new class](#schema-evolution) | `AvroConvert.Deserialize<OrderV2>(avro)` |
 | | [Without a class](#deserialization) | `AvroConvert.Deserialize<List<dynamic>>(avro)` |
+| | [Into a dictionary](#deserialization) | `AvroConvert.Deserialize<Dictionary<string, object>>(avro)` |
+| | [Keys of the file header](#header-metadata) | `AvroConvert.GetMetadata(avro)` |
 | | [Item by item, async](#streaming) | `await foreach (var o in AvroConvert.Deserialize<Order>(stream))` |
 | | [Item by item, sync](#reading-items-one-by-one) | `AvroConvert.OpenDeserializer<Order>(stream).ReadNext()` |
 | **Schema** | [Of a .NET type](Documentation.Schema.md#generating-a-schema-from-c-types) | `AvroSchema.Create<Order>()` |
@@ -76,6 +80,68 @@ dynamic anything     = AvroConvert.Deserialize<dynamic>(avro);
 
 A file with several entries can be read into any collection type; a file with one entry can be read into a single
 object or a one-element collection. A header-only file (no entries) gives an empty collection.
+
+A record can be read into a dictionary of objects: `Dictionary<string, object>`, `IDictionary<string, object>`,
+`IReadOnlyDictionary<string, object>` or another dictionary type with string keys and `object` values, as a whole or
+as a member. Keys are the field names of the schema, nested records are dictionaries too, and the result does not
+depend on the classes that are loaded. It fits records whose fields change from file to file:
+
+```csharp
+public class ManifestEntry
+{
+    public int Status { get; set; }
+    public Dictionary<string, object> Partition { get; set; }
+}
+```
+
+| Avro | Value, the same as in `dynamic` |
+|---|---|
+| `int`, `long`, `float`, `double`, `boolean`, `string`, `bytes` | `int`, `long`, `float`, `double`, `bool`, `string`, `byte[]` |
+| `decimal` | `decimal` |
+| `date` | `DateOnly` |
+| `timestamp-*`, `local-timestamp-*` | `DateTime` |
+| `time-millis`, `time-micros` | `TimeSpan` |
+| `uuid` | `Guid` |
+| `enum` | `string` |
+| `array` | `List<object>` |
+| `map`, `record` | `Dictionary<string, object>` |
+
+Writing is different: a dictionary is an Avro map. To write one as a record,
+[give the record schema](Documentation.Schema.md#writing-with-a-given-schema). Values of type `object` are described
+[below](#values-of-type-object).
+
+### Values of type object
+
+The type `object` says nothing about the data, so a `Dictionary<string, object>`, an `object` member, a `List<object>`
+or an `ExpandoObject` member takes its schema from the values being written:
+
+```csharp
+AvroConvert.Serialize(new Dictionary<string, object> { ["a"] = "x" });                  // {"type":"map","values":"string"}
+AvroConvert.Serialize(new Dictionary<string, object> { ["a"] = "x", ["b"] = 1L });      // values: ["string","long"]
+AvroConvert.Serialize(new Dictionary<string, object> { ["a"] = "x", ["b"] = null });    // values: ["null","string"]
+```
+
+- One member of a class takes the values of all its instances in the file. Classes keep their fields, also when they
+  resemble each other: every class has its own branch of the union.
+- An `ExpandoObject` is a record wherever it is; those in one place are merged into one record. A `JObject` is a map.
+- With a union of records given by you, a dictionary, `ExpandoObject` or `JObject` goes to the first record that takes all
+  its keys and gets a value for every field without a default. It throws when there is none, instead of dropping a key.
+- A reference cycle throws.
+- The schema depends on the data, so two files of one type can have different schemas, and `Merge` rejects them.
+- `Serialize<T>(IEnumerable<T>, Stream)` has to see all the items before it writes the header, so it collects them when
+  `T` holds `object` values. `Serialize(items, stream, schema)` avoids that.
+- A union holds one schema per Avro type, so some values do not fit together: `long` next to `DateTime` (both `long`),
+  `decimal` next to `byte[]` (both `bytes`). They throw `ArgumentException`; give the schema with `Serialize(value, schema)`.
+  A `Guid` next to a `string` goes as text.
+- Headless data does not carry a schema, so `SerializeHeadless(value, typeof(T))` and `DeserializeHeadless<T>(bytes)` throw
+  when the data holds such a value (an empty dictionary is fine). Take the schema from the value and give it to both sides:
+
+```csharp
+AvroSchema schema = AvroSchema.FromValue(value);
+
+byte[] data = AvroConvert.SerializeHeadless(value, schema);
+var dictionary = AvroConvert.DeserializeHeadless<Dictionary<string, object>>(data, schema);
+```
 
 Records read into `dynamic`, `ExpandoObject` or an `object` member become `ExpandoObject`, unless a loaded class
 matches the record's namespace **and** name. For a union of records in a typed model, list the alternatives
@@ -144,9 +210,10 @@ AvroConvert.Serialize(order, bufferWriter);
 AvroConvert.SerializeHeadless(order, bufferWriter, AvroSchema.Create<Order>());
 ```
 
-The schema comes from `T`. When `T` is `object`, an interface or an abstract class, the items are collected first and
-written with their runtime type, which they must share (`ExpandoObject` items are merged into one schema). A
-dictionary, `string` or `byte[]` is one value, as in `Serialize(obj)`.
+The schema comes from `T`. When `T` is `object`, or holds `object` values, the items are collected first and the schema
+[comes from them](#values-of-type-object). Items of an interface or an abstract class are collected too and must share one
+runtime type. `ExpandoObject` items are merged into one schema. A dictionary, `string` or `byte[]` is one value, as in
+`Serialize(obj)`.
 
 `Deserialize<T>(Stream)` reads files written by any Avro implementation. When the file holds whole arrays (3.x or
 `SingleArray` layout) and `T` is not a collection, their items are returned one by one.
@@ -206,6 +273,31 @@ List<User> first = AvroConvert.DeserializeHeadless<List<User>>(rows, schema, num
 `DeserializeHeadless<dynamic>(data, schema)` and `DeserializeHeadless<ExpandoObject>(data, schema)` read data without
 a .NET model.
 
+### Header metadata
+
+The header of an Avro file holds a key-value map. Besides `avro.schema` and `avro.codec` it can hold your own keys, as
+some formats require:
+
+```csharp
+var keys = new Dictionary<string, AvroMetadataValue>
+{
+    ["format-version"] = "2",                // text goes in as UTF-8
+    ["checksum"] = new byte[] { 1, 2, 3 }    // values are bytes in the Avro specification
+};
+
+byte[] avro = AvroConvert.Serialize(entries, AvroSchema.Create<Entry>(), metadata: keys);
+
+IReadOnlyDictionary<string, byte[]> header = AvroConvert.GetMetadata(avro);   // byte[], Stream or file path
+string version = Encoding.UTF8.GetString(header["format-version"]);
+```
+
+The keys belong to one file, so they go with the call and not with the options, and together with an explicit schema.
+Every container overload that takes a schema takes them: `byte[]`, `Stream`, `IBufferWriter<byte>` and async. For
+entries holding values of type `object`, `AvroSchema.FromItems(entries)` gives the schema of all of them.
+
+`GetMetadata` returns the whole map, `avro.schema` and `avro.codec` included. Keys starting with `avro.` are reserved
+by the specification, so writing one throws `ArgumentException`.
+
 ### Merge
 
 Merges Avro files with entries of type `T` into one file with all the entries:
@@ -217,6 +309,8 @@ byte[] merged = AvroConvert.Merge<User>(files);
 
 List<User> all = AvroConvert.Deserialize<List<User>>(merged);
 ```
+
+A [header key](#header-metadata) is kept when all the files have the same value for it, and dropped otherwise.
 
 ### Avro2Json
 

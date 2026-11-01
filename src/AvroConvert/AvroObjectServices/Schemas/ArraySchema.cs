@@ -82,6 +82,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             writer.WriteProperty("type", "array");
             writer.WritePropertyName("items");
             this.itemSchema.ToJson(writer, seenSchemas);
+            WriteAttributes(writer);
             writer.WriteEndObject();
         }
 

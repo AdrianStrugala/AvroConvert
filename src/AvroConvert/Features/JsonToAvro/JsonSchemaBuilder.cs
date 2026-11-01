@@ -16,6 +16,7 @@ namespace SolTechnology.Avro.Features.JsonToAvro
     internal class JsonSchemaBuilder
     {
         private readonly ReflectionSchemaBuilder _reflectionSchemaBuilder;
+        private readonly Dictionary<string, (string Shape, RecordSchema Record)> _records = new();
 
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal JsonSchemaBuilder()
@@ -38,9 +39,8 @@ namespace SolTechnology.Avro.Features.JsonToAvro
                 JValue jValue => _reflectionSchemaBuilder.BuildSchema(jValue.Value?.GetType()),
                 ExpandoObject expando => BuildSchema(new[] { expando }, name),
                 IEnumerable<ExpandoObject> expandos => new ArraySchema(BuildSchema(expandos, name), typeof(object)),
-                // element type `object` says nothing; take the shape from the first non-null element like JArray
-                IEnumerable<object> objects when item is not string && item is not IDictionary
-                    => new ArraySchema(BuildSchema(objects.FirstOrDefault(x => x != null), name), typeof(object)),
+                // element type `object` says nothing; RuntimeSchema completes it from the elements
+                IEnumerable<object> when item is not string && item is not IDictionary => _reflectionSchemaBuilder.BuildSchema(typeof(List<object>)),
                 _ => _reflectionSchemaBuilder.BuildSchema(item.GetType())
             };
 
@@ -55,28 +55,77 @@ namespace SolTechnology.Avro.Features.JsonToAvro
         }
 
         /// <summary>
-        /// Schema of the elements of a JSON array. Objects are merged like <see cref="BuildSchema(IEnumerable{ExpandoObject}, string)"/>,
-        /// so a field that is missing or null in any element becomes a union with null; other elements take the shape of the first one.
+        /// Schema of the elements of a JSON array, whatever the elements hold. Objects are merged like
+        /// <see cref="BuildSchema(IEnumerable{ExpandoObject}, string)"/>, so a field that is missing or null in any element becomes a
+        /// union with null; arrays take the elements of all of them; different values give a union, so nothing changes its type.
         /// </summary>
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
-        internal TypeSchema BuildItemSchema(JArray array, string name = null)
+        internal TypeSchema BuildItemSchema(IEnumerable<JToken> array, string name = null)
         {
-            var items = array.Where(t => t.Type != JTokenType.Null).ToList();
-            if (items.Count == 0 || !items.All(t => t is JObject))
+            // One value of each type says all there is to say about an array, however long it is.
+            var objects = new List<JObject>();
+            var arrays = new List<JArray>();
+            var values = new Dictionary<JTokenType, JValue>();
+            JValue number = null;
+            JToken first = null;
+            bool hasNull = false;
+
+            foreach (var item in array)
             {
-                return BuildSchema(array.FirstOrDefault(), name);
+                first ??= item;
+                switch (item)
+                {
+                    case JObject jObject:
+                        objects.Add(jObject);
+                        break;
+                    case JArray jArray:
+                        arrays.Add(jArray);
+                        break;
+                    case JValue { Type: JTokenType.Null }:
+                        hasNull = true;
+                        break;
+                    case JValue { Type: JTokenType.Integer or JTokenType.Float } value:
+                        // A whole number next to a fraction is a double, not a long that would truncate it.
+                        number = number == null || !IsFloatingPoint(number) && IsFloatingPoint(value) ? value : number;
+                        break;
+                    case JValue value:
+                        values.TryAdd(value.Type, value);
+                        break;
+                }
             }
 
-            var record = BuildMergedRecordSchema(
-                items.Cast<JObject>().Select(o => (IDictionary<string, object>)o.Properties().ToDictionary(
-                    p => p.Name,
-                    p => p.Value.Type == JTokenType.Null ? null : (object)p.Value)),
-                name,
-                typeof(JObject));
+            if (objects.Count == 0 && arrays.Count == 0 && values.Count == 0 && number == null)
+            {
+                return BuildSchema(first, name);
+            }
 
-            return items.Count < array.Count
-                ? new UnionSchema(new List<TypeSchema> { new NullSchema(), record }, typeof(object))
-                : record;
+            var branches = new List<TypeSchema>();
+            if (hasNull)
+            {
+                branches.Add(new NullSchema());
+            }
+
+            if (objects.Count > 0)
+            {
+                branches.Add(BuildMergedRecordSchema(
+                    objects.Select(o => (IDictionary<string, object>)o.Properties().ToDictionary(
+                        p => p.Name,
+                        p => p.Value.Type == JTokenType.Null ? null : (object)p.Value)),
+                    name,
+                    typeof(JObject)));
+            }
+
+            if (arrays.Count > 0)
+            {
+                branches.Add(new ArraySchema(BuildItemSchema(arrays.SelectMany(a => a), name), typeof(object)));
+            }
+
+            foreach (var schema in values.Values.Append(number).Where(v => v != null).Select(v => BuildSchema(v, name)).GroupBy(s => s.UnionKey).Select(g => g.First()))
+            {
+                branches.Add(schema);
+            }
+
+            return branches.Count == 1 ? branches[0] : new UnionSchema(branches, typeof(object));
         }
 
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
@@ -118,18 +167,46 @@ namespace SolTechnology.Avro.Features.JsonToAvro
                 }
             }
 
-            var result = new RecordSchema(new NamedEntityAttributes(new SchemaName(name ?? "UnknownObject"), new List<string>(), ""), runtimeType);
-            int position = 0;
+            var fields = new List<RecordFieldSchema>();
             foreach (var key in order)
             {
                 var (schema, nullable) = seen[key];
                 TypeSchema fieldSchema = schema == null ? new NullSchema()
                     : nullable && schema is not UnionSchema && schema is not NullSchema ? new UnionSchema(new List<TypeSchema> { new NullSchema(), schema }, typeof(object))
                     : schema;
-                result.AddField(CreateField(key, fieldSchema, position++));
+                fields.Add(CreateField(key, fieldSchema, fields.Count));
             }
 
-            return result;
+            return NamedRecord(name, fields, runtimeType);
+        }
+
+        /// <summary>
+        /// A record takes its name from a JSON key, and one key can hold different objects in different places, while a name
+        /// can be defined only once. The same fields share one record, other fields get a name of their own.
+        /// </summary>
+        private RecordSchema NamedRecord(string name, List<RecordFieldSchema> fields, System.Type runtimeType)
+        {
+            name ??= "UnknownObject";
+            var shape = string.Join(",", fields.Select(field => $"{field.Name}:{field.TypeSchema}"));
+
+            for (int i = 1; ; i++)
+            {
+                var candidate = i == 1 ? name : $"{name}_{i}";
+                if (_records.TryGetValue(candidate, out var known))
+                {
+                    if (known.Shape == shape)
+                    {
+                        return known.Record;
+                    }
+
+                    continue;
+                }
+
+                var result = new RecordSchema(new NamedEntityAttributes(new SchemaName(candidate), new List<string>(), ""), runtimeType);
+                fields.ForEach(result.AddField);
+                _records[candidate] = (shape, result);
+                return result;
+            }
         }
 
         private static bool IsFloatingPoint(object value) =>
@@ -156,50 +233,15 @@ namespace SolTechnology.Avro.Features.JsonToAvro
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         internal TypeSchema BuildRecordSchema(IEnumerable<KeyValuePair<string, object>> properties, string name = null)
         {
-            RecordSchema record = new RecordSchema(new NamedEntityAttributes(
-                new SchemaName(name ?? "UnknownObject"),
-                new List<string>(),
-                ""),
-                typeof(JObject));
-
-
             //TODO: In one day Dictionaries will be handled: it's here
 
-            int i = 0;
+            var fields = new List<RecordFieldSchema>();
             foreach (var property in properties)
             {
-                TypeSchema fieldSchema = BuildSchema(property.Value, property.Key);
-
-                string warning = string.Empty;
-                RecordFieldSchema recordFieldSchema = null;
-
-                try
-                {
-                    recordFieldSchema = new RecordFieldSchema(
-                                        new NamedEntityAttributes(new SchemaName(property.Key), new List<string>(), warning),
-                                        fieldSchema,
-                                        false,
-                                        null,
-                                        i);
-                }
-                catch (SerializationException serializationException)
-                {
-                    warning = $"{warning} [{serializationException.Message}]";
-                    recordFieldSchema = new RecordFieldSchema(
-                                     new NamedEntityAttributes(new SchemaName(property.Key, true), new List<string> { property.Key }, warning),
-                                     fieldSchema,
-                                     false,
-                                     null,
-                                     i);
-                }
-
-
-                record.AddField(recordFieldSchema);
-                i++;
+                fields.Add(CreateField(property.Key, BuildSchema(property.Value, property.Key), fields.Count));
             }
 
-
-            return record;
+            return NamedRecord(name, fields, typeof(JObject));
         }
 
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]

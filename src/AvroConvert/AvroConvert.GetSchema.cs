@@ -15,6 +15,7 @@
 */
 #endregion
 
+using System.Collections.Generic;
 using System.IO;
 using SolTechnology.Avro.Features.GetSchema;
 
@@ -42,7 +43,7 @@ namespace SolTechnology.Avro
         /// </summary>
         public static string GetSchema(string filePath)
         {
-            using (var stream = new FileStream(filePath, FileMode.Open))
+            using (var stream = OpenForReading(filePath))
             {
                 var headerDecoder = new HeaderDecoder();
                 var schema = headerDecoder.GetSchema(stream);
@@ -62,5 +63,38 @@ namespace SolTechnology.Avro
 
             return schema;
         }
+
+        /// <summary>
+        /// Reads the key-value metadata of the header of given Avro object container, <c>avro.schema</c> and <c>avro.codec</c> included
+        /// </summary>
+        public static IReadOnlyDictionary<string, byte[]> GetMetadata(byte[] avroBytes)
+        {
+            using (var stream = new MemoryStream(avroBytes))
+            {
+                return GetMetadata(stream);
+            }
+        }
+
+        /// <summary>
+        /// Reads the key-value metadata of the header of Avro file under given path, <c>avro.schema</c> and <c>avro.codec</c> included
+        /// </summary>
+        public static IReadOnlyDictionary<string, byte[]> GetMetadata(string filePath)
+        {
+            using (var stream = OpenForReading(filePath))
+            {
+                return GetMetadata(stream);
+            }
+        }
+
+        /// <summary>
+        /// Reads the key-value metadata of the header of given Avro stream, <c>avro.schema</c> and <c>avro.codec</c> included
+        /// </summary>
+        public static IReadOnlyDictionary<string, byte[]> GetMetadata(Stream avroStream)
+        {
+            return new HeaderDecoder().GetMetadata(avroStream);
+        }
+
+        private static FileStream OpenForReading(string filePath) =>
+            new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
     }
 }

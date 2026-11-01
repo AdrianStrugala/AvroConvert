@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using AwesomeAssertions;
 using Confluent.Kafka;
 using NUnit.Framework;
@@ -36,6 +37,17 @@ public class PlainAvroSerdeTests
         var bytes = new AvroConvertSerializer<JavaOrder>(writerSchema).Serialize(javaOrder, Context);
 
         new AvroConvertDeserializer<Order>(writerSchema).Deserialize(bytes, false, Context).Should().BeEquivalentTo(Samples.Order());
+    }
+
+    [Test]
+    public void Dictionary_of_objects_goes_with_a_schema_from_the_value()
+    {
+        var value = new Dictionary<string, object> { ["a"] = "x", ["b"] = 1L };
+        var schema = AvroSchema.FromValue(value);
+
+        var bytes = new AvroConvertSerializer<Dictionary<string, object>>(schema).Serialize(value, Context);
+
+        new AvroConvertDeserializer<Dictionary<string, object>>(schema).Deserialize(bytes, false, Context).Should().BeEquivalentTo(value);
     }
 
     [Test]

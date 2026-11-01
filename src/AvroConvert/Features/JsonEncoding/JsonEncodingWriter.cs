@@ -153,6 +153,7 @@ namespace SolTechnology.Avro.Features.JsonEncoding
                     break;
                 case AvroType.Record:
                 case AvroType.Error:
+                    System.Runtime.CompilerServices.RuntimeHelpers.EnsureSufficientExecutionStack();
                     json.WriteStartObject();
                     foreach (var field in ((RecordSchema)schema).Fields)
                     {

@@ -52,6 +52,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
         {
         }
 
+        internal override string UnionKey => BaseTypeSchema.UnionKey;
+
         internal override bool CanRead(TypeSchema writerSchema)
         {
             return writerSchema.Type == Type || writerSchema.Type == BaseTypeSchema.Type;
@@ -81,6 +83,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
                 writer.WriteOptionalProperty("aliases", fixedBase.Aliases);
                 writer.WriteProperty("logicalType", LogicalTypeName);
                 WriteLogicalProperties(writer);
+                WriteAttributes(writer);
                 writer.WriteEndObject();
                 return;
             }
@@ -90,6 +93,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
             BaseTypeSchema.ToJsonSafe(writer, seenSchemas);
             writer.WriteProperty("logicalType", LogicalTypeName);
             WriteLogicalProperties(writer);
+            WriteAttributes(writer);
             writer.WriteEndObject();
         }
 

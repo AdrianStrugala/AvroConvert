@@ -27,7 +27,7 @@ namespace SolTechnology.Avro.AvroObjectServices.FileHeader
         internal const string SyncMetadataKey = "avro.sync";
         internal const string CodecMetadataKey = "avro.codec";
         internal const string SchemaMetadataKey = "avro.schema";
-        internal const string MetaDataReserved = "avro";
+        internal const string MetaDataReserved = "avro.";
 
         internal static byte[] AvroHeader = { (byte)'O',
                                             (byte)'b',

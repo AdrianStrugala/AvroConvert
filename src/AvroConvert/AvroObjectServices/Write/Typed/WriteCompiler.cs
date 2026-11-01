@@ -5,7 +5,9 @@ using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Newtonsoft.Json.Linq;
+using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.AvroObjectServices.Read;
 using SolTechnology.Avro.AvroObjectServices.Read.Typed;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
@@ -69,6 +71,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
         private static MethodInfo LogicalWriter(string name) =>
             typeof(LogicalWriters).GetMethod(name, BindingFlags.Static | BindingFlags.NonPublic)!;
         private static readonly MethodInfo WriteDynamicMethod = typeof(WriteCompiler).GetMethod(nameof(WriteDynamic), BindingFlags.Instance | BindingFlags.NonPublic)!;
+        private static readonly MethodInfo EnsureStackMethod = typeof(RuntimeHelpers).GetMethod(nameof(RuntimeHelpers.EnsureSufficientExecutionStack))!;
+        private static readonly MethodInfo KeepAliveMethod = typeof(GC).GetMethod(nameof(GC.KeepAlive))!;
+        private static readonly MethodInfo WriteRecordBranchMethod = Helper(nameof(WriteHelpers.WriteRecordBranch));
         private static readonly PropertyInfo DateTimeTicks = typeof(DateTime).GetProperty(nameof(DateTime.Ticks))!;
         private static readonly PropertyInfo DateTimeOffsetDateTime = typeof(DateTimeOffset).GetProperty(nameof(DateTimeOffset.DateTime))!;
         private static readonly PropertyInfo DateTimeOffsetUtcDateTime = typeof(DateTimeOffset).GetProperty(nameof(DateTimeOffset.UtcDateTime))!;
@@ -120,8 +125,13 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
 
         /// <summary>Runtime dispatch for values whose static type carries no information (object, interfaces, JSON tokens).</summary>
         /// <param name="nullMessage">Error for a null value; null when a null value is written (schema allows it or WriteEmpty).</param>
-        private void WriteDynamic(TypeSchema schema, string nullMessage, object value, Writer writer)
+        // Not inlined: the JIT would weigh this body in every plan that calls it, which made compiling a plan several times slower.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void WriteDynamic(TypeSchema schema, string nullMessage, DynamicSite site, object value, Writer writer)
         {
+            // How deep this goes depends on the data, a reference cycle has no end, and a stack overflow cannot be caught.
+            RuntimeHelpers.EnsureSufficientExecutionStack();
+
             if (value == null)
             {
                 if (nullMessage != null)
@@ -133,8 +143,49 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                 return;
             }
 
-            WritePlanCache.Get(schema, value.GetType(), _options)(value, writer);
+            var type = value.GetType();
+            var first = site.First;
+            if (ReferenceEquals(first?.Type, type))
+            {
+                first.Plan(value, writer);
+                return;
+            }
+
+            var second = site.Second;
+            if (ReferenceEquals(second?.Type, type))
+            {
+                second.Plan(value, writer);
+                return;
+            }
+
+            if (type == typeof(object))
+            {
+                // A bare object has no fields, and its plan would dispatch back here for ever.
+                if (RuntimeSchema.IsObjectPlaceholder(schema))
+                {
+                    return;
+                }
+
+                throw new AvroTypeMismatchException($"An instance of [{typeof(object)}] holds no data to write against {Describe(schema)}.");
+            }
+
+            var plan = WritePlanCache.Get(schema, type, _options);
+            site.Second = first;
+            site.First = new DynamicEntry(type, plan);
+            plan(value, writer);
         }
+
+        /// <summary>
+        /// The plans of the last two runtime types seen at one <see cref="Dynamic"/> call. Values of type <c>object</c> usually hold
+        /// one or two types, and looking a plan up in the process-wide cache for every value is what such a write spends most on.
+        /// </summary>
+        private sealed class DynamicSite
+        {
+            internal DynamicEntry First;
+            internal DynamicEntry Second;
+        }
+
+        private sealed record DynamicEntry(Type Type, Encoder.WriteItem Plan);
 
         // ------------------------------------------------------------------ core
 
@@ -208,6 +259,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
             Expression.Call(Expression.Constant(this), WriteDynamicMethod,
                 Expression.Constant(schema, typeof(TypeSchema)),
                 Expression.Constant(ThrowsOnNull(schema) ? NullMessage(schema) : null, typeof(string)),
+                Expression.Constant(new DynamicSite()),
                 Expression.Convert(value, typeof(object)), writer);
 
         private static Expression WriteEmptyValue(TypeSchema schema, ParameterExpression writer) =>
@@ -492,16 +544,24 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
 
         private Expression BuildRecordBody(RecordSchema schema, Type type, Expression value, ParameterExpression writer)
         {
+            if (RuntimeSchema.IsObjectPlaceholder(schema) && type != typeof(object))
+            {
+                // Writing against the empty record of `object` would drop every field of the value without a word.
+                throw new NotSupportedException(
+                    "The schema of a value of type object comes from the data, which is not possible here (e.g. headless data does not carry a schema). " +
+                    "Give the schema to both sides: AvroSchema.FromValue(value), then SerializeHeadless(value, schema).");
+            }
+
             if (type == typeof(ExpandoObject) || typeof(IDictionary<string, object>).IsAssignableFrom(type))
             {
-                var (names, writers) = DynamicFieldWriters(schema);
-                return Expression.Call(WriteDictionaryRecordMethod, writer, Expression.Convert(value, typeof(IDictionary<string, object>)), Expression.Constant(names), Expression.Constant(writers));
+                var (names, writers, defaults) = DynamicFieldWriters(schema);
+                return Expression.Call(WriteDictionaryRecordMethod, writer, Expression.Convert(value, typeof(IDictionary<string, object>)), Expression.Constant(names), Expression.Constant(writers), Expression.Constant(defaults));
             }
 
             if (type == typeof(JObject))
             {
-                var (names, writers) = DynamicFieldWriters(schema);
-                return Expression.Call(WriteJsonRecordMethod, writer, value, Expression.Constant(names), Expression.Constant(writers));
+                var (names, writers, defaults) = DynamicFieldWriters(schema);
+                return Expression.Call(WriteJsonRecordMethod, writer, value, Expression.Constant(names), Expression.Constant(writers), Expression.Constant(defaults));
             }
 
             if (type.IsPrimitive || type == typeof(string) || type.IsArray || type.IsEnum || ReadCompiler.CollectionItemType(type) != null || type.GetDictionaryArguments() != null)
@@ -549,28 +609,40 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
             return Expression.Invoke(fn, writer, value);
         }
 
-        private (string[] Names, Action<Writer, object>[] Writers) DynamicFieldWriters(RecordSchema schema)
+        /// <summary>The keys of a field in a property bag: its name, which reading into a dictionary gives, then its aliases.</summary>
+        private static string[] FieldKeys(RecordFieldSchema field) => field.Aliases.Prepend(field.Name).ToArray();
+
+        private (string[][] Names, Action<Writer, object>[] Writers, Action<Writer>[] Defaults) DynamicFieldWriters(RecordSchema schema)
         {
-            var names = new string[schema.Fields.Count];
+            var names = new string[schema.Fields.Count][];
             var writers = new Action<Writer, object>[schema.Fields.Count];
+            var defaults = new Action<Writer>[schema.Fields.Count];
             for (int i = 0; i < names.Length; i++)
             {
                 var field = schema.Fields[i];
-                names[i] = field.Aliases.FirstOrDefault() ?? field.Name;
+                names[i] = FieldKeys(field);
                 var writer = Expression.Parameter(typeof(Writer), "writer");
                 var item = Expression.Parameter(typeof(object), "value");
                 var body = InContext($"{schema.Name}.{field.Name}", () => Build(field.TypeSchema, typeof(object), item, writer));
                 writers[i] = Expression.Lambda<Action<Writer, object>>(body, writer, item).Compile();
+
+                if (field.HasDefaultValue && field.DefaultValue != null && TryBuildDefault(schema, field, writer) is { } defaultValue)
+                {
+                    defaults[i] = Expression.Lambda<Action<Writer>>(defaultValue, writer).Compile();
+                }
             }
 
-            return (names, writers);
+            return (names, writers, defaults);
         }
 
         private Delegate CompileRecordDelegate(RecordSchema schema, Type type)
         {
             var writer = Expression.Parameter(typeof(Writer), "writer");
             var instance = Expression.Parameter(type, "instance");
-            var body = BuildRecordFields(schema, type, instance, writer);
+            // Recursion goes through these delegates, and a reference cycle has no end. KeepAlive costs nothing and keeps the
+            // recursive call out of the tail position: as a tail call it would not grow the stack, so the check would never fire.
+            Expression keepInFrame = type.IsValueType ? Expression.Empty() : Expression.Call(KeepAliveMethod, Expression.Convert(instance, typeof(object)));
+            var body = Expression.Block(typeof(void), Expression.Call(EnsureStackMethod), BuildRecordFields(schema, type, instance, writer), keepInFrame);
             return Expression.Lambda(typeof(Action<,>).MakeGenericType(typeof(Writer), type), body, writer, instance).Compile();
         }
 
@@ -759,17 +831,36 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
             var valueType = underlying ?? type;
             bool canBeNull = underlying != null || !type.IsValueType;
 
-            int branchIndex = -1;
-            for (int i = 0; i < branches.Count; i++)
+            var bagBranches = BagRecordBranches(branches, valueType);
+            int branchIndex = bagBranches?.Length == 1 ? bagBranches[0].Index : -1;
+            if (bagBranches?.Length == 1)
+            {
+                bagBranches = null;
+            }
+
+            for (int i = 0; branchIndex < 0 && bagBranches == null && i < branches.Count; i++)
+            {
+                // The branch of exactly this type first: a double next to a long branch would lose its fraction, a DateTime next to a date its time.
+                if (i != nullIndex && IsExactBranch(branches[i], valueType))
+                {
+                    branchIndex = i;
+                }
+            }
+
+            if (branchIndex < 0 && bagBranches == null)
+            {
+                branchIndex = OwnRecordBranch(branches, valueType);
+            }
+
+            for (int i = 0; branchIndex < 0 && bagBranches == null && i < branches.Count; i++)
             {
                 if (i != nullIndex && BranchAccepts(branches[i], valueType))
                 {
                     branchIndex = i; // first matching branch, like the classic resolver
-                    break;
                 }
             }
 
-            if (branchIndex < 0 && TemporalText.IsTemporal(valueType))
+            if (branchIndex < 0 && bagBranches == null && TemporalText.IsTemporal(valueType))
             {
                 for (int i = 0; i < branches.Count; i++)
                 {
@@ -781,7 +872,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                 }
             }
 
-            if (branchIndex < 0)
+            if (branchIndex < 0 && bagBranches == null)
             {
                 // A class with no record branch of its name goes to the first record it can be written as, the same rule as
                 // for a record outside a union: the names do not have to match, every field needs a value.
@@ -796,11 +887,13 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
             }
 
             Expression nonNullValue = underlying != null ? Expression.Property(value, "Value") : value;
-            Expression writeBranch = branchIndex >= 0
-                ? Expression.Block(
-                    Expression.Call(writer, WriteUnionIndexMethod, Expression.Constant(branchIndex)),
-                    Build(branches[branchIndex], valueType, nonNullValue, writer))
-                : Expression.Throw(Expression.Call(NoUnionBranchMethod, Expression.Convert(value, typeof(object)), Expression.Constant(schema)));
+            Expression writeBranch = bagBranches != null
+                ? Expression.Call(WriteRecordBranchMethod, writer, Expression.Convert(nonNullValue, typeof(object)), Expression.Constant(bagBranches), Expression.Constant(schema))
+                : branchIndex >= 0
+                    ? Expression.Block(
+                        Expression.Call(writer, WriteUnionIndexMethod, Expression.Constant(branchIndex)),
+                        Build(branches[branchIndex], valueType, nonNullValue, writer))
+                    : Expression.Throw(Expression.Call(NoUnionBranchMethod, Expression.Convert(value, typeof(object)), Expression.Constant(schema)));
 
             if (!canBeNull)
             {
@@ -824,8 +917,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
         /// </summary>
         private bool WritesAsRecord(RecordSchema schema, Type type)
         {
-            if (type.IsPrimitive || type.IsEnum || type == typeof(string) || type == typeof(byte[]) || type.IsArray || type == typeof(object)
-                || type.IsAbstract || type.IsInterface || ReadCompiler.CollectionItemType(type) != null || type.GetDictionaryArguments() != null)
+            if (!IsRecordLike(type))
             {
                 return false;
             }
@@ -837,6 +929,102 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                 || WriteHelpers.CanBeNull(field.TypeSchema)
                 || _nullHandling == AvroNullValueHandling.WriteEmpty);
         }
+
+        private static bool IsRecordLike(Type type) =>
+            !(type.IsPrimitive || type.IsEnum || type == typeof(string) || type == typeof(byte[]) || type.IsArray || type == typeof(object)
+              || type.IsAbstract || type.IsInterface || ReadCompiler.CollectionItemType(type) != null || type.GetDictionaryArguments() != null);
+
+        /// <summary>
+        /// The record branch of <paramref name="type"/>: of the same full name, of the same name (a file may hold it in another
+        /// namespace), or the first one with a field for every member, so that nothing is lost. -1 when there is none.
+        /// </summary>
+        private int OwnRecordBranch(IReadOnlyList<TypeSchema> branches, Type type)
+        {
+            if (!IsRecordLike(type) || !branches.OfType<RecordSchema>().Any())
+            {
+                return -1;
+            }
+
+            RecordSchema own;
+            try
+            {
+                own = Schema.Create(type, _options) as RecordSchema;
+            }
+            catch (Exception)
+            {
+                // Nothing says the type has a schema of its own: the data goes by the schema it was given.
+                own = null;
+            }
+
+            int Find(Func<RecordSchema, bool> matches)
+            {
+                for (int i = 0; i < branches.Count; i++)
+                {
+                    if (branches[i] is RecordSchema record && matches(record))
+                    {
+                        return i;
+                    }
+                }
+
+                return -1;
+            }
+
+            var index = own == null ? -1 : Find(record => record.FullName == own.FullName);
+            index = index >= 0 || own == null ? index : Find(record => record.Name == own.Name);
+            return index >= 0 ? index : Find(record => WritesAsRecord(record, type) && HasFieldForEveryMember(record, type));
+        }
+
+        private static bool HasFieldForEveryMember(RecordSchema schema, Type type)
+        {
+            var members = TypeMembers.For(type);
+            var written = schema.Fields.Select(field => members.Find(field.Aliases.FirstOrDefault() ?? field.Name)).ToHashSet();
+            return members.All.Where(member => member.CanRead).All(written.Contains);
+        }
+
+        /// <summary>
+        /// A property bag says which record it is only by its keys, which are known when it is written. Null when the union has no
+        /// records for it, or a map takes a dictionary as it is; an ExpandoObject is a record for AvroConvert, so it goes to a record first.
+        /// </summary>
+        private WriteHelpers.RecordBranch[] BagRecordBranches(IReadOnlyList<TypeSchema> branches, Type type)
+        {
+            bool isBag = type == typeof(ExpandoObject) || type == typeof(JObject) || typeof(IDictionary<string, object>).IsAssignableFrom(type) && type.IsClass;
+            if (!isBag || type != typeof(ExpandoObject) && branches.Any(branch => branch is MapSchema))
+            {
+                return null;
+            }
+
+            var records = new List<WriteHelpers.RecordBranch>();
+            for (int i = 0; i < branches.Count; i++)
+            {
+                if (branches[i] is RecordSchema record)
+                {
+                    var writer = Expression.Parameter(typeof(Writer), "writer");
+                    var item = Expression.Parameter(typeof(object), "value");
+                    var write = Expression.Lambda<Action<Writer, object>>(Build(record, typeof(object), item, writer), writer, item).Compile();
+                    records.Add(new WriteHelpers.RecordBranch(i, record.Fields.Select(FieldKeys).ToArray(),
+                        record.Fields.Select(field => !field.HasDefaultValue && !WriteHelpers.CanBeNull(field.TypeSchema)).ToArray(), write));
+                }
+            }
+
+            return records.Count == 0 ? null : records.ToArray();
+        }
+
+        /// <summary>True for the branch that <paramref name="type"/> is written to without any conversion.</summary>
+        private static bool IsExactBranch(TypeSchema branch, Type type) => branch switch
+        {
+            LogicalTypeSchema logical => logical.LogicalTypeName switch
+            {
+                LogicalTypeSchema.LogicalTypeEnum.Uuid => type == typeof(Guid),
+                LogicalTypeSchema.LogicalTypeEnum.Decimal or LogicalTypeSchema.LogicalTypeEnum.BigDecimal => type == typeof(decimal),
+                LogicalTypeSchema.LogicalTypeEnum.Date => type == typeof(DateOnly),
+                LogicalTypeSchema.LogicalTypeEnum.TimeMicrosecond or LogicalTypeSchema.LogicalTypeEnum.TimeMilliseconds => type == typeof(TimeOnly),
+                LogicalTypeSchema.LogicalTypeEnum.Duration => type == typeof(TimeSpan),
+                var name when IsTimestamp(name) => type == typeof(DateTime) || type == typeof(DateTimeOffset),
+                _ => false
+            },
+            MapSchema => type == typeof(JObject) || type.GetDictionaryArguments()?.Key == typeof(string),
+            _ => SchemaPromotion.ClrType(branch.Type) == type
+        };
 
         /// <summary>Static branch matching for a known CLR type (mirrors the classic runtime matcher).</summary>
         private static bool BranchAccepts(TypeSchema branch, Type type)

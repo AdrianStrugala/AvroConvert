@@ -95,6 +95,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
                 writer.WriteOptionalProperty("default", DefaultValue, HasDefaultValue);
             }
             writer.WriteOptionalProperty("order", Order);
+            WriteAttributes(writer);
 
             writer.WriteEndObject();
         }

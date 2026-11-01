@@ -91,6 +91,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             writer.WriteProperty("type", "map");
             writer.WritePropertyName("values");
             ValueSchema.ToJson(writer, seenSchemas);
+            WriteAttributes(writer);
             writer.WriteEndObject();
         }
 
@@ -98,5 +99,9 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
         /// Gets the type of the schema as string.
         /// </summary>
         internal override AvroType Type => AvroType.Map;
+
+        /// <summary>A map of <c>object</c>, the schema of a dictionary of objects, reads a record too (its fields are the keys) and a missing one.</summary>
+        internal override bool CanRead(TypeSchema writerSchema) =>
+            base.CanRead(writerSchema) || (writerSchema is RecordSchema || writerSchema.Type == AvroType.Null) && ValueSchema.IsEmpty();
     }
 }

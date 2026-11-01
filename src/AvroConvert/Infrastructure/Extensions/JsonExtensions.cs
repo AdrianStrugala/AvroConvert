@@ -72,7 +72,7 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
         /// </summary>
         /// <param name="obj">The JSON object.</param>
         /// <param name="attributes">The attributes.</param>
-        /// <returns>Set of additional attributes.</returns>
+        /// <returns>Set of additional attributes, each value as JSON text.</returns>
         internal static Dictionary<string, string> GetAttributesNotIn(this JObject obj, HashSet<string> attributes)
         {
             if (obj == null)
@@ -90,7 +90,7 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
             obj.Children<JProperty>()
                .Where(child => !attributes.Contains(child.Name))
                .ToList()
-               .ForEach(child => result.Add(child.Name, child.Value.ToString()));
+               .ForEach(child => result.Add(child.Name, child.Value.ToString(Formatting.None)));
 
             return result;
         }

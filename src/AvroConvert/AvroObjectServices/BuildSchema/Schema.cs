@@ -43,6 +43,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             Attributes = (Dictionary<string, string>)(attributes ?? new Dictionary<string, string>());
         }
 
+        /// <summary>Attributes the Avro specification does not define, each value as JSON text.</summary>
         internal Dictionary<string, string> Attributes { get; set; }
 
         internal void AddAttribute(string attribute, string value)
@@ -56,6 +57,15 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 throw new ArgumentNullException(nameof(value));
             }
             Attributes.Add(attribute, value);
+        }
+
+        internal void WriteAttributes(JsonTextWriter writer)
+        {
+            foreach (var attribute in Attributes)
+            {
+                writer.WritePropertyName(attribute.Key);
+                writer.WriteRawValue(attribute.Value);
+            }
         }
 
         public override string ToString()
@@ -120,10 +130,11 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             if (obj is ExpandoObject expando)
             {
                 AvroConvert.EnsureLicenseNotice();
-                return new JsonSchemaBuilder().BuildSchema(new[] { expando });
+                return RuntimeSchema.ResolveExpandos(new[] { expando }, options);
             }
 
-            return Create(type, options);
+            var schema = Create(type, options);
+            return RuntimeSchema.IsOpen(schema) ? RuntimeSchema.Resolve(schema, new[] { obj }, options) : schema;
         }
 
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]

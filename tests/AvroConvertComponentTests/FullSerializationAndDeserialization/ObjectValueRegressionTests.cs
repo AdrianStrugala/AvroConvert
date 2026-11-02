@@ -518,13 +518,70 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
         }
 
         [Test]
-        public void Two_types_of_one_name_with_different_definitions_are_an_exception()
+        public void Two_types_of_one_name_get_names_of_their_own()
         {
             var order = new Order { State = Order.Status.Paid, Ship = new Shipment { State = Shipment.Status.Delivered } };
 
-            var act = () => AvroConvert.Serialize(order);
+            var avro = AvroConvert.Serialize(order);
 
-            act.Should().Throw<System.Runtime.Serialization.SerializationException>().WithMessage("*Status*");
+            AvroConvert.GetSchema(avro).Should().Contain(@"""name"":""Status""").And.Contain(@"""name"":""Status_2""");
+            AvroConvert.Deserialize<Order>(avro).Should().BeEquivalentTo(order);
+            JToken.Parse(AvroConvert.Avro2Json(avro)).SelectToken("Ship.State")!.Value<string>().Should().Be("Delivered");
+        }
+
+        [Test]
+        public void Type_of_a_name_defined_already_in_an_object_member_gets_a_name_of_its_own()
+        {
+            var value = new WithStatus { State = Order.Status.Paid, Value = new Shipment { State = Shipment.Status.Delivered } };
+
+            var avro = AvroConvert.Serialize(value);
+
+            AvroConvert.GetSchema(avro).Should().Contain(@"""name"":""Status_2""");
+            JToken.Parse(AvroConvert.Avro2Json(avro)).SelectToken("Value.State")!.Value<string>().Should().Be("Delivered");
+        }
+
+        public class WithStatus
+        {
+            public Order.Status State { get; set; }
+            public object Value { get; set; }
+        }
+
+        public static class Billing
+        {
+            public class Period
+            {
+                public DateTime At { get; set; }
+            }
+        }
+
+        public static class Shipping
+        {
+            public class Period
+            {
+                public long At { get; set; }
+            }
+        }
+
+        public class TwoPeriods
+        {
+            public Billing.Period Billing { get; set; }
+            public Shipping.Period Shipping { get; set; }
+        }
+
+        [Test]
+        public void Records_of_one_name_different_only_in_a_logical_type_get_names_of_their_own()
+        {
+            var periods = new TwoPeriods
+            {
+                Billing = new Billing.Period { At = new DateTime(2026, 1, 2, 3, 4, 5, DateTimeKind.Utc) },
+                Shipping = new Shipping.Period { At = 42 }
+            };
+
+            var avro = AvroConvert.Serialize(periods);
+
+            AvroConvert.GetSchema(avro).Should().Contain(@"""name"":""Period_2""");
+            AvroConvert.Deserialize<TwoPeriods>(avro).Should().BeEquivalentTo(periods);
+            JToken.Parse(AvroConvert.Avro2Json(avro)).SelectToken("Shipping.At")!.Value<long>().Should().Be(42);
         }
     }
 }

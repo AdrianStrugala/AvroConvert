@@ -68,7 +68,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
                 if (seenSchemas is SchemaWriteContext context)
                 {
                     var fullName = context.EffectiveFullName(fixedBase);
-                    if (!context.TryDefine(fullName))
+                    if (!context.TryDefine(fullName, fixedBase))
                     {
                         writer.WriteValue(fullName);
                         return;

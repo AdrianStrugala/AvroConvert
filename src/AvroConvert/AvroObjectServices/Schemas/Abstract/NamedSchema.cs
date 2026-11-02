@@ -57,11 +57,19 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
         internal string Doc => this.attributes.Doc;
 
         /// <summary>
-        /// True when this type is written already, so a reference to its name is enough. Decided by the name, because one
-        /// type can come as several objects: a schema completed from values is put together from the schemas of many types.
+        /// True when this type is written already, so a reference to <paramref name="name"/> is enough; otherwise
+        /// <paramref name="name"/> is the name to define it under (see <see cref="BuildSchema.SchemaWriteContext.IsDefined"/>).
         /// </summary>
-        /// <exception cref="System.Runtime.Serialization.SerializationException">A different type has the same name.</exception>
-        internal bool IsDefined(HashSet<NamedSchema> seenSchemas) =>
-            seenSchemas.Contains(this) || seenSchemas is BuildSchema.SchemaWriteContext context && !context.TryDefine(this);
+        internal bool IsDefined(HashSet<NamedSchema> seenSchemas, out string name)
+        {
+            if (seenSchemas is BuildSchema.SchemaWriteContext context)
+            {
+                return context.IsDefined(this, out name);
+            }
+
+            var defined = seenSchemas.Contains(this);
+            name = defined ? FullName : Name;
+            return defined;
+        }
     }
 }

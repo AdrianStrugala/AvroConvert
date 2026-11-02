@@ -108,6 +108,33 @@ public class ContainerFileInteropTests
         }
     }
 
+    public class Order
+    {
+        public enum Status { New, Paid }
+
+        public Status State { get; set; }
+        public Shipment Ship { get; set; }
+    }
+
+    public class Shipment
+    {
+        public enum Status { Pending, Sent, Delivered }
+
+        public Status State { get; set; }
+    }
+
+    [Test]
+    public void TwoTypesOfOneName_ApacheReadsEachWithItsOwnDefinition()
+    {
+        var bytes = AvroConvert.Serialize(new Order { State = Order.Status.Paid, Ship = new Shipment { State = Shipment.Status.Delivered } });
+
+        var (_, records) = ApacheAvro.ReadContainer(bytes);
+
+        var record = records.Should().ContainSingle().Subject;
+        ((GenericEnum)record["State"]).Value.Should().Be("Paid");
+        ((GenericEnum)((GenericRecord)record["Ship"])["State"]).Value.Should().Be("Delivered");
+    }
+
     [Test]
     public void HeaderSchema_RoundTripsThroughApacheParser()
     {

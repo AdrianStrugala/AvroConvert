@@ -50,7 +50,7 @@ Changes:
 - Fields of a dictionary written as a record are found by name, then by alias
 - `Serialize<object>(items, stream)` writes items of different types as a union; only an interface or an abstract class needs one runtime type
 - Unions of logical types (e.g. `date` and `timestamp-micros`) and of records of one name in different namespaces are parsed and read
-- A named type used in several places of a schema is defined once; two different types of one name (e.g. nested enums `Order.Status` and `Shipment.Status`) throw instead of writing a schema that readers reject
+- A named type used in several places of a schema is defined once; a different type of a name taken already (e.g. nested enums `Order.Status` and `Shipment.Status`) gets the name with a number (`Status_2`) instead of a reference to the other type
 - Fix for `Avro2Json` of a union whose branches have one short name: it read the first of them
 - `Json2Avro` and `InferFromJson`: different values in a JSON array give a union; a number next to text was written as text
 - Text that looks like a date stays text in schema attributes and defaults

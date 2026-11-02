@@ -26,7 +26,7 @@ namespace AvroConvertUnitTests
         {
             if (type.IsByRef)
             {
-                return TypeName(type.GetElementType());
+                return "ref " + TypeName(type.GetElementType());
             }
 
             if (type.IsArray)
@@ -43,9 +43,20 @@ namespace AvroConvertUnitTests
             return $"{name}<{string.Join(", ", type.GetGenericArguments().Select(TypeName))}>";
         }
 
-        // With the return type: compiled code binds to it too.
+        // With the return type and in/ref/out: compiled code binds to them too.
         private static string Signature(MethodInfo method) =>
-            $"{TypeName(method.ReturnType)} {method.Name}{(method.IsGenericMethod ? "<T>" : "")}({string.Join(", ", method.GetParameters().Select(p => TypeName(p.ParameterType)))})";
+            $"{TypeName(method.ReturnType)} {method.Name}{(method.IsGenericMethod ? "<T>" : "")}({string.Join(", ", method.GetParameters().Select(ParameterName))})";
+
+        private static string ParameterName(ParameterInfo parameter)
+        {
+            if (!parameter.ParameterType.IsByRef)
+            {
+                return TypeName(parameter.ParameterType);
+            }
+
+            var element = TypeName(parameter.ParameterType.GetElementType());
+            return parameter.IsOut ? "out " + element : parameter.IsIn ? "in " + element : "ref " + element;
+        }
 
         private static readonly string[] Visible =
         {

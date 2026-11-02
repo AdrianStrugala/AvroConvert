@@ -17,8 +17,11 @@ Breaking changes:
 - Unknown `logicalType` is read as its underlying type
 - `SchemaConvert` removed; use `AvroSchema` (#73)
 - `DeserializeHeadless(bytes, writeSchema, readSchema, type)` reads all the rows into a collection, like the generic overload, instead of the first one (#69)
-- Removed the overloads of the previews taking the schema as text: `Avro2JsonEncoding(avro, string)`, `JsonEncoding2Avro(json, string)`. Use `AvroSchema.Parse`
-- Overloads of the previews merged into one with optional parameters: `DeserializeHeadless<T>(bytes, writer)`, `DeserializeHeadless<T>(bytes, writer, reader)`, `JsonEncoding2Avro(json, schema)` and `JsonEncoding2Avro(json, schema, CodecType)` (the codec goes in `AvroConvertOptions`). Calls compile as before, but code compiled against a preview must be rebuilt
+- Removed the overloads of the previews taking the schema as text: `Avro2JsonEncoding(avro, string)`, `JsonEncoding2Avro(json, string)`, `JsonEncoding2Avro(json, string, CodecType)`. Use `AvroSchema.Parse`
+- Removed `JsonEncoding2Avro(json, AvroSchema, CodecType)` of the previews; the codec goes in `AvroConvertOptions`
+- Overloads of the previews merged into one with optional parameters: `DeserializeHeadless<T>(bytes, writer)`, `DeserializeHeadless<T>(bytes, writer, reader)`, `JsonEncoding2Avro(json, schema)`. Calls compile as before, but code compiled against a preview must be rebuilt
+- Overloads taking a `Type` known at runtime (`Deserialize(bytes, type)`, `DeserializeHeadless(bytes, …, type)`) throw the exception of the call, not a `TargetInvocationException` around it
+- `Serialize(IAsyncEnumerable<T>, stream, null)` of the previews is ambiguous next to the overload taking an `AvroSchema`; leave the `null` out or name it (`options: null`)
 - Reflection-based methods marked `[RequiresUnreferencedCode]` / `[RequiresDynamicCode]`
 - SolTechnology.Avro.Kafka rewritten on Confluent.SchemaRegistry 2.16: Confluent wire format, schema evolution, references, subject name strategies. Removed `KafkaConsumer`, `KafkaPropNames`, `ConfluentSchema`
 - SolTechnology.Avro.Http follows System.Net.Http.Json (`GetFromAvroAsync`, `PostAsAvroAsync`, `ReadFromAvroAsync`…), Minimal API results and streaming; old names are `[Obsolete]`

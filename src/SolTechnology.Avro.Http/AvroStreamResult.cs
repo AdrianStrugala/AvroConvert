@@ -39,7 +39,7 @@ public sealed class AvroStreamResult<T> : IResult, IStatusCodeHttpResult, IConte
         response.StatusCode = StatusCodes.Status200OK;
         response.ContentType = AvroMediaTypes.Avro;
 
-        await AvroConvert.SerializeAsync(_items, response.Body, options, httpContext.RequestAborted);
+        await AvroConvert.Serialize(_items, response.Body, options, httpContext.RequestAborted);
     }
 
     public static void PopulateMetadata(MethodInfo method, EndpointBuilder builder)

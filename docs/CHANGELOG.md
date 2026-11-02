@@ -18,6 +18,7 @@ Breaking changes:
 - `SchemaConvert` removed; use `AvroSchema` (#73)
 - `DeserializeHeadless(bytes, writeSchema, readSchema, type)` reads all the rows into a collection, like the generic overload, instead of the first one (#69)
 - Removed the overloads of the previews taking the schema as text: `Avro2JsonEncoding(avro, string)`, `JsonEncoding2Avro(json, string)`. Use `AvroSchema.Parse`
+- Removed `GetSchema(string filePath)`. Pass a `Stream` or the bytes of the file
 - Reflection-based methods marked `[RequiresUnreferencedCode]` / `[RequiresDynamicCode]`
 - SolTechnology.Avro.Kafka rewritten on Confluent.SchemaRegistry 2.16: Confluent wire format, schema evolution, references, subject name strategies. Removed `KafkaConsumer`, `KafkaPropNames`, `ConfluentSchema`
 - SolTechnology.Avro.Http follows System.Net.Http.Json (`GetFromAvroAsync`, `PostAsAvroAsync`, `ReadFromAvroAsync`…), Minimal API results and streaming; old names are `[Obsolete]`
@@ -26,8 +27,8 @@ Breaking changes:
 Changes:
 - Serialization and deserialization compiled per schema and type: several times faster, a fraction of allocations
 - Added SolTechnology.Avro.Cli (`avroconvert`): `induce`, `compile`, `tojson`, `getschema`, `canonical`, `fingerprint`, `compat`, `registry`
-- Added streaming: `Serialize<T>(IEnumerable<T>, Stream)`, `SerializeAsync<T>(IAsyncEnumerable<T>, Stream)`, `DeserializeAsyncEnumerable<T>(Stream)`, output to `IBufferWriter<byte>`
-- Smaller public API: one way to give a schema (`AvroSchema`) and a codec (`AvroConvertOptions`). The overloads taking the schema as text or a `CodecType`, and the async ones of the previews without `Async` in the name, are hidden from IntelliSense and keep working. To be removed in the next major version
+- Added streaming: `Serialize<T>(IEnumerable<T> / IAsyncEnumerable<T>, Stream)`, `Deserialize<T>(Stream)` returning `IAsyncEnumerable<T>`, output to `IBufferWriter<byte>`
+- Smaller public API: one way to give a schema (`AvroSchema`) and a codec (`AvroConvertOptions`). The overloads taking the schema as text or a `CodecType` are hidden from IntelliSense and keep working. To be removed in the next major version
 - `DeserializeHeadless` with `AvroSchema` takes everything at one call: reader schema, options, `numberOfRows`, a type known at runtime. Without a reader schema it uses the schema of `T` built with the given options
 - Added `Json2Avro(json, options)`
 - Added `AvroSchema`: canonical form, fingerprints, `Compare` and `CheckCompatibility` (#73)
@@ -71,7 +72,6 @@ Changes:
 - Fix for a recursive record without a matching class read into `dynamic` or `ExpandoObject`: it ended the process with a stack overflow
 - Data nested too deep and schemas without an end throw instead of ending the process with a stack overflow
 - Fix for `OpenDeserializer<ExpandoObject>` returning objects without fields
-- Fix for `GetSchema(path)` on read-only files and files open elsewhere
 - Fix for `Merge` losing data after the first block
 - Fix for `Merge` of objects written with another schema than `T`: the result keeps the schema they were written with; objects written with different schemas throw instead of giving unreadable data
 - Fix for `Merge` of files written with `CollectionMode = SingleArray`

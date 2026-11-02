@@ -42,7 +42,7 @@ public sealed class AvroStream<T> : IAsyncEnumerable<T>, IEndpointParameterMetad
     public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
         var token = cancellationToken.CanBeCanceled ? cancellationToken : _context.RequestAborted;
-        return AvroConvert.DeserializeAsyncEnumerable<T>(_context.Request.Body, _options, token).GetAsyncEnumerator(token);
+        return AvroConvert.Deserialize<T>(_context.Request.Body, _options, token).GetAsyncEnumerator(token);
     }
 
     public static void PopulateMetadata(ParameterInfo parameter, EndpointBuilder builder)

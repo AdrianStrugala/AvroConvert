@@ -12,7 +12,6 @@
 
 ```csharp
 string schema = AvroConvert.GetSchema(avroFile);              // byte[]
-string schema = AvroConvert.GetSchema("orders.avro");         // file path
 string schema = AvroConvert.GetSchema(stream);                // Stream
 
 AvroSchema schema = AvroSchema.FromAvro(avroFile);            // parsed, see AvroSchema below
@@ -275,7 +274,7 @@ var schema = AvroSchema.Parse("""
 
 byte[] avro = AvroConvert.Serialize(entries, schema);                       // options: Serialize(entries, schema, options)
 AvroConvert.Serialize(entries, fileStream, schema);                         // items are streamed, never collected
-await AvroConvert.SerializeAsync(asyncEntries, fileStream, schema);
+await AvroConvert.Serialize(asyncEntries, fileStream, schema);
 AvroConvert.Serialize(entries, bufferWriter, schema);
 ```
 

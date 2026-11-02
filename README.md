@@ -76,7 +76,7 @@ OrderV2 order = AvroConvert.Deserialize<OrderV2>(writtenByV1);      // data from
 
 #### Large files
 ```csharp
-await foreach (var order in AvroConvert.DeserializeAsyncEnumerable<Order>(fileStream)) { /* one at a time */ }
+await foreach (var order in AvroConvert.Deserialize<Order>(fileStream)) { /* one at a time */ }
 ```
 
 #### Schema check in CI

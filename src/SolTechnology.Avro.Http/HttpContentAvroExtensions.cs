@@ -47,7 +47,7 @@ public static class HttpContentAvroExtensions
         EnsureAvro(content);
 
         await using var stream = await content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-        await foreach (var item in AvroConvert.DeserializeAsyncEnumerable<T>(stream, options, cancellationToken).ConfigureAwait(false))
+        await foreach (var item in AvroConvert.Deserialize<T>(stream, options, cancellationToken).ConfigureAwait(false))
         {
             yield return item;
         }

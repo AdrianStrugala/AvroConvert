@@ -13,7 +13,6 @@
 * Required Notice: Copyright Adrian Strugała (https://soltechnology.dev)
 */
 #endregion
-using System.ComponentModel;
 using System;
 using System.Buffers;
 using System.Collections;
@@ -99,18 +98,9 @@ namespace SolTechnology.Avro
         /// </summary>
         /// <remarks>Schema rules are the same as for <see cref="Serialize{T}(IEnumerable{T}, Stream, AvroConvertOptions)"/>.</remarks>
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
-        public static Task SerializeAsync<T>(IAsyncEnumerable<T> items, Stream output, AvroConvertOptions options = null, CancellationToken cancellationToken = default)
-        {
-            return SerializeStreamAsync(items, output, null, options, null, cancellationToken);
-        }
-
-        /// <summary>Same as <see cref="SerializeAsync{T}(IAsyncEnumerable{T}, Stream, AvroConvertOptions, CancellationToken)"/>.</summary>
-        /// <remarks>Kept for preview code and hidden from IntelliSense. Use <c>SerializeAsync</c>.</remarks>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static Task Serialize<T>(IAsyncEnumerable<T> items, Stream output, AvroConvertOptions options = null, CancellationToken cancellationToken = default)
         {
-            return SerializeAsync(items, output, options, cancellationToken);
+            return SerializeStreamAsync(items, output, null, options, null, cancellationToken);
         }
 
         /// <summary>
@@ -119,7 +109,7 @@ namespace SolTechnology.Avro
         /// <paramref name="metadata"/> holds additional keys of the header, see <see cref="Serialize(object, AvroSchema, AvroConvertOptions, IReadOnlyDictionary{string, AvroMetadataValue})"/>.
         /// </summary>
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
-        public static Task SerializeAsync<T>(IAsyncEnumerable<T> items, Stream output, AvroSchema schema, AvroConvertOptions options = null, IReadOnlyDictionary<string, AvroMetadataValue> metadata = null, CancellationToken cancellationToken = default)
+        public static Task Serialize<T>(IAsyncEnumerable<T> items, Stream output, AvroSchema schema, AvroConvertOptions options = null, IReadOnlyDictionary<string, AvroMetadataValue> metadata = null, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(schema);
             return SerializeStreamAsync(items, output, schema.TypeSchema, options, metadata, cancellationToken);
@@ -169,19 +159,10 @@ namespace SolTechnology.Avro
         /// <see cref="AvroCollectionMode.SingleArray"/>) and <typeparamref name="T"/> is not a collection, their items are returned.
         /// </remarks>
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
-        public static IAsyncEnumerable<T> DeserializeAsyncEnumerable<T>(Stream input, AvroConvertOptions options = null, CancellationToken cancellationToken = default)
+        public static IAsyncEnumerable<T> Deserialize<T>(Stream input, AvroConvertOptions options = null, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(input);
             return AsyncContainerReader.Read<T>(input, options, cancellationToken);
-        }
-
-        /// <summary>Same as <see cref="DeserializeAsyncEnumerable{T}(Stream, AvroConvertOptions, CancellationToken)"/>.</summary>
-        /// <remarks>Kept for preview code and hidden from IntelliSense. Use <c>DeserializeAsyncEnumerable</c>.</remarks>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
-        public static IAsyncEnumerable<T> Deserialize<T>(Stream input, AvroConvertOptions options = null, CancellationToken cancellationToken = default)
-        {
-            return DeserializeAsyncEnumerable<T>(input, options, cancellationToken);
         }
 
         /// <summary>

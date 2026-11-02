@@ -39,21 +39,6 @@ namespace SolTechnology.Avro
 
 
         /// <summary>
-        /// Extracts data schema from Avro file under given path
-        /// </summary>
-        public static string GetSchema(string filePath)
-        {
-            using (var stream = OpenForReading(filePath))
-            {
-                var headerDecoder = new HeaderDecoder();
-                var schema = headerDecoder.GetSchema(stream);
-
-                return schema;
-            }
-        }
-
-
-        /// <summary>
         /// Extracts data schema from given Avro stream
         /// </summary>
         public static string GetSchema(Stream avroStream)
@@ -82,8 +67,5 @@ namespace SolTechnology.Avro
         {
             return new HeaderDecoder().GetMetadata(avroStream);
         }
-
-        private static FileStream OpenForReading(string filePath) =>
-            new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
     }
 }

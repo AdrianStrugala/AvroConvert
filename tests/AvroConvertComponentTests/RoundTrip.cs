@@ -227,7 +227,7 @@ namespace AvroConvertComponentTests
                 case ContainerWriter.AsyncStream:
                 {
                     using var output = new MemoryStream();
-                    AvroConvert.SerializeAsync(ToAsync(list), output, options).GetAwaiter().GetResult();
+                    AvroConvert.Serialize(ToAsync(list), output, options).GetAwaiter().GetResult();
                     return output.ToArray();
                 }
                 case ContainerWriter.BufferWriter:
@@ -258,7 +258,7 @@ namespace AvroConvertComponentTests
                 case ContainerWriter.AsyncStream:
                 {
                     using var output = new MemoryStream();
-                    AvroConvert.SerializeAsync(ToAsync(list), output, schema, options, metadata).GetAwaiter().GetResult();
+                    AvroConvert.Serialize(ToAsync(list), output, schema, options, metadata).GetAwaiter().GetResult();
                     return output.ToArray();
                 }
                 case ContainerWriter.BufferWriter:
@@ -284,7 +284,7 @@ namespace AvroConvertComponentTests
                 case ContainerReader.BoxedType:
                     return (List<T>)AvroConvert.Deserialize(avro, typeof(List<T>));
                 case ContainerReader.AsyncStream:
-                    return ToList(AvroConvert.DeserializeAsyncEnumerable<T>(new MemoryStream(avro))).GetAwaiter().GetResult();
+                    return ToList(AvroConvert.Deserialize<T>(new MemoryStream(avro))).GetAwaiter().GetResult();
                 case ContainerReader.LineByLine:
                 {
                     using var lines = AvroConvert.OpenDeserializer<T>(new MemoryStream(avro));

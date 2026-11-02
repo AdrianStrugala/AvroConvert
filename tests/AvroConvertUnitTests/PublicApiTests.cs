@@ -57,7 +57,7 @@ namespace AvroConvertUnitTests
             "Deserialize<T>(Byte[])",
             "Deserialize<T>(Byte[], AvroConvertOptions)",
             "Deserialize<T>(ReadOnlySpan<Byte>)",
-            "DeserializeAsyncEnumerable<T>(Stream, AvroConvertOptions, CancellationToken)",
+            "Deserialize<T>(Stream, AvroConvertOptions, CancellationToken)",
             "DeserializeHeadless(Byte[], AvroSchema, Type, AvroSchema, AvroConvertOptions, Nullable<Int32>)",
             "DeserializeHeadless(Byte[], Type)",
             "DeserializeHeadless<T>(Byte[])",
@@ -69,10 +69,8 @@ namespace AvroConvertUnitTests
             "GenerateSchema(Type, AvroConvertOptions)",
             "GetMetadata(Byte[])",
             "GetMetadata(Stream)",
-            "GetMetadata(String)",
             "GetSchema(Byte[])",
             "GetSchema(Stream)",
-            "GetSchema(String)",
             "Json2Avro(String)",
             "Json2Avro(String, AvroConvertOptions)",
             "Json2Avro<T>(String)",
@@ -87,8 +85,8 @@ namespace AvroConvertUnitTests
             "Serialize(Object, IBufferWriter<Byte>, AvroSchema, AvroConvertOptions, IReadOnlyDictionary<String, AvroMetadataValue>)",
             "Serialize<T>(IEnumerable<T>, Stream, AvroConvertOptions)",
             "Serialize<T>(IEnumerable<T>, Stream, AvroSchema, AvroConvertOptions, IReadOnlyDictionary<String, AvroMetadataValue>)",
-            "SerializeAsync<T>(IAsyncEnumerable<T>, Stream, AvroConvertOptions, CancellationToken)",
-            "SerializeAsync<T>(IAsyncEnumerable<T>, Stream, AvroSchema, AvroConvertOptions, IReadOnlyDictionary<String, AvroMetadataValue>, CancellationToken)",
+            "Serialize<T>(IAsyncEnumerable<T>, Stream, AvroConvertOptions, CancellationToken)",
+            "Serialize<T>(IAsyncEnumerable<T>, Stream, AvroSchema, AvroConvertOptions, IReadOnlyDictionary<String, AvroMetadataValue>, CancellationToken)",
             "SerializeHeadless(Object, AvroSchema, AvroConvertOptions)",
             "SerializeHeadless(Object, IBufferWriter<Byte>, AvroSchema, AvroConvertOptions)",
             "SerializeHeadless(Object, Type, AvroConvertOptions)"
@@ -98,7 +96,6 @@ namespace AvroConvertUnitTests
         private static readonly string[] Hidden =
         {
             "Avro2Json(Byte[], String)",
-            "Deserialize<T>(Stream, AvroConvertOptions, CancellationToken)",
             "DeserializeHeadless(Byte[], String, String, Type)",
             "DeserializeHeadless(Byte[], String, Type)",
             "DeserializeHeadless<T>(Byte[], String)",
@@ -110,8 +107,13 @@ namespace AvroConvertUnitTests
             "Json2Avro(String, CodecType)",
             "Json2Avro<T>(String, CodecType)",
             "Serialize(Object, CodecType)",
-            "Serialize<T>(IAsyncEnumerable<T>, Stream, AvroConvertOptions, CancellationToken)",
             "SerializeHeadless(Object, String, AvroConvertOptions)"
+        };
+
+        /// <summary>Methods of 3.x removed in 4.0. AvroConvert does not take file paths: the caller opens the file.</summary>
+        private static readonly string[] RemovedFromVersion3 =
+        {
+            "GetSchema(String)"
         };
 
         /// <summary>The public methods of 3.x.</summary>
@@ -185,7 +187,13 @@ namespace AvroConvertUnitTests
         [Test]
         public void Code_compiled_against_3x_still_binds()
         {
-            Methods.Select(Signature).Should().Contain(Version3);
+            Methods.Select(Signature).Should().Contain(Version3.Except(RemovedFromVersion3));
+        }
+
+        [Test]
+        public void Methods_removed_from_3x_are_gone()
+        {
+            Methods.Select(Signature).Should().NotContain(RemovedFromVersion3);
         }
 
         [Test]

@@ -44,17 +44,5 @@ namespace AvroConvertComponentTests
             //Assert
             schema.Should().Be(_example2schema);
         }
-
-        [Test]
-        public void GetSchemaAsString_ValidFile_SchemaIsReturned()
-        {
-            //Arrange
-
-            //Act
-            string schema = AvroConvert.GetSchema("example.avro");
-
-            //Assert
-            schema.Should().NotBeNull();
-        }
     }
 }

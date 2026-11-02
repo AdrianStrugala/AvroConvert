@@ -123,10 +123,10 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             using var renamed = new MemoryStream();
             using var kept = new MemoryStream();
 
-            await AvroConvert.SerializeAsync(ToAsync(Rows), renamed);
+            await AvroConvert.Serialize(ToAsync(Rows), renamed);
             await AvroConvert.Serialize(ToAsync(Rows), kept);
 
-            (await ReadAll(AvroConvert.DeserializeAsyncEnumerable<Row>(new MemoryStream(renamed.ToArray())))).Should().BeEquivalentTo(Rows);
+            (await ReadAll(AvroConvert.Deserialize<Row>(new MemoryStream(renamed.ToArray())))).Should().BeEquivalentTo(Rows);
             (await ReadAll(AvroConvert.Deserialize<Row>(new MemoryStream(kept.ToArray())))).Should().BeEquivalentTo(Rows);
         }
 

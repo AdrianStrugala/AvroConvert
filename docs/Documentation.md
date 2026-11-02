@@ -20,7 +20,7 @@ logical types, `AvroSchema`, model generation) are described in [Documentation.S
 | | [Without a class](#deserialization) | `AvroConvert.Deserialize<List<dynamic>>(avro)` |
 | | [Into a dictionary](#deserialization) | `AvroConvert.Deserialize<Dictionary<string, object>>(avro)` |
 | | [Keys of the file header](#header-metadata) | `AvroConvert.GetMetadata(avro)` |
-| | [Item by item, async](#streaming) | `await foreach (var o in AvroConvert.DeserializeAsyncEnumerable<Order>(stream))` |
+| | [Item by item, async](#streaming) | `await foreach (var o in AvroConvert.Deserialize<Order>(stream))` |
 | | [Item by item, sync](#reading-items-one-by-one) | `AvroConvert.OpenDeserializer<Order>(stream).ReadNext()` |
 | **Schema** | [Of a .NET type](Documentation.Schema.md#generating-a-schema-from-c-types) | `AvroSchema.Create<Order>()` |
 | | [Of Avro data](Documentation.Schema.md#reading-the-schema-of-avro-data) | `AvroConvert.GetSchema(avro)` |
@@ -196,10 +196,10 @@ blocks are written or read as the sequence is enumerated. The stream is left ope
 ```csharp
 // write
 AvroConvert.Serialize(ReadRowsFromDatabase(), fileStream, new AvroConvertOptions { Codec = CodecType.Zstandard });
-await AvroConvert.SerializeAsync(rowsAsyncEnumerable, httpResponseStream, cancellationToken: ct);
+await AvroConvert.Serialize(rowsAsyncEnumerable, httpResponseStream, cancellationToken: ct);
 
 // read
-await foreach (var row in AvroConvert.DeserializeAsyncEnumerable<Row>(httpRequestStream, cancellationToken: ct))
+await foreach (var row in AvroConvert.Deserialize<Row>(httpRequestStream, cancellationToken: ct))
 {
     // process row
 }
@@ -289,8 +289,8 @@ string version = Encoding.UTF8.GetString(header["format-version"]);
 ```
 
 The keys belong to one file, so they go with the call and not with the options, and together with an explicit schema.
-Every container overload that takes a schema takes them: `byte[]`, `Stream`, `IBufferWriter<byte>` and `SerializeAsync`,
-where the token goes by name: `SerializeAsync(entries, stream, schema, metadata: keys, cancellationToken: ct)`. For
+Every container overload that takes a schema takes them: `byte[]`, `Stream`, `IBufferWriter<byte>` and `IAsyncEnumerable<T>`,
+where the token goes by name: `await Serialize(entries, stream, schema, metadata: keys, cancellationToken: ct)`. For
 entries holding values of type `object`, `AvroSchema.FromItems(entries)` gives the schema of all of them.
 
 `GetMetadata` returns the whole map, `avro.schema` and `avro.codec` included. Keys starting with `avro.` are reserved

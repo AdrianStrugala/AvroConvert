@@ -16,6 +16,12 @@ Breaking changes:
 - Numbers read into `dynamic` follow the reader schema type
 - Unknown `logicalType` is read as its underlying type
 - `SchemaConvert` removed; use `AvroSchema` (#73)
+- `DeserializeHeadless(bytes, writeSchema, readSchema, type)` reads all the rows into a collection, like the generic overload, instead of the first one (#69)
+- Removed the overloads of the previews taking the schema as text: `Avro2JsonEncoding(avro, string)`, `JsonEncoding2Avro(json, string)`, `JsonEncoding2Avro(json, string, CodecType)`. Use `AvroSchema.Parse`
+- Removed `JsonEncoding2Avro(json, AvroSchema, CodecType)` of the previews; the codec goes in `AvroConvertOptions`
+- Overloads of the previews merged into one with optional parameters: `DeserializeHeadless<T>(bytes, writer)`, `DeserializeHeadless<T>(bytes, writer, reader)`, `JsonEncoding2Avro(json, schema)`. Calls compile as before, but code compiled against a preview must be rebuilt
+- Overloads taking a `Type` known at runtime (`Deserialize(bytes, type)`, `DeserializeHeadless(bytes, …, type)`) throw the exception of the call, not a `TargetInvocationException` around it
+- `Serialize(IAsyncEnumerable<T>, stream, null)` of the previews is ambiguous next to the overload taking an `AvroSchema`; leave the `null` out or name it (`options: null`)
 - Reflection-based methods marked `[RequiresUnreferencedCode]` / `[RequiresDynamicCode]`
 - SolTechnology.Avro.Kafka rewritten on Confluent.SchemaRegistry 2.16: Confluent wire format, schema evolution, references, subject name strategies. Removed `KafkaConsumer`, `KafkaPropNames`, `ConfluentSchema`
 - SolTechnology.Avro.Http follows System.Net.Http.Json (`GetFromAvroAsync`, `PostAsAvroAsync`, `ReadFromAvroAsync`…), Minimal API results and streaming; old names are `[Obsolete]`
@@ -25,6 +31,9 @@ Changes:
 - Serialization and deserialization compiled per schema and type: several times faster, a fraction of allocations
 - Added SolTechnology.Avro.Cli (`avroconvert`): `induce`, `compile`, `tojson`, `getschema`, `canonical`, `fingerprint`, `compat`, `registry`
 - Added streaming: `Serialize<T>(IEnumerable<T> / IAsyncEnumerable<T>, Stream)`, `Deserialize<T>(Stream)` returning `IAsyncEnumerable<T>`, output to `IBufferWriter<byte>`
+- Smaller public API: one way to give a schema (`AvroSchema`) and a codec (`AvroConvertOptions`). The overloads taking the schema as text, a `CodecType` or a file path are hidden from IntelliSense and keep working. To be removed in the next major version
+- `DeserializeHeadless` with `AvroSchema` takes everything at one call: reader schema, options, `numberOfRows`, a type known at runtime. Without a reader schema it uses the schema of `T` built with the given options
+- Added `Json2Avro(json, options)`
 - Added `AvroSchema`: canonical form, fingerprints, `Compare` and `CheckCompatibility` (#73)
 - Added `AvroSchema.Parse(json, referencedSchemas)` for schemas using types from other schemas
 - Added `Avro2JsonEncoding` / `JsonEncoding2Avro` – JSON as defined by the Avro specification (#156)

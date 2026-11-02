@@ -25,7 +25,7 @@ public class JsonEncodingInteropTests
         var schemaJson = AvroConvert.GenerateSchema(typeof(InteropRecord));
         var schema = Schema.Parse(schemaJson);
 
-        var json = AvroConvert.Avro2JsonEncoding(AvroConvert.SerializeHeadless(expected, schemaJson), schemaJson);
+        var json = AvroConvert.Avro2JsonEncoding(AvroConvert.SerializeHeadless(expected, AvroSchema.Parse(schemaJson)), AvroSchema.Parse(schemaJson));
         var record = new GenericDatumReader<GenericRecord>(schema, schema).Read(null!, new JsonDecoder(schema, json));
 
         InteropAssert.Equivalent(expected, record);
@@ -45,7 +45,7 @@ public class JsonEncodingInteropTests
         encoder.Flush();
         var json = System.Text.Encoding.UTF8.GetString(stream.ToArray());
 
-        var actual = AvroConvert.Deserialize<InteropRecord>(AvroConvert.JsonEncoding2Avro(json, schemaJson));
+        var actual = AvroConvert.Deserialize<InteropRecord>(AvroConvert.JsonEncoding2Avro(json, AvroSchema.Parse(schemaJson)));
 
         InteropAssert.Equivalent(expected, actual);
     }
@@ -76,7 +76,7 @@ public class JsonEncodingInteropTests
         encoder.Flush();
         var apacheJson = System.Text.Encoding.UTF8.GetString(stream.ToArray());
 
-        var avroConvertJson = AvroConvert.Avro2JsonEncoding(ApacheAvro.WriteBinary(schema, record), schemaJson);
+        var avroConvertJson = AvroConvert.Avro2JsonEncoding(ApacheAvro.WriteBinary(schema, record), AvroSchema.Parse(schemaJson));
 
         Newtonsoft.Json.Linq.JToken.DeepEquals(
             Newtonsoft.Json.Linq.JToken.Parse(apacheJson),

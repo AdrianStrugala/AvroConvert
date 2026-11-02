@@ -8,7 +8,7 @@ logical types, `AvroSchema`, model generation) are described in [Documentation.S
 
 | | Task | Code |
 |---|---|---|
-| **Write** | [Objects to an Avro file, with a codec](#serialization) | `AvroConvert.Serialize(orders, CodecType.Zstandard)` |
+| **Write** | [Objects to an Avro file, with a codec](#serialization) | `AvroConvert.Serialize(orders, new AvroConvertOptions { Codec = CodecType.Zstandard })` |
 | | [One message without header (Kafka, queues)](#headless-serialization-and-deserialization) | `AvroConvert.SerializeHeadless(order, schema)` |
 | | [Stream a large collection](#streaming) | `AvroConvert.Serialize(orders, fileStream)` |
 | | [Write into a buffer](#streaming) | `AvroConvert.Serialize(order, bufferWriter)` |
@@ -50,7 +50,6 @@ the data.
 
 ```csharp
 byte[] avro = AvroConvert.Serialize(order);
-byte[] avro = AvroConvert.Serialize(order, CodecType.Snappy);
 byte[] avro = AvroConvert.Serialize(order, new AvroConvertOptions { Codec = CodecType.Zstandard });
 ```
 
@@ -237,23 +236,21 @@ Headless data is the binary encoding of a single value without the container hea
 both sides (e.g. from a schema registry or a contract).
 
 ```csharp
-string schema = """
+AvroSchema schema = AvroSchema.Parse("""
 {"type":"record","name":"User","namespace":"user","fields":[
   {"name":"name","type":"string"},
   {"name":"favorite_number","type":["null","int"]},
   {"name":"favorite_color","type":["null","string"]}]}
-""";
+""");
 
 byte[] data = AvroConvert.SerializeHeadless(user, schema);
 User user   = AvroConvert.DeserializeHeadless<User>(data, schema);
 
 byte[] data = AvroConvert.SerializeHeadless(user, typeof(User));          // schema built from the type
 User user   = AvroConvert.DeserializeHeadless<User>(data);
-
-AvroSchema userSchema = AvroSchema.Create<User>();                        // parsed once, reused
-byte[] data = AvroConvert.SerializeHeadless(user, userSchema);
-User user   = AvroConvert.DeserializeHeadless<User>(data, userSchema);
 ```
+
+A type known only at runtime goes as an argument: `AvroConvert.DeserializeHeadless(data, schema, type)`.
 
 Data written with another version of the schema is read by passing both schemas (see
 [Schema evolution](#schema-evolution)):
@@ -292,7 +289,8 @@ string version = Encoding.UTF8.GetString(header["format-version"]);
 ```
 
 The keys belong to one file, so they go with the call and not with the options, and together with an explicit schema.
-Every container overload that takes a schema takes them: `byte[]`, `Stream`, `IBufferWriter<byte>` and async. For
+Every container overload that takes a schema takes them: `byte[]`, `Stream`, `IBufferWriter<byte>` and `IAsyncEnumerable<T>`,
+where the token goes by name: `await Serialize(entries, stream, schema, metadata: keys, cancellationToken: ct)`. For
 entries holding values of type `object`, `AvroSchema.FromItems(entries)` gives the schema of all of them.
 
 `GetMetadata` returns the whole map, `avro.schema` and `avro.codec` included. Keys starting with `avro.` are reserved
@@ -332,7 +330,7 @@ Converts JSON directly to an Avro file:
 
 ```csharp
 byte[] avro = AvroConvert.Json2Avro<User>(json);                    // schema from User
-byte[] avro = AvroConvert.Json2Avro<User>(json, CodecType.Deflate);
+byte[] avro = AvroConvert.Json2Avro<User>(json, new AvroConvertOptions { Codec = CodecType.Deflate });
 byte[] avro = AvroConvert.Json2Avro(json);                          // schema inferred from the JSON
 ```
 
@@ -355,10 +353,10 @@ It differs from `Avro2Json`/`Json2Avro` (plain JSON shaped like the .NET model):
 
 ```csharp
 string json = AvroConvert.Avro2JsonEncoding(byte[] avroFile);                 // object container file, schema from the header
-string json = AvroConvert.Avro2JsonEncoding(byte[] headlessAvro, string schema);
+string json = AvroConvert.Avro2JsonEncoding(byte[] headlessAvro, AvroSchema schema);
 
-byte[] avroFile = AvroConvert.JsonEncoding2Avro(string json, string schema);   // one entry per JSON value
-byte[] avroFile = AvroConvert.JsonEncoding2Avro(string json, string schema, CodecType.Zstandard);
+byte[] avroFile = AvroConvert.JsonEncoding2Avro(string json, AvroSchema schema);   // one entry per JSON value
+byte[] avroFile = AvroConvert.JsonEncoding2Avro(string json, AvroSchema schema, new AvroConvertOptions { Codec = CodecType.Zstandard });
 ```
 
 `JsonEncoding2Avro` requires the schema: JSON alone does not tell e.g. `int` from `long`. Record fields missing from the

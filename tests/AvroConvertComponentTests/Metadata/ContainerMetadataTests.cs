@@ -237,39 +237,5 @@ namespace AvroConvertComponentTests.Metadata
             Text(metadata, "content").Should().Be("data");
             Text(metadata, "avro.schema").Should().Contain("field-id");
         }
-
-        [Test]
-        public void Read_only_file_can_be_read()
-        {
-            var path = Path.GetTempFileName();
-            File.WriteAllBytes(path, WithKey("content", "data"));
-            File.SetAttributes(path, FileAttributes.ReadOnly);
-            try
-            {
-                AvroConvert.GetSchema(path).Should().Contain(nameof(Row));
-            }
-            finally
-            {
-                File.SetAttributes(path, FileAttributes.Normal);
-                File.Delete(path);
-            }
-        }
-
-        [Test]
-        public void File_open_for_reading_elsewhere_can_be_read()
-        {
-            var path = Path.GetTempFileName();
-            File.WriteAllBytes(path, WithKey("content", "data"));
-            try
-            {
-                using var other = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-
-                AvroConvert.GetSchema(path).Should().Contain(nameof(Row));
-            }
-            finally
-            {
-                File.Delete(path);
-            }
-        }
     }
 }

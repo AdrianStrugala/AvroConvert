@@ -15,6 +15,7 @@
 */
 #endregion
 
+using System.ComponentModel;
 using System;
 using System.IO;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
@@ -32,6 +33,8 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Serializes given object to Avro format - <c>excluding</c> header
         /// </summary>
+        /// <remarks>Kept for 3.x code and hidden from IntelliSense. Use the overload taking <see cref="AvroSchema"/>.</remarks>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] SerializeHeadless(object obj, string schema, AvroConvertOptions options = null)
         {

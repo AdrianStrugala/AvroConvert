@@ -56,5 +56,39 @@ namespace AvroConvertComponentTests
             //Assert
             schema.Should().NotBeNull();
         }
+
+        [Test]
+        public void Read_only_file_can_be_read()
+        {
+            var path = Path.GetTempFileName();
+            File.WriteAllBytes(path, _avroBytes);
+            File.SetAttributes(path, FileAttributes.ReadOnly);
+            try
+            {
+                AvroConvert.GetSchema(path).Should().Be(_example2schema);
+            }
+            finally
+            {
+                File.SetAttributes(path, FileAttributes.Normal);
+                File.Delete(path);
+            }
+        }
+
+        [Test]
+        public void File_open_for_reading_elsewhere_can_be_read()
+        {
+            var path = Path.GetTempFileName();
+            File.WriteAllBytes(path, _avroBytes);
+            try
+            {
+                using var other = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+
+                AvroConvert.GetSchema(path).Should().Be(_example2schema);
+            }
+            finally
+            {
+                File.Delete(path);
+            }
+        }
     }
 }

@@ -276,7 +276,7 @@ namespace AvroConvertComponentTests.Specification
 
 
             //Act
-            var avro = AvroConvert.JsonEncoding2Avro(@"{""a"":1}", schema);
+            var avro = AvroConvert.JsonEncoding2Avro(@"{""a"":1}", AvroSchema.Parse(schema));
 
 
             //Assert
@@ -347,7 +347,7 @@ namespace AvroConvertComponentTests.Specification
 
 
             //Act
-            var json = AvroConvert.Avro2JsonEncoding(AvroConvert.JsonEncoding2Avro("{}", schema));
+            var json = AvroConvert.Avro2JsonEncoding(AvroConvert.JsonEncoding2Avro("{}", AvroSchema.Parse(schema)));
 
 
             //Assert
@@ -360,7 +360,7 @@ namespace AvroConvertComponentTests.Specification
             const string schema = @"{""type"":""record"",""name"":""E"",""fields"":[
                 {""name"":""r"",""type"":{""type"":""record"",""name"":""In"",""fields"":[{""name"":""a"",""type"":""int""},{""name"":""b"",""type"":""string""}]},""default"":{""a"":1}}]}";
 
-            var act = () => AvroConvert.JsonEncoding2Avro("{}", schema);
+            var act = () => AvroConvert.JsonEncoding2Avro("{}", AvroSchema.Parse(schema));
 
             act.Should().Throw<Exception>().Which.Message.Should().Contain("'b'");
         }

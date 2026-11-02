@@ -12,7 +12,6 @@
 
 ```csharp
 string schema = AvroConvert.GetSchema(avroFile);              // byte[]
-string schema = AvroConvert.GetSchema("orders.avro");         // file path
 string schema = AvroConvert.GetSchema(stream);                // Stream
 
 AvroSchema schema = AvroSchema.FromAvro(avroFile);            // parsed, see AvroSchema below
@@ -79,7 +78,7 @@ collection or `0` instead, like 3.x). Multidimensional arrays (`int[,]`) are not
 #### Members and attributes
 
 Public properties and fields are serialized, plus non-public ones marked with `[DataMember]`. `[IgnoreDataMember]`
-excludes a member; `IncludeOnlyDataContractMembers = true` (or `GenerateSchema(type, true)`) keeps only `[DataMember]`
+excludes a member; `IncludeOnlyDataContractMembers = true` keeps only `[DataMember]`
 members.
 
 | Attribute | Effect |
@@ -193,7 +192,6 @@ AvroConvert keep the logical types above.
 Generates C# classes from a schema or from an Avro file (the schema in its header) – the reverse of `GenerateSchema`:
 
 ```csharp
-string code = AvroConvert.GenerateModel(schemaJson);   // string
 string code = AvroConvert.GenerateModel(avroFile);     // byte[]
 string code = AvroConvert.GenerateModel(avroSchema);   // AvroSchema
 ```

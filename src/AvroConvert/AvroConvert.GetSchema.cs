@@ -16,6 +16,7 @@
 #endregion
 
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using SolTechnology.Avro.Features.GetSchema;
 
@@ -41,6 +42,8 @@ namespace SolTechnology.Avro
         /// <summary>
         /// Extracts data schema from Avro file under given path
         /// </summary>
+        /// <remarks>Kept for 3.x code and hidden from IntelliSense. Pass a <see cref="Stream"/> or the bytes of the file.</remarks>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static string GetSchema(string filePath)
         {
             using (var stream = OpenForReading(filePath))

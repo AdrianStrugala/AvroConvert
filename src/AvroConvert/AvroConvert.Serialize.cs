@@ -15,6 +15,7 @@
 */
 #endregion
 
+using System.ComponentModel;
 using System.IO;
 using System;
 using System.Collections;
@@ -148,7 +149,7 @@ namespace SolTechnology.Avro
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] Serialize(object obj)
         {
-            return Serialize(obj, CodecType.Null);
+            return SerializeToArray(obj, CodecType.Null, null);
         }
         
         /// <summary>
@@ -157,6 +158,8 @@ namespace SolTechnology.Avro
         /// <param name="obj">The object to serialize.</param>
         /// <param name="codecType">The codec type to be used for serialization. Choosing a specific codec may reduce the output size.</param>
         /// <returns>A byte array containing the serialized Avro data.</returns>
+        /// <remarks>Kept for 3.x code and hidden from IntelliSense. Use the overload taking <see cref="AvroConvertOptions"/>.</remarks>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] Serialize(object obj, CodecType codecType)
         {
@@ -173,7 +176,7 @@ namespace SolTechnology.Avro
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] Serialize(object obj, AvroConvertOptions options)
         {
-            return SerializeToArray(obj, options.Codec, options);
+            return SerializeToArray(obj, options?.Codec ?? CodecType.Null, options);
         }
 
         /// <summary>

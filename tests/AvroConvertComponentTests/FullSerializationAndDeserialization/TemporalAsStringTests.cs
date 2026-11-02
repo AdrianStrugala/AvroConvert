@@ -148,7 +148,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             var data = AvroConvert.SerializeHeadless(new Stamp { At = at, AtOffset = new DateTimeOffset(at) }, schema);
 
             data[0].Should().Be(4, "union index 2 (the timestamp branch), zig-zag encoded");
-            AvroConvert.Avro2JsonEncoding(data, schema).Should().NotContain("\"string\"", "neither DateTime nor DateTimeOffset goes to the text branch");
+            AvroConvert.Avro2JsonEncoding(data, AvroSchema.Parse(schema)).Should().NotContain("\"string\"", "neither DateTime nor DateTimeOffset goes to the text branch");
             var result = AvroConvert.DeserializeHeadless<Stamp>(data, schema);
             result.At.Should().Be(at);
             result.AtOffset.Should().Be(new DateTimeOffset(at));

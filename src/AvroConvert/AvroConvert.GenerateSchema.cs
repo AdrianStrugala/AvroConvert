@@ -15,6 +15,7 @@
 */
 #endregion
 
+using System.ComponentModel;
 using System;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using System.Diagnostics.CodeAnalysis;
@@ -38,6 +39,8 @@ namespace SolTechnology.Avro
         /// Generates schema for given .NET Type
         /// <paramref name="includeOnlyDataContractMembers"/> indicates if only classes with DataContractAttribute and properties marked with DataMemberAttribute should be returned
         /// </summary>
+        /// <remarks>Kept for 3.x code and hidden from IntelliSense. Use the overload taking <see cref="AvroConvertOptions"/>.</remarks>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static string GenerateSchema(Type type, bool includeOnlyDataContractMembers)
         {

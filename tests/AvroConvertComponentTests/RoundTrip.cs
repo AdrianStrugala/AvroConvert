@@ -55,7 +55,11 @@ namespace AvroConvertComponentTests
         BytesAndBothSchemas,
         SpanAndBothSchemas,
         BytesAndBothSchemaTexts,
-        BoxedType
+        BoxedType,
+        SpanAndAvroSchema,
+        BoxedTypeAndAvroSchema,
+        BoxedTypeAndBothSchemas,
+        BoxedTypeAndBothSchemaTexts
     }
 
     /// <summary>The public ways of pointing at an object container file.</summary>
@@ -120,7 +124,7 @@ namespace AvroConvertComponentTests
                 {
                     var avro = AvroConvert.Serialize(value);
                     var json = AvroConvert.Avro2JsonEncoding(avro);
-                    return AvroConvert.Deserialize<T>(AvroConvert.JsonEncoding2Avro(json, AvroConvert.GetSchema(avro)));
+                    return AvroConvert.Deserialize<T>(AvroConvert.JsonEncoding2Avro(json, AvroSchema.FromAvro(avro)));
                 }
                 default:
                     return AvroConvert.Deserialize<T>(AvroConvert.Serialize(value, Codec(format)));
@@ -149,7 +153,7 @@ namespace AvroConvertComponentTests
                 {
                     var avro = ToContainer(value, schema);
                     var json = AvroConvert.Avro2JsonEncoding(avro);
-                    return AvroConvert.Deserialize<T>(AvroConvert.JsonEncoding2Avro(json, AvroConvert.GetSchema(avro)));
+                    return AvroConvert.Deserialize<T>(AvroConvert.JsonEncoding2Avro(json, AvroSchema.FromAvro(avro)));
                 }
                 default:
                     return AvroConvert.Deserialize<T>(ToContainer(value, schema, Codec(format)));
@@ -310,6 +314,10 @@ namespace AvroConvertComponentTests
                 HeadlessReader.SpanAndBothSchemas => AvroConvert.DeserializeHeadless<T>(new ReadOnlySpan<byte>(avro), AvroSchema.Parse(writerSchema), AvroSchema.Parse(readerSchema)),
                 HeadlessReader.BytesAndBothSchemaTexts => AvroConvert.DeserializeHeadless<T>(avro, writerSchema, readerSchema, 1),
                 HeadlessReader.BoxedType => (T)AvroConvert.DeserializeHeadless(avro, writerSchema, typeof(T)),
+                HeadlessReader.SpanAndAvroSchema => AvroConvert.DeserializeHeadless<T>(new ReadOnlySpan<byte>(avro), AvroSchema.Parse(writerSchema)),
+                HeadlessReader.BoxedTypeAndAvroSchema => (T)AvroConvert.DeserializeHeadless(avro, AvroSchema.Parse(writerSchema), typeof(T)),
+                HeadlessReader.BoxedTypeAndBothSchemas => (T)AvroConvert.DeserializeHeadless(avro, AvroSchema.Parse(writerSchema), typeof(T), AvroSchema.Parse(readerSchema)),
+                HeadlessReader.BoxedTypeAndBothSchemaTexts => (T)AvroConvert.DeserializeHeadless(avro, writerSchema, readerSchema, typeof(T)),
                 _ => throw new ArgumentOutOfRangeException(nameof(reader), reader, null)
             };
         }

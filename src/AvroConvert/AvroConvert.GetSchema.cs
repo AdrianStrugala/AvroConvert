@@ -16,6 +16,7 @@
 #endregion
 
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using SolTechnology.Avro.Features.GetSchema;
 
@@ -29,6 +30,23 @@ namespace SolTechnology.Avro
         public static string GetSchema(byte[] avroBytes)
         {
             using (var stream = new MemoryStream(avroBytes))
+            {
+                var headerDecoder = new HeaderDecoder();
+                var schema = headerDecoder.GetSchema(stream);
+
+                return schema;
+            }
+        }
+
+
+        /// <summary>
+        /// Extracts data schema from Avro file under given path
+        /// </summary>
+        /// <remarks>Kept for 3.x code and hidden from IntelliSense. Pass a <see cref="Stream"/> or the bytes of the file.</remarks>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static string GetSchema(string filePath)
+        {
+            using (var stream = OpenForReading(filePath))
             {
                 var headerDecoder = new HeaderDecoder();
                 var schema = headerDecoder.GetSchema(stream);
@@ -67,5 +85,8 @@ namespace SolTechnology.Avro
         {
             return new HeaderDecoder().GetMetadata(avroStream);
         }
+
+        private static FileStream OpenForReading(string filePath) =>
+            new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
     }
 }

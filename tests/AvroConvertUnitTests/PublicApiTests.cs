@@ -106,14 +106,9 @@ namespace AvroConvertUnitTests
             "GenerateSchema(Type, Boolean)",
             "Json2Avro(String, CodecType)",
             "Json2Avro<T>(String, CodecType)",
+            "GetSchema(String)",
             "Serialize(Object, CodecType)",
             "SerializeHeadless(Object, String, AvroConvertOptions)"
-        };
-
-        /// <summary>Methods of 3.x removed in 4.0. AvroConvert does not take file paths: the caller opens the file.</summary>
-        private static readonly string[] RemovedFromVersion3 =
-        {
-            "GetSchema(String)"
         };
 
         /// <summary>The public methods of 3.x.</summary>
@@ -187,13 +182,7 @@ namespace AvroConvertUnitTests
         [Test]
         public void Code_compiled_against_3x_still_binds()
         {
-            Methods.Select(Signature).Should().Contain(Version3.Except(RemovedFromVersion3));
-        }
-
-        [Test]
-        public void Methods_removed_from_3x_are_gone()
-        {
-            Methods.Select(Signature).Should().NotContain(RemovedFromVersion3);
+            Methods.Select(Signature).Should().Contain(Version3);
         }
 
         [Test]

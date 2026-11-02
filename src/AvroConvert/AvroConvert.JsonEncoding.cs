@@ -14,6 +14,7 @@
 */
 #endregion
 
+using System;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.Features.JsonEncoding;
 using System.Diagnostics.CodeAnalysis;
@@ -45,6 +46,7 @@ namespace SolTechnology.Avro
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static string Avro2JsonEncoding(byte[] avro, AvroSchema avroSchema)
         {
+            ArgumentNullException.ThrowIfNull(avroSchema);
             return new JsonEncodingWriter().Convert(avro, avroSchema.TypeSchema);
         }
 
@@ -57,6 +59,7 @@ namespace SolTechnology.Avro
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] JsonEncoding2Avro(string json, AvroSchema avroSchema, AvroConvertOptions options = null)
         {
+            ArgumentNullException.ThrowIfNull(avroSchema);
             return new JsonEncodingReader().Convert(json, avroSchema.TypeSchema, options?.Codec ?? CodecType.Null);
         }
     }

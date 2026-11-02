@@ -36,7 +36,9 @@ namespace SolTechnology.Avro
         }
 
         /// <summary>
-        ///  Converts JSON object directly to Avro format, with the given options (codec and other settings)
+        ///  Converts JSON object directly to Avro format, with the given options (codec and other settings).
+        /// The schema is inferred from the JSON, so the options that shape a schema (e.g. <see cref="AvroConvertOptions.CollectionMode"/>,
+        /// naming policy) do not apply; an array is written as one entry per element.
         /// Warning! The dynamic implementations is an experimental feature. Use generic overload if possible.
         /// </summary>
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
@@ -80,7 +82,7 @@ namespace SolTechnology.Avro
         public static byte[] Json2Avro<T>(string json, AvroConvertOptions options)
         {
             var deserializedJson = JsonConvert.DeserializeObject<T>(json);
-            var result = options == null ? AvroConvert.Serialize(deserializedJson) : AvroConvert.Serialize(deserializedJson, options);
+            var result = AvroConvert.Serialize(deserializedJson, options);
 
             return result;
         }

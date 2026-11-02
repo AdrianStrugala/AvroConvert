@@ -192,7 +192,6 @@ AvroConvert keep the logical types above.
 Generates C# classes from a schema or from an Avro file (the schema in its header) – the reverse of `GenerateSchema`:
 
 ```csharp
-string code = AvroConvert.GenerateModel(schemaJson);   // string
 string code = AvroConvert.GenerateModel(avroFile);     // byte[]
 string code = AvroConvert.GenerateModel(avroSchema);   // AvroSchema
 ```

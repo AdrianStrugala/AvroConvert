@@ -176,7 +176,7 @@ namespace SolTechnology.Avro
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] Serialize(object obj, AvroConvertOptions options)
         {
-            return SerializeToArray(obj, options.Codec, options);
+            return SerializeToArray(obj, options?.Codec ?? CodecType.Null, options);
         }
 
         /// <summary>

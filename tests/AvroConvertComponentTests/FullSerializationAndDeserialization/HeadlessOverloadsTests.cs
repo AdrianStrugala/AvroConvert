@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using AwesomeAssertions;
 using NUnit.Framework;
 using SolTechnology.Avro;
@@ -117,17 +114,21 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             ((Named)AvroConvert.DeserializeHeadless(bytes, schema, typeof(Named), options: options)).RowId.Should().Be(7);
         }
 
-        [Test]
-        public async Task Async_names_and_the_ones_kept_from_the_previews_write_the_same()
+        [TestCase(0)]
+        [TestCase(-1)]
+        public void Number_of_rows_below_one_is_rejected(int numberOfRows)
         {
-            using var renamed = new MemoryStream();
-            using var kept = new MemoryStream();
+            var bytes = Written(Rows);
 
-            await AvroConvert.Serialize(ToAsync(Rows), renamed);
-            await AvroConvert.Serialize(ToAsync(Rows), kept);
+            ((Action)(() => AvroConvert.DeserializeHeadless<List<Row>>(bytes, RowSchema, numberOfRows: numberOfRows))).Should().Throw<ArgumentOutOfRangeException>();
+            ((Action)(() => AvroConvert.DeserializeHeadless(bytes, RowSchema, typeof(List<Row>), numberOfRows: numberOfRows))).Should().Throw<ArgumentOutOfRangeException>();
+        }
 
-            (await ReadAll(AvroConvert.Deserialize<Row>(new MemoryStream(renamed.ToArray())))).Should().BeEquivalentTo(Rows);
-            (await ReadAll(AvroConvert.Deserialize<Row>(new MemoryStream(kept.ToArray())))).Should().BeEquivalentTo(Rows);
+        [Test]
+        public void Null_json_encoding_schema_is_rejected()
+        {
+            ((Action)(() => AvroConvert.Avro2JsonEncoding(Written(Rows), null))).Should().Throw<ArgumentNullException>();
+            ((Action)(() => AvroConvert.JsonEncoding2Avro(@"{""Id"":1,""Name"":""a""}", null))).Should().Throw<ArgumentNullException>();
         }
 
         [Test]
@@ -165,26 +166,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
             AvroConvert.Json2Avro(json, (AvroConvertOptions)null).Should().NotBeEmpty();
             AvroConvert.Json2Avro<Row>(json, (AvroConvertOptions)null).Should().NotBeEmpty();
-        }
-
-        private static async IAsyncEnumerable<Row> ToAsync(IEnumerable<Row> rows, [EnumeratorCancellation] System.Threading.CancellationToken token = default)
-        {
-            foreach (var row in rows)
-            {
-                await Task.Yield();
-                yield return row;
-            }
-        }
-
-        private static async Task<List<Row>> ReadAll(IAsyncEnumerable<Row> rows)
-        {
-            var result = new List<Row>();
-            await foreach (var row in rows)
-            {
-                result.Add(row);
-            }
-
-            return result;
+            AvroConvert.Deserialize<Row>(AvroConvert.Serialize(Rows[0], (AvroConvertOptions)null)).Should().BeEquivalentTo(Rows[0]);
         }
     }
 }

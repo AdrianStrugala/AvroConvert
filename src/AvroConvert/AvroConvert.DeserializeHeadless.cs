@@ -76,11 +76,16 @@ namespace SolTechnology.Avro
         /// <param name="writerSchema">The schema the data was written with.</param>
         /// <param name="readerSchema">The schema to resolve against (schema evolution); null uses the schema of <typeparamref name="T"/>.</param>
         /// <param name="options">The Avro conversion options; null uses the defaults.</param>
-        /// <param name="numberOfRows">Rows to read into a collection <typeparamref name="T"/>; null reads until the end of the data.</param>
+        /// <param name="numberOfRows">Rows to read into a collection <typeparamref name="T"/>, at least 1; null reads until the end of the data.</param>
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static T DeserializeHeadless<T>(byte[] avroBytes, AvroSchema writerSchema, AvroSchema readerSchema = null, AvroConvertOptions options = null, int? numberOfRows = null)
         {
             ArgumentNullException.ThrowIfNull(writerSchema);
+            if (numberOfRows is < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(numberOfRows), numberOfRows, "At least one row; null reads until the end of the data.");
+            }
+
             return DeserializeHeadless<T>(avroBytes, writerSchema.TypeSchema, readerSchema?.TypeSchema ?? Schema.Create(typeof(T), options), numberOfRows, options);
         }
 

@@ -38,7 +38,10 @@ namespace AvroConvertUnitTests
         {
             var schema = Schema.Create(typeof(Dictionary<string, object>));
 
-            Assert.That(RuntimeSchema.Resolve(schema, new[] { Value() }, null), Is.SameAs(RuntimeSchema.Resolve(schema, new[] { Value() }, null)));
+            var first = RuntimeSchema.Resolve(schema, new[] { Value() }, null);
+            var second = RuntimeSchema.Resolve(schema, new[] { Value() }, null);
+
+            Assert.That(second, Is.SameAs(first));
         }
 
         [Test]
@@ -47,7 +50,10 @@ namespace AvroConvertUnitTests
             var options = new AvroConvertOptions { AvroConverters = new List<IAvroConverter> { new TextConverter() } };
             var schema = Schema.Create(typeof(Dictionary<string, object>), options);
 
-            Assert.That(RuntimeSchema.Resolve(schema, new[] { Value() }, options), Is.SameAs(RuntimeSchema.Resolve(schema, new[] { Value() }, options)));
+            var first = RuntimeSchema.Resolve(schema, new[] { Value() }, options);
+            var second = RuntimeSchema.Resolve(schema, new[] { Value() }, options);
+
+            Assert.That(second, Is.SameAs(first));
         }
     }
 }

@@ -169,6 +169,56 @@ namespace AvroConvertUnitTests
         }
 
         [Test, NonParallelizable]
+        public void EnsureLicenseNotice_CoveredByProduct_WritesNothingWithoutDeclaration()
+        {
+            var previousLicense = AvroConvert.License;
+            var previousError = Console.Error;
+            var stderr = new System.IO.StringWriter();
+            try
+            {
+                AvroConvert.License = null;
+                Console.SetError(stderr);
+                AvroConvert.ResetLicenseNoticeForTesting();
+                AvroConvert.LicenseCoveredBy("SolTechnology.DataLake");
+
+                AvroConvert.EnsureLicenseNotice();
+
+                stderr.ToString().Should().BeEmpty();
+            }
+            finally
+            {
+                Console.SetError(previousError);
+                AvroConvert.License = previousLicense;
+                AvroConvert.ResetLicenseNoticeForTesting();
+            }
+        }
+
+        [Test, NonParallelizable]
+        public void EnsureLicenseNotice_CoveredByProduct_StillChecksDeclaredKey()
+        {
+            var previousLicense = AvroConvert.License;
+            var previousError = Console.Error;
+            var stderr = new System.IO.StringWriter();
+            try
+            {
+                AvroConvert.License = AvroLicense.Commercial(IssueKey(Payload));
+                Console.SetError(stderr);
+                AvroConvert.ResetLicenseNoticeForTesting();
+                AvroConvert.LicenseCoveredBy("SolTechnology.DataLake");
+
+                AvroConvert.EnsureLicenseNotice();
+
+                stderr.ToString().Should().Contain("could not be verified");
+            }
+            finally
+            {
+                Console.SetError(previousError);
+                AvroConvert.License = previousLicense;
+                AvroConvert.ResetLicenseNoticeForTesting();
+            }
+        }
+
+        [Test, NonParallelizable]
         public void EnsureLicenseNotice_ChecksOncePerProcess()
         {
             var previousLicense = AvroConvert.License;

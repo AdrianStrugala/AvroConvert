@@ -155,6 +155,7 @@ namespace SolTechnology.Avro
     {
         private static AvroLicense _license;
         private static int _noticeShown;
+        private static string _coveredBy;
 
         /// <summary>
         /// Declares the licence this application relies on (see <see cref="AvroLicense"/>). Optional; when not set,
@@ -170,6 +171,14 @@ namespace SolTechnology.Avro
         internal static DateOnly ReleaseDate { get; } = ReadReleaseDate();
 
         /// <summary>
+        /// Called by a SolTechnology product that ships AvroConvert as its component, under the product's own licence
+        /// (e.g. SolTechnology.DataLake), before it uses AvroConvert. Without a declared licence there is no AvroConvert
+        /// notice then: the product shows its own. A declared licence is still checked. Global for the process, so it
+        /// also covers AvroConvert called directly next to the product.
+        /// </summary>
+        internal static void LicenseCoveredBy(string product) => Volatile.Write(ref _coveredBy, product);
+
+        /// <summary>
         /// Checks the declared licence once per process, at the first call that needs it, and writes the notice to
         /// standard error if there is no or a problematic licence. Never throws.
         /// </summary>
@@ -180,7 +189,8 @@ namespace SolTechnology.Avro
                 return;
             }
 
-            var message = LicenseNotice(License, ReleaseDate);
+            var license = License;
+            var message = license == null && Volatile.Read(ref _coveredBy) != null ? null : LicenseNotice(license, ReleaseDate);
             if (Interlocked.Exchange(ref _noticeShown, 1) != 0 || message == null)
             {
                 return;
@@ -196,8 +206,12 @@ namespace SolTechnology.Avro
             }
         }
 
-        /// <summary>Allows tests to observe the notice again within the same process.</summary>
-        internal static void ResetLicenseNoticeForTesting() => Volatile.Write(ref _noticeShown, 0);
+        /// <summary>Allows tests to observe the notice again within the same process: not shown yet, no product covering the licence.</summary>
+        internal static void ResetLicenseNoticeForTesting()
+        {
+            Volatile.Write(ref _noticeShown, 0);
+            Volatile.Write(ref _coveredBy, null);
+        }
 
         internal static string LicenseNotice(AvroLicense license, DateOnly releaseDate)
         {

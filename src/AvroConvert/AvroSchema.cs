@@ -115,6 +115,32 @@ namespace SolTechnology.Avro
             return new AvroSchema(Schema.Create(type, options));
         }
 
+        /// <summary>
+        /// Generates the schema of <paramref name="value"/>: the schema of its type, completed from the data where the type holds
+        /// <c>object</c>. A dictionary of objects gives a map of what it holds. That is the schema to pass to
+        /// <c>SerializeHeadless</c> and to the reader of headless data, which has no other way to learn it.
+        /// </summary>
+        /// <exception cref="ArgumentException">The values have no common schema, e.g. <c>long</c> next to <see cref="DateTime"/>.</exception>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
+        public static AvroSchema FromValue(object value, AvroConvertOptions options = null)
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            return new AvroSchema(Schema.Create(value, options));
+        }
+
+        /// <summary>
+        /// Generates the schema of one entry of a file holding <paramref name="items"/>: the schema of <typeparamref name="T"/>,
+        /// completed from all the items where it holds <c>object</c>. The items are enumerated once, so give a collection
+        /// rather than a sequence that can run only once.
+        /// </summary>
+        /// <exception cref="ArgumentException">The values have no common schema, e.g. <c>long</c> next to <see cref="DateTime"/>.</exception>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
+        public static AvroSchema FromItems<T>(IEnumerable<T> items, AvroConvertOptions options = null)
+        {
+            ArgumentNullException.ThrowIfNull(items);
+            return new AvroSchema(AvroConvert.CollectedSchema(items.ToList(), options));
+        }
+
         /// <summary>Reads the schema from the header of an Avro object container file.</summary>
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static AvroSchema FromAvro(byte[] avro)

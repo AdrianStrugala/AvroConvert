@@ -184,11 +184,11 @@ namespace AvroConvertComponentTests.Streaming
         }
 
         [Test]
-        public void Items_of_different_runtime_types_are_rejected()
+        public void Items_of_an_interface_with_different_runtime_types_are_rejected()
         {
-            var items = new List<object> { new Item { Id = 1 }, "text" };
+            var items = new List<IComparable> { 1, "text" };
 
-            Action act = () => AvroConvert.Serialize<object>(items, new MemoryStream());
+            Action act = () => AvroConvert.Serialize<IComparable>(items, new MemoryStream());
 
             act.Should().Throw<ArgumentException>().WithMessage("*one runtime type*");
         }

@@ -48,10 +48,28 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
 
         internal override string Name => this.attributes.Name.Name;
 
+        internal override string UnionKey => FullName;
+
         internal string Namespace => this.attributes.Name.Namespace;
 
         internal ReadOnlyCollection<string> Aliases => this.attributes.Aliases.AsReadOnly();
 
         internal string Doc => this.attributes.Doc;
+
+        /// <summary>
+        /// True when this type is written already, so a reference to <paramref name="name"/> is enough; otherwise
+        /// <paramref name="name"/> is the name to define it under (see <see cref="BuildSchema.SchemaWriteContext.IsDefined"/>).
+        /// </summary>
+        internal bool IsDefined(HashSet<NamedSchema> seenSchemas, out string name)
+        {
+            if (seenSchemas is BuildSchema.SchemaWriteContext context)
+            {
+                return context.IsDefined(this, out name);
+            }
+
+            var defined = seenSchemas.Contains(this);
+            name = defined ? FullName : Name;
+            return defined;
+        }
     }
 }

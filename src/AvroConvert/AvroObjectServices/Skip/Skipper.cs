@@ -17,6 +17,7 @@
 
 using SolTechnology.Avro.AvroObjectServices.Read;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
+using System.Runtime.CompilerServices;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Infrastructure.Exceptions;
 
@@ -53,6 +54,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Skip
                     d.SkipBytes();
                     break;
                 case AvroType.Record:
+                    RuntimeHelpers.EnsureSufficientExecutionStack();
                     foreach (var field in ((RecordSchema)schema).Fields)
                     {
                         Skip(field.TypeSchema, d);

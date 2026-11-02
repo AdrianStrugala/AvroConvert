@@ -39,5 +39,7 @@ namespace SolTechnology.Avro.AvroObjectServices.FileHeader
         internal const string Values = "values";
         internal const string Size = "size";
         internal const string LogicalType = "logicalType";
+        internal const string Precision = "precision";
+        internal const string Scale = "scale";
     }
 }

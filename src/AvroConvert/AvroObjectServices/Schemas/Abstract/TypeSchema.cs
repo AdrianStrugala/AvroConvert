@@ -59,6 +59,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
             set => _name = value;
         }
 
+        /// <summary>What has to differ between the branches of a union: the Avro type, or the full name of a named type.</summary>
+        internal virtual string UnionKey => Name;
+
+        /// <summary>Whether this schema holds the empty record of <c>object</c>; kept here by <see cref="BuildSchema.RuntimeSchema"/>, as it is asked for every value written.</summary>
+        internal int OpenState { get; set; }
+
         public bool IsEmpty()
         {
             return ToString().Equals(emptySchema);

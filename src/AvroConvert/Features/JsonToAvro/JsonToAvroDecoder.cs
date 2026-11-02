@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Infrastructure.Extensions;
 using System.Diagnostics.CodeAnalysis;
@@ -50,7 +51,7 @@ namespace SolTechnology.Avro.Features.JsonToAvro
         private byte[] SerializeJArray(JArray jArray, CodecType codecType)
         {
             using var output = new Writer();
-            var schema = _jsonSchemaBuilder.BuildItemSchema(jArray);
+            var schema = RuntimeSchema.Intern(_jsonSchemaBuilder.BuildItemSchema(jArray), null);
 
             using (var writer = new Serialize.Encoder(schema, output, codecType))
             {

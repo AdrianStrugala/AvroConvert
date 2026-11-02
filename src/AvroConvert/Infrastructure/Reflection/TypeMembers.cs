@@ -42,6 +42,8 @@ namespace SolTechnology.Avro.Infrastructure.Reflection
 
         internal static TypeMembers For(Type type) => Cache.GetOrAdd(type, Build);
 
+        internal IEnumerable<MemberAccessor> All => _exact.Values;
+
         internal MemberAccessor Find(string name)
         {
             if (_exact.TryGetValue(name, out var member) || _ignoreCase.TryGetValue(name, out member))

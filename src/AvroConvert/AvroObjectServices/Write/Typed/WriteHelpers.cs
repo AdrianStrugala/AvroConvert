@@ -104,34 +104,99 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
             writer.WriteMapEnd();
         }
 
-        /// <summary>Record given as a property bag (ExpandoObject / IDictionary&lt;string, object&gt;): fields looked up by name.</summary>
-        internal static void WriteDictionaryRecord(Writer writer, IDictionary<string, object> values, string[] fieldNames, Action<Writer, object>[] fieldWriters)
+        /// <summary>
+        /// Record given as a property bag (ExpandoObject / IDictionary&lt;string, object&gt;): fields looked up by name. A key
+        /// missing for a field with a default gives the default (<paramref name="fieldDefaults"/>), like a missing member of a class.
+        /// </summary>
+        internal static void WriteDictionaryRecord(Writer writer, IDictionary<string, object> values, string[][] fieldKeys, Action<Writer, object>[] fieldWriters, Action<Writer>[] fieldDefaults)
         {
-            for (int i = 0; i < fieldNames.Length; i++)
+            for (int i = 0; i < fieldKeys.Length; i++)
             {
                 object value = null;
-                if (values != null && !values.TryGetValue(fieldNames[i], out value))
+                var found = values != null && TryFind(values, fieldKeys[i], out value);
+
+                if (!found && fieldDefaults[i] != null)
                 {
-                    foreach (var pair in values)
-                    {
-                        if (string.Equals(pair.Key, fieldNames[i], StringComparison.OrdinalIgnoreCase))
-                        {
-                            value = pair.Value;
-                            break;
-                        }
-                    }
+                    fieldDefaults[i](writer);
+                    continue;
                 }
 
                 fieldWriters[i](writer, value);
             }
         }
 
-        /// <summary>Record given as a Newtonsoft JObject: values unwrapped to CLR primitives, arrays to object[].</summary>
-        internal static void WriteJsonRecord(Writer writer, JObject json, string[] fieldNames, Action<Writer, object>[] fieldWriters)
+        /// <summary>The value of the first of <paramref name="keys"/> found, exactly as written first, then ignoring the case.</summary>
+        private static bool TryFind(IDictionary<string, object> values, string[] keys, out object value)
         {
-            for (int i = 0; i < fieldNames.Length; i++)
+            foreach (var key in keys)
             {
-                fieldWriters[i](writer, UnwrapJson(json?[fieldNames[i]]));
+                if (values.TryGetValue(key, out value))
+                {
+                    return true;
+                }
+            }
+
+            foreach (var pair in values)
+            {
+                if (keys.Contains(pair.Key, StringComparer.OrdinalIgnoreCase))
+                {
+                    value = pair.Value;
+                    return true;
+                }
+            }
+
+            value = null;
+            return false;
+        }
+
+        /// <summary>A record of a union, as a choice for a property bag.</summary>
+        internal sealed record RecordBranch(int Index, string[][] FieldKeys, bool[] Required, Action<Writer, object> Write)
+        {
+            /// <summary>True when every key has a field, and every field that needs a value has a key.</summary>
+            internal bool Fits(ICollection<string> keys) =>
+                keys.All(key => FieldKeys.Any(names => names.Contains(key, StringComparer.OrdinalIgnoreCase)))
+                && FieldKeys.Where((_, i) => Required[i]).All(names => names.Any(name => keys.Contains(name, StringComparer.OrdinalIgnoreCase)));
+        }
+
+        /// <summary>Writes a property bag as the first record of a union that takes all its keys; a record that would drop one is not an option.</summary>
+        internal static void WriteRecordBranch(Writer writer, object bag, RecordBranch[] branches, UnionSchema schema)
+        {
+            ICollection<string> keys = bag is JObject json ? json.Properties().Select(property => property.Name).ToList() : ((IDictionary<string, object>)bag).Keys;
+            foreach (var branch in branches)
+            {
+                if (branch.Fits(keys))
+                {
+                    writer.WriteUnionIndex(branch.Index);
+                    branch.Write(writer, bag);
+                    return;
+                }
+            }
+
+            throw NoUnionBranch(bag, schema);
+        }
+
+        /// <summary>Record given as a Newtonsoft JObject: values unwrapped to CLR primitives, arrays to object[]; defaults as in <see cref="WriteDictionaryRecord"/>.</summary>
+        internal static void WriteJsonRecord(Writer writer, JObject json, string[][] fieldKeys, Action<Writer, object>[] fieldWriters, Action<Writer>[] fieldDefaults)
+        {
+            for (int i = 0; i < fieldKeys.Length; i++)
+            {
+                JToken token = null;
+                foreach (var key in fieldKeys[i])
+                {
+                    token = json?[key];
+                    if (token != null)
+                    {
+                        break;
+                    }
+                }
+
+                if (token == null && fieldDefaults[i] != null)
+                {
+                    fieldDefaults[i](writer);
+                    continue;
+                }
+
+                fieldWriters[i](writer, UnwrapJson(token));
             }
         }
 

@@ -81,17 +81,19 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
 
         internal ReadOnlyCollection<RecordFieldSchema> Fields => fields.AsReadOnly();
 
+        internal int FieldCount => fields.Count;
+
         internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
         {
-            if (seenSchemas.Contains(this))
+            if (IsDefined(seenSchemas, out var name))
             {
-                writer.WriteValue(this.FullName);
+                writer.WriteValue(name);
                 return;
             }
 
             seenSchemas.Add(this);
             writer.WriteStartObject();
-            writer.WriteProperty("name", Name);
+            writer.WriteProperty("name", name);
             writer.WriteOptionalProperty("namespace", Namespace);
             writer.WriteOptionalProperty("doc", Doc);
             writer.WriteOptionalProperty("aliases", Aliases);
@@ -103,6 +105,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
             fields.ForEach(_ => _.ToJson(writer, seenSchemas));
             context?.ExitNamespace();
             writer.WriteEndArray();
+            WriteAttributes(writer);
             writer.WriteEndObject();
         }
 

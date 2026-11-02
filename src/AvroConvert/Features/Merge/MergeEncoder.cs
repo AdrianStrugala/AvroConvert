@@ -40,11 +40,15 @@ namespace SolTechnology.Avro.Features.Merge
             _header = new Header();
         }
 
-        internal void WriteHeader(string schema, CodecType codecType)
+        internal void WriteHeader(string schema, CodecType codecType, Dictionary<string, byte[]> metadata)
         {
             GenerateSyncData();
             _header.AddMetadata(DataFileConstants.CodecMetadataKey, AbstractCodec.CreateCodec(codecType).Name);
             _header.AddMetadata(DataFileConstants.SchemaMetadataKey, schema);
+            foreach (var entry in metadata)
+            {
+                _header.AddMetadata(entry.Key, entry.Value);
+            }
 
             _writer.WriteHeader(_header);
             _writer.Flush();

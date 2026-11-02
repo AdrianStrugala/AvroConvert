@@ -242,6 +242,7 @@ checks. The `AvroConvert` methods that take a schema accept it next to the JSON 
 AvroSchema schema = AvroSchema.Parse(json);              // schema definition (JSON)
 AvroSchema schema = AvroSchema.Parse(json, new[] { addressJson, statusJson });   // uses types defined in other schemas
 AvroSchema schema = AvroSchema.Create<Order>();          // from a .NET type (same as AvroConvert.GenerateSchema)
+AvroSchema schema = AvroSchema.FromValue(value);         // from a value, also what it holds as `object`
 AvroSchema schema = AvroSchema.FromAvro(avroFile);       // from the header of an Avro file (byte[] or Stream)
 AvroSchema schema = AvroSchema.InferFromJson(jsonData);  // inferred from sample JSON data
 
@@ -255,6 +256,32 @@ The Parsing Canonical Form keeps only what defines the binary data: full names, 
 aliases, defaults or logical types, fixed attribute order, no whitespace. Two schemas with the same canonical form are
 equal (`Equals`, `GetHashCode`) and read and write identical bytes; the fingerprint identifies a schema version, e.g. as a
 key in a schema store.
+
+Attributes the Avro specification does not define are metadata of the schema: `Json` keeps them with their JSON types,
+wherever they are declared (records, fields, arrays, maps, enums, fixed, primitives, logical types), and the canonical
+form leaves them out. So do logical types Avro does not know, like Apache Iceberg's `map` on an array.
+
+#### Writing with a given schema
+
+By default a container is written with the schema of the serialized type. Every `Serialize` has an overload that takes
+the schema instead. It goes to the file header with all its attributes, so the file can carry what other tools expect,
+like the `field-id` of Apache Iceberg:
+
+```csharp
+var schema = AvroSchema.Parse("""
+    {"type":"record","name":"manifest_entry","fields":[
+        {"name":"status","type":"int","field-id":0}]}
+    """);
+
+byte[] avro = AvroConvert.Serialize(entries, schema);                       // options: Serialize(entries, schema, options)
+AvroConvert.Serialize(entries, fileStream, schema);                         // items are streamed, never collected
+await AvroConvert.Serialize(asyncEntries, fileStream, schema);
+AvroConvert.Serialize(entries, bufferWriter, schema);
+```
+
+A collection is written as one entry per item, unless the schema is an array, which holds the whole collection in one
+entry. Items do not need a class of their own: a class, an `ExpandoObject` and a `Dictionary<string, object>` are written
+as the record the schema describes, a member or a key missing for a field with a default gives the default.
 
 #### Comparing schemas
 

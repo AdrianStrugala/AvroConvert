@@ -15,10 +15,12 @@
 */
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
+using SolTechnology.Avro.AvroObjectServices.FileHeader;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 using SolTechnology.Avro.Features.Merge;
@@ -31,7 +33,8 @@ namespace SolTechnology.Avro
     public static partial class AvroConvert
     {
         /// <summary>
-        /// Merge multiple Avro objects of type T into one Avro object of type IEnumerable T
+        /// Merge multiple Avro objects of type T into one Avro object of type IEnumerable T.
+        /// Additional header metadata is kept when all objects have the same value for the key, and dropped otherwise.
         /// </summary>
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] Merge<T>(IEnumerable<byte[]> avroObjects)
@@ -42,6 +45,7 @@ namespace SolTechnology.Avro
             List<DataBlock> avroDataBlocks = new List<DataBlock>();
             TypeSchema writerSchema = null;
             string writerSchemaJson = null;
+            Dictionary<string, byte[]> sharedMetadata = null;
 
             avroObjects = avroObjects.ToList();
             for (int i = 0; i < avroObjects.Count(); i++)
@@ -67,6 +71,7 @@ namespace SolTechnology.Avro
                     throw new InvalidAvroObjectException($"Object of index [{i}] is written with another schema than the first one. Merge copies the data without re-encoding it, so all objects need the same writer schema");
                 }
 
+                sharedMetadata = SharedMetadata(sharedMetadata, avroFileContent.Header.GetRawMetadata());
                 avroDataBlocks.AddRange(avroFileContent.DataBlocks);
             }
 
@@ -76,7 +81,7 @@ namespace SolTechnology.Avro
                 {
                     // The blocks keep their layout, so the header is the schema they were written with.
                     var resultSchema = writerSchema?.ToString() ?? itemSchema.ToString();
-                    encoder.WriteHeader(resultSchema, CodecType.Null);
+                    encoder.WriteHeader(resultSchema, CodecType.Null, sharedMetadata ?? new Dictionary<string, byte[]>());
 
                     encoder.WriteData(avroDataBlocks);
                 }
@@ -85,6 +90,29 @@ namespace SolTechnology.Avro
                 return result;
 
             }
+        }
+
+        /// <summary>The keys of <paramref name="shared"/> with the same value in <paramref name="metadata"/>; for the first object, its own keys.</summary>
+        private static Dictionary<string, byte[]> SharedMetadata(Dictionary<string, byte[]> shared, Dictionary<string, byte[]> metadata)
+        {
+            if (shared?.Count == 0)
+            {
+                return shared;
+            }
+
+            var kept = new Dictionary<string, byte[]>();
+            foreach (var entry in shared ?? metadata)
+            {
+                var stays = shared == null
+                    ? !entry.Key.StartsWith(DataFileConstants.MetaDataReserved, StringComparison.Ordinal)
+                    : metadata.TryGetValue(entry.Key, out var value) && value.AsSpan().SequenceEqual(entry.Value);
+                if (stays)
+                {
+                    kept.Add(entry.Key, entry.Value);
+                }
+            }
+
+            return kept;
         }
     }
 }

@@ -85,23 +85,25 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas
 
         internal override void ToJsonSafe(JsonTextWriter writer, HashSet<NamedSchema> seenSchemas)
         {
-            if (seenSchemas.Contains(this))
+            if (IsDefined(seenSchemas, out var name))
             {
-                writer.WriteValue(this.FullName);
+                writer.WriteValue(name);
                 return;
             }
 
             seenSchemas.Add(this);
             writer.WriteStartObject();
             writer.WriteProperty("type", "enum");
-            writer.WriteProperty("name", Name);
+            writer.WriteProperty("name", name);
             writer.WriteOptionalProperty("namespace", Namespace);
             writer.WriteOptionalProperty("doc", this.Doc);
+            writer.WriteOptionalProperty("aliases", this.Aliases);
             writer.WritePropertyName("symbols");
             writer.WriteStartArray();
             this.symbols.ForEach(writer.WriteValue);
             writer.WriteEndArray();
             writer.WriteOptionalProperty("default", this.Default);
+            WriteAttributes(writer);
             writer.WriteEndObject();
         }
 

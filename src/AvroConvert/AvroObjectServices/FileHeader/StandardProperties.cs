@@ -48,5 +48,40 @@ namespace SolTechnology.Avro.AvroObjectServices.FileHeader
             AvroKeywords.Symbols,
             AvroKeywords.Default
         };
+
+        internal static readonly HashSet<string> Field = new HashSet<string>
+        {
+            AvroKeywords.Name,
+            AvroKeywords.Type,
+            AvroKeywords.Doc,
+            AvroKeywords.Aliases,
+            AvroKeywords.Default,
+            AvroKeywords.Order
+        };
+
+        internal static readonly HashSet<string> Array = new HashSet<string> { AvroKeywords.Type, AvroKeywords.Items };
+
+        internal static readonly HashSet<string> Map = new HashSet<string> { AvroKeywords.Type, AvroKeywords.Values };
+
+        internal static readonly HashSet<string> Fixed = new HashSet<string>
+        {
+            AvroKeywords.Type,
+            AvroKeywords.Name,
+            AvroKeywords.Namespace,
+            AvroKeywords.Aliases,
+            AvroKeywords.Size
+        };
+
+        internal static readonly HashSet<string> Logical = new HashSet<string>
+        {
+            AvroKeywords.Type,
+            AvroKeywords.LogicalType,
+            AvroKeywords.Name,
+            AvroKeywords.Namespace,
+            AvroKeywords.Aliases,
+            AvroKeywords.Size,
+            AvroKeywords.Precision,
+            AvroKeywords.Scale
+        };
     }
 }

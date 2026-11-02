@@ -18,6 +18,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using SolTechnology.Avro.AvroObjectServices.Read;
 using SolTechnology.Avro.AvroObjectServices.Schemas;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
@@ -100,6 +101,7 @@ namespace SolTechnology.Avro.Features.AvroToJson
 
         protected virtual Dictionary<string, object> ResolveRecord(RecordSchema readerSchema, IReader dec)
         {
+            RuntimeHelpers.EnsureSufficientExecutionStack();
             var result = new Dictionary<string, object>();
 
             foreach (var rf in readerSchema.Fields)
@@ -192,21 +194,7 @@ namespace SolTechnology.Avro.Features.AvroToJson
 
         protected virtual object ResolveUnion(UnionSchema readerSchema, IReader d)
         {
-            int index = d.ReadUnionIndex();
-            TypeSchema ws = readerSchema.Schemas[index];
-            return Resolve(FindBranch(readerSchema, ws), d);
-        }
-
-        protected static TypeSchema FindBranch(UnionSchema us, TypeSchema schema)
-        {
-            var resultSchema = us.Schemas.FirstOrDefault(s => s.Name == schema.Name);
-
-            if (resultSchema == null)
-            {
-                throw new AvroException("No matching schema for " + schema + " in " + us);
-            }
-
-            return resultSchema;
+            return Resolve(readerSchema.Schemas[d.ReadUnionIndex()], d);
         }
 
         private object ResolveLogical(LogicalTypeSchema readerSchema, IReader reader)

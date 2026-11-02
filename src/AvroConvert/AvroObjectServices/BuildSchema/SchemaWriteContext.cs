@@ -15,6 +15,7 @@
 #endregion
 
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using SolTechnology.Avro.AvroObjectServices.Schemas.Abstract;
 
 namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
@@ -27,6 +28,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
     {
         private readonly Stack<string> _namespaces = new();
         private readonly HashSet<string> _definedNames = new();
+        private readonly Dictionary<string, NamedSchema> _definitions = new();
 
         internal string CurrentNamespace => _namespaces.Count == 0 ? string.Empty : _namespaces.Peek();
 
@@ -48,5 +50,31 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
         /// <summary>Records a definition by its effective full name; false when that name has already been defined.</summary>
         internal bool TryDefine(string effectiveFullName) => _definedNames.Add(effectiveFullName);
+
+        /// <summary>
+        /// Records the definition of <paramref name="schema"/>; false when its name is defined already, so a reference is
+        /// enough. One type can come as several objects (a schema completed from values is put together from many schemas),
+        /// but two different types of one name would make the reference point to the wrong one.
+        /// </summary>
+        /// <exception cref="SerializationException">The name is defined already by a different type.</exception>
+        internal bool TryDefine(NamedSchema schema)
+        {
+            var name = EffectiveFullName(schema);
+            if (TryDefine(name))
+            {
+                _definitions[name] = schema;
+                return true;
+            }
+
+            if (_definitions.TryGetValue(name, out var defined) && !ReferenceEquals(defined, schema)
+                && defined.ToString() != schema.ToString() && ParsingCanonicalForm.From(defined) != ParsingCanonicalForm.From(schema))
+            {
+                throw new SerializationException(
+                    $"Two different types have the name '{name}' in one schema, which Avro does not allow: {defined} and {schema}. " +
+                    "Give one of them another name, e.g. with [DataContract(Name = \"...\")].");
+            }
+
+            return false;
+        }
     }
 }

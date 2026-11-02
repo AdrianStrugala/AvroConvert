@@ -42,7 +42,7 @@ Changes:
 - Added `Serialize` overloads taking an `AvroSchema`: a container written with a given schema
 - Added `AvroSchema.FromValue`: the schema of a value, for headless data with `object` values
 - `ExpandoObject` and `Json2Avro` reuse the compiled plan of a schema they have seen, instead of compiling one for every call
-- JSON objects with one key holding different fields keep them: the records get names of their own
+- JSON objects and `ExpandoObject`s with one key holding different fields keep them: the records get names of their own. Items of a list with different nested objects keep all their fields
 - `Dictionary<string, object>`, `object` members, `List<object>` and `ExpandoObject` members take their schema from the values being written. A string in them threw, and a class lost its fields without an error. `List<object>` is written as one entry per item, like other lists
 - A value written against the empty schema of `object` throws instead of losing its fields (`SerializeHeadless(value, typeof(T))`)
 - A union takes the branch of exactly the value's type first: a `double` next to a `long` branch is not truncated, a `DateTime` next to a `date` branch keeps its time, a class goes to its own record, not to the first that looks like it
@@ -50,11 +50,11 @@ Changes:
 - Fields of a dictionary written as a record are found by name, then by alias
 - `Serialize<object>(items, stream)` writes items of different types as a union; only an interface or an abstract class needs one runtime type
 - Unions of logical types (e.g. `date` and `timestamp-micros`) and of records of one name in different namespaces are parsed and read
-- A named type used in several places of a schema is defined once
+- A named type used in several places of a schema is defined once; two different types of one name (e.g. nested enums `Order.Status` and `Shipment.Status`) throw instead of writing a schema that readers reject
 - Fix for `Avro2Json` of a union whose branches have one short name: it read the first of them
 - `Json2Avro` and `InferFromJson`: different values in a JSON array give a union; a number next to text was written as text
 - Text that looks like a date stays text in schema attributes and defaults
-- A reference cycle throws instead of ending the process or never returning
+- A reference cycle, also in an `ExpandoObject`, throws instead of ending the process or never returning
 - Schemas keep the attributes the specification does not define (e.g. `field-id`), logical types Avro does not know, and enum aliases. The canonical form and fingerprints are not affected
 - Optional licence declaration: `AvroConvert.License` or `AVROCONVERT_LICENSE`
 - Writing with a schema field missing in the type writes the field's default; the same for a key missing in a dictionary, `ExpandoObject` or `JObject` written as a record

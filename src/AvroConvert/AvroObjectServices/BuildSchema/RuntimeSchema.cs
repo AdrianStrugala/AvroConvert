@@ -55,6 +55,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         private const int Complete = 2;
 
         private readonly AvroConvertOptions _options;
+        private JsonSchemaBuilder _json;
         private readonly Dictionary<string, Slot> _slots = new();
         private readonly HashSet<object> _onPath = new(ReferenceEqualityComparer.Instance);
         private readonly Dictionary<(RecordSchema, Type), RecordPlan> _plans = new();
@@ -64,9 +65,11 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         private Type _lastType;
         private RecordPlan _lastPlan;
 
-        private RuntimeSchema(AvroConvertOptions options)
+        // One builder for all the ExpandoObjects of a schema: it gives a record name to one set of fields only.
+        private RuntimeSchema(AvroConvertOptions options, JsonSchemaBuilder json = null)
         {
             _options = options;
+            _json = json;
         }
 
         /// <summary>A place in the schema that holds <c>object</c> values, with what was found there.</summary>
@@ -144,15 +147,18 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         }
 
         /// <summary>The schema of ExpandoObjects merged into one record. Built for every call, so it is interned to reuse one write plan.</summary>
-        internal static TypeSchema ResolveExpandos(IEnumerable<ExpandoObject> expandos, AvroConvertOptions options, string name = null)
+        internal static TypeSchema ResolveExpandos(IEnumerable<ExpandoObject> expandos, AvroConvertOptions options, string name = null) =>
+            ResolveExpandos(expandos, options, name, new JsonSchemaBuilder());
+
+        private static TypeSchema ResolveExpandos(IEnumerable<ExpandoObject> expandos, AvroConvertOptions options, string name, JsonSchemaBuilder json)
         {
-            var schema = new JsonSchemaBuilder().BuildSchema(expandos, name);
+            var schema = json.BuildSchema(expandos, name);
             if (!IsOpen(schema))
             {
                 return Intern(schema, options);
             }
 
-            var runtime = new RuntimeSchema(options);
+            var runtime = new RuntimeSchema(options, json);
             runtime.CollectAll(schema, expandos);
             return Intern(runtime.Build(schema, string.Empty), options);
         }
@@ -458,7 +464,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 ? null
                 : "UnknownObject_" + Regex.Replace(key.Replace("[]", "_items").Replace("{}", "_values"), "[^0-9a-zA-Z_]+", "_");
 
-            return ResolveExpandos(expandos, _options, name);
+            return ResolveExpandos(expandos, _options, name, _json ??= new JsonSchemaBuilder());
         }
 
         private TypeSchema BuildRecord(RecordSchema record)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using Newtonsoft.Json.Linq;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
@@ -31,6 +32,9 @@ namespace SolTechnology.Avro.Features.JsonToAvro
             {
                 return Schema.Create((object)null);
             }
+
+            // An ExpandoObject can hold itself, and a stack overflow cannot be caught.
+            RuntimeHelpers.EnsureSufficientExecutionStack();
 
             TypeSchema fieldSchema = item switch
             {
@@ -131,7 +135,9 @@ namespace SolTechnology.Avro.Features.JsonToAvro
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         private TypeSchema BuildMergedRecordSchema(IEnumerable<IDictionary<string, object>> items, string name, System.Type runtimeType)
         {
-            var seen = new Dictionary<string, (TypeSchema Schema, bool Nullable)>();
+            RuntimeHelpers.EnsureSufficientExecutionStack();
+
+            var seen = new Dictionary<string, KeyValues>();
             var order = new List<string>();
             int count = 0;
             foreach (var item in items)
@@ -142,27 +148,17 @@ namespace SolTechnology.Avro.Features.JsonToAvro
                     if (!seen.TryGetValue(kv.Key, out var entry))
                     {
                         order.Add(kv.Key);
-                        entry = (null, count > 1);
+                        seen[kv.Key] = entry = new KeyValues { Nullable = count > 1 };
                     }
 
-                    if (kv.Value == null)
-                    {
-                        entry.Nullable = true;
-                    }
-                    else if (entry.Schema == null || (entry.Schema is IntSchema or LongSchema && IsFloatingPoint(kv.Value)))
-                    {
-                        // A whole number first and a fraction later is a double, not a long that would truncate it.
-                        entry.Schema = BuildSchema(kv.Value, kv.Key);
-                    }
-
-                    seen[kv.Key] = entry;
+                    entry.Add(kv.Value);
                 }
 
                 foreach (var key in order)
                 {
                     if (!item.ContainsKey(key))
                     {
-                        seen[key] = (seen[key].Schema, true);
+                        seen[key].Nullable = true;
                     }
                 }
             }
@@ -170,14 +166,80 @@ namespace SolTechnology.Avro.Features.JsonToAvro
             var fields = new List<RecordFieldSchema>();
             foreach (var key in order)
             {
-                var (schema, nullable) = seen[key];
+                var values = seen[key].Values;
+                var nullable = seen[key].Nullable;
+                var schema = BuildValuesSchema(values, key);
                 TypeSchema fieldSchema = schema == null ? new NullSchema()
-                    : nullable && schema is not UnionSchema && schema is not NullSchema ? new UnionSchema(new List<TypeSchema> { new NullSchema(), schema }, typeof(object))
-                    : schema;
+                    : !nullable || schema is NullSchema ? schema
+                    : schema is UnionSchema union ? union.Schemas.Any(branch => branch is NullSchema) ? union : new UnionSchema(union.Schemas.Prepend(new NullSchema()).ToList(), typeof(object))
+                    : new UnionSchema(new List<TypeSchema> { new NullSchema(), schema }, typeof(object));
                 fields.Add(CreateField(key, fieldSchema, fields.Count));
             }
 
             return NamedRecord(name, fields, runtimeType);
+        }
+
+        /// <summary>What one key holds in all the items: every object, as each can have other fields, and one value of each other type.</summary>
+        private sealed class KeyValues
+        {
+            private readonly HashSet<object> _kinds = new();
+
+            internal readonly List<object> Values = new();
+            internal bool Nullable;
+
+            internal void Add(object value)
+            {
+                if (value == null || value is JValue { Type: JTokenType.Null })
+                {
+                    Nullable = true;
+                    return;
+                }
+
+                var isObject = value is JContainer or ExpandoObject or IEnumerable<ExpandoObject>;
+                if (isObject || _kinds.Add(value is JValue token ? token.Type : value.GetType()))
+                {
+                    Values.Add(value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Schema of what one key holds in all the items. Objects are merged, so a field only some of them have is kept; a whole
+        /// number first and a fraction later is a double, not a long that would truncate it.
+        /// </summary>
+        [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
+        private TypeSchema BuildValuesSchema(List<object> values, string name)
+        {
+            if (values.Count == 0)
+            {
+                return null;
+            }
+
+            if (values.Count > 1)
+            {
+                if (values.All(value => value is JToken))
+                {
+                    return BuildItemSchema(values.Cast<JToken>(), name);
+                }
+
+                if (values.All(value => value is ExpandoObject))
+                {
+                    return BuildSchema(values.Cast<ExpandoObject>(), name);
+                }
+
+                if (values.All(value => value is IEnumerable<ExpandoObject>))
+                {
+                    return new ArraySchema(BuildSchema(values.SelectMany(value => (IEnumerable<ExpandoObject>)value), name), typeof(object));
+                }
+            }
+
+            var schema = BuildSchema(values[0], name);
+            if (schema is IntSchema or LongSchema && values.FirstOrDefault(IsFloatingPoint) is { } fraction)
+            {
+                schema = BuildSchema(fraction, name);
+            }
+
+            return schema;
         }
 
         /// <summary>

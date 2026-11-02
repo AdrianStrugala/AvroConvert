@@ -58,9 +58,10 @@ namespace SolTechnology.Avro.AvroObjectServices.Schemas.Abstract
 
         /// <summary>
         /// True when this type is written already, so a reference to its name is enough. Decided by the name, because one
-        /// name can come as several objects: a schema completed from values is put together from the schemas of many types.
+        /// type can come as several objects: a schema completed from values is put together from the schemas of many types.
         /// </summary>
+        /// <exception cref="System.Runtime.Serialization.SerializationException">A different type has the same name.</exception>
         internal bool IsDefined(HashSet<NamedSchema> seenSchemas) =>
-            seenSchemas.Contains(this) || seenSchemas is BuildSchema.SchemaWriteContext context && !context.TryDefine(context.EffectiveFullName(this));
+            seenSchemas.Contains(this) || seenSchemas is BuildSchema.SchemaWriteContext context && !context.TryDefine(this);
     }
 }

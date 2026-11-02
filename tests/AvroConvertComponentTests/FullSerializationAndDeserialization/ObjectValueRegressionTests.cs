@@ -430,5 +430,101 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
             AvroSchema.Parse(schema).Json.Should().Be(schema);
         }
+
+        // ------------------------------------------------------------------ one name, one definition
+
+        public class Envelope
+        {
+            public object Before { get; set; }
+            public object After { get; set; }
+        }
+
+        public class Order
+        {
+            public enum Status { New, Paid }
+
+            public Status State { get; set; }
+            public Shipment Ship { get; set; }
+        }
+
+        public class Shipment
+        {
+            public enum Status { Pending, Sent, Delivered }
+
+            public Status State { get; set; }
+        }
+
+        [Test]
+        public void ExpandoObject_holding_itself_is_an_exception()
+        {
+            dynamic expando = new ExpandoObject();
+            expando.Self = expando;
+
+            Recorded.Exception(() => AvroConvert.Serialize((ExpandoObject)expando)).Should().NotBeNull();
+        }
+
+        [Test]
+        public void ExpandoObject_holding_itself_in_an_object_member_is_an_exception()
+        {
+            dynamic expando = new ExpandoObject();
+            expando.Self = expando;
+
+            Recorded.Exception(() => AvroConvert.Serialize(new WithObject { Value = expando })).Should().NotBeNull();
+        }
+
+        [Test]
+        public void ExpandoObjects_with_one_key_in_two_object_members_keep_their_fields()
+        {
+            dynamic before = new ExpandoObject();
+            before.address = new ExpandoObject();
+            before.address.street = "a";
+            dynamic after = new ExpandoObject();
+            after.address = new ExpandoObject();
+            after.address.street = "b";
+            after.address.city = "c";
+
+            var avro = AvroConvert.Serialize(new Envelope { Before = before, After = after });
+
+            var result = AvroConvert.Deserialize<Dictionary<string, object>>(avro);
+            ((IDictionary<string, object>)((IDictionary<string, object>)result["After"])["address"]).Should().ContainKey("city").WhoseValue.Should().Be("c");
+            ((IDictionary<string, object>)((IDictionary<string, object>)result["Before"])["address"]).Should().ContainKey("street").WhoseValue.Should().Be("a");
+        }
+
+        [Test]
+        public void ExpandoObjects_with_different_nested_objects_keep_all_fields()
+        {
+            dynamic first = new ExpandoObject();
+            first.address = new ExpandoObject();
+            first.address.street = "a";
+            dynamic second = new ExpandoObject();
+            second.address = new ExpandoObject();
+            second.address.city = "c";
+
+            var avro = AvroConvert.Serialize(new List<ExpandoObject> { first, second });
+
+            var result = AvroConvert.Deserialize<List<Dictionary<string, object>>>(avro);
+            ((IDictionary<string, object>)result[0]["address"])["street"].Should().Be("a");
+            ((IDictionary<string, object>)result[1]["address"])["city"].Should().Be("c");
+        }
+
+        [Test]
+        public void Json_array_with_different_nested_objects_keeps_all_fields()
+        {
+            const string json = @"[{""a"":{""x"":1}},{""a"":{""y"":""s""}}]";
+
+            var result = AvroConvert.Avro2Json(AvroConvert.Json2Avro(json));
+
+            JToken.Parse(result).SelectToken("[1].a.y")!.Value<string>().Should().Be("s");
+        }
+
+        [Test]
+        public void Two_types_of_one_name_with_different_definitions_are_an_exception()
+        {
+            var order = new Order { State = Order.Status.Paid, Ship = new Shipment { State = Shipment.Status.Delivered } };
+
+            var act = () => AvroConvert.Serialize(order);
+
+            act.Should().Throw<System.Runtime.Serialization.SerializationException>().WithMessage("*Status*");
+        }
     }
 }

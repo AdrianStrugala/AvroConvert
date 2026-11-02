@@ -38,6 +38,12 @@
 			<_Parameter1>CoreBenchmarks</_Parameter1>
 		</AssemblyAttribute>
 	</ItemGroup>
+	<!-- Ships AvroConvert under its own licence: AvroConvert.LicenseCoveredBy. -->
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+			<_Parameter1>SolTechnology.DataLake</_Parameter1>
+		</AssemblyAttribute>
+	</ItemGroup>
 
 	<!-- Read by AvroConvert.ReleaseDate: a commercial subscription covers every version released before it ended. -->
 	<ItemGroup>

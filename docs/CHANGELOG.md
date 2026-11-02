@@ -65,7 +65,7 @@ Changes:
 - Text that looks like a date stays text in schema attributes and defaults
 - A reference cycle, also in an `ExpandoObject`, throws instead of ending the process or never returning
 - Schemas keep the attributes the specification does not define (e.g. `field-id`), logical types Avro does not know, and enum aliases. The canonical form and fingerprints are not affected
-- Optional licence declaration: `AvroConvert.License` or `AVROCONVERT_LICENSE`
+- Optional licence declaration: `AvroConvert.License` or `AVROCONVERT_LICENSE`. SolTechnology.DataLake includes AvroConvert under its own licence and shows its own notice instead
 - Writing with a schema field missing in the type writes the field's default; the same for a key missing in a dictionary, `ExpandoObject` or `JObject` written as a record
 - Schema resolution promotes `string` ↔ `bytes`; field `order` and enum `default` are preserved
 - Dates and times in a `string` field are read and written as ISO 8601 text (`DateTime`, `DateTimeOffset`, `DateOnly`, `TimeOnly`, `TimeSpan`), like Chr.Avro writes them by default

@@ -76,17 +76,6 @@ namespace SolTechnology.Avro
         }
 
         /// <summary>
-        /// Reads the key-value metadata of the header of Avro file under given path, <c>avro.schema</c> and <c>avro.codec</c> included
-        /// </summary>
-        public static IReadOnlyDictionary<string, byte[]> GetMetadata(string filePath)
-        {
-            using (var stream = OpenForReading(filePath))
-            {
-                return GetMetadata(stream);
-            }
-        }
-
-        /// <summary>
         /// Reads the key-value metadata of the header of given Avro stream, <c>avro.schema</c> and <c>avro.codec</c> included
         /// </summary>
         public static IReadOnlyDictionary<string, byte[]> GetMetadata(Stream avroStream)

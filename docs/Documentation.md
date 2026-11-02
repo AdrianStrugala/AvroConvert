@@ -287,7 +287,7 @@ var keys = new Dictionary<string, AvroMetadataValue>
 
 byte[] avro = AvroConvert.Serialize(entries, AvroSchema.Create<Entry>(), metadata: keys);
 
-IReadOnlyDictionary<string, byte[]> header = AvroConvert.GetMetadata(avro);   // byte[], Stream or file path
+IReadOnlyDictionary<string, byte[]> header = AvroConvert.GetMetadata(avro);   // byte[] or Stream
 string version = Encoding.UTF8.GetString(header["format-version"]);
 ```
 

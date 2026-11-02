@@ -33,7 +33,7 @@ namespace AvroConvertComponentTests.Metadata
             AvroConvert.Serialize(Rows[0], RowSchema, metadata: new Dictionary<string, AvroMetadataValue> { [key] = value });
 
         private static IReadOnlyDictionary<string, byte[]> Read(ContainerSource source, byte[] avro) =>
-            RoundTrip.FromSource(source, avro, AvroConvert.GetMetadata, AvroConvert.GetMetadata, AvroConvert.GetMetadata);
+            RoundTrip.FromSource(source, avro, AvroConvert.GetMetadata, AvroConvert.GetMetadata);
 
         private static string Text(IReadOnlyDictionary<string, byte[]> metadata, string key) => Encoding.UTF8.GetString(metadata[key]);
 
@@ -246,7 +246,6 @@ namespace AvroConvertComponentTests.Metadata
             File.SetAttributes(path, FileAttributes.ReadOnly);
             try
             {
-                Text(AvroConvert.GetMetadata(path), "content").Should().Be("data");
                 AvroConvert.GetSchema(path).Should().Contain(nameof(Row));
             }
             finally
@@ -265,7 +264,6 @@ namespace AvroConvertComponentTests.Metadata
             {
                 using var other = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
 
-                Text(AvroConvert.GetMetadata(path), "content").Should().Be("data");
                 AvroConvert.GetSchema(path).Should().Contain(nameof(Row));
             }
             finally

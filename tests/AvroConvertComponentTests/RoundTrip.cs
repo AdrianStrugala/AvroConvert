@@ -62,8 +62,7 @@ namespace AvroConvertComponentTests
     public enum ContainerSource
     {
         Bytes,
-        Stream,
-        File
+        Stream
     }
 
     /// <summary>Format sets for <c>[ValueSource(typeof(Formats), nameof(Formats.X))]</c>.</summary>
@@ -315,32 +314,14 @@ namespace AvroConvertComponentTests
             };
         }
 
-        /// <summary>Runs <paramref name="read"/> on a file, in the way <paramref name="source"/> points at it.</summary>
-        public static T FromSource<T>(ContainerSource source, byte[] avro, Func<byte[], T> fromBytes, Func<Stream, T> fromStream, Func<string, T> fromFile)
-        {
-            switch (source)
+        /// <summary>Runs the read on a file, in the way <paramref name="source"/> points at it.</summary>
+        public static T FromSource<T>(ContainerSource source, byte[] avro, Func<byte[], T> fromBytes, Func<Stream, T> fromStream) =>
+            source switch
             {
-                case ContainerSource.Bytes:
-                    return fromBytes(avro);
-                case ContainerSource.Stream:
-                    return fromStream(new MemoryStream(avro));
-                case ContainerSource.File:
-                {
-                    var path = Path.GetTempFileName();
-                    try
-                    {
-                        File.WriteAllBytes(path, avro);
-                        return fromFile(path);
-                    }
-                    finally
-                    {
-                        File.Delete(path);
-                    }
-                }
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(source), source, null);
-            }
-        }
+                ContainerSource.Bytes => fromBytes(avro),
+                ContainerSource.Stream => fromStream(new MemoryStream(avro)),
+                _ => throw new ArgumentOutOfRangeException(nameof(source), source, null)
+            };
 
         private static async IAsyncEnumerable<T> ToAsync<T>(IEnumerable<T> items)
         {

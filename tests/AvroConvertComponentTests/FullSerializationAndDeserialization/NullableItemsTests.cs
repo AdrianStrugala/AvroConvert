@@ -1,5 +1,7 @@
 #nullable enable
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using AwesomeAssertions;
 using NUnit.Framework;
 using SolTechnology.Avro;
@@ -83,8 +85,50 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             var exception = Recorded.Exception(() => AvroConvert.Serialize(value));
 
             exception.Message.Should().Contain("Field 'WithNonNullableItems.Names[]' is null")
-                .And.Contain("Declare the items as nullable (List<string?>, string?[], Dictionary<string, string?>")
+                .And.Contain("Declare the items as nullable in a member of a class (List<string?>, string?[], Dictionary<string, string?>")
                 .And.NotContain("Declare the member as nullable");
+        }
+
+        [Test]
+        public void Null_item_of_a_collection_given_directly_says_it_has_no_annotation()
+        {
+            var exception = Recorded.Exception(() => AvroConvert.Serialize(new List<string?> { "a", null }));
+
+            // Each item is an entry of the file, a value of its own: no member, so no annotation to declare.
+            exception.Message.Should().Contain("A value given directly to Serialize, or an item of a collection given to it, carries no nullable annotation")
+                .And.NotContain("Declare the");
+        }
+
+        /// <summary>A collection whose items are not its first type argument.</summary>
+        public class Bag<TMeta, TItem> : IEnumerable<TItem>
+        {
+            private readonly List<TItem> _items = new();
+            public IEnumerator<TItem> GetEnumerator() => _items.GetEnumerator();
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        }
+
+        public class WithOtherCollections
+        {
+            public Bag<string?, string> NullableMeta { get; set; } = new();
+            public Bag<string, string?> NullableItems { get; set; } = new();
+            public ImmutableArray<string?>? OptionalTags { get; set; }
+        }
+
+        [Test]
+        public void Items_take_the_annotation_of_their_own_type_argument()
+        {
+            var schema = AvroSchema.Create<WithOtherCollections>().Json;
+
+            schema.Should().Contain("{\"name\":\"NullableMeta\",\"type\":{\"type\":\"array\",\"items\":\"string\"}}");
+            schema.Should().Contain("{\"name\":\"NullableItems\",\"type\":{\"type\":\"array\",\"items\":[\"null\",\"string\"]}}");
+            schema.Should().Contain("{\"name\":\"OptionalTags\",\"type\":[\"null\",{\"type\":\"array\",\"items\":[\"null\",\"string\"]}]}");
+        }
+
+        [Test]
+        public void Annotations_without_nullable_warnings_are_enough()
+        {
+            // What a generated model starts with: #nullable enable annotations.
+            AvroSchema.Create<AnnotationsOnly>().Json.Should().Contain("\"items\":[\"null\",\"string\"]");
         }
 
         [Test]
@@ -96,6 +140,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
             var model = AvroConvert.GenerateModel(source);
 
+            model.Should().StartWith("#nullable enable annotations\r\n\r\n", "string? keeps its annotation in a project without <Nullable>");
             model.Should().Contain("\tpublic string?[] tags { get; set; }\r\n").And.Contain("\tpublic Dictionary<string,string?> labels { get; set; }\r\n");
             AvroSchema.Create<GeneratedTagged>().CanonicalForm.Should().Be(AvroSchema.Parse(source).CanonicalForm);
         }
@@ -111,4 +156,12 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             public Dictionary<string, string?> labels { get; set; } = new();
         }
     }
+
+#nullable disable
+#nullable enable annotations
+    public class AnnotationsOnly
+    {
+        public List<string?> Names { get; set; }
+    }
+#nullable restore
 }

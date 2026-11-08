@@ -28,7 +28,7 @@ Breaking changes:
 - Reflection-based methods marked `[RequiresUnreferencedCode]` / `[RequiresDynamicCode]`
 - SolTechnology.Avro.Kafka rewritten on Confluent.SchemaRegistry 2.16: Confluent wire format, schema evolution, references, subject name strategies. Removed `KafkaConsumer`, `KafkaPropNames`, `ConfluentSchema`
 - SolTechnology.Avro.Http follows System.Net.Http.Json (`GetFromAvroAsync`, `PostAsAvroAsync`, `ReadFromAvroAsync`…), Minimal API results and streaming; old names are `[Obsolete]`
-- `GenerateModel`: `date` → `DateOnly`, `time-millis` / `time-micros` → `TimeOnly`; the code starts with `using` directives and has `[DataContract]` / `[DataMember]`, `[AvroType]`, `[AvroDecimal]` and `[AvroFixed]` where needed, so the classes give back the same schema (exceptions in [Generate model](Documentation.Schema.md#generate-model)). A union lists every branch in `[AvroUnion]`, not only the records; the default of an enum is its symbol (`[DefaultValue("Paid")]`)
+- `GenerateModel`: `date` → `DateOnly`, `time-millis` / `time-micros` → `TimeOnly`; the code starts with `using` directives (and `#nullable enable annotations` when it has nullable types) and has `[DataContract]` / `[DataMember]`, `[AvroType]`, `[AvroDecimal]` and `[AvroFixed]` where needed, so the classes give back the same schema (exceptions in [Generate model](Documentation.Schema.md#generate-model)). A union lists every branch in `[AvroUnion]`, not only the records; the default of an enum is its symbol (`[DefaultValue("Paid")]`)
 
 Changes:
 - Serialization and deserialization compiled per schema and type: several times faster, a fraction of allocations

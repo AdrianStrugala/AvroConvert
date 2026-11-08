@@ -313,7 +313,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
             if (dictionaryArguments is { } kv && (kv.Key == typeof(string) || kv.Key == typeof(Uri)))
             {
-                var valueNullability = GenericArgumentNullability(type, nullability, kv.Value, 1);
+                var valueNullability = GenericArgumentNullability(type, nullability, 1, typeof(IDictionary<,>), typeof(IReadOnlyDictionary<,>));
                 return new MapSchema(
                     this.CreateNotNullableSchema(kv.Key, schemas, currentDepth + 1, info, representation),
                     this.CreateSchema(IsNullableReference(kv.Value, valueNullability), kv.Value, schemas, currentDepth + 1, representation, nullability: valueNullability),
@@ -325,7 +325,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             if (enumerableType != null)
             {
                 var itemType = enumerableType.GetGenericArguments()[0];
-                var itemNullability = GenericArgumentNullability(type, nullability, itemType, 0);
+                var itemNullability = GenericArgumentNullability(type, nullability, 0, typeof(IEnumerable<>));
                 return new ArraySchema(this.CreateSchema(IsNullableReference(itemType, itemNullability), itemType, schemas, currentDepth + 1, representation, nullability: itemNullability), type);
             }
 
@@ -423,19 +423,27 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         };
 
         /// <summary>
-        /// The nullability of a generic argument of the type itself (the string? of List&lt;string?&gt; or Dictionary&lt;string, string?&gt;).
-        /// None for a type that only implements the collection interface (class Tags : List&lt;string?&gt;), which has no annotation for it.
+        /// The nullability of the items (or values) of a generic collection: the annotation of the type argument that the
+        /// collection interface takes them from (List&lt;string?&gt; → T of IEnumerable&lt;T&gt;, Dictionary&lt;string, string?&gt; →
+        /// TValue of IDictionary&lt;TKey, TValue&gt;, Bag&lt;TMeta, TItem&gt; : IEnumerable&lt;TItem&gt; → TItem). None for a type that
+        /// only implements the interface with fixed arguments (class Tags : List&lt;string?&gt;), which has no annotation for them.
         /// </summary>
-        private static NullabilityInfo GenericArgumentNullability(Type type, NullabilityInfo nullability, Type argument, int position)
+        private static NullabilityInfo GenericArgumentNullability(Type type, NullabilityInfo nullability, int interfaceArgument, params Type[] interfaces)
         {
-            if (nullability?.Type != type || !type.IsGenericType)
+            // For a nullable struct (ImmutableArray<string?>?) the info is of Nullable<T>, with the type arguments of T.
+            if (nullability == null || nullability.Type != type && Nullable.GetUnderlyingType(nullability.Type) != type || !type.IsGenericType)
             {
                 return null;
             }
 
-            var arguments = type.GetGenericArguments();
-            return position < arguments.Length && arguments[position] == argument && nullability.GenericTypeArguments.Length == arguments.Length
-                ? nullability.GenericTypeArguments[position]
+            var definition = type.GetGenericTypeDefinition();
+            var parameter = definition.GetInterfaces().Prepend(definition)
+                .Where(candidate => candidate.IsGenericType && interfaces.Contains(candidate.GetGenericTypeDefinition()))
+                .Select(candidate => candidate.GetGenericArguments()[interfaceArgument])
+                .FirstOrDefault(argument => argument.IsGenericParameter);
+
+            return parameter != null && parameter.GenericParameterPosition < nullability.GenericTypeArguments.Length
+                ? nullability.GenericTypeArguments[parameter.GenericParameterPosition]
                 : null;
         }
 

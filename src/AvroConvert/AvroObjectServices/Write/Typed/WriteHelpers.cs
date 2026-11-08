@@ -252,10 +252,18 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
             "give it a schema that allows null (e.g. [\"null\", \"string\"]), " +
             "or set AvroConvertOptions.NullValueHandling = AvroNullValueHandling.WriteEmpty to write an empty value instead (AvroConvert 3.x behaviour).";
 
+        internal const string NullKeyedValueHint =
+            "A dictionary with keys other than string is an array of {Key, Value} records, and string? on its values does not reach " +
+            "that record: use a Dictionary<string, T?>, give a schema with [\"null\", T] values, " +
+            "or set AvroConvertOptions.NullValueHandling = AvroNullValueHandling.WriteEmpty to write an empty value instead (AvroConvert 3.x behaviour).";
+
         /// <param name="context">Where the value sits ("User.name", "User.tags[]", "User.labels[key]"); null for the root value.</param>
         internal static string NullMessage(string context, TypeSchema schema) =>
             $"{(context == null ? "The value" : $"Field '{context}'")} is null, but its schema {Describe(schema)} does not allow null. " +
-            (context == null ? NullRootHint : context.EndsWith(']') ? NullItemHint : NullHint);
+            (context == null ? NullRootHint
+                : context.EndsWith(']') ? NullItemHint
+                : context.StartsWith("KeyValuePair2.", StringComparison.Ordinal) ? NullKeyedValueHint
+                : NullHint);
 
         internal static string Describe(TypeSchema schema) => schema switch
         {

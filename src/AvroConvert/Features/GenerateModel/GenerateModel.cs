@@ -83,7 +83,7 @@ namespace SolTechnology.Avro.Features.GenerateModel
                 sb.Insert(0, usings + "\n");
             }
 
-            if (HasNullableTypes(sb.ToString()))
+            if (HasNullableReferences(model))
             {
                 // string? and Item?[] give ["null", T] only where the compiler keeps the annotation, so the file turns it on
                 // whatever the project's <Nullable> is. Annotations only: no warnings about uninitialised members.
@@ -94,8 +94,23 @@ namespace SolTechnology.Avro.Features.GenerateModel
             return sb.Replace("\r\n", "\n").Replace("\n", "\r\n").ToString();
         }
 
-        /// <summary>A type with "?" (int?, string?, Item?[]): a nullable reference among them needs the annotation context.</summary>
-        private static bool HasNullableTypes(string code) => Regex.IsMatch(code, @"[\w\]>]\?[\s\[\],>]");
+        private static readonly HashSet<string> ValueTypes = new()
+        {
+            "bool", "int", "long", "float", "double", "decimal", "DateTime", "DateTimeOffset", "DateOnly", "TimeOnly", "TimeSpan", "Guid"
+        };
+
+        /// <summary>
+        /// A member type with a nullable reference (string?, Item?, byte[]?, string?[], Dictionary&lt;string,string?&gt;): those
+        /// need the annotation context. int? and an enum? are Nullable&lt;T&gt; without it.
+        /// </summary>
+        private static bool HasNullableReferences(NetModel.NetModel model)
+        {
+            var valueTypes = new HashSet<string>(ValueTypes.Concat(model.NetTypes.OfType<NetEnum>().Select(e => e.Name)));
+            return model.NetTypes.OfType<NetClass>()
+                .SelectMany(netClass => netClass.Fields)
+                .SelectMany(field => Regex.Matches(field.FieldType, @"([\w\]>]+)\?").Select(match => match.Groups[1].Value))
+                .Any(type => !valueTypes.Contains(type));
+        }
 
         /// <summary>The using directives the generated code needs, so that it compiles as it is.</summary>
         private static string Usings(string code)

@@ -30,17 +30,22 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
                     .GetValue(nullableAttribute) ?? EmptyFlags;
             }
 
-            var nullableContextAttribute = member.DeclaringType?
-                .GetCustomAttributes(false)
-                .FirstOrDefault(a => a.GetType().FullName == "System.Runtime.CompilerServices.NullableContextAttribute");
-
-            if (nullableContextAttribute != null)
+            // The context of the declaring type, or of a type it is nested in: the compiler leaves it out of a nested type
+            // whose members share the context of the outer one.
+            for (var type = member.DeclaringType; type != null; type = type.DeclaringType)
             {
-                var value = nullableContextAttribute.GetType()
-                    .GetRuntimeField("Flag")?
-                    .GetValue(nullableContextAttribute) ?? 0;
+                var nullableContextAttribute = type
+                    .GetCustomAttributes(false)
+                    .FirstOrDefault(a => a.GetType().FullName == "System.Runtime.CompilerServices.NullableContextAttribute");
 
-                return new[] {(byte) value};
+                if (nullableContextAttribute != null)
+                {
+                    var value = nullableContextAttribute.GetType()
+                        .GetRuntimeField("Flag")?
+                        .GetValue(nullableContextAttribute) ?? 0;
+
+                    return new[] {(byte) value};
+                }
             }
 
             return EmptyFlags;

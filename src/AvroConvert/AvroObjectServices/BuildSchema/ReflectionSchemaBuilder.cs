@@ -299,7 +299,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
             if (type.IsArray)
             {
-                return BuildArrayTypeSchema(type, schemas, currentDepth, representation, nullability?.Type == type ? nullability.ElementType : null);
+                return BuildArrayTypeSchema(type, schemas, currentDepth, representation, Describes(nullability, type) ? nullability.ElementType : null);
             }
 
             // Shape known only at runtime: same empty record as `object`, so readers fall back to the writer schema.
@@ -415,12 +415,52 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             return new ArraySchema(elementSchema, type);
         }
 
-        private NullabilityInfo MemberNullability(MemberInfo member) => member switch
+        private NullabilityInfo MemberNullability(MemberInfo member)
         {
-            PropertyInfo property => _nullability.Create(property),
-            FieldInfo field => _nullability.Create(field),
-            _ => null
-        };
+            // In a generic class the info of Page<string>.Items cannot tell List<T> from List<T?>: .NET reports a type parameter
+            // as nullable either way. The member of the open definition (Page<>) shows which positions are type parameters, and
+            // those are left as they are (IsNullableReference).
+            if (member?.DeclaringType is { IsGenericType: true, IsGenericTypeDefinition: false } declaring)
+            {
+                member = declaring.GetGenericTypeDefinition()
+                    .GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly)
+                    .FirstOrDefault(candidate => candidate.MetadataToken == member.MetadataToken && candidate.Module == member.Module);
+            }
+
+            return member switch
+            {
+                PropertyInfo property => _nullability.Create(property),
+                FieldInfo field => _nullability.Create(field),
+                _ => null
+            };
+        }
+
+        /// <summary>
+        /// Whether the info is of this type: the same type, its Nullable&lt;T&gt;, or – read from the open definition of a generic
+        /// class – the same generic type or an array. Not for a member whose type differs from the declared one (object, interfaces).
+        /// </summary>
+        private static bool Describes(NullabilityInfo nullability, Type type)
+        {
+            if (nullability == null)
+            {
+                return false;
+            }
+
+            var declared = Nullable.GetUnderlyingType(nullability.Type) ?? nullability.Type;
+            if (declared == type)
+            {
+                return true;
+            }
+
+            if (!declared.ContainsGenericParameters || declared.IsGenericParameter)
+            {
+                return false;
+            }
+
+            return declared.IsArray
+                ? type.IsArray
+                : declared.IsGenericType && type.IsGenericType && declared.GetGenericTypeDefinition() == type.GetGenericTypeDefinition();
+        }
 
         /// <summary>
         /// The nullability of the items (or values) of a generic collection: the annotation of the type argument that the
@@ -431,7 +471,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         private static NullabilityInfo GenericArgumentNullability(Type type, NullabilityInfo nullability, int interfaceArgument, params Type[] interfaces)
         {
             // For a nullable struct (ImmutableArray<string?>?) the info is of Nullable<T>, with the type arguments of T.
-            if (nullability == null || nullability.Type != type && Nullable.GetUnderlyingType(nullability.Type) != type || !type.IsGenericType)
+            if (!Describes(nullability, type) || !type.IsGenericType)
             {
                 return null;
             }
@@ -447,9 +487,12 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 : null;
         }
 
-        /// <summary>A reference type annotated as nullable (string?, City?) where nullable reference types are enabled.</summary>
+        /// <summary>
+        /// A reference type annotated as nullable (string?, City?) where nullable reference types are enabled. A type parameter
+        /// of a generic class (List&lt;T&gt; in Page&lt;T&gt;) is not: its annotation cannot be told from its absence.
+        /// </summary>
         private static bool IsNullableReference(Type type, NullabilityInfo nullability) =>
-            nullability != null && !type.IsValueType && nullability.ReadState == NullabilityState.Nullable;
+            nullability != null && !type.IsValueType && !nullability.Type.IsGenericParameter && nullability.ReadState == NullabilityState.Nullable;
 
         /// <summary>
         /// Generates the record type schema.

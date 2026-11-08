@@ -124,6 +124,66 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             schema.Should().Contain("{\"name\":\"OptionalTags\",\"type\":[\"null\",{\"type\":\"array\",\"items\":[\"null\",\"string\"]}]}");
         }
 
+        // The compiler puts the nullable context of ContextInner on ContextOuter (most of ContextOuter's members are string?), not on ContextInner.
+        public class ContextOuter
+        {
+            public string? A { get; set; }
+            public string? B { get; set; }
+            public string? C { get; set; }
+
+            public class ContextInner
+            {
+                public string? Name { get; set; }
+                public List<string?>? Tags { get; set; }
+                public string? Other { get; set; }
+            }
+        }
+
+        [Test]
+        public void Members_of_a_class_nested_in_another_take_the_context_of_the_outer_one()
+        {
+            var schema = AvroSchema.Create<ContextOuter.ContextInner>().Json;
+
+            schema.Should().Contain("{\"name\":\"Name\",\"type\":[\"null\",\"string\"]}");
+            schema.Should().Contain("{\"name\":\"Tags\",\"type\":[\"null\",{\"type\":\"array\",\"items\":[\"null\",\"string\"]}]}");
+        }
+
+        public class WithIntKeys
+        {
+            public Dictionary<int, string?> Labels { get; set; } = new();
+        }
+
+        [Test]
+        public void Null_value_of_a_dictionary_with_other_keys_says_why_the_annotation_does_not_help()
+        {
+            var exception = Recorded.Exception(() => AvroConvert.Serialize(new WithIntKeys { Labels = new() { [1] = null } }));
+
+            exception.Message.Should().Contain("A dictionary with keys other than string is an array of {Key, Value} records")
+                .And.NotContain("Declare the member as nullable");
+        }
+
+        public class Page<T>
+        {
+            public List<T> Items { get; set; } = new();
+            public T[] Array { get; set; } = [];
+            public Dictionary<string, T> ById { get; set; } = new();
+            public List<string?> Notes { get; set; } = new();
+            public List<string> Names { get; set; } = new();
+        }
+
+        [Test]
+        public void Items_of_a_type_parameter_stay_as_they_are()
+        {
+            // .NET reports T of Page<string> as nullable whether or not it is written T?, so only annotations on concrete types count.
+            var schema = AvroSchema.Create<Page<string>>().Json;
+
+            schema.Should().Contain("{\"name\":\"Items\",\"type\":{\"type\":\"array\",\"items\":\"string\"}}");
+            schema.Should().Contain("{\"name\":\"Array\",\"type\":{\"type\":\"array\",\"items\":\"string\"}}");
+            schema.Should().Contain("{\"name\":\"ById\",\"type\":{\"type\":\"map\",\"values\":\"string\"}}");
+            schema.Should().Contain("{\"name\":\"Notes\",\"type\":{\"type\":\"array\",\"items\":[\"null\",\"string\"]}}");
+            schema.Should().Contain("{\"name\":\"Names\",\"type\":{\"type\":\"array\",\"items\":\"string\"}}");
+        }
+
         [Test]
         public void Annotations_without_nullable_warnings_are_enough()
         {

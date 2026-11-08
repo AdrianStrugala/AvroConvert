@@ -78,6 +78,22 @@ namespace SolTechnology.Avro.Features.AvroToJson
                 case byte[] bytes:
                     writer.WriteValue(bytes);
                     return;
+                // Logical types: the JsonWriter overloads Newtonsoft calls for them with its default settings.
+                case decimal number:
+                    writer.WriteValue(number);
+                    return;
+                case DateTime date:
+                    writer.WriteValue(date);
+                    return;
+                case DateTimeOffset date:
+                    writer.WriteValue(date);
+                    return;
+                case Guid guid:
+                    writer.WriteValue(guid);
+                    return;
+                case TimeSpan time:
+                    writer.WriteValue(time);
+                    return;
                 case Dictionary<string, object> record:
                     RuntimeHelpers.EnsureSufficientExecutionStack();
                     writer.WriteStartObject();
@@ -105,7 +121,7 @@ namespace SolTechnology.Avro.Features.AvroToJson
                     WriteArray(writer, items);
                     return;
                 default:
-                    // Logical types (decimal, DateTime, Guid…) and anything else.
+                    // DateOnly, TimeOnly and anything else.
                     Serializer.Serialize(writer, value);
                     return;
             }
@@ -129,7 +145,9 @@ namespace SolTechnology.Avro.Features.AvroToJson
             {
                 case string name:
                     return name;
-                case int or long or Guid:
+                // Newtonsoft names these with Convert.ToString in the invariant culture; dates and floating point have formats of their own.
+                case Guid:
+                case IConvertible and not (DateTime or double or float or Enum):
                     return Convert.ToString(key, CultureInfo.InvariantCulture);
             }
 

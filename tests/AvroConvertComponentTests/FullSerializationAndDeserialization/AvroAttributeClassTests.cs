@@ -70,8 +70,9 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
         }
 
         [Test]
-        public void Default_values_are_replacing_nulls([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
+        public void Nulls_stay_null_although_the_fields_have_defaults([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
+            // Avro specification, "default": only used when reading instances that lack the field.
             //Arrange
             DefaultValueClass defaultValueClass = new DefaultValueClass();
             defaultValueClass.andLongBigDefaultedProperty = null;
@@ -83,10 +84,27 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
             //Assert
             deserialized.Should().NotBeNull();
-            deserialized.justSomeProperty.Should().Be("Let's go");
-            deserialized.andLongBigDefaultedProperty.Should().Be(9200000000000000007);
-            deserialized.andLongSmallDefaultedProperty.Should().Be(100);
+            deserialized.justSomeProperty.Should().BeNull();
+            deserialized.andLongBigDefaultedProperty.Should().BeNull();
+            deserialized.andLongSmallDefaultedProperty.Should().BeNull();
             deserialized.andNullProperty.Should().BeNull();
+        }
+
+        [Test]
+        public void Nulls_stay_null_in_Avro2Json_and_dictionaries_although_the_fields_have_defaults()
+        {
+            //Arrange
+            var avro = AvroConvert.Serialize(new DefaultValueClass { justSomeProperty = null, andLongSmallDefaultedProperty = null, andLongBigDefaultedProperty = 5 });
+
+            //Act
+            var json = AvroConvert.Avro2Json(avro);
+            var dictionary = AvroConvert.Deserialize<Dictionary<string, object>>(avro);
+
+            //Assert
+            json.Should().Be("{\"justSomeProperty\":null,\"andLongProperty\":null,\"andLongBigDefaultedProperty\":5,\"andLongSmallDefaultedProperty\":null,\"andNullProperty\":null}");
+            dictionary["justSomeProperty"].Should().BeNull();
+            dictionary["andLongSmallDefaultedProperty"].Should().BeNull();
+            dictionary["andLongBigDefaultedProperty"].Should().Be(5L);
         }
 
         [Test]

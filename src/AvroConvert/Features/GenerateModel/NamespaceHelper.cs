@@ -36,9 +36,7 @@ namespace SolTechnology.Avro.Features.GenerateModel
                 {
                     foreach (var avroField in model.NetTypes.OfType<NetClass>().ToList()
                                  .SelectMany(c => c.Fields.Concat(c.Fields.SelectMany(f => f.UnionMembers)))
-                                 .Where(f => (f.FieldType == netClass.Name ||
-                                              f.FieldType == netClass.Name + "[]" ||
-                                              f.FieldType == netClass.Name + "?") &&
+                                 .Where(f => ElementType(f.FieldType) == netClass.Name &&
                                              f.Namespace == netClass.ClassNamespace))
                     {
                         if (!string.IsNullOrWhiteSpace(avroField.Namespace))
@@ -75,25 +73,15 @@ namespace SolTechnology.Avro.Features.GenerateModel
             }
         }
 
-        internal string ExtractNamespace(JObject typeObj, string longName, string shortName)
+        /// <summary>The type an array or a nullable is of: <c>Id</c> for <c>Id</c>, <c>Id?</c>, <c>Id[]</c>, <c>Id[]?</c>, <c>Id?[][]</c>.</summary>
+        private static string ElementType(string fieldType)
         {
-            string @namespace = "";
-            if (typeObj.ContainsKey("namespace"))
+            var type = fieldType;
+            while (type.EndsWith("?") || type.EndsWith("[]"))
             {
-                @namespace = typeObj["namespace"].ToString();
+                type = type.EndsWith("?") ? type[..^1] : type[..^2];
             }
-            else
-            {
-                int place = longName.LastIndexOf(shortName, StringComparison.InvariantCulture);
-                if (place >= 0)
-                {
-                    @namespace = longName.Remove(place, shortName.Length);
-                }
-            }
-
-            @namespace = @namespace.Replace(".", "");
-
-            return @namespace;
+            return type;
         }
     }
 }

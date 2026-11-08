@@ -32,6 +32,12 @@ namespace SolTechnology.Avro.Infrastructure.Extensions
 {
     internal static class TypeExtensions
     {
+        /// <summary>
+        /// Whether a record or enum of this name is the type: its CLR name or the name of its [DataContract], which a schema
+        /// built from the type takes. Used for the alternatives of [AvroUnion], on read and write alike.
+        /// </summary>
+        internal static bool HasSchemaName(this Type type, string name) =>
+            type.Name == name || type.GetCustomAttribute<DataContractAttribute>()?.Name is { Length: > 0 } contractName && contractName == name;
 
         internal static bool IsUnsupported(this Type type)
         {

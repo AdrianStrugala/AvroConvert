@@ -104,7 +104,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
         }
 
         [Test]
-        public void Class_with_enums_with_default_values([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
+        public void Class_with_enums_with_default_values_keeps_nulls([ValueSource(typeof(Formats), nameof(Formats.All))] Format format)
         {
             //Arrange
             ClassWithEnum toSerialize = _fixture.Create<ClassWithEnum>();
@@ -118,8 +118,9 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
 
             //Assert
             deserialized.Should().NotBeNull();
-            deserialized.EnumProp.Should().Be(TestEnum.be);
-            deserialized.SecondEnumProp.Should().Be(TestEnum.ca);
+            // The schema default is only for data that lacks the field (Avro specification), not for a written null.
+            deserialized.EnumProp.Should().BeNull();
+            deserialized.SecondEnumProp.Should().BeNull();
         }
 
         [Test]
@@ -136,8 +137,8 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             //Assert
             deserialized.Should().NotBeNull();
             deserialized.EnumProp.Should().Be(TestEnumWithMembers.Positive);
-            deserialized.EnumPropWithDefault.Should().Be(TestEnumWithMembers.Negative);
-            deserialized.EnumPropWithStringDefault.Should().Be(TestEnumWithMembers.Negative);
+            deserialized.EnumPropWithDefault.Should().Be(toSerialize.EnumPropWithDefault);
+            deserialized.EnumPropWithStringDefault.Should().BeNull();
         }
 
         [Test]

@@ -145,4 +145,35 @@ public class ContainerFileInteropTests
 
         apache.Should().BeEquivalentTo(Schema.Parse(AvroConvert.GenerateSchema(typeof(InteropRecord))));
     }
+
+    [Test]
+    public void ApacheWrites_LogicalTypeOnNamedType_AvroConvertReadsHeader()
+    {
+        // Apache.Avro for C# writes a logical type on a fixed or an enum as {"type": {definition}, "logicalType": ...}.
+        const string source = """
+            {"type":"record","name":"Payment","namespace":"interop","fields":[
+              {"name":"Amount","type":{"type":"fixed","name":"Money","size":12,"logicalType":"decimal","precision":28,"scale":2}},
+              {"name":"Optional","type":["null",{"type":"fixed","name":"OptionalMoney","size":12,"logicalType":"decimal","precision":28,"scale":2}],"default":null},
+              {"name":"Kind","type":{"type":"enum","name":"Kind","symbols":["Card","Wire"],"logicalType":"custom-enum"}}]}
+            """;
+        var schema = (RecordSchema)Schema.Parse(source);
+        var kind = (EnumSchema)((LogicalSchema)schema["Kind"].Schema).BaseSchema;
+        var record = new GenericRecord(schema);
+        record.Add("Amount", new AvroDecimal(1234.56m));
+        record.Add("Optional", new AvroDecimal(-0.01m));
+        record.Add("Kind", new GenericEnum(kind, "Wire"));
+        var empty = new GenericRecord(schema);
+        empty.Add("Amount", new AvroDecimal(0.00m));
+        empty.Add("Optional", null);
+        empty.Add("Kind", new GenericEnum(kind, "Card"));
+
+        var bytes = ApacheAvro.WriteContainer(schema, ApacheAvro.CreateCodec("null"), record, empty);
+
+        AvroConvert.GetSchema(bytes).Should().Contain("\"type\":{\"type\":\"fixed\"", "the header has Apache's wrapper form");
+        AvroConvert.Avro2Json(bytes).Should().Be("""[{"Amount":1234.56,"Optional":-0.01,"Kind":"Wire"},{"Amount":0.0,"Optional":null,"Kind":"Card"}]""");
+        var payments = AvroConvert.Deserialize<List<Dictionary<string, object>>>(bytes);
+        payments[0]["Amount"].Should().Be(1234.56m);
+        payments[1]["Optional"].Should().BeNull();
+        AvroSchema.Parse(AvroConvert.GetSchema(bytes)).CanonicalForm.Should().Be(AvroSchema.Parse(source).CanonicalForm);
+    }
 }

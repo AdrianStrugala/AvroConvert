@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace SolTechnology.Avro.Features.GenerateModel.NetModel
@@ -15,7 +16,7 @@ namespace SolTechnology.Avro.Features.GenerateModel.NetModel
             WriteDataContract(sb, Name, AvroName, AvroNamespace);
             sb.AppendLine($"public enum {Name}");
             sb.AppendLine("{");
-            sb.AppendLine($"	{string.Join(",\r\n	", Symbols)}");
+            sb.AppendLine($"	{string.Join(",\r\n	", Symbols.Select(CSharp.Identifier))}");
             sb.AppendLine("}");
             sb.AppendLine();
         }

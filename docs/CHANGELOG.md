@@ -82,6 +82,7 @@ Changes:
 - A failed serialization does not leave a data block that looks complete
 - Fix for a recursive record without a matching class read into `dynamic` or `ExpandoObject`: it ended the process with a stack overflow
 - Data nested too deep and schemas without an end throw instead of ending the process with a stack overflow
+- `Avro2Json` of data nested deep enough to be read but not written as JSON (about 1,200 levels on a 1 MB stack) throws instead of ending the process: the JSON is written with a stack check at every level
 - Fix for `OpenDeserializer<ExpandoObject>` returning objects without fields
 - Fix for `GetSchema(path)` on read-only files and files open elsewhere
 - Fix for `Merge` losing data after the first block

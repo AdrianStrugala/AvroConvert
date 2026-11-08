@@ -21,6 +21,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Newtonsoft.Json;
+using SolTechnology.Avro.Infrastructure;
 
 namespace SolTechnology.Avro.Features.AvroToJson
 {
@@ -36,7 +37,7 @@ namespace SolTechnology.Avro.Features.AvroToJson
     /// </remarks>
     internal static class JsonOutput
     {
-        private static readonly JsonSerializer Serializer = JsonSerializer.Create();
+        private static readonly JsonSerializer Serializer = Json.Serializer;
 
         internal static string Write(object value)
         {

@@ -146,8 +146,8 @@ internal sealed class DefaultValueResolver
     private Dictionary<string, object> ParseMap(TypeSchema schema, string jsonObject)
     {
         var mapSchema = (MapSchema)schema;
-        return JsonConvert
-            .DeserializeObject<Dictionary<string, JToken>>(jsonObject)
+        return Json
+            .Deserialize<Dictionary<string, JToken>>(jsonObject)
             .Select(d => new { d.Key, Value = this.Parse(mapSchema.ValueSchema, d.Value.ToString()) })
             .ToDictionary(o => o.Key, o => o.Value);
     }
@@ -157,7 +157,7 @@ internal sealed class DefaultValueResolver
         var recordSchema = (RecordSchema)schema;
         var result = new Dictionary<string, object>();
 
-        var data = JsonConvert.DeserializeObject<Dictionary<string, JToken>>(jsonObject);
+        var data = Json.Deserialize<Dictionary<string, JToken>>(jsonObject);
 
         foreach (var datum in data)
         {

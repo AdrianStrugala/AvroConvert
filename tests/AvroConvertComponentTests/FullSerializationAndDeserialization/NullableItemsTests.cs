@@ -1,0 +1,114 @@
+#nullable enable
+using System.Collections.Generic;
+using AwesomeAssertions;
+using NUnit.Framework;
+using SolTechnology.Avro;
+
+namespace AvroConvertComponentTests.FullSerializationAndDeserialization
+{
+    /// <summary>Items of arrays and values of maps annotated as nullable (string?, City?) are a union with "null".</summary>
+    public class NullableItemsTests
+    {
+        public class City
+        {
+            public string Name { get; set; } = "";
+        }
+
+        public class WithNullableItems
+        {
+            public List<string?> Names { get; set; } = new();
+            public string?[] Codes { get; set; } = [];
+            public IReadOnlyList<City?> Cities { get; set; } = [];
+            public Dictionary<string, string?> Labels { get; set; } = new();
+            public List<List<string?>> Rows { get; set; } = new();
+            public List<string?>? Optional { get; set; }
+            public int?[] Numbers { get; set; } = [];
+        }
+
+        public class WithNonNullableItems
+        {
+            public List<string> Names { get; set; } = new();
+            public Dictionary<string, string> Labels { get; set; } = new();
+            public List<string>? Optional { get; set; }
+        }
+
+        [Test]
+        public void Nullable_items_and_values_are_a_union_with_null()
+        {
+            var schema = AvroSchema.Create<WithNullableItems>().Json;
+
+            schema.Should().Contain("{\"name\":\"Names\",\"type\":{\"type\":\"array\",\"items\":[\"null\",\"string\"]}}");
+            schema.Should().Contain("{\"name\":\"Codes\",\"type\":{\"type\":\"array\",\"items\":[\"null\",\"string\"]}}");
+            schema.Should().Contain("{\"name\":\"Cities\",\"type\":{\"type\":\"array\",\"items\":[\"null\",{");
+            schema.Should().Contain("{\"name\":\"Labels\",\"type\":{\"type\":\"map\",\"values\":[\"null\",\"string\"]}}");
+            schema.Should().Contain("{\"name\":\"Rows\",\"type\":{\"type\":\"array\",\"items\":{\"type\":\"array\",\"items\":[\"null\",\"string\"]}}}");
+            schema.Should().Contain("{\"name\":\"Optional\",\"type\":[\"null\",{\"type\":\"array\",\"items\":[\"null\",\"string\"]}]}");
+            schema.Should().Contain("{\"name\":\"Numbers\",\"type\":{\"type\":\"array\",\"items\":[\"null\",\"int\"]}}");
+        }
+
+        [Test]
+        public void Items_and_values_not_annotated_as_nullable_stay_as_they_are()
+        {
+            var schema = AvroSchema.Create<WithNonNullableItems>().Json;
+
+            schema.Should().Contain("{\"name\":\"Names\",\"type\":{\"type\":\"array\",\"items\":\"string\"}}");
+            schema.Should().Contain("{\"name\":\"Labels\",\"type\":{\"type\":\"map\",\"values\":\"string\"}}");
+            schema.Should().Contain("{\"name\":\"Optional\",\"type\":[\"null\",{\"type\":\"array\",\"items\":\"string\"}]}");
+        }
+
+        [Test]
+        public void Null_items_and_values_round_trip([ValueSource(typeof(Formats), nameof(Formats.Core))] Format format)
+        {
+            var value = new WithNullableItems
+            {
+                Names = new() { "a", null },
+                Codes = [null, "c"],
+                Cities = [new City { Name = "Wroclaw" }, null],
+                Labels = new() { ["x"] = null, ["y"] = "z" },
+                Rows = new() { new() { null, "r" } },
+                Optional = new() { null },
+                Numbers = [1, null]
+            };
+
+            var result = RoundTrip.Run<WithNullableItems>(value, format);
+
+            result.Should().BeEquivalentTo(value);
+        }
+
+        [Test]
+        public void Null_item_where_items_are_not_nullable_names_the_items_in_the_error()
+        {
+            var value = new WithNonNullableItems { Names = new() { "a", null! } };
+
+            var exception = Recorded.Exception(() => AvroConvert.Serialize(value));
+
+            exception.Message.Should().Contain("Field 'WithNonNullableItems.Names[]' is null")
+                .And.Contain("Declare the items as nullable (List<string?>, string?[], Dictionary<string, string?>")
+                .And.NotContain("Declare the member as nullable");
+        }
+
+        [Test]
+        public void Model_generated_for_nullable_items_gives_back_the_same_schema()
+        {
+            const string source = @"{""type"":""record"",""name"":""Tagged"",""namespace"":""shop"",""fields"":[
+                {""name"":""tags"",""type"":{""type"":""array"",""items"":[""null"",""string""]}},
+                {""name"":""labels"",""type"":{""type"":""map"",""values"":[""null"",""string""]}}]}";
+
+            var model = AvroConvert.GenerateModel(source);
+
+            model.Should().Contain("\tpublic string?[] tags { get; set; }\r\n").And.Contain("\tpublic Dictionary<string,string?> labels { get; set; }\r\n");
+            AvroSchema.Create<GeneratedTagged>().CanonicalForm.Should().Be(AvroSchema.Parse(source).CanonicalForm);
+        }
+
+        // What GenerateModel gives for the schema above.
+        [System.Runtime.Serialization.DataContract(Name = "Tagged", Namespace = "shop")]
+        public class GeneratedTagged
+        {
+            [System.Runtime.Serialization.DataMember]
+            public string?[] tags { get; set; } = [];
+
+            [System.Runtime.Serialization.DataMember]
+            public Dictionary<string, string?> labels { get; set; } = new();
+        }
+    }
+}

@@ -8,6 +8,7 @@ Breaking changes:
 - A missing non-nullable field throws instead of returning `default` (#87). Old behaviour: `MissingFieldHandling = UseDefault`
 - Serializing `null` into a non-nullable field throws instead of writing an empty value (#87). Old behaviour: `NullValueHandling = WriteEmpty`
 - A `null` in the data is read as `null`, also when the field has a default (`[DefaultValue]`): the default is only for data that lacks the field, as in the specification and other Avro libraries. 3.x and the previews read the default instead (`Deserialize`, `Avro2Json`, dictionaries)
+- Items and values annotated as nullable reference types are a union with `null`: `List<string?>` gives `"items": ["null", "string"]`, `Dictionary<string, string?>` gives `"values": ["null", "string"]` (also `string?[]`, nested collections). 3.x and the previews gave `"string"`, so a `null` item threw (3.x wrote `""`). The schema of such a class changes; Schema Registry in the default `BACKWARD` mode accepts it, `FORWARD` and `FULL` do not. Without `#nullable enable` nothing changes
 - `[DefaultValue(Color.Red)]` on an enum member gives `"default": "Red"`, the symbol, as the specification requires; 3.x wrote the number, which Java and Confluent Schema Registry reject
 - `DeserializeHeadless<List<T>>` reads all rows, not only the first one (#69)
 - Read objects are created with their public parameterless constructor, like in System.Text.Json; a field missing in the data keeps its initialiser

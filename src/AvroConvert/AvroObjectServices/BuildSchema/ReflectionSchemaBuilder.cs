@@ -109,6 +109,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         private readonly AvroContractResolver _resolver;
         private readonly IAvroNamingPolicy _namingPolicy;
         private readonly HashSet<Type> _recordsInProgress = new();
+        private readonly NullabilityInfoContext _nullability = new();
 
         internal ReflectionSchemaBuilder(AvroConvertOptions options = null)
         {
@@ -144,7 +145,8 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             uint currentDepth,
             AvroTypeRepresentation? representation,
             Type prioritizedType = null,
-            MemberInfo memberInfo = null)
+            MemberInfo memberInfo = null,
+            NullabilityInfo nullability = null)
         {
             if (currentDepth == _options.MaxItemsInSchemaTree)
             {
@@ -166,12 +168,15 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                     string.Format(CultureInfo.InvariantCulture, "Unexpected type info returned for type '{0}'.", type));
             }
 
+            // The nullability of the items and values comes from the member: List<string?> has its annotation there, not on the type.
+            nullability ??= MemberNullability(memberInfo);
+
             return typeInfo.Nullable || forceNullable
-                ? this.CreateNullableSchema(type, schemas, currentDepth, prioritizedType, memberInfo, representation)
-                : this.CreateNotNullableSchema(type, schemas, currentDepth, memberInfo, representation);
+                ? this.CreateNullableSchema(type, schemas, currentDepth, prioritizedType, memberInfo, representation, nullability)
+                : this.CreateNotNullableSchema(type, schemas, currentDepth, memberInfo, representation, nullability);
         }
 
-        private TypeSchema CreateNullableSchema(Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth, Type prioritizedType, MemberInfo info, AvroTypeRepresentation? representation)
+        private TypeSchema CreateNullableSchema(Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth, Type prioritizedType, MemberInfo info, AvroTypeRepresentation? representation, NullabilityInfo nullability)
         {
             var typeSchemas = new List<TypeSchema> { new NullSchema(type) };
             var notNullableType = type;
@@ -181,7 +186,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 notNullableType = underlyingType;
             }
 
-            var notNullableSchema = this.CreateNotNullableSchema(notNullableType, schemas, currentDepth, info, representation);
+            var notNullableSchema = this.CreateNotNullableSchema(notNullableType, schemas, currentDepth, info, representation, nullability);
             if (notNullableSchema is UnionSchema unionSchema)
             {
                 typeSchemas.AddRange(unionSchema.Schemas);
@@ -209,7 +214,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         /// New instance of schema.
         /// </returns>
         /// <exception cref="System.Runtime.Serialization.SerializationException">Thrown when maximum depth of object graph is reached.</exception>
-        private TypeSchema CreateNotNullableSchema(Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth, MemberInfo info, AvroTypeRepresentation? representation)
+        private TypeSchema CreateNotNullableSchema(Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth, MemberInfo info, AvroTypeRepresentation? representation, NullabilityInfo nullability = null)
         {
             //Forced type
             if (representation != null)
@@ -237,7 +242,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             }
 
             //Others
-            return BuildComplexTypeSchema(type, schemas, currentDepth, info, representation);
+            return BuildComplexTypeSchema(type, schemas, currentDepth, info, representation, nullability);
         }
 
         private static TypeSchema TryBuildPrimitiveTypeSchema(Type type)
@@ -285,7 +290,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         ///     New instance of schema.
         /// </returns>
         /// <exception cref="System.Runtime.Serialization.SerializationException">Thrown when <paramref name="type"/> is not supported.</exception>
-        private TypeSchema BuildComplexTypeSchema(Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth, MemberInfo info, AvroTypeRepresentation? representation)
+        private TypeSchema BuildComplexTypeSchema(Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth, MemberInfo info, AvroTypeRepresentation? representation, NullabilityInfo nullability)
         {
             if (type.IsEnum())
             {
@@ -294,7 +299,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
             if (type.IsArray)
             {
-                return BuildArrayTypeSchema(type, schemas, currentDepth, representation);
+                return BuildArrayTypeSchema(type, schemas, currentDepth, representation, nullability?.Type == type ? nullability.ElementType : null);
             }
 
             // Shape known only at runtime: same empty record as `object`, so readers fall back to the writer schema.
@@ -308,9 +313,10 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
             if (dictionaryArguments is { } kv && (kv.Key == typeof(string) || kv.Key == typeof(Uri)))
             {
+                var valueNullability = GenericArgumentNullability(type, nullability, kv.Value, 1);
                 return new MapSchema(
                     this.CreateNotNullableSchema(kv.Key, schemas, currentDepth + 1, info, representation),
-                    this.CreateSchema(false, kv.Value, schemas, currentDepth + 1, representation),
+                    this.CreateSchema(IsNullableReference(kv.Value, valueNullability), kv.Value, schemas, currentDepth + 1, representation, nullability: valueNullability),
                     type);
             }
 
@@ -319,7 +325,8 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             if (enumerableType != null)
             {
                 var itemType = enumerableType.GetGenericArguments()[0];
-                return new ArraySchema(this.CreateSchema(false, itemType, schemas, currentDepth + 1, representation), type);
+                var itemNullability = GenericArgumentNullability(type, nullability, itemType, 0);
+                return new ArraySchema(this.CreateSchema(IsNullableReference(itemType, itemNullability), itemType, schemas, currentDepth + 1, representation, nullability: itemNullability), type);
             }
 
             //Nullable
@@ -395,7 +402,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         /// <returns>
         ///     A new instance of schema.
         /// </returns>
-        private TypeSchema BuildArrayTypeSchema(Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth, AvroTypeRepresentation? representation)
+        private TypeSchema BuildArrayTypeSchema(Type type, Dictionary<string, NamedSchema> schemas, uint currentDepth, AvroTypeRepresentation? representation, NullabilityInfo elementNullability)
         {
             if (type.GetArrayRank() > 1)
             {
@@ -404,9 +411,37 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             }
 
             Type element = type.GetElementType();
-            TypeSchema elementSchema = this.CreateSchema(false, element, schemas, currentDepth + 1, representation);
+            TypeSchema elementSchema = this.CreateSchema(IsNullableReference(element, elementNullability), element, schemas, currentDepth + 1, representation, nullability: elementNullability);
             return new ArraySchema(elementSchema, type);
         }
+
+        private NullabilityInfo MemberNullability(MemberInfo member) => member switch
+        {
+            PropertyInfo property => _nullability.Create(property),
+            FieldInfo field => _nullability.Create(field),
+            _ => null
+        };
+
+        /// <summary>
+        /// The nullability of a generic argument of the type itself (the string? of List&lt;string?&gt; or Dictionary&lt;string, string?&gt;).
+        /// None for a type that only implements the collection interface (class Tags : List&lt;string?&gt;), which has no annotation for it.
+        /// </summary>
+        private static NullabilityInfo GenericArgumentNullability(Type type, NullabilityInfo nullability, Type argument, int position)
+        {
+            if (nullability?.Type != type || !type.IsGenericType)
+            {
+                return null;
+            }
+
+            var arguments = type.GetGenericArguments();
+            return position < arguments.Length && arguments[position] == argument && nullability.GenericTypeArguments.Length == arguments.Length
+                ? nullability.GenericTypeArguments[position]
+                : null;
+        }
+
+        /// <summary>A reference type annotated as nullable (string?, City?) where nullable reference types are enabled.</summary>
+        private static bool IsNullableReference(Type type, NullabilityInfo nullability) =>
+            nullability != null && !type.IsValueType && nullability.ReadState == NullabilityState.Nullable;
 
         /// <summary>
         /// Generates the record type schema.

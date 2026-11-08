@@ -10,7 +10,7 @@ Breaking changes:
 - A `null` in the data is read as `null`, also when the field has a default (`[DefaultValue]`): the default is only for data that lacks the field, as in the specification and other Avro libraries. 3.x and the previews read the default instead (`Deserialize`, `Avro2Json`, dictionaries)
 - Items and values annotated as nullable reference types are a union with `null`: `List<string?>` gives `"items": ["null", "string"]`, `Dictionary<string, string?>` gives `"values": ["null", "string"]` (also `string?[]`, nested collections). 3.x and the previews gave `"string"`, so a `null` item threw (3.x wrote `""`). The schema of such a class changes; Schema Registry in the default `BACKWARD` mode accepts it, `FORWARD` and `FULL` do not. Without `#nullable enable` nothing changes. A type parameter of a generic class (`List<T>` in `Page<T>`) stays as it was
 - `[DefaultValue(Color.Red)]` on an enum member gives `"default": "Red"`, the symbol, as the specification requires; 3.x wrote the number, which Java and Confluent Schema Registry reject
-- `Avro2Json` does not use `JsonConvert.DefaultSettings` of the application: the names are the names in the schema, and the JSON is compact with ISO 8601 dates, whatever the contract resolver, `Formatting`, date settings or converters set there. 3.x and the previews applied those settings, e.g. a camel-case contract resolver renamed the fields
+- `Avro2Json`, `Json2Avro` and the defaults in schemas do not use `JsonConvert.DefaultSettings` of the application: the names are the names in the schema, and the JSON is compact with ISO 8601 dates, whatever the contract resolver, `Formatting`, date settings or converters set there. 3.x and the previews applied those settings, e.g. a camel-case contract resolver renamed the fields
 - `DeserializeHeadless<List<T>>` reads all rows, not only the first one (#69)
 - Read objects are created with their public parameterless constructor, like in System.Text.Json; a field missing in the data keeps its initialiser
 - `DateTimeOffset` is written as its UTC instant instead of the wall-clock time
@@ -85,7 +85,8 @@ Changes:
 - A failed serialization does not leave a data block that looks complete
 - Fix for a recursive record without a matching class read into `dynamic` or `ExpandoObject`: it ended the process with a stack overflow
 - Data nested too deep and schemas without an end throw instead of ending the process with a stack overflow
-- `Avro2Json` of data nested deep enough to be read but not written as JSON (about 1,200 levels on a 1 MB stack) throws instead of ending the process: the JSON is written with a stack check at every level
+- `Avro2Json` writes the JSON while it reads the data, without building the records as objects first: about 2.4 times faster with almost half the allocations. Data nested deep enough to be read but not written as JSON (about 1,200 levels on a 1 MB stack) ended the process; it throws now
+- `Avro2JsonEncoding` takes about a quarter of the stack per level of nested data: 1,330 levels on a 1 MB stack instead of 348
 - Fix for `OpenDeserializer<ExpandoObject>` returning objects without fields
 - Fix for `GetSchema(path)` on read-only files and files open elsewhere
 - Fix for `Merge` losing data after the first block

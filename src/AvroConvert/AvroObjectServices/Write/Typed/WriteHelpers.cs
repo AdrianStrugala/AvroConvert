@@ -241,9 +241,21 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
             "Declare the member as nullable (string?, int? or [NullableSchema]) so that its schema becomes a union with \"null\", " +
             "or set AvroConvertOptions.NullValueHandling = AvroNullValueHandling.WriteEmpty to write an empty value instead (AvroConvert 3.x behaviour).";
 
-        /// <param name="context">Where the value sits ("User.name", "User.tags[]"); null for the root value.</param>
+        internal const string NullItemHint =
+            "Declare the items as nullable in a member of a class (List<string?>, string?[], Dictionary<string, string?>, int?[], " +
+            "with nullable reference types enabled) so that their schema becomes a union with \"null\". A collection whose item type " +
+            "is a generic parameter carries no annotation: give it a schema with nullable items, " +
+            "or set AvroConvertOptions.NullValueHandling = AvroNullValueHandling.WriteEmpty to write an empty value instead (AvroConvert 3.x behaviour).";
+
+        internal const string NullRootHint =
+            "A value given directly to Serialize, or an item of a collection given to it, carries no nullable annotation: " +
+            "give it a schema that allows null (e.g. [\"null\", \"string\"]), " +
+            "or set AvroConvertOptions.NullValueHandling = AvroNullValueHandling.WriteEmpty to write an empty value instead (AvroConvert 3.x behaviour).";
+
+        /// <param name="context">Where the value sits ("User.name", "User.tags[]", "User.labels[key]"); null for the root value.</param>
         internal static string NullMessage(string context, TypeSchema schema) =>
-            $"{(context == null ? "The value" : $"Field '{context}'")} is null, but its schema {Describe(schema)} does not allow null. {NullHint}";
+            $"{(context == null ? "The value" : $"Field '{context}'")} is null, but its schema {Describe(schema)} does not allow null. " +
+            (context == null ? NullRootHint : context.EndsWith(']') ? NullItemHint : NullHint);
 
         internal static string Describe(TypeSchema schema) => schema switch
         {

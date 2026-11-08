@@ -83,9 +83,19 @@ namespace SolTechnology.Avro.Features.GenerateModel
                 sb.Insert(0, usings + "\n");
             }
 
+            if (HasNullableTypes(sb.ToString()))
+            {
+                // string? and Item?[] give ["null", T] only where the compiler keeps the annotation, so the file turns it on
+                // whatever the project's <Nullable> is. Annotations only: no warnings about uninitialised members.
+                sb.Insert(0, "#nullable enable annotations\n\n");
+            }
+
             // Generated code uses CRLF regardless of the host platform so the output is deterministic.
             return sb.Replace("\r\n", "\n").Replace("\n", "\r\n").ToString();
         }
+
+        /// <summary>A type with "?" (int?, string?, Item?[]): a nullable reference among them needs the annotation context.</summary>
+        private static bool HasNullableTypes(string code) => Regex.IsMatch(code, @"[\w\]>]\?[\s\[\],>]");
 
         /// <summary>The using directives the generated code needs, so that it compiles as it is.</summary>
         private static string Usings(string code)

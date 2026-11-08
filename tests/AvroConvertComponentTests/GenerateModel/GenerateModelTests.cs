@@ -31,7 +31,8 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            resultClass.Should().Be("using System.Runtime.Serialization;\r\n" +
+            resultClass.Should().Be("#nullable enable annotations\r\n\r\n" +
+                "using System.Runtime.Serialization;\r\n" +
                 "\r\n" +
                 "[DataContract(Namespace = \"example.avro\")]\r\n" +
                 "public class User\r\n" +
@@ -57,7 +58,8 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            resultClass.Should().Be("using System.Runtime.Serialization;\r\n" +
+            resultClass.Should().Be("#nullable enable annotations\r\n\r\n" +
+                "using System.Runtime.Serialization;\r\n" +
                 "\r\n" +
                 "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
                 "public class User\r\n" +
@@ -84,7 +86,8 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            resultSchema.Should().Be("using System.Runtime.Serialization;\r\n" +
+            resultSchema.Should().Be("#nullable enable annotations\r\n\r\n" +
+                "using System.Runtime.Serialization;\r\n" +
                 "\r\n" +
                 "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
                 "public class BaseTestClass\r\n" +
@@ -121,7 +124,8 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            resultSchema.Should().Be("using System.ComponentModel;\r\n" +
+            resultSchema.Should().Be("#nullable enable annotations\r\n\r\n" +
+                "using System.ComponentModel;\r\n" +
                 "using System.Runtime.Serialization;\r\n" +
                 "\r\n" +
                 "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
@@ -157,7 +161,8 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            resultSchema.Should().Be("using System;\r\n" +
+            resultSchema.Should().Be("#nullable enable annotations\r\n\r\n" +
+                "using System;\r\n" +
                 "using System.Runtime.Serialization;\r\n" +
                 "\r\n" +
                 "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
@@ -250,7 +255,8 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            resultSchema.Should().Be("using System;\r\n" +
+            resultSchema.Should().Be("#nullable enable annotations\r\n\r\n" +
+                "using System;\r\n" +
                 "using System.Runtime.Serialization;\r\n" +
                 "\r\n" +
                 "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
@@ -348,7 +354,8 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            resultClass.Should().Be("using System.Runtime.Serialization;\r\n" +
+            resultClass.Should().Be("#nullable enable annotations\r\n\r\n" +
+                "using System.Runtime.Serialization;\r\n" +
                 "\r\n" +
                 "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
                 "public class BaseTestClass\r\n" +
@@ -471,7 +478,8 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            resultClass.Should().Be("using System.Runtime.Serialization;\r\n" +
+            resultClass.Should().Be("#nullable enable annotations\r\n\r\n" +
+                "using System.Runtime.Serialization;\r\n" +
                 "\r\n" +
                 "public class Result\r\n" +
                 "{\r\n" +
@@ -740,7 +748,8 @@ namespace AvroConvertComponentTests.GenerateModel
             string resultClass = AvroConvert.GenerateModel(schema);
 
             //Assert
-            resultClass.Should().Be("using System.Collections.Generic;\r\n" +
+            resultClass.Should().Be("#nullable enable annotations\r\n\r\n" +
+                "using System.Collections.Generic;\r\n" +
                 "\r\n" +
                 "public class EventData\r\n" +
                 "{\r\n" +
@@ -895,7 +904,8 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            resultClass.Should().Be("using SolTechnology.Avro.Infrastructure.Attributes;\r\n" +
+            resultClass.Should().Be("#nullable enable annotations\r\n\r\n" +
+                "using SolTechnology.Avro.Infrastructure.Attributes;\r\n" +
                 "\r\n" +
                 "public class ClassWithMultipleTypesProperties\r\n" +
                 "{\r\n" +
@@ -954,7 +964,8 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            model.Should().StartWith("using System;\r\nusing System.Runtime.Serialization;\r\nusing SolTechnology.Avro.Infrastructure.Attributes;\r\n\r\n");
+            model.Should().StartWith("#nullable enable annotations\r\n\r\n" +
+                "using System;\r\nusing System.Runtime.Serialization;\r\nusing SolTechnology.Avro.Infrastructure.Attributes;\r\n\r\n");
             model.Should().Contain("[DataContract(Namespace = \"com.acme.shop\")]\r\npublic class Order\r\n");
             model.Should().Contain("\t[AvroType(AvroTypeRepresentation.TimestampMilliseconds)]\r\n\t[DataMember]\r\n\tpublic DateTime createdAt { get; set; }\r\n");
             model.Should().Contain("\t[DataMember]\r\n\tpublic DateOnly? shippedOn { get; set; }\r\n");

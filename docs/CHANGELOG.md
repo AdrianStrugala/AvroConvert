@@ -8,6 +8,7 @@ Breaking changes:
 - A missing non-nullable field throws instead of returning `default` (#87). Old behaviour: `MissingFieldHandling = UseDefault`
 - Serializing `null` into a non-nullable field throws instead of writing an empty value (#87). Old behaviour: `NullValueHandling = WriteEmpty`
 - A `null` in the data is read as `null`, also when the field has a default (`[DefaultValue]`): the default is only for data that lacks the field, as in the specification and other Avro libraries. 3.x and the previews read the default instead (`Deserialize`, `Avro2Json`, dictionaries)
+- Items and values annotated as nullable reference types are a union with `null`: `List<string?>` gives `"items": ["null", "string"]`, `Dictionary<string, string?>` gives `"values": ["null", "string"]` (also `string?[]`, nested collections). 3.x and the previews gave `"string"`, so a `null` item threw (3.x wrote `""`). The schema of such a class changes; Schema Registry in the default `BACKWARD` mode accepts it, `FORWARD` and `FULL` do not. Without `#nullable enable` nothing changes
 - `[DefaultValue(Color.Red)]` on an enum member gives `"default": "Red"`, the symbol, as the specification requires; 3.x wrote the number, which Java and Confluent Schema Registry reject
 - `Avro2Json` does not use `JsonConvert.DefaultSettings` of the application: the names are the names in the schema. 3.x and the previews applied those settings, e.g. a camel-case contract resolver renamed the fields
 - `DeserializeHeadless<List<T>>` reads all rows, not only the first one (#69)
@@ -28,7 +29,7 @@ Breaking changes:
 - Reflection-based methods marked `[RequiresUnreferencedCode]` / `[RequiresDynamicCode]`
 - SolTechnology.Avro.Kafka rewritten on Confluent.SchemaRegistry 2.16: Confluent wire format, schema evolution, references, subject name strategies. Removed `KafkaConsumer`, `KafkaPropNames`, `ConfluentSchema`
 - SolTechnology.Avro.Http follows System.Net.Http.Json (`GetFromAvroAsync`, `PostAsAvroAsync`, `ReadFromAvroAsync`…), Minimal API results and streaming; old names are `[Obsolete]`
-- `GenerateModel`: `date` → `DateOnly`, `time-millis` / `time-micros` → `TimeOnly`; the code starts with `using` directives and has `[DataContract]` / `[DataMember]`, `[AvroType]`, `[AvroDecimal]` and `[AvroFixed]` where needed, so the classes give back the same schema (exceptions in [Generate model](Documentation.Schema.md#generate-model)). A union lists every branch in `[AvroUnion]`, not only the records; the default of an enum is its symbol (`[DefaultValue("Paid")]`)
+- `GenerateModel`: `date` → `DateOnly`, `time-millis` / `time-micros` → `TimeOnly`; the code starts with `using` directives (and `#nullable enable annotations` when it has nullable types) and has `[DataContract]` / `[DataMember]`, `[AvroType]`, `[AvroDecimal]` and `[AvroFixed]` where needed, so the classes give back the same schema (exceptions in [Generate model](Documentation.Schema.md#generate-model)). A union lists every branch in `[AvroUnion]`, not only the records; the default of an enum is its symbol (`[DefaultValue("Paid")]`)
 
 Changes:
 - Serialization and deserialization compiled per schema and type: several times faster, a fraction of allocations

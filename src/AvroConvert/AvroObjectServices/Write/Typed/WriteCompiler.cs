@@ -982,13 +982,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
 
         private static int EnumBranch(IReadOnlyList<TypeSchema> branches, Type type)
         {
-            var name = type.GetCustomAttribute<System.Runtime.Serialization.DataContractAttribute>()?.Name ?? type.Name;
             int first = -1;
             for (int i = 0; i < branches.Count; i++)
             {
                 if (branches[i] is EnumSchema schema)
                 {
-                    if (schema.Name == name)
+                    if (type.HasSchemaName(schema.Name))
                     {
                         return i;
                     }

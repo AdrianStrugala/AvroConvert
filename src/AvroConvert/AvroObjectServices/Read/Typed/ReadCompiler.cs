@@ -207,7 +207,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                         }
                         return BuildRecord((RecordSchema)ws, readerRecord, target, reader, candidates);
                     case AvroType.Enum:
-                        if (target == typeof(object) && candidates?.FirstOrDefault(t => t.IsEnum && (t.Name == ws.Name || t.Name == rs.Name)) is { } enumType)
+                        if (target == typeof(object) && candidates?.FirstOrDefault(t => t.IsEnum && (t.HasSchemaName(ws.Name) || t.HasSchemaName(rs.Name))) is { } enumType)
                         {
                             // [AvroUnion] names the enum: the value is that enum, so it is written back to the enum branch, not as text.
                             return Expression.Convert(BuildEnum((EnumSchema)ws, rs, enumType, reader), target);
@@ -595,8 +595,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
 
             if (candidates != null && (target == typeof(object) || target.IsAbstract || target.IsInterface))
             {
-                // [AvroUnion] names the alternatives explicitly, so matching on the simple name is unambiguous.
-                var candidate = candidates.FirstOrDefault(t => t.Name == ws.Name) ?? candidates.FirstOrDefault(t => t.Name == rs.Name);
+                // [AvroUnion] names the alternatives explicitly, so matching on the simple name (or [DataContract(Name)]) is unambiguous.
+                var candidate = candidates.FirstOrDefault(t => t.HasSchemaName(ws.Name)) ?? candidates.FirstOrDefault(t => t.HasSchemaName(rs.Name));
                 if (candidate != null && target.IsAssignableFrom(candidate))
                 {
                     return Expression.Convert(BuildRecord(ws, rs, candidate, reader), target);

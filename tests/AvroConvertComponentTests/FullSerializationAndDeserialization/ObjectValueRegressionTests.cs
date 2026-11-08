@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using AwesomeAssertions;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -193,6 +194,59 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             var result = AvroConvert.Deserialize<OpenUnion>(AvroConvert.Serialize(value));
 
             result.V.Should().BeOfType<SecondOpen>().Which.O.Should().Be("x");
+        }
+
+        [DataContract(Name = "Card")]
+        public class CardPayment
+        {
+            [DataMember] public string Number { get; set; }
+        }
+
+        [DataContract(Name = "Wire")]
+        public class WirePayment
+        {
+            [DataMember] public string Iban { get; set; }
+        }
+
+        [DataContract(Name = "PaymentKind")]
+        public enum Kind
+        {
+            [EnumMember] Card,
+            [EnumMember] Wire
+        }
+
+        public class NamedUnion
+        {
+            [AvroUnion(typeof(CardPayment), typeof(WirePayment))]
+            public object Payment { get; set; }
+
+            [AvroUnion(typeof(Kind), typeof(string))]
+            public object Kind { get; set; }
+        }
+
+        [Test]
+        public void Union_member_reads_back_the_classes_named_by_DataContract([ValueSource(typeof(Formats), nameof(Formats.Evolution))] Format format)
+        {
+            // The schema names the record "Wire" and the enum "PaymentKind" ([DataContract(Name)]), not WirePayment and Kind.
+            var value = new NamedUnion { Payment = new WirePayment { Iban = "PL61" }, Kind = Kind.Wire };
+
+            var result = RoundTrip.Run<NamedUnion>(value, format);
+
+            result.Payment.Should().BeOfType<WirePayment>().Which.Iban.Should().Be("PL61");
+            result.Kind.Should().Be(Kind.Wire);
+        }
+
+        [Test]
+        public void Union_member_read_back_by_DataContract_name_is_written_to_the_same_branches()
+        {
+            // The branch index is in the data: the same bytes mean the same branches (the enum, not the string next to it).
+            var schema = AvroSchema.Create<NamedUnion>();
+            var value = new NamedUnion { Payment = new CardPayment { Number = "4111" }, Kind = Kind.Card };
+            var written = AvroConvert.SerializeHeadless(value, schema);
+
+            var readBack = AvroConvert.DeserializeHeadless<NamedUnion>(written, schema);
+
+            AvroConvert.SerializeHeadless(readBack, schema).Should().Equal(written);
         }
 
         [Test]

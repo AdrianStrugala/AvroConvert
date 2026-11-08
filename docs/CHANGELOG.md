@@ -56,6 +56,7 @@ Changes:
 - `[AvroFixed(size, name, namespace)]` is public: a `byte[]` member as a named `fixed`, `["null", fixed]` for `byte[]?`
 - `[AvroType]` next to `[AvroUnion]` applies to the branch it fits (`timestamp-millis` to `DateTime`, not to a `string` next to it)
 - An enum value in a union with a string branch goes to the enum branch; read into `object` with `[AvroUnion]` it is the enum again
+- The classes and enums of `[AvroUnion]` are also found by their `[DataContract(Name)]`: they were read back as `ExpandoObject` or text
 - `GenerateModel` handles `fixed` (also referred to by name), unions of any branches, arrays of arrays and of unions, maps of records defined in place, `error` types, C# keywords as names, string / `bool?` / enum / `NaN` defaults, multi-line docs, records of one name in two namespaces and a file of several schemas, where it generated code that did not compile or lost union branches
 - `ExpandoObject` and `Json2Avro` reuse the compiled plan of a schema they have seen, instead of compiling one for every call
 - JSON objects and `ExpandoObject`s with one key holding different fields keep them: the records get names of their own. Items of a list with different nested objects keep all their fields

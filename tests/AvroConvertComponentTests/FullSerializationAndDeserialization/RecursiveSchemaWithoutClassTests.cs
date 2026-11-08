@@ -223,27 +223,23 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             // Every depth up to where reading stops: the depth at which the stack runs out depends on the thread, and data a
             // decoder still reads must not overflow the stack later (e.g. Avro2Json writing ~1200 levels on 1 MB ended the process).
             var files = Enumerable.Range(1, 60).Select(i => RoundTrip.RawContainer(LinkedList, DeepList(i * 50), 1)).ToList();
-            Exception unexpected = null;
+            var results = new List<Exception>();
 
-            var thread = new System.Threading.Thread(() =>
-            {
-                try
-                {
-                    foreach (var avro in files)
-                    {
-                        Recorded.Exception(() => read(avro));
-                    }
-                }
-                catch (Exception e)
-                {
-                    unexpected = e;
-                }
-            }, stackKb * 1024);
+            var thread = new System.Threading.Thread(() => results.AddRange(files.Select(avro => Recorded.Exception(() => read(avro)))), stackKb * 1024);
             thread.Start();
             thread.Join();
 
-            unexpected.Should().BeNull();
+            // Each depth is read, or stops because the stack is short – never another error.
+            results.Should().HaveCount(files.Count);
+            results.Where(e => e != null && !IsShortOfStack(e)).Should().BeEmpty();
+            if (stackKb >= 1024)
+            {
+                results.First().Should().BeNull("50 levels fit a 1 MB stack");
+            }
         }
+
+        private static bool IsShortOfStack(Exception exception) =>
+            exception is InsufficientExecutionStackException || exception.InnerException is { } inner && IsShortOfStack(inner);
 
         [Test]
         public void Data_of_usual_depth_is_read()

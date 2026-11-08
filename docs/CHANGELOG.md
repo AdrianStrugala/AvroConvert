@@ -9,6 +9,7 @@ Breaking changes:
 - Serializing `null` into a non-nullable field throws instead of writing an empty value (#87). Old behaviour: `NullValueHandling = WriteEmpty`
 - A `null` in the data is read as `null`, also when the field has a default (`[DefaultValue]`): the default is only for data that lacks the field, as in the specification and other Avro libraries. 3.x and the previews read the default instead (`Deserialize`, `Avro2Json`, dictionaries)
 - `[DefaultValue(Color.Red)]` on an enum member gives `"default": "Red"`, the symbol, as the specification requires; 3.x wrote the number, which Java and Confluent Schema Registry reject
+- `Avro2Json` does not use `JsonConvert.DefaultSettings` of the application: the names are the names in the schema. 3.x and the previews applied those settings, e.g. a camel-case contract resolver renamed the fields
 - `DeserializeHeadless<List<T>>` reads all rows, not only the first one (#69)
 - Read objects are created with their public parameterless constructor, like in System.Text.Json; a field missing in the data keeps its initialiser
 - `DateTimeOffset` is written as its UTC instant instead of the wall-clock time

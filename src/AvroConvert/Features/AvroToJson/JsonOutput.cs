@@ -14,6 +14,7 @@
 */
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -24,8 +25,9 @@ using Newtonsoft.Json;
 namespace SolTechnology.Avro.Features.AvroToJson
 {
     /// <summary>
-    /// Writes the decoded data as JsonConvert.SerializeObject does, with the records, maps and arrays written here and
-    /// the values in them by Newtonsoft.
+    /// Writes the decoded data as JSON: records and maps as objects, arrays as arrays, the values as Newtonsoft writes them
+    /// with its default settings. JsonConvert.DefaultSettings of the application are not used: the names are the names of
+    /// the schema, not of a naming policy for .NET types.
     /// </summary>
     /// <remarks>
     /// Newtonsoft's recursion has no stack check, and it catches an exception at every level to build the JSON path,
@@ -34,70 +36,105 @@ namespace SolTechnology.Avro.Features.AvroToJson
     /// </remarks>
     internal static class JsonOutput
     {
+        private static readonly JsonSerializer Serializer = JsonSerializer.Create();
+
         internal static string Write(object value)
         {
-            var serializer = JsonSerializer.CreateDefault();
             var text = new StringWriter(new StringBuilder(256), CultureInfo.InvariantCulture);
-            using (var writer = new JsonTextWriter(text) { Formatting = serializer.Formatting, StringEscapeHandling = serializer.StringEscapeHandling })
+            using (var writer = new JsonTextWriter(text))
             {
-                WriteValue(writer, value, serializer);
+                WriteValue(writer, value);
             }
 
             return text.ToString();
         }
 
-        private static void WriteValue(JsonWriter writer, object value, JsonSerializer serializer)
+        private static void WriteValue(JsonWriter writer, object value)
         {
             switch (value)
             {
+                case null:
+                    writer.WriteNull();
+                    return;
+                // The values the decoder gives for primitive types, written as Newtonsoft writes them.
+                case string text:
+                    writer.WriteValue(text);
+                    return;
+                case int number:
+                    writer.WriteValue(number);
+                    return;
+                case long number:
+                    writer.WriteValue(number);
+                    return;
+                case double number:
+                    writer.WriteValue(number);
+                    return;
+                case float number:
+                    writer.WriteValue(number);
+                    return;
+                case bool flag:
+                    writer.WriteValue(flag);
+                    return;
+                case byte[] bytes:
+                    writer.WriteValue(bytes);
+                    return;
                 case Dictionary<string, object> record:
                     RuntimeHelpers.EnsureSufficientExecutionStack();
                     writer.WriteStartObject();
                     foreach (var field in record)
                     {
                         writer.WritePropertyName(field.Key);
-                        WriteValue(writer, field.Value, serializer);
+                        WriteValue(writer, field.Value);
                     }
                     writer.WriteEndObject();
                     return;
-
                 case Dictionary<object, object> dictionary:
                     RuntimeHelpers.EnsureSufficientExecutionStack();
                     writer.WriteStartObject();
                     foreach (var entry in dictionary)
                     {
-                        writer.WritePropertyName(PropertyName(entry.Key, serializer));
-                        WriteValue(writer, entry.Value, serializer);
+                        writer.WritePropertyName(PropertyName(entry.Key));
+                        WriteValue(writer, entry.Value);
                     }
                     writer.WriteEndObject();
                     return;
-
-                case object[] or List<object>:
-                    RuntimeHelpers.EnsureSufficientExecutionStack();
-                    writer.WriteStartArray();
-                    foreach (var item in (IEnumerable<object>)value)
-                    {
-                        WriteValue(writer, item, serializer);
-                    }
-                    writer.WriteEndArray();
+                case object[] items:
+                    WriteArray(writer, items);
                     return;
-
+                case List<object> items:
+                    WriteArray(writer, items);
+                    return;
                 default:
-                    serializer.Serialize(writer, value);
+                    // Logical types (decimal, DateTime, Guid…) and anything else.
+                    Serializer.Serialize(writer, value);
                     return;
             }
         }
 
-        /// <summary>The name Newtonsoft gives a dictionary key that is not a string (a date in ISO 8601, a number in the invariant culture…).</summary>
-        private static string PropertyName(object key, JsonSerializer serializer)
+        private static void WriteArray(JsonWriter writer, IEnumerable<object> items)
         {
-            if (key is string name)
+            RuntimeHelpers.EnsureSufficientExecutionStack();
+            writer.WriteStartArray();
+            foreach (var item in items)
             {
-                return name;
+                WriteValue(writer, item);
+            }
+            writer.WriteEndArray();
+        }
+
+        /// <summary>The name Newtonsoft gives a dictionary key that is not a string (a date in ISO 8601, a number in the invariant culture…).</summary>
+        private static string PropertyName(object key)
+        {
+            switch (key)
+            {
+                case string name:
+                    return name;
+                case int or long or Guid:
+                    return Convert.ToString(key, CultureInfo.InvariantCulture);
             }
 
             var json = new StringWriter(CultureInfo.InvariantCulture);
-            serializer.Serialize(json, new Dictionary<object, object> { [key] = null });
+            Serializer.Serialize(json, new Dictionary<object, object> { [key] = null });
             using var reader = new JsonTextReader(new StringReader(json.ToString()));
             reader.Read();
             reader.Read();

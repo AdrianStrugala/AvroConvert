@@ -232,10 +232,7 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             // Each depth is read, or stops because the stack is short – never another error.
             results.Should().HaveCount(files.Count);
             results.Where(e => e != null && !IsShortOfStack(e)).Should().BeEmpty();
-            if (stackKb >= 1024)
-            {
-                results.First().Should().BeNull("50 levels fit a 1 MB stack");
-            }
+            results.First().Should().BeNull("50 levels fit a 256 KB stack");
         }
 
         private static bool IsShortOfStack(Exception exception) =>

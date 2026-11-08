@@ -26,27 +26,17 @@ namespace SolTechnology.Avro.Features.GenerateModel.NetModel
                 if (!string.IsNullOrWhiteSpace(field.Doc))
                 {
                     sb.AppendLine("\t/// <summary>");
-                    sb.AppendLine($"\t/// {field.Doc}");
+                    foreach (var line in field.Doc.Replace("\r\n", "\n").Split('\n'))
+                    {
+                        sb.AppendLine($"\t/// {CSharp.XmlDoc(line)}");
+                    }
                     sb.AppendLine("\t/// </summary>");
                 }
 
-                if (!string.IsNullOrWhiteSpace(field.Default))
+                var defaultValue = field.DefaultLiteral();
+                if (defaultValue != null)
                 {
-                    string defaultVal;
-                    switch (field.FieldType)
-                    {
-                        case "string":
-                            defaultVal = $"\"{field.Default}\"";
-                            break;
-                        case "bool":
-                            bool.TryParse(field.Default, out bool parsedVal);
-                            defaultVal = $"{parsedVal.ToString().ToLower()}";
-                            break;
-                        default:
-                            defaultVal = $"{field.Default}";
-                            break;
-                    }
-                    sb.AppendLine($"	[DefaultValue({defaultVal})]");
+                    sb.AppendLine($"	[DefaultValue({defaultValue})]");
                 }
 
                 foreach (var attribute in field.Attributes)
@@ -56,13 +46,14 @@ namespace SolTechnology.Avro.Features.GenerateModel.NetModel
 
                 if (field.UnionMembers.Count > 0)
                 {
-                    sb.AppendLine($"	[AvroUnion({string.Join(", ", field.UnionMembers.Select(m => $"typeof({m.FieldType})"))})]");
+                    // typeof cannot take a nullable reference type; the branches of a union are not null anyway.
+                    sb.AppendLine($"	[AvroUnion({string.Join(", ", field.UnionMembers.Select(m => $"typeof({m.FieldType.Replace("?", "")})"))})]");
                 }
                 if (dataContract)
                 {
                     sb.AppendLine("\t[DataMember]");
                 }
-                sb.AppendLine($"	public {field.FieldType} {field.Name} {{ get; set; }}");
+                sb.AppendLine($"	public {field.FieldType} {CSharp.Identifier(field.Name)} {{ get; set; }}");
             }
             sb.AppendLine("}");
             sb.AppendLine();
@@ -78,10 +69,56 @@ namespace SolTechnology.Avro.Features.GenerateModel.NetModel
         public string Default { get; set; }
         public string Doc { get; set; }
 
+        /// <summary>The default is a JSON string in the schema (it can still be a number for a .NET type, e.g. "NaN").</summary>
+        public bool DefaultIsString { get; set; }
+
+        /// <summary>Set when the default is for a generated enum: it is written as the symbol.</summary>
+        public bool DefaultIsEnum { get; set; }
+
+        /// <summary>The .NET type the default is for: the field type, or the first branch of a union.</summary>
+        public string DefaultType => (UnionMembers.Count > 0 ? UnionMembers[0].FieldType : FieldType)?.TrimEnd('?');
+
         /// <summary>Attributes that keep the schema of the property, e.g. [AvroType(AvroTypeRepresentation.TimestampMilliseconds)].</summary>
         public List<string> Attributes { get; } = new();
 
-        /// <summary>Named types of a union field; the records among them become <c>[AvroUnion(typeof(...))]</c>.</summary>
+        /// <summary>The branches of a union field other than null: <c>[AvroUnion(typeof(...))]</c>.</summary>
         public List<NetClassField> UnionMembers { get; } = new();
+
+        /// <summary>The C# argument of [DefaultValue(...)], or null when the default has no C# constant.</summary>
+        internal string DefaultLiteral()
+        {
+            if (Default == null)
+            {
+                return null;
+            }
+
+            var type = DefaultType;
+            if (DefaultIsEnum)
+            {
+                // The symbol as text: the schema gets it as it is, and the code compiles in any namespace and next to a
+                // property with the name of the enum (where "Enum.Symbol" would name the property).
+                return CSharp.StringLiteral(Default);
+            }
+
+            switch (type)
+            {
+                case "string":
+                    return CSharp.StringLiteral(Default);
+                case "bool":
+                    return bool.TryParse(Default, out var value) ? (value ? "true" : "false") : null;
+                case "float":
+                case "double":
+                    switch (Default)
+                    {
+                        case "NaN": return $"{type}.NaN";
+                        case "Infinity": return $"{type}.PositiveInfinity";
+                        case "-Infinity": return $"{type}.NegativeInfinity";
+                    }
+                    break;
+            }
+
+            // A number (also a date or a time as a number) is written as it is; other JSON strings (bytes, fixed) have no C# constant.
+            return DefaultIsString || string.IsNullOrWhiteSpace(Default) ? null : Default;
+        }
     }
 }

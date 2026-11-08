@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 using System.Threading;
 using SolTechnology.Avro;
 using NUnit.Framework;
@@ -126,10 +127,10 @@ namespace AvroConvertComponentTests.GenerateModel
                 "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
                 "public class ClassWithEnum\r\n" +
                 "{\r\n" +
-                "\t[DefaultValue(1)]\r\n" +
+                "\t[DefaultValue(\"be\")]\r\n" +
                 "\t[DataMember]\r\n" +
                 "\tpublic TestEnum? EnumProp { get; set; }\r\n" +
-                "\t[DefaultValue(ca)]\r\n" +
+                "\t[DefaultValue(\"ca\")]\r\n" +
                 "\t[DataMember]\r\n" +
                 "\tpublic TestEnum? SecondEnumProp { get; set; }\r\n" +
                 "}\r\n" +
@@ -901,8 +902,9 @@ namespace AvroConvertComponentTests.GenerateModel
                 "\t/// <summary>\r\n" +
                 "\t/// Data:Switchable_PersonName\r\n" +
                 "\t/// </summary>\r\n" +
-                "\t[AvroUnion(typeof(Switchable_PersonName))]\r\n" +
+                "\t[AvroUnion(typeof(string), typeof(Switchable_PersonName))]\r\n" +
                 "\tpublic object? Name { get; set; }\r\n" +
+                "\t[AvroUnion(typeof(int), typeof(string))]\r\n" +
                 "\tpublic object AgeOrSex { get; set; }\r\n" +
                 "}\r\n" +
                 "\r\n" +
@@ -919,7 +921,7 @@ namespace AvroConvertComponentTests.GenerateModel
         }
 
         [Test]
-        public void GenerateClass_UnionOfRecords_PropertyListsTheRecordsInAvroUnion()
+        public void GenerateClass_UnionOfRecords_PropertyListsEveryBranchInAvroUnion()
         {
             //Arrange (issue #174): an inline record, a record referenced by name, an enum and a primitive
             const string schema = @"{""type"":""record"",""name"":""Envelope"",""namespace"":""shop"",""fields"":[
@@ -933,7 +935,7 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            model.Should().Contain("\t[AvroUnion(typeof(Paid), typeof(Cancelled))]\r\n\t[DataMember]\r\n\tpublic object? Event { get; set; }\r\n");
+            model.Should().Contain("\t[AvroUnion(typeof(Paid), typeof(Cancelled), typeof(Kind), typeof(string))]\r\n\t[DataMember]\r\n\tpublic object? Event { get; set; }\r\n", "every branch, so the class gives back the same union");
             model.Should().Contain("public class Cancelled");
         }
 
@@ -983,18 +985,146 @@ namespace AvroConvertComponentTests.GenerateModel
             WithoutDefaults(fromModel).Should().Be(WithoutDefaults(original));
         }
 
-        private static string WithoutDefaults(string json)
+        private const string RichSchema = @"{""type"":""record"",""name"":""Order"",""namespace"":""shop"",""fields"":[
+            {""name"":""hash"",""type"":{""type"":""fixed"",""name"":""MD5"",""size"":16}},
+            {""name"":""previousHash"",""type"":[""null"",""MD5""],""default"":null},
+            {""name"":""value"",""type"":[""boolean"",""int"",""long"",""float"",""string"",{""type"":""array"",""items"":""string""},{""type"":""map"",""values"":""long""}]},
+            {""name"":""createdOrText"",""type"":[""string"",{""type"":""long"",""logicalType"":""timestamp-millis""}]},
+            {""name"":""status"",""type"":{""type"":""enum"",""name"":""Status"",""symbols"":[""default"",""Paid""]},""default"":""Paid""},
+            {""name"":""kind"",""type"":[""null"",""string"",""Status""],""default"":null},
+            {""name"":""matrix"",""type"":{""type"":""array"",""items"":{""type"":""array"",""items"":""int""}}},
+            {""name"":""lines"",""type"":{""type"":""map"",""values"":{""type"":""record"",""name"":""Line"",""fields"":[{""name"":""qty"",""type"":""int""}]}}},
+            {""name"":""class"",""type"":""string"",""default"":""say \""hi\""\nbye"",""doc"":""a <b> & c\nsecond line""},
+            {""name"":""active"",""type"":[""boolean"",""null""],""default"":true},
+            {""name"":""ratio"",""type"":""double"",""default"":""NaN""}]}";
+
+        [Test]
+        public void GenerateClass_FixedUnionsKeywordsAndDefaults_CodeKeepsTheSchema()
+        {
+            //Act
+            var model = AvroConvert.GenerateModel(RichSchema);
+
+
+            //Assert
+            model.Should().Contain("\t[AvroFixed(16, \"MD5\", \"shop\")]\r\n\t[DataMember]\r\n\tpublic byte[] hash { get; set; }\r\n", "a fixed keeps its name and size");
+            model.Should().Contain("\t[AvroFixed(16, \"MD5\", \"shop\")]\r\n\t[DataMember]\r\n\tpublic byte[]? previousHash { get; set; }\r\n", "a fixed referred to by name");
+            model.Should().Contain("\t[AvroUnion(typeof(bool), typeof(int), typeof(long), typeof(float), typeof(string), typeof(string[]), typeof(Dictionary<string,long>))]\r\n", "every branch of a union");
+            model.Should().Contain("\t[AvroType(AvroTypeRepresentation.TimestampMilliseconds)]\r\n\t[AvroUnion(typeof(string), typeof(DateTime))]\r\n");
+            model.Should().Contain("\t[DefaultValue(\"Paid\")]\r\n\t[DataMember]\r\n\tpublic Status status { get; set; }\r\n");
+            model.Should().Contain("\t[AvroUnion(typeof(string), typeof(Status))]\r\n\t[DataMember]\r\n\tpublic object? kind { get; set; }\r\n");
+            model.Should().Contain("\tpublic int[][] matrix { get; set; }\r\n");
+            model.Should().Contain("\tpublic Dictionary<string,Line> lines { get; set; }\r\n");
+            model.Should().Contain("\t/// a &lt;b&gt; &amp; c\r\n\t/// second line\r\n");
+            model.Should().Contain("\t[DefaultValue(\"say \\\"hi\\\"\\nbye\")]\r\n\t[DataMember]\r\n\tpublic string @class { get; set; }\r\n");
+            model.Should().Contain("\t[DefaultValue(true)]\r\n\t[DataMember]\r\n\tpublic bool? active { get; set; }\r\n");
+            model.Should().Contain("\t[DefaultValue(double.NaN)]\r\n");
+            model.Should().Contain("\t@default,\r\n\tPaid\r\n");
+        }
+
+        [Test]
+        public void GeneratedModel_WithFixedUnionsAndDefaults_GivesBackTheSameSchema()
+        {
+            // The classes in GeneratedRich are the output of GenerateModel(RichSchema).
+            AvroSchema.Create<GeneratedRich.Order>().CanonicalForm.Should().Be(AvroSchema.Parse(RichSchema).CanonicalForm);
+            // "doc" comes from [Description] and the generated code has it as a comment, so the full schemas are compared without it.
+            WithoutDefaults(AvroSchema.Create<GeneratedRich.Order>().Json).Should().Be(WithoutDefaults(AvroSchema.Parse(RichSchema).Json, "doc"));
+        }
+
+        [Test]
+        public void GeneratedModel_WithFixedUnionsAndDefaults_ReadsAndWritesTheSameData()
+        {
+            var order = new GeneratedRich.Order
+            {
+                hash = Enumerable.Range(0, 16).Select(i => (byte)i).ToArray(),
+                previousHash = null,
+                value = new Dictionary<string, long> { ["a"] = 1 },
+                createdOrText = new DateTime(2026, 11, 8, 12, 0, 0, 123, DateTimeKind.Utc),
+                status = GeneratedRich.Status.@default,
+                kind = GeneratedRich.Status.Paid,
+                matrix = new[] { new[] { 1, 2 }, new int[0] },
+                lines = new Dictionary<string, GeneratedRich.Line> { ["x"] = new() { qty = 3 } },
+                @class = "c",
+                active = null,
+                ratio = 0.5
+            };
+
+            var json = AvroConvert.Avro2JsonEncoding(AvroConvert.Serialize(order, AvroSchema.Parse(RichSchema)));
+            var back = AvroConvert.Deserialize<GeneratedRich.Order>(AvroConvert.JsonEncoding2Avro(json, AvroSchema.Parse(RichSchema)));
+
+            json.Should().Contain("\"value\":{\"map\":{\"a\":1}}").And.Contain("\"kind\":{\"shop.Status\":\"Paid\"}").And.Contain("\"createdOrText\":{\"long\":1794139200123}");
+            back.Should().BeEquivalentTo(order);
+        }
+
+        [Test]
+        public void GenerateClass_ErrorTypeAndArrayOfUnions_AreClasses()
+        {
+            const string schema = @"{""type"":""record"",""name"":""Result"",""fields"":[
+                {""name"":""failure"",""type"":[""null"",{""type"":""error"",""name"":""Failure"",""fields"":[{""name"":""message"",""type"":""string""}]}]},
+                {""name"":""scores"",""type"":{""type"":""array"",""items"":[""null"",{""type"":""int"",""logicalType"":""date""}]}},
+                {""name"":""grid"",""type"":{""type"":""array"",""items"":{""type"":""array"",""items"":[""double"",""string"",""null""]}}}]}";
+
+            var model = AvroConvert.GenerateModel(schema);
+
+            model.Should().Contain("\tpublic Failure? failure { get; set; }\r\n").And.Contain("public class Failure\r\n");
+            model.Should().Contain("\tpublic DateOnly?[] scores { get; set; }\r\n");
+            model.Should().Contain("\tpublic object?[][] grid { get; set; }\r\n");
+        }
+
+        [Test]
+        public void GenerateClass_RecordsOfOneNameInTwoNamespaces_AreTwoClasses()
+        {
+            const string schema = @"{""type"":""record"",""name"":""Envelope"",""namespace"":""a"",""fields"":[
+                {""name"":""first"",""type"":{""type"":""record"",""name"":""Id"",""fields"":[{""name"":""value"",""type"":""string""}]}},
+                {""name"":""inner"",""type"":{""type"":""record"",""name"":""Inner"",""namespace"":""b"",""fields"":[
+                    {""name"":""ids"",""type"":[""null"",{""type"":""array"",""items"":{""type"":""record"",""name"":""Id"",""fields"":[{""name"":""number"",""type"":""long""}]}}]}]}}]}";
+
+            var model = AvroConvert.GenerateModel(schema);
+
+            model.Should().Contain("public class aId\r\n").And.Contain("public class bId\r\n");
+            model.Should().Contain("\tpublic aId first { get; set; }\r\n").And.Contain("\tpublic bId[]? ids { get; set; }\r\n");
+        }
+
+        [Test]
+        public void GenerateClass_SchemaWithComments_IsGenerated()
+        {
+            var model = AvroConvert.GenerateModel("// generated by a tool\n{\"type\":\"record\",\"name\":\"Item\",\"fields\":[{\"name\":\"id\",\"type\":\"string\"}]}");
+
+            model.Should().Contain("public class Item\r\n");
+        }
+
+        [Test]
+        public void GenerateClass_FixedBranchOfAUnion_KeepsTheFixed()
+        {
+            const string schema = @"{""type"":""record"",""name"":""Token"",""namespace"":""auth"",""fields"":[
+                {""name"":""value"",""type"":[{""type"":""fixed"",""name"":""Hash"",""size"":4},""int""]}]}";
+
+            var model = AvroConvert.GenerateModel(schema);
+
+            model.Should().Contain("\t[AvroFixed(4, \"Hash\", \"auth\")]\r\n\t[AvroUnion(typeof(byte[]), typeof(int))]\r\n\t[DataMember]\r\n\tpublic object value { get; set; }\r\n");
+            AvroSchema.Create<GeneratedToken.Token>().CanonicalForm.Should().Be(AvroSchema.Parse(schema).CanonicalForm);
+            var back = AvroConvert.Deserialize<GeneratedToken.Token>(AvroConvert.Serialize(new GeneratedToken.Token { value = new byte[] { 1, 2, 3, 4 } }));
+            back.value.Should().BeEquivalentTo(new byte[] { 1, 2, 3, 4 });
+        }
+
+        [Test]
+        public void GenerateClass_PrimitiveSchema_IsAClearError()
+        {
+            Recorded.Exception(() => AvroConvert.GenerateModel("\"string\"")).Message.Should().Contain("no record or enum");
+        }
+
+        private static string WithoutDefaults(string json, string alsoWithout = null)
         {
             var node = System.Text.Json.Nodes.JsonNode.Parse(json);
             Strip(node);
             return node!.ToJsonString();
 
-            static void Strip(System.Text.Json.Nodes.JsonNode node)
+            void Strip(System.Text.Json.Nodes.JsonNode node)
             {
                 switch (node)
                 {
                     case System.Text.Json.Nodes.JsonObject obj:
                         obj.Remove("default");
+                        if (alsoWithout != null) obj.Remove(alsoWithout);
                         foreach (var property in obj.ToList()) Strip(property.Value);
                         break;
                     case System.Text.Json.Nodes.JsonArray array:
@@ -1037,3 +1167,89 @@ namespace AvroConvertComponentTests.GenerateModel.GeneratedShop
         public string city { get; set; }
     }
 }
+
+#nullable enable
+#pragma warning disable CS8618 // the generated properties have no initialisers
+// The generated code is for projects with nullable reference types on: byte[]? and object? are unions with null.
+namespace AvroConvertComponentTests.GenerateModel.GeneratedRich
+{
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel;
+    using System.Runtime.Serialization;
+    using SolTechnology.Avro.Infrastructure.Attributes;
+
+    // Output of GenerateModel(RichSchema), as it is.
+    [DataContract(Namespace = "shop")]
+    public class Order
+    {
+        [AvroFixed(16, "MD5", "shop")]
+        [DataMember]
+        public byte[] hash { get; set; }
+        [AvroFixed(16, "MD5", "shop")]
+        [DataMember]
+        public byte[]? previousHash { get; set; }
+        [AvroUnion(typeof(bool), typeof(int), typeof(long), typeof(float), typeof(string), typeof(string[]), typeof(Dictionary<string,long>))]
+        [DataMember]
+        public object value { get; set; }
+        [AvroType(AvroTypeRepresentation.TimestampMilliseconds)]
+        [AvroUnion(typeof(string), typeof(DateTime))]
+        [DataMember]
+        public object createdOrText { get; set; }
+        [DefaultValue("Paid")]
+        [DataMember]
+        public Status status { get; set; }
+        [AvroUnion(typeof(string), typeof(Status))]
+        [DataMember]
+        public object? kind { get; set; }
+        [DataMember]
+        public int[][] matrix { get; set; }
+        [DataMember]
+        public Dictionary<string,Line> lines { get; set; }
+        /// <summary>
+        /// a &lt;b&gt; &amp; c
+        /// second line
+        /// </summary>
+        [DefaultValue("say \"hi\"\nbye")]
+        [DataMember]
+        public string @class { get; set; }
+        [DefaultValue(true)]
+        [DataMember]
+        public bool? active { get; set; }
+        [DefaultValue(double.NaN)]
+        [DataMember]
+        public double ratio { get; set; }
+    }
+
+    [DataContract(Namespace = "shop")]
+    public enum Status
+    {
+        @default,
+        Paid
+    }
+
+    [DataContract(Namespace = "shop")]
+    public class Line
+    {
+        [DataMember]
+        public int qty { get; set; }
+    }
+}
+
+namespace AvroConvertComponentTests.GenerateModel.GeneratedToken
+{
+    using System.Runtime.Serialization;
+    using SolTechnology.Avro.Infrastructure.Attributes;
+
+    // Output of GenerateModel for the schema in GenerateClass_FixedBranchOfAUnion_KeepsTheFixed.
+    [DataContract(Namespace = "auth")]
+    public class Token
+    {
+        [AvroFixed(4, "Hash", "auth")]
+        [AvroUnion(typeof(byte[]), typeof(int))]
+        [DataMember]
+        public object value { get; set; }
+    }
+}
+#pragma warning restore CS8618
+#nullable restore

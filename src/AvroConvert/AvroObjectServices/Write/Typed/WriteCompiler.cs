@@ -852,6 +852,12 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
                 branchIndex = OwnRecordBranch(branches, valueType);
             }
 
+            if (branchIndex < 0 && bagBranches == null && valueType.IsEnum)
+            {
+                // An enum goes to an enum branch (of its own name first), not to a string or number branch listed before it.
+                branchIndex = EnumBranch(branches, valueType);
+            }
+
             for (int i = 0; branchIndex < 0 && bagBranches == null && i < branches.Count; i++)
             {
                 if (i != nullIndex && BranchAccepts(branches[i], valueType))
@@ -972,6 +978,24 @@ namespace SolTechnology.Avro.AvroObjectServices.Write.Typed
             var index = own == null ? -1 : Find(record => record.FullName == own.FullName);
             index = index >= 0 || own == null ? index : Find(record => record.Name == own.Name);
             return index >= 0 ? index : Find(record => WritesAsRecord(record, type) && HasFieldForEveryMember(record, type));
+        }
+
+        private static int EnumBranch(IReadOnlyList<TypeSchema> branches, Type type)
+        {
+            var name = type.GetCustomAttribute<System.Runtime.Serialization.DataContractAttribute>()?.Name ?? type.Name;
+            int first = -1;
+            for (int i = 0; i < branches.Count; i++)
+            {
+                if (branches[i] is EnumSchema schema)
+                {
+                    if (schema.Name == name)
+                    {
+                        return i;
+                    }
+                    first = first < 0 ? i : first;
+                }
+            }
+            return first;
         }
 
         private static bool HasFieldForEveryMember(RecordSchema schema, Type type)

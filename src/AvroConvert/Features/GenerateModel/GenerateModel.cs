@@ -18,7 +18,6 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SolTechnology.Avro.Features.GenerateModel.NetModel;
 using SolTechnology.Avro.Features.GenerateModel.Resolvers;
@@ -35,16 +34,14 @@ namespace SolTechnology.Avro.Features.GenerateModel
         private NamespaceHelper _namespaceHelper;
         private EnumModelResolver _enumResolver;
         private LogicalModelResolver _logicalResolver;
-        private ArrayModelResolver _arrayResolver;
-        private MapModelResolver _mapModelResolver;
+        private Dictionary<string, (int Size, string Name, string Namespace)> _fixed;
 
         private void Initialize()
         {
             _namespaceHelper = new NamespaceHelper();
             _enumResolver = new EnumModelResolver();
             _logicalResolver = new LogicalModelResolver();
-            _arrayResolver = new ArrayModelResolver();
-            _mapModelResolver = new MapModelResolver();
+            _fixed = new Dictionary<string, (int, string, string)>();
         }
 
 
@@ -58,12 +55,21 @@ namespace SolTechnology.Avro.Features.GenerateModel
         {
             Initialize();
 
-            JObject json = (JObject)JsonConvert.DeserializeObject(schema);
+            JToken json = JToken.Parse(schema, new JsonLoadSettings { CommentHandling = CommentHandling.Ignore });
+            if (json is not JObject and not JArray)
+            {
+                throw new InvalidAvroObjectException($"The schema is {json}: there is no record or enum to generate a class for.");
+            }
 
             NetModel.NetModel model = new NetModel.NetModel();
-            Resolve(json, model);
+            CollectFixed(json, null);
+            // A file of several schemas (or a union at the root) is a JSON array of them.
+            foreach (var root in json is JArray roots ? roots.OfType<JObject>() : new[] { (JObject)json })
+            {
+                Resolve(root, model);
+            }
             _namespaceHelper.EnsureUniqueNames(model);
-            KeepRecordUnionMembers(model);
+            MarkEnumDefaults(model);
 
             StringBuilder sb = new StringBuilder();
             foreach (INetType ac in model.NetTypes)
@@ -93,20 +99,50 @@ namespace SolTechnology.Avro.Features.GenerateModel
                 usings.Add("System.ComponentModel");
             if (code.Contains("[DataContract("))
                 usings.Add("System.Runtime.Serialization");
-            if (code.Contains("[AvroType(") || code.Contains("[AvroDecimal(") || code.Contains("[AvroUnion("))
+            if (code.Contains("[AvroType(") || code.Contains("[AvroDecimal(") || code.Contains("[AvroUnion(") || code.Contains("[AvroFixed("))
                 usings.Add("SolTechnology.Avro.Infrastructure.Attributes");
 
             return string.Concat(usings.Select(u => $"using {u};\n"));
         }
 
 
-        /// <summary>[AvroUnion] lists only records (classes); enums and fixed are read without it.</summary>
-        private static void KeepRecordUnionMembers(NetModel.NetModel model)
+        private static void MarkEnumDefaults(NetModel.NetModel model)
         {
-            var classNames = model.NetTypes.OfType<NetClass>().Select(c => c.Name).ToHashSet();
+            var enumNames = model.NetTypes.OfType<NetEnum>().Select(e => e.Name).ToHashSet();
             foreach (var field in model.NetTypes.OfType<NetClass>().SelectMany(c => c.Fields))
             {
-                field.UnionMembers.RemoveAll(m => !classNames.Contains(m.FieldType));
+                field.DefaultIsEnum = field.Default != null && field.DefaultType != null && enumNames.Contains(field.DefaultType);
+            }
+        }
+
+        /// <summary>Every named fixed of the schema by full and by short name: a member that refers to one gets [AvroFixed].</summary>
+        private void CollectFixed(JToken token, string enclosingNamespace)
+        {
+            switch (token)
+            {
+                case JObject obj:
+                    var type = obj["type"] as JValue;
+                    var ownNamespace = type?.ToString() is "record" or "error" or "enum" or "fixed"
+                        ? AvroNamespace(obj, enclosingNamespace)
+                        : enclosingNamespace;
+                    if (type?.ToString() == "fixed" && obj["name"] != null && obj["size"] != null)
+                    {
+                        var shortName = obj["name"].ToString().Split('.').Last();
+                        var definition = (obj["size"].Value<int>(), shortName, ownNamespace);
+                        _fixed[string.IsNullOrEmpty(ownNamespace) ? shortName : ownNamespace + "." + shortName] = definition;
+                        _fixed.TryAdd(shortName, definition);
+                    }
+                    foreach (var property in obj.Properties())
+                    {
+                        CollectFixed(property.Value, ownNamespace);
+                    }
+                    break;
+                case JArray array:
+                    foreach (var item in array)
+                    {
+                        CollectFixed(item, enclosingNamespace);
+                    }
+                    break;
             }
         }
 
@@ -122,7 +158,7 @@ namespace SolTechnology.Avro.Features.GenerateModel
 
                 foreach (var prop in parent)
                 {
-                    if (prop.Key == "type" && prop.Value.ToString() == "record")
+                    if (prop.Key == "type" && prop.Value.ToString() is "record" or "error")
                     {
                         ResolveRecord(parent, model, ownNamespace);
                     }
@@ -182,7 +218,8 @@ namespace SolTechnology.Avro.Features.GenerateModel
             NetClass c = new NetClass()
             {
                 Name = shortName,
-                ClassNamespace = _namespaceHelper.ExtractNamespace(parent, parent["name"].ToString(), shortName),
+                // The namespace the record has, also when it inherits it: two records of one name in two namespaces get apart.
+                ClassNamespace = (avroNamespace ?? "").Replace(".", ""),
                 AvroName = shortName,
                 AvroNamespace = avroNamespace
             };
@@ -193,64 +230,18 @@ namespace SolTechnology.Avro.Features.GenerateModel
             {
                 if (field is JObject fieldObject)
                 {
-                    // Get Field type
-                    NetClassField fieldType = new NetClassField();
-                    bool isNullable = false;
-
-                    switch (field["type"])
-                    {
-                        case JValue _:
-                            fieldType = ResolveField(fieldObject);
-                            break;
-                        case JObject fieldJObject:
-                            fieldType = ResolveField(fieldJObject);
-                            break;
-                        case JArray types:
-                            {
-                                if (types.Any(t => t.ToString() == "null"))
-                                {
-                                    isNullable = true;
-                                }
-
-                                if (types.Count > 2 || (types.Count > 1 && !isNullable))
-                                {
-                                    fieldType.FieldType = "object";
-                                    fieldType.UnionMembers.AddRange(ResolveUnionMembers(types));
-                                    break;
-                                }
-
-                                // Is the field type an object that's defined in this spot
-                                JToken arrayFieldType = types.FirstOrDefault(x => x.ToString() != "null");
-
-                                switch (arrayFieldType)
-                                {
-                                    case JValue _:
-                                        fieldObject["type"] = arrayFieldType;
-                                        fieldType = ResolveField(fieldObject);
-                                        break;
-                                    case JObject arrayFieldJObject:
-                                        fieldType = ResolveField(arrayFieldJObject);
-                                        break;
-                                    default:
-                                        throw new InvalidAvroObjectException($"Unable to create array in array {arrayFieldType}");
-                                }
-
-                                break;
-                            }
-                        default:
-                            throw new InvalidAvroObjectException($"Unable to process field type of {field["type"].GetType().Name}");
-                    }
-
-                    if (isNullable)
-                    {
-                        fieldType.FieldType += "?";
-                    }
+                    // A type given by name can have its definition on the field itself ({"name": "m", "type": "map", "values": "int"}).
+                    // (Not valid Avro, both parsers reject it, but older versions generated a model for it.)
+                    NetClassField fieldType = field["type"] is JValue
+                        ? ResolveObject(fieldObject, avroNamespace, onField: true)
+                        : ResolveType(field["type"], avroNamespace);
 
                     fieldType.Name = field["name"].ToString();
 
-                    if (field["default"] is JValue _value)
+                    if (field["default"] is JValue { Type: not JTokenType.Null } _value)
                     {
-                        fieldType.Default = _value.ToString(NumberFormatInfo.InvariantInfo);                    
+                        fieldType.Default = _value.ToString(NumberFormatInfo.InvariantInfo);
+                        fieldType.DefaultIsString = _value.Type == JTokenType.String;
                     }
 
                     if (field["doc"] is JValue)
@@ -267,69 +258,186 @@ namespace SolTechnology.Avro.Features.GenerateModel
             }
         }
 
-        private static readonly HashSet<string> PrimitiveTypeNames = new() { "null", "boolean", "int", "long", "float", "double", "bytes", "string" };
-
-        /// <summary>Named branches of a union (inline definitions and references by name); non-record ones are dropped later.</summary>
-        private IEnumerable<NetClassField> ResolveUnionMembers(JArray types)
+        private static readonly Dictionary<string, string> Primitives = new()
         {
-            foreach (var type in types)
+            ["null"] = "object", ["boolean"] = "bool", ["int"] = "int", ["long"] = "long", ["float"] = "float",
+            ["double"] = "double", ["bytes"] = "byte[]", ["string"] = "string"
+        };
+
+        /// <summary>
+        /// The .NET type of an Avro type, with the attributes that keep its schema. Recursive: arrays, maps and unions take the
+        /// type of what they hold, so an array of arrays, a map of records defined in place or a union of any branches resolve.
+        /// </summary>
+        private NetClassField ResolveType(JToken type, string enclosingNamespace)
+        {
+            switch (type)
             {
-                switch (type)
-                {
-                    case JObject { } definition when definition["type"]?.ToString() is "record" or "error" or "enum" or "fixed":
-                        yield return ResolveField(definition);
-                        break;
-                    case JValue name when !PrimitiveTypeNames.Contains(name.ToString()):
-                        yield return ResolveField(new JObject { ["type"] = name.ToString() });
-                        break;
-                }
+                case JValue value:
+                    return ResolveName(value.ToString(), enclosingNamespace);
+                case JArray union:
+                    return ResolveUnion(union, enclosingNamespace);
+                case JObject obj:
+                    return ResolveObject(obj, enclosingNamespace);
+                default:
+                    throw new InvalidAvroObjectException($"Unable to process field type of {type?.GetType().Name}");
             }
         }
 
-        private NetClassField ResolveField(JObject typeObj)
+        private NetClassField ResolveName(string name, string enclosingNamespace)
         {
-            NetClassField result = new NetClassField();
+            if (Primitives.TryGetValue(name, out var primitive))
+            {
+                return new NetClassField { FieldType = primitive };
+            }
 
-            string objectType = typeObj["type"].ToString();
+            if (name == "fixed")
+            {
+                // "type": "fixed" without a definition of its own.
+                return new NetClassField { FieldType = "byte[]" };
+            }
+
+            if (FindFixed(name, enclosingNamespace) is { } definition)
+            {
+                return Fixed(definition);
+            }
+
+            // A record or an enum referred to by name.
+            return Named(new JObject { ["type"] = name }, name, enclosingNamespace);
+        }
+
+        private NetClassField ResolveObject(JObject obj, string enclosingNamespace, bool onField = false)
+        {
+            switch (obj["type"])
+            {
+                case JObject definition:
+                    {
+                        // Apache.Avro for C# writes a logical type on a named type around its definition:
+                        // {"type": {"type": "fixed", ...}, "logicalType": "decimal"}. It is the definition with the outer attributes.
+                        var merged = (JObject)definition.DeepClone();
+                        foreach (var property in obj.Properties().Where(p => p.Name != "type"))
+                        {
+                            merged[property.Name] = property.Value.DeepClone();
+                        }
+                        return ResolveObject(merged, enclosingNamespace);
+                    }
+                case JArray union:
+                    return ResolveUnion(union, enclosingNamespace);
+            }
+
+            string objectType = obj["type"].ToString();
+            if (obj["logicalType"] != null)
+            {
+                var (logicalType, attribute) = _logicalResolver.ResolveLogical(obj);
+                if (logicalType != null)
+                {
+                    var logical = new NetClassField { FieldType = logicalType };
+                    if (attribute != null)
+                    {
+                        logical.Attributes.Add(attribute);
+                    }
+                    return logical;
+                }
+            }
 
             switch (objectType)
             {
                 case "record":
+                case "error":
                 case "enum":
-                    result.FieldType = typeObj["name"].ToString();
-                    break;
+                    return Named(obj, obj["name"].ToString(), enclosingNamespace);
+                case "fixed":
+                    // On a field, "name" is the name of the field, not of a fixed.
+                    return !onField && obj["name"] != null && obj["size"] != null
+                        ? Fixed((obj["size"].Value<int>(), obj["name"].ToString().Split('.').Last(), AvroNamespace(obj, enclosingNamespace)))
+                        : new NetClassField { FieldType = "byte[]" };
                 case "array":
-                    result = _arrayResolver.ResolveArray(typeObj);
-                    break;
-                case "map":
-                    result.FieldType = _mapModelResolver.ResolveMap(typeObj);
-                    break;
-                default:
                     {
-                        var (logicalType, attribute) = typeObj["logicalType"] != null ? _logicalResolver.ResolveLogical(typeObj) : (null, null);
-                        result.FieldType = logicalType ?? objectType;
-                        if (attribute != null)
-                        {
-                            result.Attributes.Add(attribute);
-                        }
-
-                        break;
+                        var items = ResolveType(obj["items"], enclosingNamespace);
+                        var array = new NetClassField { FieldType = items.FieldType + "[]", Namespace = items.Namespace };
+                        // The representation of the items ([AvroType], [AvroDecimal]) is given on the member; [AvroFixed] is not.
+                        array.Attributes.AddRange(items.Attributes.Where(a => !a.StartsWith("[AvroFixed(")));
+                        return array;
                     }
+                case "map":
+                    {
+                        var values = ResolveType(obj["values"], enclosingNamespace);
+                        var map = new NetClassField { FieldType = $"Dictionary<string,{values.FieldType}>" };
+                        map.Attributes.AddRange(values.Attributes.Where(a => !a.StartsWith("[AvroFixed(")));
+                        return map;
+                    }
+                default:
+                    // A primitive written as an object ({"type": "string"}), possibly with an unknown logical type.
+                    return ResolveName(objectType, enclosingNamespace);
+            }
+        }
+
+        /// <summary>
+        /// [null, T] and [T, null] are a nullable T. Other unions are an object with every branch in [AvroUnion], so the class
+        /// gives back the same branches. A representation a branch needs ([AvroType] of a timestamp) is put on the member.
+        /// </summary>
+        private NetClassField ResolveUnion(JArray union, string enclosingNamespace)
+        {
+            var branches = union.Where(t => t.ToString() != "null").ToList();
+            bool nullable = branches.Count < union.Count;
+
+            if (branches.Count == 1)
+            {
+                var single = ResolveType(branches[0], enclosingNamespace);
+                if (nullable)
+                {
+                    single.FieldType += "?";
+                }
+                return single;
             }
 
-            string shortType = result.FieldType.Split('.').Last();
-            if (string.IsNullOrEmpty(result.Namespace))
-                result.Namespace = _namespaceHelper.ExtractNamespace(typeObj, result.FieldType, shortType);
+            var result = new NetClassField { FieldType = nullable ? "object?" : "object" };
+            foreach (var branch in branches)
+            {
+                var member = ResolveType(branch, enclosingNamespace);
+                result.UnionMembers.Add(member);
+                foreach (var attribute in member.Attributes.Where(a => !result.Attributes.Contains(a)))
+                {
+                    result.Attributes.Add(attribute);
+                }
+            }
 
-            shortType = shortType.TryReplace("boolean", "bool");
-            shortType = shortType.TryReplace("bytes", "byte[]");
-            shortType = shortType.TryReplace("fixed", "byte[]");
-            
-            result.FieldType = shortType;
-
-
+            // [AvroFixed] names the byte[] branch; with two fixed branches (or a fixed and bytes) the byte[] would be ambiguous.
+            if (result.Attributes.Count(a => a.StartsWith("[AvroFixed(")) > 1 || result.UnionMembers.Count(m => m.FieldType == "byte[]") > 1)
+            {
+                result.Attributes.RemoveAll(a => a.StartsWith("[AvroFixed("));
+            }
             return result;
         }
-        
+
+        private (int Size, string Name, string Namespace)? FindFixed(string name, string enclosingNamespace)
+        {
+            if (!name.Contains('.') && !string.IsNullOrEmpty(enclosingNamespace) && _fixed.TryGetValue(enclosingNamespace + "." + name, out var inNamespace))
+            {
+                return inNamespace;
+            }
+            return _fixed.TryGetValue(name, out var definition) ? definition : null;
+        }
+
+        private static NetClassField Fixed((int Size, string Name, string Namespace) definition)
+        {
+            var field = new NetClassField { FieldType = "byte[]" };
+            field.Attributes.Add(string.IsNullOrEmpty(definition.Namespace)
+                ? $"[AvroFixed({definition.Size}, \"{definition.Name}\")]"
+                : $"[AvroFixed({definition.Size}, \"{definition.Name}\", \"{definition.Namespace}\")]");
+            return field;
+        }
+
+        /// <summary>A record or an enum: its short name, and the namespace that tells two of the same name apart.</summary>
+        private static NetClassField Named(JObject typeObj, string name, string enclosingNamespace)
+        {
+            string shortType = name.Split('.').Last();
+            // A reference by short name is to the type in the enclosing namespace, as a definition without a namespace of its own.
+            var avroNamespace = name.Contains('.') || typeObj["namespace"] != null ? AvroNamespace(typeObj.ContainsKey("name") ? typeObj : new JObject { ["name"] = name }, enclosingNamespace) : enclosingNamespace;
+            return new NetClassField
+            {
+                FieldType = shortType,
+                Namespace = (avroNamespace ?? "").Replace(".", "")
+            };
+        }
     }
 }

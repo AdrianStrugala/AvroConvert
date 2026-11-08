@@ -469,7 +469,7 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
         private bool IsRecursiveReference(Type memberType) =>
             _recordsInProgress.Contains(Nullable.GetUnderlyingType(memberType) ?? memberType);
 
-        private TypeSchema TryBuildUnionSchema(Type memberType, MemberInfo memberInfo, Dictionary<string, NamedSchema> schemas, uint currentDepth, AvroTypeRepresentation? representation)
+        private TypeSchema TryBuildUnionSchema(Type memberType, MemberInfo memberInfo, Dictionary<string, NamedSchema> schemas, uint currentDepth, AvroTypeRepresentation? representation, NamedSchema parentSchema = null)
         {
 
             var attribute = memberInfo.GetCustomAttributes(false).OfType<AvroUnionAttribute>().FirstOrDefault();
@@ -484,7 +484,11 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 result.Add(memberType);
             }
             
-            var unionSchemas = result.Select(type => CreateNotNullableSchema(type, schemas, currentDepth + 1, memberInfo, representation)).ToList();
+            // [AvroType] next to [AvroUnion] is the representation of the branch it applies to (e.g. timestamp-millis of a DateTime),
+            // not of every branch: a string next to it stays a string.
+            var unionSchemas = result.Select(type => type == typeof(byte[]) && TryBuildFixedSchema(type, memberInfo, parentSchema) is { } fixedBranch
+                ? fixedBranch // [AvroFixed] next to [AvroUnion] is the byte[] branch
+                : CreateNotNullableSchema(type, schemas, currentDepth + 1, memberInfo, TakesRepresentation(type) ? representation : null)).ToList();
 
             var typeInfo = _resolver.ResolveType(memberType, memberInfo);
 
@@ -494,6 +498,41 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             }
 
             return new UnionSchema(unionSchemas, memberType);
+        }
+
+        /// <summary>
+        /// The default of an enum is its symbol, as the specification requires ([DefaultValue(Color.Red)] gives "Red", not 0;
+        /// a number is rejected by parsers that check defaults, e.g. Java and Confluent Schema Registry). A flags enum is a long.
+        /// </summary>
+        private object SchemaDefault(object defaultValue)
+        {
+            if (defaultValue is Enum value && !value.GetType().IsFlagEnum() && Enum.GetName(value.GetType(), value) is { } name)
+            {
+                return EnumParser.GetEnumName(value.GetType(), name, _namingPolicy);
+            }
+
+            return defaultValue;
+        }
+
+        private static bool TakesRepresentation(Type type)
+        {
+            type = Nullable.GetUnderlyingType(type) ?? type;
+            return type == typeof(DateTime) || type == typeof(DateTimeOffset) || type == typeof(DateOnly) || type == typeof(TimeOnly)
+                   || type == typeof(TimeSpan) || type == typeof(Guid) || type == typeof(decimal);
+        }
+
+        /// <summary>[AvroFixed] on a nullable byte[] is a union of null and the fixed; null goes last when the default is not null.</summary>
+        private TypeSchema TryBuildFixedSchema(Type memberType, MemberInfo memberInfo, NamedSchema parentSchema, bool nullable, bool nonNullDefault)
+        {
+            var fixedSchema = TryBuildFixedSchema(memberType, memberInfo, parentSchema);
+            if (fixedSchema == null || !nullable && !_resolver.ResolveType(memberType, memberInfo).Nullable)
+            {
+                return fixedSchema;
+            }
+
+            return new UnionSchema(nonNullDefault
+                ? new List<TypeSchema> { fixedSchema, new NullSchema(memberType) }
+                : new List<TypeSchema> { new NullSchema(memberType), fixedSchema }, memberType);
         }
 
         private FixedSchema TryBuildFixedSchema(Type memberType, MemberInfo memberInfo, NamedSchema parentSchema)
@@ -556,15 +595,15 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 // non-string keys) are left as they are: an empty dictionary ends the recursion, and their name comes from the value type.
                 bool nullable = info.Nullable || !isKeyValuePair && IsRecursiveReference(memberType);
 
-                TypeSchema fieldSchema = TryBuildUnionSchema(memberType, info.MemberInfo, schemas, currentDepth, info.AvroTypeRepresentation)
-                                         ?? TryBuildFixedSchema(memberType, info.MemberInfo, record)
+                TypeSchema fieldSchema = TryBuildUnionSchema(memberType, info.MemberInfo, schemas, currentDepth, info.AvroTypeRepresentation, record)
+                                         ?? TryBuildFixedSchema(memberType, info.MemberInfo, record, nullable, info.DefaultValue != null)
                                          ?? CreateSchema(nullable, memberType, schemas, currentDepth + 1, info.AvroTypeRepresentation, info.DefaultValue?.GetType(), info.MemberInfo);
 
                 var recordField = new RecordFieldSchema(
                     new NamedEntityAttributes(new SchemaName(info.Name), info.Aliases, info.Doc),
                     fieldSchema,
                     info.HasDefaultValue,
-                    info.DefaultValue,
+                    SchemaDefault(info.DefaultValue),
                     index++);
                 result.Add(recordField);
             }

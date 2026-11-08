@@ -248,6 +248,23 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 return this.ParseUnionType(tokenType as JArray, parent, namedSchemas);
             }
 
+            if (tokenType.Type == JTokenType.Object)
+            {
+                // Apache.Avro for C# writes a logical type on a named type as a wrapper around its definition, e.g.
+                // {"type": {"type": "fixed", "name": "Money", "size": 12}, "logicalType": "decimal", "precision": 28}.
+                // Read it as the one object the specification defines: the definition with the wrapper's attributes.
+                var merged = (JObject)tokenType.DeepClone();
+                foreach (var property in token.Properties())
+                {
+                    if (property.Name != AvroKeywords.Type)
+                    {
+                        merged[property.Name] = property.Value.DeepClone();
+                    }
+                }
+
+                return this.ParseJsonObject(merged, parent, namedSchemas);
+            }
+
             throw new SerializationException(
                 string.Format(CultureInfo.InvariantCulture, "Invalid type specified: '{0}'.", tokenType));
         }

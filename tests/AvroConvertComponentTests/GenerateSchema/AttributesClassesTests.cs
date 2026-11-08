@@ -8,6 +8,18 @@ namespace AvroConvertComponentTests.GenerateSchema
     {
 
         [Test]
+        public void GenerateSchema_EnumDefault_IsTheSymbol()
+        {
+            // The specification: the default of an enum is a JSON string, one of its symbols. A number is rejected by
+            // parsers that check defaults (Java, Confluent Schema Registry).
+            var schema = AvroConvert.GenerateSchema(typeof(ClassWithEnum));
+            var withMembers = AvroConvert.GenerateSchema(typeof(ClassWithEnumDefiningMembers));
+
+            schema.Should().Contain("\"name\":\"EnumProp\",\"type\":[{\"type\":\"enum\"").And.Contain("\"default\":\"be\"").And.Contain("\"default\":\"ca\"");
+            withMembers.Should().Contain("\"default\":\"NEGATIVE_VALUE\"").And.NotContain("\"default\":1");
+        }
+
+        [Test]
         public void GenerateSchema_PropertiesAreDecoratedWithDefaultValueAttributes_SchemaContainsDefaultFieldForMembers()
         {
             //Arrange

@@ -24,7 +24,7 @@ namespace SolTechnology.Avro.Infrastructure.Attributes
     /// This attribute determines the size of the Avro fixed byte array.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, Inherited = true, AllowMultiple = false)]
-    internal sealed class AvroFixedAttribute : Attribute
+    public sealed class AvroFixedAttribute : Attribute
     {
         private readonly int size;
         private readonly string name;
@@ -42,7 +42,7 @@ namespace SolTechnology.Avro.Infrastructure.Attributes
         /// <exception cref="ArgumentException">
         /// If the size is not larger than zero.
         /// </exception>
-        internal AvroFixedAttribute(int size, string name)
+        public AvroFixedAttribute(int size, string name)
             : this(size, name, string.Empty)
         {
         }
@@ -62,7 +62,7 @@ namespace SolTechnology.Avro.Infrastructure.Attributes
         /// <exception cref="ArgumentException">
         /// If the size is not larger than zero.
         /// </exception>
-        internal AvroFixedAttribute(int size, string name, string @namespace)
+        public AvroFixedAttribute(int size, string name, string @namespace)
         {
             if (size <= 0)
             {
@@ -80,7 +80,7 @@ namespace SolTechnology.Avro.Infrastructure.Attributes
         /// <summary>
         /// Gets the size of the fixed bytes.
         /// </summary>
-        internal int Size
+        public int Size
         {
             get { return size; }
         }
@@ -91,7 +91,7 @@ namespace SolTechnology.Avro.Infrastructure.Attributes
         /// <value>
         /// The name of the fixed.
         /// </value>
-        internal string Name
+        public string Name
         {
             get { return name; }
         }
@@ -102,7 +102,7 @@ namespace SolTechnology.Avro.Infrastructure.Attributes
         /// <value>
         /// The fixed name space.
         /// </value>
-        internal string Namespace
+        public string Namespace
         {
             get { return @namespace; }
         }

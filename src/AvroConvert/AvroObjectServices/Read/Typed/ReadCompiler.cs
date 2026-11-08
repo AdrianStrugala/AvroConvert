@@ -207,6 +207,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                         }
                         return BuildRecord((RecordSchema)ws, readerRecord, target, reader, candidates);
                     case AvroType.Enum:
+                        if (target == typeof(object) && candidates?.FirstOrDefault(t => t.IsEnum && (t.Name == ws.Name || t.Name == rs.Name)) is { } enumType)
+                        {
+                            // [AvroUnion] names the enum: the value is that enum, so it is written back to the enum branch, not as text.
+                            return Expression.Convert(BuildEnum((EnumSchema)ws, rs, enumType, reader), target);
+                        }
                         return BuildEnum((EnumSchema)ws, rs, target, reader);
                     case AvroType.Fixed:
                         return BuildFixed((FixedSchema)ws, target, reader);
@@ -707,19 +712,8 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                     continue;
                 }
 
+                // A null in the data stays null: the field default is only for data that lacks the field (spec, "default").
                 Expression value = Build(wf.TypeSchema, rf.TypeSchema, member.Type, reader, UnionCandidates(member.Info));
-                if (wf.HasDefaultValue && wf.DefaultValue != null && (!member.Type.IsValueType || Nullable.GetUnderlyingType(member.Type) != null))
-                {
-                    // A null read for a field with a writer default yields that default.
-                    object fallbackDefault = null;
-                    try { fallbackDefault = FormatDefaultValue(wf.DefaultValue, member.Type); }
-                    catch (Exception) { /* default not representable as the member type – keep the raw value */ }
-
-                    if (fallbackDefault != null)
-                    {
-                        value = Expression.Coalesce(value, Expression.Constant(fallbackDefault, member.Type));
-                    }
-                }
 
                 body.Add(Expression.Assign(Expression.MakeMemberAccess(instance, member.Info), value));
             }
@@ -815,10 +809,6 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                 string name = _recordsAsDictionaries ? rf.Name : rf.Aliases.FirstOrDefault() ?? wf.Name;
                 var targetType = wf.TypeSchema.Type == AvroType.Array ? typeof(List<object>) : typeof(object);
                 Expression value = Expression.Convert(Build(wf.TypeSchema, rf.TypeSchema, targetType, reader), typeof(object));
-                if (wf.DefaultValue != null)
-                {
-                    value = Expression.Coalesce(value, Expression.Constant(wf.DefaultValue, typeof(object)));
-                }
 
                 body.Add(Expression.Call(dictionary, ExpandoAddMethod, Expression.Constant(name), value));
             }

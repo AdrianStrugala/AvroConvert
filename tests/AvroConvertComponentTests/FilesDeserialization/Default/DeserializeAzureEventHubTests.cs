@@ -16,58 +16,6 @@ namespace AvroConvertComponentTests.FilesDeserialization.Default
         {
             //Arrange
 
-            //just for reference
-            var schema = @"{ 
-   ""name"":""EventData"",
-   ""namespace"":""Microsoft.ServiceBus.Messaging"",
-   ""type"":""record"",
-   ""fields"":[
-      {
-         ""name"":""SequenceNumber"",
-         ""type"":""long""
-      },
-      {
-         ""name"":""Offset"",
-         ""type"":""string""
-      },
-      {
-         ""name"":""EnqueuedTimeUtc"",
-         ""type"":""string""
-      },
-      {
-         ""name"":""SystemProperties"",
-         ""type"":{
-            ""type"":""map"",
-            ""values"":[
-               ""long"",
-               ""double"",
-               ""string"",
-               ""bytes""
-            ]
-         }
-      },
-      {
-         ""name"":""Properties"",
-         ""type"":{
-            ""type"":""map"",
-            ""values"":[
-               ""long"",
-               ""double"",
-               ""string"",
-               ""bytes"",
-               ""null""
-            ]
-         }
-      },
-      {
-         ""name"":""Body"",
-         ""type"":[
-            ""null"",
-            ""bytes""
-         ]
-      }
-   ]
-}";
 
             //Act
             var result = AvroConvert.Deserialize<List<EventData>>(_azureEventHubBytes);

@@ -12,26 +12,20 @@ namespace SolTechnology.Avro.Features.GenerateModel.NetModel
         /// <summary>Name and namespace of the record in the schema; kept with [DataContract] so the schema of the class is the same.</summary>
         public string AvroName { get; set; }
         public string AvroNamespace { get; set; }
+        public string Doc { get; set; }
 
         public List<NetClassField> Fields { get; set; } = new List<NetClassField>();
 
         public void Write(StringBuilder sb)
         {
+            CSharp.WriteDoc(sb, Doc, "");
             // With [DataContract] every property is a [DataMember], so the schema is the same with IncludeOnlyDataContractMembers.
             var dataContract = NetEnum.WriteDataContract(sb, Name, AvroName, AvroNamespace);
             sb.AppendLine($"public class {Name}");
             sb.AppendLine("{");
             foreach (NetClassField field in Fields)
             {
-                if (!string.IsNullOrWhiteSpace(field.Doc))
-                {
-                    sb.AppendLine("\t/// <summary>");
-                    foreach (var line in field.Doc.Replace("\r\n", "\n").Split('\n'))
-                    {
-                        sb.AppendLine($"\t/// {CSharp.XmlDoc(line)}");
-                    }
-                    sb.AppendLine("\t/// </summary>");
-                }
+                CSharp.WriteDoc(sb, field.Doc, "\t");
 
                 var defaultValue = field.DefaultLiteral();
                 if (defaultValue != null)

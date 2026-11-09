@@ -14,6 +14,7 @@
 */
 #endregion
 
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Newtonsoft.Json;
 
@@ -24,10 +25,14 @@ namespace SolTechnology.Avro.Infrastructure
     /// JsonConvert.DefaultSettings of the application, so a converter, a contract resolver or a date setting meant for the
     /// application's own types changed how Avro data and schema defaults were read and written.
     /// </summary>
+    [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
     internal static class Json
     {
-        /// <summary>Not changed after it is created, so it can be shared.</summary>
-        internal static readonly JsonSerializer Serializer = JsonSerializer.Create(new JsonSerializerSettings { CheckAdditionalContent = true });
+        private static JsonSerializer _serializer;
+
+        /// <summary>Not changed after it is created, so it can be shared. Created on first use: a static initializer is not
+        /// covered by the attributes above. Two threads may each create one at first; either works.</summary>
+        internal static JsonSerializer Serializer => _serializer ??= JsonSerializer.Create(new JsonSerializerSettings { CheckAdditionalContent = true });
 
         /// <summary>As JsonConvert.DeserializeObject&lt;T&gt;, without the application's settings.</summary>
         internal static T Deserialize<T>(string json)

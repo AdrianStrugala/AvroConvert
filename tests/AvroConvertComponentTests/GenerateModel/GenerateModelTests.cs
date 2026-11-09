@@ -33,14 +33,17 @@ namespace AvroConvertComponentTests.GenerateModel
             //Assert
             resultClass.Should().Be("#nullable enable annotations\r\n\r\n" +
                 "using System.Runtime.Serialization;\r\n" +
+                "using SolTechnology.Avro.Infrastructure.Attributes;\r\n" +
                 "\r\n" +
                 "[DataContract(Namespace = \"example.avro\")]\r\n" +
                 "public class User\r\n" +
                 "{\r\n" +
                 "\t[DataMember]\r\n" +
                 "\tpublic string name { get; set; }\r\n" +
+                "\t[AvroUnion(typeof(int), null)]\r\n" +
                 "\t[DataMember]\r\n" +
                 "\tpublic int? favorite_number { get; set; }\r\n" +
+                "\t[AvroUnion(typeof(string), null)]\r\n" +
                 "\t[DataMember]\r\n" +
                 "\tpublic string? favorite_color { get; set; }\r\n" +
                 "}\r\n" +
@@ -1104,6 +1107,35 @@ namespace AvroConvertComponentTests.GenerateModel
             model.Should().Contain("public class Item\r\n");
         }
 
+        // user.avsc of the Avro documentation: null after the other branch and no default.
+        private const string UserSchema = @"{""type"":""record"",""name"":""User"",""namespace"":""example.avro"",""fields"":[
+            {""name"":""name"",""type"":""string""},
+            {""name"":""favorite_number"",""type"":[""int"",""null""]},
+            {""name"":""favorite_color"",""type"":[""string"",""null""]},
+            {""name"":""rank"",""type"":[""null"",""int""],""default"":null},
+            {""name"":""score"",""type"":[""int"",""null""],""default"":3},
+            {""name"":""tag"",""type"":[""string"",""null"",""long""]}]}";
+
+        [Test]
+        public void GenerateClass_NullAfterTheOtherBranch_NamesItsPositionInAvroUnion()
+        {
+            var model = AvroConvert.GenerateModel(UserSchema);
+
+            model.Should().Contain("\t[AvroUnion(typeof(int), null)]\r\n\t[DataMember]\r\n\tpublic int? favorite_number { get; set; }\r\n");
+            model.Should().Contain("\t[AvroUnion(typeof(string), null)]\r\n\t[DataMember]\r\n\tpublic string? favorite_color { get; set; }\r\n");
+            model.Should().Contain("\t[DataMember]\r\n\tpublic int? rank { get; set; }\r\n", "null first is where a class puts it");
+            model.Should().Contain("\t[DefaultValue(3)]\r\n\t[DataMember]\r\n\tpublic int? score { get; set; }\r\n", "with a default a class puts null last");
+            model.Should().Contain("\t[AvroUnion(typeof(string), null, typeof(long))]\r\n\t[DataMember]\r\n\tpublic object? tag { get; set; }\r\n");
+        }
+
+        [Test]
+        public void GeneratedModel_WithNullAfterTheOtherBranch_GivesBackTheSameSchema()
+        {
+            // The class in GeneratedUser is the output of GenerateModel(UserSchema).
+            AvroSchema.Create<GeneratedUser.User>().CanonicalForm.Should().Be(AvroSchema.Parse(UserSchema).CanonicalForm);
+            WithoutDefaults(AvroSchema.Create<GeneratedUser.User>().Json).Should().Be(WithoutDefaults(AvroSchema.Parse(UserSchema).Json));
+        }
+
         [Test]
         public void GenerateClass_FixedBranchOfAUnion_KeepsTheFixed()
         {
@@ -1272,4 +1304,35 @@ namespace AvroConvertComponentTests.GenerateModel.GeneratedToken
     }
 }
 #pragma warning restore CS8618
+#nullable restore
+
+#nullable enable annotations
+namespace AvroConvertComponentTests.GenerateModel.GeneratedUser
+{
+    using System.ComponentModel;
+    using System.Runtime.Serialization;
+    using SolTechnology.Avro.Infrastructure.Attributes;
+
+    // Output of GenerateModel(UserSchema), as it is.
+    [DataContract(Namespace = "example.avro")]
+    public class User
+    {
+        [DataMember]
+        public string name { get; set; }
+        [AvroUnion(typeof(int), null)]
+        [DataMember]
+        public int? favorite_number { get; set; }
+        [AvroUnion(typeof(string), null)]
+        [DataMember]
+        public string? favorite_color { get; set; }
+        [DataMember]
+        public int? rank { get; set; }
+        [DefaultValue(3)]
+        [DataMember]
+        public int? score { get; set; }
+        [AvroUnion(typeof(string), null, typeof(long))]
+        [DataMember]
+        public object? tag { get; set; }
+    }
+}
 #nullable restore

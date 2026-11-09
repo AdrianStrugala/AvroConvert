@@ -213,6 +213,31 @@ namespace AvroConvertComponentTests.FullSerializationAndDeserialization
             Recorded.Exception(() => AvroConvert.Deserialize<TypedNode>(avro));
         }
 
+        private static IEnumerable<string> DynamicReaders => ReadersOfDynamicData().Select(reader => reader.Name);
+
+        [Test]
+        public void Depth_of_the_data_never_ends_the_process_on_a_thread_with_a_small_stack(
+            [ValueSource(nameof(DynamicReaders))] string reader, [Values(256, 1024)] int stackKb)
+        {
+            var read = ReadersOfDynamicData().Single(r => r.Name == reader).Read;
+            // Every depth up to where reading stops: the depth at which the stack runs out depends on the thread, and data a
+            // decoder still reads must not overflow the stack later (e.g. Avro2Json writing ~1200 levels on 1 MB ended the process).
+            var files = Enumerable.Range(1, 60).Select(i => RoundTrip.RawContainer(LinkedList, DeepList(i * 50), 1)).ToList();
+            var results = new List<Exception>();
+
+            var thread = new System.Threading.Thread(() => results.AddRange(files.Select(avro => Recorded.Exception(() => read(avro)))), stackKb * 1024);
+            thread.Start();
+            thread.Join();
+
+            // Each depth is read, or stops because the stack is short – never another error.
+            results.Should().HaveCount(files.Count);
+            results.Where(e => e != null && !IsShortOfStack(e)).Should().BeEmpty();
+            results.First().Should().BeNull("50 levels fit a 256 KB stack");
+        }
+
+        private static bool IsShortOfStack(Exception exception) =>
+            exception is InsufficientExecutionStackException || exception.InnerException is { } inner && IsShortOfStack(inner);
+
         [Test]
         public void Data_of_usual_depth_is_read()
         {

@@ -83,8 +83,33 @@ namespace SolTechnology.Avro.Features.GenerateModel
                 sb.Insert(0, usings + "\n");
             }
 
+            if (HasNullableReferences(model))
+            {
+                // string? and Item?[] give ["null", T] only where the compiler keeps the annotation, so the file turns it on
+                // whatever the project's <Nullable> is. Annotations only: no warnings about uninitialised members.
+                sb.Insert(0, "#nullable enable annotations\n\n");
+            }
+
             // Generated code uses CRLF regardless of the host platform so the output is deterministic.
             return sb.Replace("\r\n", "\n").Replace("\n", "\r\n").ToString();
+        }
+
+        private static readonly HashSet<string> ValueTypes = new()
+        {
+            "bool", "int", "long", "float", "double", "decimal", "DateTime", "DateTimeOffset", "DateOnly", "TimeOnly", "TimeSpan", "Guid"
+        };
+
+        /// <summary>
+        /// A member type with a nullable reference (string?, Item?, byte[]?, string?[], Dictionary&lt;string,string?&gt;): those
+        /// need the annotation context. int? and an enum? are Nullable&lt;T&gt; without it.
+        /// </summary>
+        private static bool HasNullableReferences(NetModel.NetModel model)
+        {
+            var valueTypes = new HashSet<string>(ValueTypes.Concat(model.NetTypes.OfType<NetEnum>().Select(e => e.Name)));
+            return model.NetTypes.OfType<NetClass>()
+                .SelectMany(netClass => netClass.Fields)
+                .SelectMany(field => Regex.Matches(field.FieldType, @"([\w\]>]+)\?").Select(match => match.Groups[1].Value))
+                .Any(type => !valueTypes.Contains(type));
         }
 
         /// <summary>The using directives the generated code needs, so that it compiles as it is.</summary>

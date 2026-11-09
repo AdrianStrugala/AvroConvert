@@ -69,7 +69,7 @@ namespace SolTechnology.Avro
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] Json2Avro<T>(string json)
         {
-            var deserializedJson = JsonConvert.DeserializeObject<T>(json);
+            var deserializedJson = Json.Deserialize<T>(json);
             var result = AvroConvert.Serialize(deserializedJson);
 
             return result;
@@ -81,7 +81,7 @@ namespace SolTechnology.Avro
         [RequiresUnreferencedCode(AotMessages.Reflection), RequiresDynamicCode(AotMessages.DynamicCode)]
         public static byte[] Json2Avro<T>(string json, AvroConvertOptions options)
         {
-            var deserializedJson = JsonConvert.DeserializeObject<T>(json);
+            var deserializedJson = Json.Deserialize<T>(json);
             var result = AvroConvert.Serialize(deserializedJson, options);
 
             return result;

@@ -8,7 +8,9 @@ Breaking changes:
 - A missing non-nullable field throws instead of returning `default` (#87). Old behaviour: `MissingFieldHandling = UseDefault`
 - Serializing `null` into a non-nullable field throws instead of writing an empty value (#87). Old behaviour: `NullValueHandling = WriteEmpty`
 - A `null` in the data is read as `null`, also when the field has a default (`[DefaultValue]`): the default is only for data that lacks the field, as in the specification and other Avro libraries. 3.x and the previews read the default instead (`Deserialize`, `Avro2Json`, dictionaries)
+- Items and values annotated as nullable reference types are a union with `null`: `List<string?>` gives `"items": ["null", "string"]`, `Dictionary<string, string?>` gives `"values": ["null", "string"]` (also `string?[]`, nested collections). 3.x and the previews gave `"string"`, so a `null` item threw (3.x wrote `""`). The schema of such a class changes; Schema Registry in the default `BACKWARD` mode accepts it, `FORWARD` and `FULL` do not. Without `#nullable enable` nothing changes. A type parameter of a generic class (`List<T>` in `Page<T>`) stays as it was
 - `[DefaultValue(Color.Red)]` on an enum member gives `"default": "Red"`, the symbol, as the specification requires; 3.x wrote the number, which Java and Confluent Schema Registry reject
+- `Avro2Json`, `Json2Avro` and the defaults in schemas do not use `JsonConvert.DefaultSettings` of the application: the names are the names in the schema, and the JSON is compact with ISO 8601 dates, whatever the contract resolver, `Formatting`, date settings or converters set there. 3.x and the previews applied those settings, e.g. a camel-case contract resolver renamed the fields
 - `DeserializeHeadless<List<T>>` reads all rows, not only the first one (#69)
 - Read objects are created with their public parameterless constructor, like in System.Text.Json; a field missing in the data keeps its initialiser
 - `DateTimeOffset` is written as its UTC instant instead of the wall-clock time
@@ -27,7 +29,7 @@ Breaking changes:
 - Reflection-based methods marked `[RequiresUnreferencedCode]` / `[RequiresDynamicCode]`
 - SolTechnology.Avro.Kafka rewritten on Confluent.SchemaRegistry 2.16: Confluent wire format, schema evolution, references, subject name strategies. Removed `KafkaConsumer`, `KafkaPropNames`, `ConfluentSchema`
 - SolTechnology.Avro.Http follows System.Net.Http.Json (`GetFromAvroAsync`, `PostAsAvroAsync`, `ReadFromAvroAsync`…), Minimal API results and streaming; old names are `[Obsolete]`
-- `GenerateModel`: `date` → `DateOnly`, `time-millis` / `time-micros` → `TimeOnly`; the code starts with `using` directives and has `[DataContract]` / `[DataMember]`, `[AvroType]`, `[AvroDecimal]` and `[AvroFixed]` where needed, so the classes give back the same schema (exceptions in [Generate model](Documentation.Schema.md#generate-model)). A union lists every branch in `[AvroUnion]`, not only the records; the default of an enum is its symbol (`[DefaultValue("Paid")]`)
+- `GenerateModel`: `date` → `DateOnly`, `time-millis` / `time-micros` → `TimeOnly`; the code starts with `using` directives (and `#nullable enable annotations` when it has nullable types) and has `[DataContract]` / `[DataMember]`, `[AvroType]`, `[AvroDecimal]` and `[AvroFixed]` where needed, so the classes give back the same schema (exceptions in [Generate model](Documentation.Schema.md#generate-model)). A union lists every branch in `[AvroUnion]`, not only the records; the default of an enum is its symbol (`[DefaultValue("Paid")]`)
 
 Changes:
 - Serialization and deserialization compiled per schema and type: several times faster, a fraction of allocations
@@ -58,6 +60,7 @@ Changes:
 - An enum value in a union with a string branch goes to the enum branch; read into `object` with `[AvroUnion]` it is the enum again
 - The classes and enums of `[AvroUnion]` are also found by their `[DataContract(Name)]`: they were read back as `ExpandoObject` or text
 - `GenerateModel` handles `fixed` (also referred to by name), unions of any branches, arrays of arrays and of unions, maps of records defined in place, `error` types, C# keywords as names, string / `bool?` / enum / `NaN` defaults, multi-line docs, records of one name in two namespaces and a file of several schemas, where it generated code that did not compile or lost union branches
+- `string?` members of a class nested in another one are a union with `null` when the nullable context is on the outer class; they were taken as not nullable
 - `ExpandoObject` and `Json2Avro` reuse the compiled plan of a schema they have seen, instead of compiling one for every call
 - JSON objects and `ExpandoObject`s with one key holding different fields keep them: the records get names of their own. Items of a list with different nested objects keep all their fields
 - `Dictionary<string, object>`, `object` members, `List<object>` and `ExpandoObject` members take their schema from the values being written. A string in them threw, and a class lost its fields without an error. `List<object>` is written as one entry per item, like other lists
@@ -82,6 +85,8 @@ Changes:
 - A failed serialization does not leave a data block that looks complete
 - Fix for a recursive record without a matching class read into `dynamic` or `ExpandoObject`: it ended the process with a stack overflow
 - Data nested too deep and schemas without an end throw instead of ending the process with a stack overflow
+- `Avro2Json` of data nested deep enough to be read but not written as JSON (about 1,200 levels on a 1 MB stack) throws instead of ending the process: the JSON is written with a stack check at every level
+- `Avro2JsonEncoding` takes about a quarter of the stack per level of nested data: 1,330 levels on a 1 MB stack instead of 348
 - Fix for `OpenDeserializer<ExpandoObject>` returning objects without fields
 - Fix for `GetSchema(path)` on read-only files and files open elsewhere
 - Fix for `Merge` losing data after the first block

@@ -31,7 +31,8 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            resultClass.Should().Be("using System.Runtime.Serialization;\r\n" +
+            resultClass.Should().Be("#nullable enable annotations\r\n\r\n" +
+                "using System.Runtime.Serialization;\r\n" +
                 "\r\n" +
                 "[DataContract(Namespace = \"example.avro\")]\r\n" +
                 "public class User\r\n" +
@@ -84,7 +85,8 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            resultSchema.Should().Be("using System.Runtime.Serialization;\r\n" +
+            resultSchema.Should().Be("#nullable enable annotations\r\n\r\n" +
+                "using System.Runtime.Serialization;\r\n" +
                 "\r\n" +
                 "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
                 "public class BaseTestClass\r\n" +
@@ -157,7 +159,8 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            resultSchema.Should().Be("using System;\r\n" +
+            resultSchema.Should().Be("#nullable enable annotations\r\n\r\n" +
+                "using System;\r\n" +
                 "using System.Runtime.Serialization;\r\n" +
                 "\r\n" +
                 "[DataContract(Namespace = \"AvroConvertComponentTests\")]\r\n" +
@@ -471,7 +474,8 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            resultClass.Should().Be("using System.Runtime.Serialization;\r\n" +
+            resultClass.Should().Be("#nullable enable annotations\r\n\r\n" +
+                "using System.Runtime.Serialization;\r\n" +
                 "\r\n" +
                 "public class Result\r\n" +
                 "{\r\n" +
@@ -895,7 +899,8 @@ namespace AvroConvertComponentTests.GenerateModel
 
 
             //Assert
-            resultClass.Should().Be("using SolTechnology.Avro.Infrastructure.Attributes;\r\n" +
+            resultClass.Should().Be("#nullable enable annotations\r\n\r\n" +
+                "using SolTechnology.Avro.Infrastructure.Attributes;\r\n" +
                 "\r\n" +
                 "public class ClassWithMultipleTypesProperties\r\n" +
                 "{\r\n" +

@@ -15,7 +15,6 @@
 #endregion
 using System.ComponentModel;
 using System.IO;
-using Newtonsoft.Json;
 using SolTechnology.Avro.AvroObjectServices.BuildSchema;
 using SolTechnology.Avro.Features.AvroToJson;
 using System.Diagnostics.CodeAnalysis;
@@ -35,7 +34,7 @@ namespace SolTechnology.Avro
             {
                 var decoder = new Decoder();
                 var deserialized = decoder.Decode(stream, null);
-                var json = JsonConvert.SerializeObject(deserialized);
+                var json = JsonOutput.Write(deserialized);
 
                 return json;
             }
@@ -63,7 +62,7 @@ namespace SolTechnology.Avro
             {
                 var decoder = new Decoder();
                 var deserialized = decoder.Decode(stream, avroSchema.TypeSchema);
-                var json = JsonConvert.SerializeObject(deserialized);
+                var json = JsonOutput.Write(deserialized);
 
                 return json;
             }

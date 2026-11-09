@@ -44,7 +44,7 @@ namespace SolTechnology.Avro.Features.JsonToAvro
             }
 
             //Assume Primitive
-            return AvroConvert.Serialize(token.ToObject<object>(), options);
+            return AvroConvert.Serialize(token.ToObject<object>(Json.Serializer), options);
 
         }
 

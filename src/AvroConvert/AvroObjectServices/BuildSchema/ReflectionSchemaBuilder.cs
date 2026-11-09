@@ -576,10 +576,11 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
             // [AvroType] next to [AvroUnion] is the representation of the branch it applies to (e.g. timestamp-millis of a DateTime),
             // not of every branch: a string next to it stays a string.
+            var fixedBranchType = result.Contains(typeof(byte[])) ? typeof(byte[]) : typeof(decimal);
             var unionSchemas = result.Select(type => type == null
                 ? new NullSchema()
-                : type == typeof(byte[]) && TryBuildFixedSchema(type, memberInfo, parentSchema) is { } fixedBranch
-                    ? fixedBranch // [AvroFixed] next to [AvroUnion] is the byte[] branch
+                : type == fixedBranchType && TryBuildFixedSchema(type, memberInfo, parentSchema) is { } fixedBranch
+                    ? fixedBranch // [AvroFixed] next to [AvroUnion] is the byte[] branch, or else the decimal one
                     : CreateNotNullableSchema(type, schemas, currentDepth + 1, memberInfo, TakesRepresentation(type) ? representation : null)).ToList();
 
             var typeInfo = _resolver.ResolveType(memberType, memberInfo);
@@ -627,7 +628,11 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 : new List<TypeSchema> { new NullSchema(memberType), fixedSchema }, memberType);
         }
 
-        private FixedSchema TryBuildFixedSchema(Type memberType, MemberInfo memberInfo, NamedSchema parentSchema)
+        /// <summary>
+        /// [AvroFixed] on a byte[] is a fixed; on a decimal it is a decimal on that fixed (with the precision and scale of
+        /// [AvroDecimal]), as in schemas of other tools: {"type": "fixed", "size": 16, "logicalType": "decimal", ...}.
+        /// </summary>
+        private TypeSchema TryBuildFixedSchema(Type memberType, MemberInfo memberInfo, NamedSchema parentSchema)
         {
             var result = memberInfo.GetCustomAttributes(false).OfType<AvroFixedAttribute>().FirstOrDefault();
             if (result == null)
@@ -635,20 +640,30 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
                 return null;
             }
 
-            if (memberType != typeof(byte[]))
+            var isDecimal = (Nullable.GetUnderlyingType(memberType) ?? memberType) == typeof(decimal);
+            if (memberType != typeof(byte[]) && !isDecimal)
             {
                 throw new SerializationException(
-                    string.Format(CultureInfo.InvariantCulture, "'{0}' can be set only to members of type byte[].", typeof(AvroFixedAttribute)));
+                    string.Format(CultureInfo.InvariantCulture, "'{0}' can be set only to members of type byte[] or decimal.", typeof(AvroFixedAttribute)));
             }
 
             var schemaNamespace = string.IsNullOrEmpty(result.Namespace) && !result.Name.Contains(".") && parentSchema != null
                                       ? parentSchema.Namespace
                                       : result.Namespace;
 
-            return new FixedSchema(
+            var fixedSchema = new FixedSchema(
                 new NamedEntityAttributes(new SchemaName(result.Name, schemaNamespace), new List<string>(), string.Empty),
                 result.Size,
-                memberType);
+                typeof(byte[]));
+
+            if (!isDecimal)
+            {
+                return fixedSchema;
+            }
+
+            var decimalSchema = (DecimalSchema)BuildDecimalTypeSchema(typeof(decimal), memberInfo);
+            decimalSchema.BaseTypeSchema = fixedSchema;
+            return decimalSchema;
         }
 
         public List<RecordFieldSchema> BuildRecordFields(

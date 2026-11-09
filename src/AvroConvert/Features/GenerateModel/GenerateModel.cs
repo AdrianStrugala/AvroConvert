@@ -34,14 +34,14 @@ namespace SolTechnology.Avro.Features.GenerateModel
         private NamespaceHelper _namespaceHelper;
         private EnumModelResolver _enumResolver;
         private LogicalModelResolver _logicalResolver;
-        private Dictionary<string, (int Size, string Name, string Namespace)> _fixed;
+        private Dictionary<string, (int Size, string Name, string Namespace, JObject Definition)> _fixed;
 
         private void Initialize()
         {
             _namespaceHelper = new NamespaceHelper();
             _enumResolver = new EnumModelResolver();
             _logicalResolver = new LogicalModelResolver();
-            _fixed = new Dictionary<string, (int, string, string)>();
+            _fixed = new Dictionary<string, (int, string, string, JObject)>();
         }
 
 
@@ -153,7 +153,7 @@ namespace SolTechnology.Avro.Features.GenerateModel
                     if (type?.ToString() == "fixed" && obj["name"] != null && obj["size"] != null)
                     {
                         var shortName = obj["name"].ToString().Split('.').Last();
-                        var definition = (obj["size"].Value<int>(), shortName, ownNamespace);
+                        var definition = (obj["size"].Value<int>(), shortName, ownNamespace, obj);
                         _fixed[string.IsNullOrEmpty(ownNamespace) ? shortName : ownNamespace + "." + shortName] = definition;
                         _fixed.TryAdd(shortName, definition);
                     }
@@ -351,6 +351,11 @@ namespace SolTechnology.Avro.Features.GenerateModel
             }
 
             string objectType = obj["type"].ToString();
+            if (objectType == "fixed" && !onField && obj["name"] != null && obj["size"] != null && obj["logicalType"]?.ToString() == "decimal")
+            {
+                return Fixed((obj["size"].Value<int>(), obj["name"].ToString().Split('.').Last(), AvroNamespace(obj, enclosingNamespace), obj));
+            }
+
             if (obj["logicalType"] != null)
             {
                 var (logicalType, attribute) = _logicalResolver.ResolveLogical(obj);
@@ -374,7 +379,7 @@ namespace SolTechnology.Avro.Features.GenerateModel
                 case "fixed":
                     // On a field, "name" is the name of the field, not of a fixed.
                     return !onField && obj["name"] != null && obj["size"] != null
-                        ? Fixed((obj["size"].Value<int>(), obj["name"].ToString().Split('.').Last(), AvroNamespace(obj, enclosingNamespace)))
+                        ? Fixed((obj["size"].Value<int>(), obj["name"].ToString().Split('.').Last(), AvroNamespace(obj, enclosingNamespace), obj))
                         : new NetClassField { FieldType = "byte[]" };
                 case "array":
                     {
@@ -429,15 +434,18 @@ namespace SolTechnology.Avro.Features.GenerateModel
                 }
             }
 
-            // [AvroFixed] names the byte[] branch; with two fixed branches (or a fixed and bytes) the byte[] would be ambiguous.
-            if (result.Attributes.Count(a => a.StartsWith("[AvroFixed(")) > 1 || result.UnionMembers.Count(m => m.FieldType == "byte[]") > 1)
+            // [AvroFixed] names the byte[] branch, or else the decimal one; with two fixed branches (or a fixed and bytes, or a
+            // decimal on a fixed next to a byte[]) it would be ambiguous.
+            var fixedDecimal = result.UnionMembers.Any(m => m.FieldType == "decimal" && m.Attributes.Any(a => a.StartsWith("[AvroFixed(")));
+            if (result.Attributes.Count(a => a.StartsWith("[AvroFixed(")) > 1 || result.UnionMembers.Count(m => m.FieldType == "byte[]") > 1
+                || fixedDecimal && result.UnionMembers.Any(m => m.FieldType == "byte[]"))
             {
                 result.Attributes.RemoveAll(a => a.StartsWith("[AvroFixed("));
             }
             return result;
         }
 
-        private (int Size, string Name, string Namespace)? FindFixed(string name, string enclosingNamespace)
+        private (int Size, string Name, string Namespace, JObject Definition)? FindFixed(string name, string enclosingNamespace)
         {
             if (!name.Contains('.') && !string.IsNullOrEmpty(enclosingNamespace) && _fixed.TryGetValue(enclosingNamespace + "." + name, out var inNamespace))
             {
@@ -446,12 +454,18 @@ namespace SolTechnology.Avro.Features.GenerateModel
             return _fixed.TryGetValue(name, out var definition) ? definition : null;
         }
 
-        private static NetClassField Fixed((int Size, string Name, string Namespace) definition)
+        /// <summary>A fixed is a byte[] with [AvroFixed]; a decimal on a fixed is a decimal with [AvroFixed] and [AvroDecimal].</summary>
+        private NetClassField Fixed((int Size, string Name, string Namespace, JObject Definition) definition)
         {
-            var field = new NetClassField { FieldType = "byte[]" };
+            var isDecimal = definition.Definition?["logicalType"]?.ToString() == "decimal";
+            var field = new NetClassField { FieldType = isDecimal ? "decimal" : "byte[]" };
             field.Attributes.Add(string.IsNullOrEmpty(definition.Namespace)
                 ? $"[AvroFixed({definition.Size}, \"{definition.Name}\")]"
                 : $"[AvroFixed({definition.Size}, \"{definition.Name}\", \"{definition.Namespace}\")]");
+            if (isDecimal && _logicalResolver.ResolveLogical(definition.Definition).Attribute is { } decimalAttribute)
+            {
+                field.Attributes.Add(decimalAttribute);
+            }
             return field;
         }
 

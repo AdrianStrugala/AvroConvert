@@ -23,6 +23,10 @@ namespace SolTechnology.Avro.Infrastructure.Attributes
     /// <summary>
     /// This attribute determines the size of the Avro fixed byte array.
     /// </summary>
+    /// <remarks>
+    /// On a <c>byte[]</c> member the member is that fixed. On a <c>decimal</c> member it is a decimal on that fixed, with the
+    /// precision and scale of <see cref="AvroDecimalAttribute"/>.
+    /// </remarks>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, Inherited = true, AllowMultiple = false)]
     public sealed class AvroFixedAttribute : Attribute
     {

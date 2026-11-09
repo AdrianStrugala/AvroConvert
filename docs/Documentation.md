@@ -322,7 +322,12 @@ string json = AvroConvert.Avro2Json(avroFile);
 // {"name":"a","favorite_number":1,"favorite_color":"red"}
 
 string json = AvroConvert.Avro2Json(headlessData, schema);   // headless data needs the schema
+string json = AvroConvert.Avro2Json(avroFile, readerSchema);  // a file is resolved to the reader schema
 ```
+
+For a file the schema is the reader schema: the data is read with the schema in the header and resolved to it as the
+specification defines – a field added with a default gets the default, a field left out is skipped, `int` is read
+as `long`, a renamed field is found by its alias. A reader field without a default that the data lacks throws.
 
 ### Json2Avro
 

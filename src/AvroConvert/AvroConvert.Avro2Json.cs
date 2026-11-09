@@ -32,7 +32,11 @@ namespace SolTechnology.Avro
         {
             using (var stream = new MemoryStream(avro))
             {
-                return JsonOutput.Write(stream, null);
+                var decoder = new Decoder();
+                var deserialized = decoder.Decode(stream, null);
+                var json = JsonOutput.Write(deserialized);
+
+                return json;
             }
         }
 
@@ -56,7 +60,11 @@ namespace SolTechnology.Avro
         {
             using (var stream = new MemoryStream(avro))
             {
-                return JsonOutput.Write(stream, avroSchema.TypeSchema);
+                var decoder = new Decoder();
+                var deserialized = decoder.Decode(stream, avroSchema.TypeSchema);
+                var json = JsonOutput.Write(deserialized);
+
+                return json;
             }
         }
     }

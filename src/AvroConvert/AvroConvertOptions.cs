@@ -77,6 +77,13 @@ public class AvroConvertOptions
     public AvroMissingFieldHandling MissingFieldHandling { get; set; }
 
     /// <summary>
+    /// Records read into <c>object</c> are dictionaries keyed by the field names of the reader schema, and a reader field
+    /// the writer lacks needs a default even when its type allows null, as the specification says. For a reader schema
+    /// given as it is (Avro2Json), not built from a class whose member names are kept in aliases.
+    /// </summary>
+    internal bool RecordsAsSchemaData { get; init; }
+
+    /// <summary>
     /// Gets or sets what happens when a <c>null</c> member is serialized against a schema that does not allow <c>null</c>
     /// (for example a <c>string</c> member without <c>?</c>, whose schema is <c>"string"</c>).
     /// Defaults to <see cref="AvroNullValueHandling.Throw"/> as required by the Avro specification.

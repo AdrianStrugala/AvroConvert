@@ -22,7 +22,8 @@ namespace SolTechnology.Avro.Infrastructure
         AvroNullValueHandling NullValueHandling,
         IAvroNamingPolicy NamingPolicy,
         ConverterSet Converters,
-        AvroTypeRepresentation? DateTimeRepresentation)
+        AvroTypeRepresentation? DateTimeRepresentation,
+        bool RecordsAsSchemaData = false)
     {
         internal static readonly OptionsKey Default = From(null);
 
@@ -41,7 +42,8 @@ namespace SolTechnology.Avro.Infrastructure
                 options.NullValueHandling,
                 options.NamingPolicy,
                 options.AvroConverters.Count == 0 ? null : new ConverterSet(options.AvroConverters),
-                options.DateTimeRepresentation);
+                options.DateTimeRepresentation,
+                options.RecordsAsSchemaData);
         }
     }
 

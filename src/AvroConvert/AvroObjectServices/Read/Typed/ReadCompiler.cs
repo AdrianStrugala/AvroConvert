@@ -77,11 +77,14 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         // True while the fields of a record read into a dictionary are built: `object` there means a dictionary as well,
         // whatever classes are loaded. An `object` member next to the dictionary stays dynamic.
         private bool _recordsAsDictionaries;
+        private readonly bool _schemaData;
 
         internal ReadCompiler(AvroConvertOptions options)
         {
             _namingPolicy = options?.NamingPolicy;
             _missingFieldHandling = options?.MissingFieldHandling ?? AvroMissingFieldHandling.Throw;
+            _schemaData = options?.RecordsAsSchemaData ?? false;
+            _recordsAsDictionaries = _schemaData;
             _converters = options?.AvroConverters.Count > 0
                 ? options.AvroConverters.ToDictionary(c => c.TypeSchema.RuntimeType, c => (Func<IReader, object>)c.Deserialize)
                 : null;
@@ -779,7 +782,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         private Expression BuildDynamicRecord(RecordSchema ws, RecordSchema rs, Type target, ParameterExpression reader)
         {
             var previous = _recordsAsDictionaries;
-            _recordsAsDictionaries = target == typeof(Dictionary<string, object>);
+            _recordsAsDictionaries = target == typeof(Dictionary<string, object>) || _schemaData && target != typeof(ExpandoObject);
             try
             {
                 return BuildDynamicRecordEntries(ws, rs, target, reader);
@@ -821,7 +824,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                 }
 
                 string name = _recordsAsDictionaries ? rf.Name : rf.Aliases.FirstOrDefault() ?? rf.Name;
-                var value = ResolveMissingReaderField(rs, rf, typeof(object), clrNullable: true);
+                var value = ResolveMissingReaderField(rs, rf, typeof(object), clrNullable: !_schemaData);
                 body.Add(Expression.Call(dictionary, ExpandoAddMethod, Expression.Constant(name), value ?? Expression.Constant(null, typeof(object))));
             }
 

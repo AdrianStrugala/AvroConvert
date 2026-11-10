@@ -565,20 +565,26 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             }
 
             var result = attribute.TypeAlternatives.ToList();
-            if (memberType != typeof(object) && !memberType.IsAbstract() && !memberType.IsInterface())
+            // null in the list is the null branch, at the position it has there: [AvroUnion(typeof(int), null)] int? gives
+            // ["int", "null"]. The type of the member is then not added again when its branch is on the list.
+            var explicitNull = result.Contains(null);
+            if (memberType != typeof(object) && !memberType.IsAbstract() && !memberType.IsInterface()
+                && !(explicitNull && result.Contains(Nullable.GetUnderlyingType(memberType) ?? memberType)))
             {
                 result.Add(memberType);
             }
-            
+
             // [AvroType] next to [AvroUnion] is the representation of the branch it applies to (e.g. timestamp-millis of a DateTime),
             // not of every branch: a string next to it stays a string.
-            var unionSchemas = result.Select(type => type == typeof(byte[]) && TryBuildFixedSchema(type, memberInfo, parentSchema) is { } fixedBranch
-                ? fixedBranch // [AvroFixed] next to [AvroUnion] is the byte[] branch
-                : CreateNotNullableSchema(type, schemas, currentDepth + 1, memberInfo, TakesRepresentation(type) ? representation : null)).ToList();
+            var unionSchemas = result.Select(type => type == null
+                ? new NullSchema()
+                : type == typeof(byte[]) && TryBuildFixedSchema(type, memberInfo, parentSchema) is { } fixedBranch
+                    ? fixedBranch // [AvroFixed] next to [AvroUnion] is the byte[] branch
+                    : CreateNotNullableSchema(type, schemas, currentDepth + 1, memberInfo, TakesRepresentation(type) ? representation : null)).ToList();
 
             var typeInfo = _resolver.ResolveType(memberType, memberInfo);
 
-            if (typeInfo.Nullable || result.Any(IsRecursiveReference))
+            if (!explicitNull && (typeInfo.Nullable || result.Any(IsRecursiveReference)))
             {
                 unionSchemas.Insert(0, new NullSchema());
             }

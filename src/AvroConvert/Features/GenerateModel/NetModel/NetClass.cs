@@ -38,10 +38,10 @@ namespace SolTechnology.Avro.Features.GenerateModel.NetModel
                     sb.AppendLine($"\t{attribute}");
                 }
 
-                if (field.UnionMembers.Count > 0)
+                var unionBranches = field.UnionBranches(defaultValue != null);
+                if (unionBranches != null)
                 {
-                    // typeof cannot take a nullable reference type; the branches of a union are not null anyway.
-                    sb.AppendLine($"	[AvroUnion({string.Join(", ", field.UnionMembers.Select(m => $"typeof({m.FieldType.Replace("?", "")})"))})]");
+                    sb.AppendLine($"	[AvroUnion({string.Join(", ", unionBranches)})]");
                 }
                 if (dataContract)
                 {
@@ -77,6 +77,31 @@ namespace SolTechnology.Avro.Features.GenerateModel.NetModel
 
         /// <summary>The branches of a union field other than null: <c>[AvroUnion(typeof(...))]</c>.</summary>
         public List<NetClassField> UnionMembers { get; } = new();
+
+        /// <summary>Position of "null" in the union of the field, -1 when it has none.</summary>
+        public int NullBranch { get; set; } = -1;
+
+        /// <summary>
+        /// The arguments of [AvroUnion], or null when the field needs none. A class puts null first, or last for a single
+        /// branch with a default ([DefaultValue(5)] int? is ["int", "null"]); null anywhere else is named in [AvroUnion] at
+        /// its position: ["int", "null"] without a default is [AvroUnion(typeof(int), null)] int?.
+        /// </summary>
+        internal List<string> UnionBranches(bool hasDefault)
+        {
+            // typeof cannot take a nullable reference type; the branches of a union are not null anyway.
+            var branches = UnionMembers.Count > 0
+                ? UnionMembers.Select(m => $"typeof({m.FieldType.Replace("?", "")})").ToList()
+                : new List<string> { $"typeof({FieldType.Replace("?", "")})" };
+
+            var nullWhereTheClassPutsIt = UnionMembers.Count == 0 && hasDefault ? 1 : 0;
+            if (NullBranch >= 0 && NullBranch != nullWhereTheClassPutsIt)
+            {
+                branches.Insert(NullBranch, "null");
+                return branches;
+            }
+
+            return UnionMembers.Count > 0 ? branches : null;
+        }
 
         /// <summary>The C# argument of [DefaultValue(...)], or null when the default has no C# constant.</summary>
         internal string DefaultLiteral()

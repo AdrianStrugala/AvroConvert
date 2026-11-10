@@ -405,6 +405,7 @@ namespace SolTechnology.Avro.Features.GenerateModel
         {
             var branches = union.Where(t => t.ToString() != "null").ToList();
             bool nullable = branches.Count < union.Count;
+            var nullBranch = union.ToList().FindIndex(t => t.ToString() == "null");
 
             if (branches.Count == 1)
             {
@@ -412,11 +413,12 @@ namespace SolTechnology.Avro.Features.GenerateModel
                 if (nullable)
                 {
                     single.FieldType += "?";
+                    single.NullBranch = nullBranch;
                 }
                 return single;
             }
 
-            var result = new NetClassField { FieldType = nullable ? "object?" : "object" };
+            var result = new NetClassField { FieldType = nullable ? "object?" : "object", NullBranch = nullBranch };
             foreach (var branch in branches)
             {
                 var member = ResolveType(branch, enclosingNamespace);

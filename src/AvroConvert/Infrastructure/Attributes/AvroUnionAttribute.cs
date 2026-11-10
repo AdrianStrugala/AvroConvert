@@ -24,6 +24,10 @@ namespace SolTechnology.Avro.Infrastructure.Attributes
     /// <summary>
     /// Used to determine type alternatives for field or property.
     /// </summary>
+    /// <remarks>
+    /// <c>null</c> in the list is the null branch at that position: <c>[AvroUnion(typeof(int), null)] int?</c> gives
+    /// <c>["int", "null"]</c>. Without it a nullable member has null as the first branch.
+    /// </remarks>
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
     [SuppressMessage("Microsoft.Design", "CA1019:DefineAccessorsForAttributeArguments", Justification = "Types are not exposed.")]
     public sealed class AvroUnionAttribute : Attribute

@@ -770,7 +770,7 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
         }
 
         private static Type[] UnionCandidates(MemberInfo member) =>
-            member.GetCustomAttribute<AvroUnionAttribute>(false)?.TypeAlternatives.ToArray();
+            member.GetCustomAttribute<AvroUnionAttribute>(false)?.TypeAlternatives.Where(type => type != null).ToArray(); // null: the null branch
 
         /// <summary>
         /// Dynamic record: an ExpandoObject or a Dictionary&lt;string, object&gt; with one entry per reader field (arrays as

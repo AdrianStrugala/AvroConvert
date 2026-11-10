@@ -1136,6 +1136,29 @@ namespace AvroConvertComponentTests.GenerateModel
             WithoutDefaults(AvroSchema.Create<GeneratedUser.User>().Json).Should().Be(WithoutDefaults(AvroSchema.Parse(UserSchema).Json));
         }
 
+        private const string MoneySchema = @"{""type"":""record"",""name"":""Payment"",""namespace"":""shop"",""fields"":[
+            {""name"":""amount"",""type"":{""type"":""fixed"",""name"":""Money"",""size"":16,""logicalType"":""decimal"",""precision"":20,""scale"":2}},
+            {""name"":""refund"",""type"":[""null"",""Money""],""default"":null},
+            {""name"":""hash"",""type"":{""type"":""fixed"",""name"":""MD5"",""size"":16}}]}";
+
+        [Test]
+        public void GenerateClass_DecimalOnFixed_KeepsTheFixed()
+        {
+            var model = AvroConvert.GenerateModel(MoneySchema);
+
+            model.Should().Contain("\t[AvroFixed(16, \"Money\", \"shop\")]\r\n\t[AvroDecimal(Precision = 20, Scale = 2)]\r\n\t[DataMember]\r\n\tpublic decimal amount { get; set; }\r\n");
+            model.Should().Contain("\t[AvroFixed(16, \"Money\", \"shop\")]\r\n\t[AvroDecimal(Precision = 20, Scale = 2)]\r\n\t[DataMember]\r\n\tpublic decimal? refund { get; set; }\r\n", "a decimal on a fixed referred to by name");
+            model.Should().Contain("\t[AvroFixed(16, \"MD5\", \"shop\")]\r\n\t[DataMember]\r\n\tpublic byte[] hash { get; set; }\r\n", "a fixed without a logical type stays byte[]");
+        }
+
+        [Test]
+        public void GeneratedModel_WithDecimalOnFixed_GivesBackTheSameSchema()
+        {
+            // The class in GeneratedMoney is the output of GenerateModel(MoneySchema).
+            AvroSchema.Create<GeneratedMoney.Payment>().CanonicalForm.Should().Be(AvroSchema.Parse(MoneySchema).CanonicalForm);
+            WithoutDefaults(AvroSchema.Create<GeneratedMoney.Payment>().Json).Should().Be(WithoutDefaults(AvroSchema.Parse(MoneySchema).Json));
+        }
+
         [Test]
         public void GenerateClass_FixedBranchOfAUnion_KeepsTheFixed()
         {
@@ -1336,3 +1359,26 @@ namespace AvroConvertComponentTests.GenerateModel.GeneratedUser
     }
 }
 #nullable restore
+
+namespace AvroConvertComponentTests.GenerateModel.GeneratedMoney
+{
+    using System.Runtime.Serialization;
+    using SolTechnology.Avro.Infrastructure.Attributes;
+
+    // Output of GenerateModel(MoneySchema), as it is.
+    [DataContract(Namespace = "shop")]
+    public class Payment
+    {
+        [AvroFixed(16, "Money", "shop")]
+        [AvroDecimal(Precision = 20, Scale = 2)]
+        [DataMember]
+        public decimal amount { get; set; }
+        [AvroFixed(16, "Money", "shop")]
+        [AvroDecimal(Precision = 20, Scale = 2)]
+        [DataMember]
+        public decimal? refund { get; set; }
+        [AvroFixed(16, "MD5", "shop")]
+        [DataMember]
+        public byte[] hash { get; set; }
+    }
+}

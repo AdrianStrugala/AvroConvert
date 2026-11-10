@@ -62,9 +62,15 @@ Consider adding following attribute to your property:
             }
 
             // Fixed base: left-pad with the sign byte up to the fixed size.
-            int size = ((FixedSchema)schema.BaseTypeSchema).Size;
-            Span<byte> padded = stackalloc byte[size];
+            var fixedSchema = (FixedSchema)schema.BaseTypeSchema;
+            int size = fixedSchema.Size;
             int offset = size - buffer.Length;
+            if (offset < 0)
+            {
+                throw new AvroTypeException(
+                    $"Decimal [{value}] needs {buffer.Length} bytes; the decimal is on the fixed [{fixedSchema.FullName}] of {size} bytes");
+            }
+            Span<byte> padded = stackalloc byte[size];
             padded.Slice(0, offset).Fill(avroDecimal.Sign < 0 ? (byte)0xFF : (byte)0x00);
             buffer.CopyTo(padded.Slice(offset));
             writer.WriteFixed(padded);

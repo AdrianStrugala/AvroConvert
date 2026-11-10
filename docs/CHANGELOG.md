@@ -55,6 +55,7 @@ Changes:
 - Added `Serialize` overloads taking an `AvroSchema`: a container written with a given schema
 - Added `AvroSchema.FromValue`: the schema of a value, for headless data with `object` values
 - Reads files written by Apache.Avro for C# with a logical type on a `fixed` or an `enum` (e.g. `decimal` on `fixed`), whose header has the logical type around the definition
+- `[AvroFixed]` on a `decimal` member: a `decimal` on a `fixed`, as Java, Apache.Avro and Confluent schemas have it (precision and scale from `[AvroDecimal]`). `GenerateModel` writes it, so such a schema comes back from the generated class; it gave `decimal` on `bytes`, another schema with other bytes. A value too large for the `fixed` throws an error that names it
 - `[AvroFixed(size, name, namespace)]` is public: a `byte[]` member as a named `fixed`, `["null", fixed]` for `byte[]?`
 - `[AvroType]` next to `[AvroUnion]` applies to the branch it fits (`timestamp-millis` to `DateTime`, not to a `string` next to it)
 - `null` in `[AvroUnion]` is the null branch at its position: `[AvroUnion(typeof(int), null)] int?` gives `["int", "null"]`, as in `user.avsc` of the Avro documentation. A class put `null` first, which is another schema (other fingerprint) and other bytes: headless data of `["int", "null"]` read with the schema of the class was garbage. `GenerateModel` writes it for such unions, so the generated class gives back the schema. It threw `ArgumentNullException` before, so nothing that worked changes

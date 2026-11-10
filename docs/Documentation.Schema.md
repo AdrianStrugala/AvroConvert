@@ -86,7 +86,7 @@ members.
 | `[DataContract(Name, Namespace)]` | record name and namespace |
 | `[DataMember(Name)]` | field name; the .NET name is kept in `aliases` |
 | `[IgnoreDataMember]` | member not serialized |
-| `[Description("…")]` | `doc` of the record or field |
+| `[Description("…")]` | `doc` of the record, enum or field |
 | `[DefaultValue(…)]` | field `default`, used when reading data that lacks the field; a `null` written into the field stays `null` |
 | `[NullableSchema]` | field type becomes `["null", T]` |
 | `[AvroDecimal(Precision, Scale)]` | precision and scale of a `decimal` |
@@ -228,8 +228,8 @@ value back to its own branch. Defaults become `[DefaultValue]`; names that are C
 
 The generated classes give back the same schema (`AvroSchema.Create<User>()`, same canonical form): `[DataContract]`
 keeps the namespace and the name, `[AvroType]`, `[AvroDecimal]` and `[AvroFixed]` keep what differs from the default
-mapping (e.g. `timestamp-millis`, `decimal(10,2)`, `fixed(16)`). A `"default": null` is not generated, and `doc` is
-a comment, not `[Description]`. The code starts with the `using` directives it needs, and with `#nullable enable annotations` when it has nullable types, so `string?` keeps its meaning in a project without `<Nullable>enable`. The exceptions: `decimal` on
+mapping (e.g. `timestamp-millis`, `decimal(10,2)`, `fixed(16)`). A `"default": null` is not generated; `doc` is
+a comment and `[Description]`. The code starts with the `using` directives it needs, and with `#nullable enable annotations` when it has nullable types, so `string?` keeps its meaning in a project without `<Nullable>enable`. The exceptions: `decimal` on
 `fixed` is generated as `decimal` on `bytes`; a union with `null` after the other branch and no default
 (`["int", "null"]`) gives `null` first; an `error` gives a `record` (these read and write the same data).
 

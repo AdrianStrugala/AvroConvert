@@ -33,6 +33,26 @@ namespace SolTechnology.Avro.Features.GenerateModel
             "using", "virtual", "void", "volatile", "while"
         };
 
+        /// <summary>
+        /// The "doc" of a record, an enum or a field: an XML comment to read, and [Description] that puts it back in the
+        /// schema of the class. An empty "doc" is left out.
+        /// </summary>
+        internal static void WriteDoc(StringBuilder sb, string doc, string indent)
+        {
+            if (string.IsNullOrWhiteSpace(doc))
+            {
+                return;
+            }
+
+            sb.AppendLine($"{indent}/// <summary>");
+            foreach (var line in doc.Replace("\r\n", "\n").Split('\n'))
+            {
+                sb.AppendLine($"{indent}/// {XmlDoc(line)}");
+            }
+            sb.AppendLine($"{indent}/// </summary>");
+            sb.AppendLine($"{indent}[Description({StringLiteral(doc)})]");
+        }
+
         /// <summary>An Avro name as a C# identifier: a keyword gets '@', which is not part of the member name (the schema stays the same).</summary>
         internal static string Identifier(string name) => Keywords.Contains(name) ? "@" + name : name;
 

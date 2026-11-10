@@ -32,6 +32,7 @@ namespace SolTechnology.Avro.Features.GenerateModel.Resolvers
             result.AvroName = name;
             result.AvroNamespace = avroNamespace;
             result.Symbols = symbols.Select(s => s.ToString()).ToList();
+            result.Doc = propValue["doc"] is JValue { Type: JTokenType.String } doc ? doc.ToString() : null;
 
             model.NetTypes.Add(result);
         }

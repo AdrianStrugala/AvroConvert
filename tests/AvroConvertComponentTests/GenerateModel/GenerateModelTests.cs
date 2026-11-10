@@ -549,11 +549,14 @@ namespace AvroConvertComponentTests.GenerateModel
             string resultClass = AvroConvert.GenerateModel(schema);
 
             //Assert
-            resultClass.Should().Be("public class Result\r\n" +
+            resultClass.Should().Be("using System.ComponentModel;\r\n" +
+                "\r\n" +
+                "public class Result\r\n" +
                 "{\r\n" +
                 "\t/// <summary>\r\n" +
                 "\t/// This is a doc field\r\n" +
                 "\t/// </summary>\r\n" +
+                "\t[Description(\"This is a doc field\")]\r\n" +
                 "\tpublic string testString { get; set; }\r\n" +
                 "\tpublic bool testBoolean { get; set; }\r\n" +
                 "\tpublic int testInt { get; set; }\r\n" +
@@ -900,6 +903,7 @@ namespace AvroConvertComponentTests.GenerateModel
 
             //Assert
             resultClass.Should().Be("#nullable enable annotations\r\n\r\n" +
+                "using System.ComponentModel;\r\n" +
                 "using SolTechnology.Avro.Infrastructure.Attributes;\r\n" +
                 "\r\n" +
                 "public class ClassWithMultipleTypesProperties\r\n" +
@@ -907,6 +911,7 @@ namespace AvroConvertComponentTests.GenerateModel
                 "\t/// <summary>\r\n" +
                 "\t/// Data:Switchable_PersonName\r\n" +
                 "\t/// </summary>\r\n" +
+                "\t[Description(\"Data:Switchable_PersonName\")]\r\n" +
                 "\t[AvroUnion(typeof(string), typeof(Switchable_PersonName))]\r\n" +
                 "\tpublic object? Name { get; set; }\r\n" +
                 "\t[AvroUnion(typeof(int), typeof(string))]\r\n" +
@@ -995,10 +1000,10 @@ namespace AvroConvertComponentTests.GenerateModel
             {""name"":""previousHash"",""type"":[""null"",""MD5""],""default"":null},
             {""name"":""value"",""type"":[""boolean"",""int"",""long"",""float"",""string"",{""type"":""array"",""items"":""string""},{""type"":""map"",""values"":""long""}]},
             {""name"":""createdOrText"",""type"":[""string"",{""type"":""long"",""logicalType"":""timestamp-millis""}]},
-            {""name"":""status"",""type"":{""type"":""enum"",""name"":""Status"",""symbols"":[""default"",""Paid""]},""default"":""Paid""},
+            {""name"":""status"",""type"":{""type"":""enum"",""name"":""Status"",""doc"":""Where the order is"",""symbols"":[""default"",""Paid""]},""default"":""Paid""},
             {""name"":""kind"",""type"":[""null"",""string"",""Status""],""default"":null},
             {""name"":""matrix"",""type"":{""type"":""array"",""items"":{""type"":""array"",""items"":""int""}}},
-            {""name"":""lines"",""type"":{""type"":""map"",""values"":{""type"":""record"",""name"":""Line"",""fields"":[{""name"":""qty"",""type"":""int""}]}}},
+            {""name"":""lines"",""type"":{""type"":""map"",""values"":{""type"":""record"",""name"":""Line"",""doc"":""One product"",""fields"":[{""name"":""qty"",""type"":""int""}]}}},
             {""name"":""class"",""type"":""string"",""default"":""say \""hi\""\nbye"",""doc"":""a <b> & c\nsecond line""},
             {""name"":""active"",""type"":[""boolean"",""null""],""default"":true},
             {""name"":""ratio"",""type"":""double"",""default"":""NaN""}]}";
@@ -1019,11 +1024,13 @@ namespace AvroConvertComponentTests.GenerateModel
             model.Should().Contain("\t[AvroUnion(typeof(string), typeof(Status))]\r\n\t[DataMember]\r\n\tpublic object? kind { get; set; }\r\n");
             model.Should().Contain("\tpublic int[][] matrix { get; set; }\r\n");
             model.Should().Contain("\tpublic Dictionary<string,Line> lines { get; set; }\r\n");
-            model.Should().Contain("\t/// a &lt;b&gt; &amp; c\r\n\t/// second line\r\n");
+            model.Should().Contain("\t/// a &lt;b&gt; &amp; c\r\n\t/// second line\r\n\t/// </summary>\r\n\t[Description(\"a <b> & c\\nsecond line\")]\r\n");
             model.Should().Contain("\t[DefaultValue(\"say \\\"hi\\\"\\nbye\")]\r\n\t[DataMember]\r\n\tpublic string @class { get; set; }\r\n");
             model.Should().Contain("\t[DefaultValue(true)]\r\n\t[DataMember]\r\n\tpublic bool? active { get; set; }\r\n");
             model.Should().Contain("\t[DefaultValue(double.NaN)]\r\n");
             model.Should().Contain("\t@default,\r\n\tPaid\r\n");
+            model.Should().Contain("/// <summary>\r\n/// Where the order is\r\n/// </summary>\r\n[Description(\"Where the order is\")]\r\n[DataContract(Namespace = \"shop\")]\r\npublic enum Status\r\n");
+            model.Should().Contain("[Description(\"One product\")]\r\n[DataContract(Namespace = \"shop\")]\r\npublic class Line\r\n");
         }
 
         [Test]
@@ -1031,8 +1038,8 @@ namespace AvroConvertComponentTests.GenerateModel
         {
             // The classes in GeneratedRich are the output of GenerateModel(RichSchema).
             AvroSchema.Create<GeneratedRich.Order>().CanonicalForm.Should().Be(AvroSchema.Parse(RichSchema).CanonicalForm);
-            // "doc" comes from [Description] and the generated code has it as a comment, so the full schemas are compared without it.
-            WithoutDefaults(AvroSchema.Create<GeneratedRich.Order>().Json).Should().Be(WithoutDefaults(AvroSchema.Parse(RichSchema).Json, "doc"));
+            // The full schema too, "doc" included: it comes back from [Description].
+            WithoutDefaults(AvroSchema.Create<GeneratedRich.Order>().Json).Should().Be(WithoutDefaults(AvroSchema.Parse(RichSchema).Json));
         }
 
         [Test]
@@ -1117,7 +1124,7 @@ namespace AvroConvertComponentTests.GenerateModel
             Recorded.Exception(() => AvroConvert.GenerateModel("\"string\"")).Message.Should().Contain("no record or enum");
         }
 
-        private static string WithoutDefaults(string json, string alsoWithout = null)
+        private static string WithoutDefaults(string json)
         {
             var node = System.Text.Json.Nodes.JsonNode.Parse(json);
             Strip(node);
@@ -1129,7 +1136,6 @@ namespace AvroConvertComponentTests.GenerateModel
                 {
                     case System.Text.Json.Nodes.JsonObject obj:
                         obj.Remove("default");
-                        if (alsoWithout != null) obj.Remove(alsoWithout);
                         foreach (var property in obj.ToList()) Strip(property.Value);
                         break;
                     case System.Text.Json.Nodes.JsonArray array:
@@ -1215,6 +1221,7 @@ namespace AvroConvertComponentTests.GenerateModel.GeneratedRich
         /// a &lt;b&gt; &amp; c
         /// second line
         /// </summary>
+        [Description("a <b> & c\nsecond line")]
         [DefaultValue("say \"hi\"\nbye")]
         [DataMember]
         public string @class { get; set; }
@@ -1226,6 +1233,10 @@ namespace AvroConvertComponentTests.GenerateModel.GeneratedRich
         public double ratio { get; set; }
     }
 
+    /// <summary>
+    /// Where the order is
+    /// </summary>
+    [Description("Where the order is")]
     [DataContract(Namespace = "shop")]
     public enum Status
     {
@@ -1233,6 +1244,10 @@ namespace AvroConvertComponentTests.GenerateModel.GeneratedRich
         Paid
     }
 
+    /// <summary>
+    /// One product
+    /// </summary>
+    [Description("One product")]
     [DataContract(Namespace = "shop")]
     public class Line
     {

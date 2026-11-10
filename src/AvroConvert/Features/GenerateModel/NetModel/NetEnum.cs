@@ -9,10 +9,12 @@ namespace SolTechnology.Avro.Features.GenerateModel.NetModel
         public string Name { get; set; }
         public string AvroName { get; set; }
         public string AvroNamespace { get; set; }
+        public string Doc { get; set; }
         public List<string> Symbols { get; set; } = new List<string>();
 
         public void Write(StringBuilder sb)
         {
+            CSharp.WriteDoc(sb, Doc, "");
             WriteDataContract(sb, Name, AvroName, AvroNamespace);
             sb.AppendLine($"public enum {Name}");
             sb.AppendLine("{");

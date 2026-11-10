@@ -7,12 +7,14 @@ using SolTechnology.Avro.Infrastructure.Attributes;
 
 namespace AvroConvertComponentTests
 {
+#nullable enable annotations
     public class User
     {
         public string? name { get; set; }
         public int? favorite_number { get; set; }
         public string favorite_color { get; set; }
     }
+#nullable restore
 
     public class UserWithNonNullableProperties
     {
@@ -426,7 +428,9 @@ namespace AvroConvertComponentTests
         public string BaseProp { get; set; }
     }
 
+#pragma warning disable CS8981 // the name of the record in userdata1.avro
     public class kylosample
+#pragma warning restore CS8981
     {
         public string registration_dttm { get; set; }
         public long id { get; set; }

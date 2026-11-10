@@ -120,7 +120,7 @@ namespace SolTechnology.Avro.Features.GenerateModel
                 usings.Add("System");
             if (code.Contains("Dictionary<"))
                 usings.Add("System.Collections.Generic");
-            if (code.Contains("[DefaultValue("))
+            if (code.Contains("[DefaultValue(") || code.Contains("[Description("))
                 usings.Add("System.ComponentModel");
             if (code.Contains("[DataContract("))
                 usings.Add("System.Runtime.Serialization");
@@ -246,7 +246,8 @@ namespace SolTechnology.Avro.Features.GenerateModel
                 // The namespace the record has, also when it inherits it: two records of one name in two namespaces get apart.
                 ClassNamespace = (avroNamespace ?? "").Replace(".", ""),
                 AvroName = shortName,
-                AvroNamespace = avroNamespace
+                AvroNamespace = avroNamespace,
+                Doc = parent["doc"] is JValue { Type: JTokenType.String } doc ? doc.ToString() : null
             };
             model.NetTypes.Add(c);
 
@@ -269,9 +270,9 @@ namespace SolTechnology.Avro.Features.GenerateModel
                         fieldType.DefaultIsString = _value.Type == JTokenType.String;
                     }
 
-                    if (field["doc"] is JValue)
+                    if (field["doc"] is JValue { Type: JTokenType.String } fieldDoc)
                     {
-                        fieldType.Doc = field["doc"].ToString();
+                        fieldType.Doc = fieldDoc.ToString();
                     }
 
                     c.Fields.Add(fieldType);

@@ -50,7 +50,7 @@ the data.
 
 ```csharp
 byte[] avro = AvroConvert.Serialize(order);
-byte[] avro = AvroConvert.Serialize(order, new AvroConvertOptions { Codec = CodecType.Zstandard });
+byte[] compressed = AvroConvert.Serialize(order, new AvroConvertOptions { Codec = CodecType.Zstandard });
 ```
 
 Codecs:
@@ -69,21 +69,17 @@ collection as one `array` entry instead (the AvroConvert 3.x layout). Dictionari
 ### Deserialization
 
 ```csharp
-Order order          = AvroConvert.Deserialize<Order>(avro);
-Order order          = AvroConvert.Deserialize<Order>(avro, options);       // options used for writing (converters, naming policy…)
-Order order          = AvroConvert.Deserialize<Order>(avroSpan);            // ReadOnlySpan<byte>
-List<Order> orders   = AvroConvert.Deserialize<List<Order>>(avro);          // every entry of the file
-dynamic order        = AvroConvert.Deserialize(avro, typeof(Order));        // target type known at run time
-dynamic anything     = AvroConvert.Deserialize<dynamic>(avro);
+Order order        = AvroConvert.Deserialize<Order>(avro);
+List<Order> orders = AvroConvert.Deserialize<List<Order>>(avro);           // every entry of the file
+dynamic anything   = AvroConvert.Deserialize<dynamic>(avro);               // without a class
+object byType      = AvroConvert.Deserialize(avro, typeof(Order));         // type known at run time
 ```
 
-A file with several entries can be read into any collection type; a file with one entry can be read into a single
-object or a one-element collection. A header-only file (no entries) gives an empty collection.
+Pass the options used for writing (converters, naming policy) as the second argument. A header-only file gives an
+empty collection.
 
-A record can be read into a dictionary of objects: `Dictionary<string, object>`, `IDictionary<string, object>`,
-`IReadOnlyDictionary<string, object>` or another dictionary type with string keys and `object` values, as a whole or
-as a member. Keys are the field names of the schema, nested records are dictionaries too, and the result does not
-depend on the classes that are loaded. It fits records whose fields change from file to file:
+A record can also be read into `Dictionary<string, object>` (as a whole or as a member). Keys are the field names,
+nested records are dictionaries too. It fits records whose fields change from file to file:
 
 ```csharp
 public class ManifestEntry
@@ -120,20 +116,9 @@ AvroConvert.Serialize(new Dictionary<string, object> { ["a"] = "x", ["b"] = 1L }
 AvroConvert.Serialize(new Dictionary<string, object> { ["a"] = "x", ["b"] = null });    // values: ["null","string"]
 ```
 
-- One member of a class takes the values of all its instances in the file. Classes keep their fields, also when they
-  resemble each other: every class has its own branch of the union.
-- An `ExpandoObject` is a record wherever it is; those in one place are merged into one record. A `JObject` is a map.
-- With a union of records given by you, a dictionary, `ExpandoObject` or `JObject` goes to the first record that takes all
-  its keys and gets a value for every field without a default. It throws when there is none, instead of dropping a key.
-- A reference cycle throws.
-- The schema depends on the data, so two files of one type can have different schemas, and `Merge` rejects them.
-- `Serialize<T>(IEnumerable<T>, Stream)` has to see all the items before it writes the header, so it collects them when
-  `T` holds `object` values. `Serialize(items, stream, schema)` avoids that.
-- A union holds one schema per Avro type, so some values do not fit together: `long` next to `DateTime` (both `long`),
-  `decimal` next to `byte[]` (both `bytes`). They throw `ArgumentException`; give the schema with `Serialize(value, schema)`.
-  A `Guid` next to a `string` goes as text.
-- Headless data does not carry a schema, so `SerializeHeadless(value, typeof(T))` and `DeserializeHeadless<T>(bytes)` throw
-  when the data holds such a value (an empty dictionary is fine). Take the schema from the value and give it to both sides:
+- An `ExpandoObject` is a record; a `JObject` is a map.
+- The schema depends on the data, so two files of one type can have different schemas.
+- Headless data carries no schema: take it from the value and give it to both sides:
 
 ```csharp
 AvroSchema schema = AvroSchema.FromValue(value);
@@ -142,9 +127,8 @@ byte[] data = AvroConvert.SerializeHeadless(value, schema);
 var dictionary = AvroConvert.DeserializeHeadless<Dictionary<string, object>>(data, schema);
 ```
 
-Records read into `dynamic`, `ExpandoObject` or an `object` member become `ExpandoObject`, unless a loaded class
-matches the record's namespace **and** name. For a union of records in a typed model, list the alternatives
-explicitly – they are matched by name:
+Records read into `dynamic` or `object` become `ExpandoObject`. For a union of records in a typed model, list the
+classes – they are matched by name:
 
 ```csharp
 public class Envelope
@@ -160,15 +144,11 @@ The file carries the schema it was written with (the writer schema); the target 
 are resolved as the Avro specification defines:
 
 - fields are matched by name or alias (`[DataMember(Name = …)]` keeps the old name as an alias);
-- records are matched by their fields, the record name does not have to be the same (data written as `com.acme.User`
-  reads into `UserModel`). In a union, a record goes to the reader's record of the same name or alias, otherwise to the
-  first record its fields resolve into; the classes of an `[AvroUnion]` member are chosen by name (the class name or its `[DataContract(Name)]`).
-  `AvroSchema.CheckCompatibility` and Schema Registry follow the specification, where record names have to match (or
-  an alias), so they are stricter than reading;
+- records are matched by their fields, the record name does not have to be the same (`AvroSchema.CheckCompatibility`
+  and Schema Registry are stricter: names have to match);
 - writer fields unknown to the reader are skipped;
-- a reader field missing in the writer gets its default (`[DefaultValue]`), or `null` when it can hold `null`;
-  otherwise reading throws. `MissingFieldHandling = AvroMissingFieldHandling.UseDefault`
-  leaves the CLR default instead (3.x behaviour);
+- a reader field missing in the writer gets its `[DefaultValue]`, or `null` when nullable; otherwise reading throws
+  (`MissingFieldHandling = UseDefault` leaves the CLR default, like 3.x);
 - `int` → `long` → `float` → `double` and `string` ↔ `bytes` are promoted;
 - an enum symbol unknown to the reader resolves to the `default` of the reader's enum schema, when it has one.
 
@@ -209,13 +189,8 @@ AvroConvert.Serialize(order, bufferWriter);
 AvroConvert.SerializeHeadless(order, bufferWriter, AvroSchema.Create<Order>());
 ```
 
-The schema comes from `T`. When `T` is `object`, or holds `object` values, the items are collected first and the schema
-[comes from them](#values-of-type-object). Items of an interface or an abstract class are collected too and must share one
-runtime type. `ExpandoObject` items are merged into one schema. A dictionary, `string` or `byte[]` is one value, as in
-`Serialize(obj)`.
-
-`Deserialize<T>(Stream)` reads files written by any Avro implementation. When the file holds whole arrays (3.x or
-`SingleArray` layout) and `T` is not a collection, their items are returned one by one.
+The schema comes from `T`. When `T` holds `object` values, the items are collected first to build it; pass a schema
+(`Serialize(items, stream, schema)`) to stream them right away.
 
 ### Reading items one by one
 
@@ -244,31 +219,22 @@ AvroSchema schema = AvroSchema.Parse("""
 """);
 
 byte[] data = AvroConvert.SerializeHeadless(user, schema);
-User user   = AvroConvert.DeserializeHeadless<User>(data, schema);
-
-byte[] data = AvroConvert.SerializeHeadless(user, typeof(User));          // schema built from the type
-User user   = AvroConvert.DeserializeHeadless<User>(data);
+User back   = AvroConvert.DeserializeHeadless<User>(data, schema);
 ```
 
-A type known only at runtime goes as an argument: `AvroConvert.DeserializeHeadless(data, schema, type)`.
-
-Data written with another version of the schema is read by passing both schemas (see
-[Schema evolution](#schema-evolution)):
+Without a schema at hand, `SerializeHeadless(user, typeof(User))` and `DeserializeHeadless<User>(data)` build it from
+the type. Data written with another version of the schema needs both (see [Schema evolution](#schema-evolution)):
 
 ```csharp
 UserV2 user = AvroConvert.DeserializeHeadless<UserV2>(data, writerSchema: v1, readerSchema: v2);
 ```
 
-Rows written one after another with the item schema (e.g. by the BigQuery Storage API) are read into a collection
-until the end of the data; `numberOfRows` reads a given number instead:
+Rows written one after another (e.g. by the BigQuery Storage API) are read into a collection; `numberOfRows` limits
+how many:
 
 ```csharp
 List<User> users = AvroConvert.DeserializeHeadless<List<User>>(rows, schema);
-List<User> first = AvroConvert.DeserializeHeadless<List<User>>(rows, schema, numberOfRows: 10);
 ```
-
-`DeserializeHeadless<dynamic>(data, schema)` and `DeserializeHeadless<ExpandoObject>(data, schema)` read data without
-a .NET model.
 
 ### Header metadata
 
@@ -288,13 +254,8 @@ IReadOnlyDictionary<string, byte[]> header = AvroConvert.GetMetadata(avro);   //
 string version = Encoding.UTF8.GetString(header["format-version"]);
 ```
 
-The keys belong to one file, so they go with the call and not with the options, and together with an explicit schema.
-Every container overload that takes a schema takes them: `byte[]`, `Stream`, `IBufferWriter<byte>` and `IAsyncEnumerable<T>`,
-where the token goes by name: `await Serialize(entries, stream, schema, metadata: keys, cancellationToken: ct)`. For
-entries holding values of type `object`, `AvroSchema.FromItems(entries)` gives the schema of all of them.
-
-`GetMetadata` returns the whole map, `avro.schema` and `avro.codec` included. Keys starting with `avro.` are reserved
-by the specification, so writing one throws `ArgumentException`.
+Every `Serialize` overload that takes a schema takes `metadata` too. Keys starting with `avro.` are reserved by the
+specification and throw.
 
 ### Merge
 
@@ -312,22 +273,16 @@ A [header key](#header-metadata) is kept when all the files have the same value 
 
 ### Avro2Json
 
-Converts Avro data directly to JSON, e.g. to return it from an API without a .NET model. The JSON has the shape of
-the .NET model (as `JsonConvert.SerializeObject` would produce it): a nullable field is `"favorite_number": 1`, a
-container with several entries becomes a JSON array. For the JSON format defined by the Avro specification see
-[Avro JSON Encoding](#avro-json-encoding).
+Converts Avro data to plain JSON, shaped like the .NET model; several entries become a JSON array. For the JSON format
+of the Avro specification see [Avro JSON Encoding](#avro-json-encoding).
 
 ```csharp
 string json = AvroConvert.Avro2Json(avroFile);
 // {"name":"a","favorite_number":1,"favorite_color":"red"}
 
-string json = AvroConvert.Avro2Json(headlessData, schema);   // headless data needs the schema
-string json = AvroConvert.Avro2Json(avroFile, readerSchema);  // a file is resolved to the reader schema
+string fromHeadless = AvroConvert.Avro2Json(headlessData, schema);   // headless data needs its schema
+string asV2         = AvroConvert.Avro2Json(avroFile, v2);           // a file is resolved to a reader schema
 ```
-
-For a file the schema is the reader schema: the data is read with the schema in the header and resolved to it as the
-specification defines – a field added with a default gets the default, a field left out is skipped, `int` is read
-as `long`, a renamed field is found by its alias. A reader field without a default that the data lacks throws.
 
 ### Json2Avro
 
@@ -357,15 +312,13 @@ It differs from `Avro2Json`/`Json2Avro` (plain JSON shaped like the .NET model):
 | Several container entries | JSON array | one JSON value per line |
 
 ```csharp
-string json = AvroConvert.Avro2JsonEncoding(byte[] avroFile);                 // object container file, schema from the header
-string json = AvroConvert.Avro2JsonEncoding(byte[] headlessAvro, AvroSchema schema);
+string json = AvroConvert.Avro2JsonEncoding(avroFile);                 // schema from the header
+string fromHeadless = AvroConvert.Avro2JsonEncoding(headlessData, schema);
 
-byte[] avroFile = AvroConvert.JsonEncoding2Avro(string json, AvroSchema schema);   // one entry per JSON value
-byte[] avroFile = AvroConvert.JsonEncoding2Avro(string json, AvroSchema schema, new AvroConvertOptions { Codec = CodecType.Zstandard });
+byte[] avro = AvroConvert.JsonEncoding2Avro(json, schema);             // one entry per JSON value
 ```
 
-`JsonEncoding2Avro` requires the schema: JSON alone does not tell e.g. `int` from `long`. Record fields missing from the
-JSON take the schema default; unknown properties are ignored. A named union branch may also be given by its short name.
+`JsonEncoding2Avro` needs the schema: JSON alone does not tell `int` from `long`.
 
 ### Custom converters
 
@@ -418,9 +371,8 @@ The satellite packages have their own pages:
 ### Licence declaration
 
 AvroConvert is free for noncommercial use and for companies under 100 people / 1,000,000 USD revenue; other
-organisations need a commercial licence (see [LICENSE.md](../LICENSE.md)). Declare which licence your application
-relies on — functionality is never restricted, and the declaration silences the one-time notice written to
-standard error (prefixed `[AvroConvert]`) when no licence is declared:
+organisations need a commercial licence (see [LICENSE.md](../LICENSE.md)). Declaring the licence silences the one-time
+notice on standard error; functionality is never restricted:
 
 ```csharp
 AvroConvert.License = AvroLicense.NonCommercial;
@@ -431,11 +383,8 @@ AvroConvert.License = AvroLicense.Commercial("AVC1.…");   // licence key recei
 The same can be done without code changes through the `AVROCONVERT_LICENSE` environment variable:
 `NonCommercial`, `SmallBusiness` or the key itself.
 
-A commercial key is a signed token (`AVC1.<payload>.<signature>`, ECDSA P-256) that carries the licence number,
-licensee, plan and subscription end. `AvroLicense.Commercial` verifies the signature and exposes the values as
-`Id`, `Licensee`, `Plan`, `ValidUntil` and `IsSignatureValid`; a malformed string throws `ArgumentException`,
-while a key with a wrong signature or a subscription that ended before this version was released is accepted
-and only produces the same one-time notice (versions released during the subscription stay licensed for ever).
+An invalid or expired key only brings the notice back; nothing stops working. Versions released during the
+subscription stay licensed for ever.
 
 ### Options reference
 

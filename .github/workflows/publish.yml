@@ -40,6 +40,13 @@ jobs:
         # The Kafka integration tests (Testcontainers) run on every PR in Build&Test; publishing does not pull the images again.
         dotnet test AvroConvert.slnx --no-build -c Release --filter "FullyQualifiedName!~AvroConvertKafkaIntegrationTests"
 
+    - name: NuGet README
+      # nuget.org shows HTML as text and does not resolve relative links: the packages get README.md without
+      # the <!-- github-only --> blocks, with links pointing to this tag on GitHub.
+      run: |
+        perl -0pi -e 's/<!-- github-only -->.*?<!-- \/github-only -->\s*//gs; s{\]\((?!https?://|#)(?:\./)?}{](https://github.com/AdrianStrugala/AvroConvert/blob/$ENV{GITHUB_REF_NAME}/}g' README.md
+        if grep -nE '<(p|a|img|picture)[ >]' README.md; then echo "::error::HTML left in README.md"; exit 1; fi
+
     - name: Pack
       run: |
         dotnet pack src/AvroConvert/AvroConvert.csproj --no-build -c Release -o artifacts

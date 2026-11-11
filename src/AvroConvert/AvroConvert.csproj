@@ -8,7 +8,7 @@
 		<Nullable>disable</Nullable>
 		<Authors>Adrian Strugala</Authors>
 		<Company>SolTechnology</Company>
-		<Version>4.0.0</Version>
+		<Version>4.0.1</Version>
 		<Description>Rapid Apache Avro serializer for .NET. Free for noncommercial use and for companies under 100 people / 1M USD revenue (PolyForm Noncommercial / Small Business); commercial licence for other organisations – see LICENSE.md.</Description>
 		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
@@ -57,7 +57,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<None Include="..\..\README.md" Pack="true" PackagePath="\" />
+		<None Include="README.md" Pack="true" PackagePath="\" />
 		<None Include="..\..\LICENSE.md" Pack="true" PackagePath="\" />
 		<None Include="..\..\licenses\PolyForm-Noncommercial-1.0.0.md" Pack="true" PackagePath="licenses\" />
 		<None Include="..\..\licenses\PolyForm-Small-Business-1.0.0.md" Pack="true" PackagePath="licenses\" />

@@ -1,3 +1,6 @@
+**v. 4.0.1 (11.11.26)**
+- NuGet: package README without HTML, package icon on a transparent background
+
 **v. 4.0.0 (11.11.26)**
 
 Breaking changes:

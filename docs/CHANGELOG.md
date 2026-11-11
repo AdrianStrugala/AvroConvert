@@ -1,112 +1,64 @@
 **v. 4.0.0 (preview)**
 
 Breaking changes:
-- Requires .NET 10. For .NET Framework and .NET 6–9 stay on 3.4.x (`release/3.x`, security and critical fixes)
-- New licence: PolyForm Noncommercial / PolyForm Small Business, commercial licence for larger companies. Details: https://soltechnology.dev/avroconvert
-- Collections are written as one container entry per item, like in other Avro tools (#118). 3.x files still read. Old layout: `CollectionMode = SingleArray`
-- A file with a header but no data deserializes to an empty collection instead of `null`
-- A missing non-nullable field throws instead of returning `default` (#87). Old behaviour: `MissingFieldHandling = UseDefault`
-- Serializing `null` into a non-nullable field throws instead of writing an empty value (#87). Old behaviour: `NullValueHandling = WriteEmpty`
-- A `null` in the data is read as `null`, also when the field has a default (`[DefaultValue]`): the default is only for data that lacks the field, as in the specification and other Avro libraries. 3.x and the previews read the default instead (`Deserialize`, `Avro2Json`, dictionaries)
-- Items and values annotated as nullable reference types are a union with `null`: `List<string?>` gives `"items": ["null", "string"]`, `Dictionary<string, string?>` gives `"values": ["null", "string"]` (also `string?[]`, nested collections). 3.x and the previews gave `"string"`, so a `null` item threw (3.x wrote `""`). The schema of such a class changes; Schema Registry in the default `BACKWARD` mode accepts it, `FORWARD` and `FULL` do not. Without `#nullable enable` nothing changes. A type parameter of a generic class (`List<T>` in `Page<T>`) stays as it was
-- `[DefaultValue(Color.Red)]` on an enum member gives `"default": "Red"`, the symbol, as the specification requires; 3.x wrote the number, which Java and Confluent Schema Registry reject
-- `Avro2Json`, `Json2Avro` and the defaults in schemas do not use `JsonConvert.DefaultSettings` of the application: the names are the names in the schema, and the JSON is compact with ISO 8601 dates, whatever the contract resolver, `Formatting`, date settings or converters set there. 3.x and the previews applied those settings, e.g. a camel-case contract resolver renamed the fields
-- `DeserializeHeadless<List<T>>` reads all rows, not only the first one (#69)
-- Read objects are created with their public parameterless constructor, like in System.Text.Json; a field missing in the data keeps its initialiser
-- `DateTimeOffset` is written as its UTC instant instead of the wall-clock time
+- Requires .NET 10; for .NET Framework and .NET 6–9 use 3.4.x (`release/3.x`, security and critical fixes)
+- New licence: PolyForm Noncommercial / PolyForm Small Business, commercial licence for larger organisations (https://soltechnology.dev/avroconvert)
+- Collections written as one container entry per item, like other Avro tools (#118); 3.x files still read; old layout: `CollectionMode = SingleArray`
+- Header-only file deserializes to an empty collection instead of `null`
+- Missing non-nullable field throws instead of returning `default` (#87); old behaviour: `MissingFieldHandling = UseDefault`
+- `null` written into a non-nullable field throws instead of writing an empty value (#87); old behaviour: `NullValueHandling = WriteEmpty`
+- `null` in the data is read as `null` also for a field with `[DefaultValue]`; the default applies only to a missing field
+- Items and values annotated as nullable (`List<string?>`, `string?[]`, `Dictionary<string, string?>`) get the schema `["null", T]`; Schema Registry accepts it in `BACKWARD` mode, not in `FORWARD` / `FULL`
+- `[DefaultValue]` of an enum member written as the symbol instead of the number
+- `Avro2Json`, `Json2Avro` and schema defaults ignore `JsonConvert.DefaultSettings`
+- `DeserializeHeadless<List<T>>` and `DeserializeHeadless(bytes, writer, reader, type)` read all rows instead of the first one (#69)
+- Read objects created with the public parameterless constructor; a field missing in the data keeps its initialiser
+- `DateTimeOffset` written as its UTC instant instead of the wall-clock time
 - Snappy blocks include the CRC-32 required by the specification
-- Generated schemas differ slightly, data stays compatible: names of generic records (#159), `time-micros`, non-public `[DataMember]` members (#51), `IDictionary<string, T>` / `IReadOnlyDictionary<string, T>` members are maps instead of arrays of key-value records
+- Generated schemas differ, data stays compatible: names of generic records (#159), `time-micros`, non-public `[DataMember]` members (#51), `IDictionary<string, T>` / `IReadOnlyDictionary<string, T>` as maps
 - Multidimensional arrays (`int[,]`) throw; use jagged arrays (#26)
-- Numbers read into `dynamic` follow the reader schema type
-- Unknown `logicalType` is read as its underlying type
 - `SchemaConvert` removed; use `AvroSchema` (#73)
-- `DeserializeHeadless(bytes, writeSchema, readSchema, type)` reads all the rows into a collection, like the generic overload, instead of the first one (#69)
-- Removed the overloads of the previews taking the schema as text: `Avro2JsonEncoding(avro, string)`, `JsonEncoding2Avro(json, string)`, `JsonEncoding2Avro(json, string, CodecType)`. Use `AvroSchema.Parse`
-- Removed `JsonEncoding2Avro(json, AvroSchema, CodecType)` of the previews; the codec goes in `AvroConvertOptions`
-- Overloads of the previews merged into one with optional parameters: `DeserializeHeadless<T>(bytes, writer)`, `DeserializeHeadless<T>(bytes, writer, reader)`, `JsonEncoding2Avro(json, schema)`. Calls compile as before, but code compiled against a preview must be rebuilt
-- Overloads taking a `Type` known at runtime (`Deserialize(bytes, type)`, `DeserializeHeadless(bytes, …, type)`) throw the exception of the call, not a `TargetInvocationException` around it
-- `Serialize(IAsyncEnumerable<T>, stream, null)` of the previews is ambiguous next to the overload taking an `AvroSchema`; leave the `null` out or name it (`options: null`)
+- Numbers read into `dynamic` follow the reader schema type; unknown `logicalType` read as its underlying type
+- `Deserialize(bytes, type)` and `DeserializeHeadless(bytes, …, type)` throw the exception of the call instead of `TargetInvocationException`
 - Reflection-based methods marked `[RequiresUnreferencedCode]` / `[RequiresDynamicCode]`
-- SolTechnology.Avro.Kafka rewritten on Confluent.SchemaRegistry 2.16: Confluent wire format, schema evolution, references, subject name strategies. Removed `KafkaConsumer`, `KafkaPropNames`, `ConfluentSchema`
-- SolTechnology.Avro.Http follows System.Net.Http.Json (`GetFromAvroAsync`, `PostAsAvroAsync`, `ReadFromAvroAsync`…), Minimal API results and streaming; old names are `[Obsolete]`
-- `GenerateModel`: `date` → `DateOnly`, `time-millis` / `time-micros` → `TimeOnly`; the code starts with `using` directives (and `#nullable enable annotations` when it has nullable types) and has `[DataContract]` / `[DataMember]`, `[AvroType]`, `[AvroDecimal]`, `[AvroFixed]` and `[Description]` (the `doc`) where needed, so the classes give back the same schema (exceptions in [Generate model](Documentation.Schema.md#generate-model)). A union lists every branch in `[AvroUnion]`, not only the records; the default of an enum is its symbol (`[DefaultValue("Paid")]`)
+- `GenerateModel` output: `DateOnly` / `TimeOnly`, `using` directives, `#nullable enable annotations`, attributes that keep the schema (`[DataContract]`, `[AvroType]`, `[AvroDecimal]`, `[AvroFixed]`, `[AvroUnion]`, `[Description]`)
+- SolTechnology.Avro.Kafka rewritten on Confluent.SchemaRegistry 2.16 (wire format, schema evolution, references, subject name strategies); removed `KafkaConsumer`, `KafkaPropNames`, `ConfluentSchema`
+- SolTechnology.Avro.Http follows System.Net.Http.Json (`GetFromAvroAsync`, `PostAsAvroAsync`, `ReadFromAvroAsync`…), Minimal API results, streaming; old names `[Obsolete]`
+- Code compiled against a 4.0 preview must be rebuilt
 
 Changes:
-- Serialization and deserialization compiled per schema and type: several times faster, a fraction of allocations
+- Serialization and deserialization compiled per schema and type: several times faster, fewer allocations
 - Added SolTechnology.Avro.Cli (`avroconvert`): `induce`, `compile`, `tojson`, `getschema`, `canonical`, `fingerprint`, `compat`, `registry`
 - Added streaming: `Serialize<T>(IEnumerable<T> / IAsyncEnumerable<T>, Stream)`, `Deserialize<T>(Stream)` returning `IAsyncEnumerable<T>`, output to `IBufferWriter<byte>`
-- Smaller public API: one way to give a schema (`AvroSchema`) and a codec (`AvroConvertOptions`). The overloads taking the schema as text, a `CodecType` or a file path are hidden from IntelliSense and keep working. To be removed in the next major version
-- `DeserializeHeadless` with `AvroSchema` takes everything at one call: reader schema, options, `numberOfRows`, a type known at runtime. Without a reader schema it uses the schema of `T` built with the given options
-- Added `Json2Avro(json, options)`
-- Added `AvroSchema`: canonical form, fingerprints, `Compare` and `CheckCompatibility` (#73)
-- Added `AvroSchema.Parse(json, referencedSchemas)` for schemas using types from other schemas
-- Added `Avro2JsonEncoding` / `JsonEncoding2Avro` – JSON as defined by the Avro specification (#156)
-- Added logical types `timestamp-nanos`, `local-timestamp-*`, `big-decimal`, `uuid` on `fixed`, and `AvroConvertOptions.DateTimeRepresentation` (#153)
+- One way to pass a schema (`AvroSchema`) and a codec (`AvroConvertOptions`); overloads taking schema text, `CodecType` or a file path hidden from IntelliSense, to be removed in the next major version
+- Added `AvroSchema` (#73): `Parse` (also with referenced schemas), `Create`, `FromAvro`, `FromValue`, `FromItems`, `InferFromJson`, canonical form, fingerprints, `Compare`, `CheckCompatibility`
+- Added `Avro2JsonEncoding` / `JsonEncoding2Avro`: JSON Encoding of the Avro specification (#156)
+- Added logical types `timestamp-nanos`, `local-timestamp-*`, `big-decimal`, `uuid` on `fixed`; `AvroConvertOptions.DateTimeRepresentation` (#153)
 - Added `zstandard` codec
 - Added support for recursive types
-- Added support for `ExpandoObject` (#112) and `DeserializeHeadless<dynamic>` (#107)
-- Added support for union of records read into `object` / `dynamic` (#174)
-- Added support for map keys convertible from string (e.g. `Dictionary<Uri, T>`)
-- Added support for dictionary types other than `Dictionary<,>`: `IReadOnlyDictionary<,>`, `SortedDictionary<,>`, `ReadOnlyDictionary<,>` and classes deriving from `Dictionary<,>`
-- Added `Deserialize(byte[], Type, options)` and `DeserializeHeadless<T>(ReadOnlySpan<byte>, writer, reader, options)`
-- Added reading a record into a dictionary of objects, with nested records as dictionaries (#197)
-- Added `metadata` argument of `Serialize` with a schema, and `AvroConvert.GetMetadata`: own keys in the container header (#196). `Merge` keeps the keys all the files agree on
-- Added `AvroSchema.FromItems`: the schema of the entries of a file, completed from all of them where they hold `object`
-- Added `Serialize` overloads taking an `AvroSchema`: a container written with a given schema
-- Added `AvroSchema.FromValue`: the schema of a value, for headless data with `object` values
-- Reads files written by Apache.Avro for C# with a logical type on a `fixed` or an `enum` (e.g. `decimal` on `fixed`), whose header has the logical type around the definition
-- `[AvroFixed]` on a `decimal` member: a `decimal` on a `fixed`, as Java, Apache.Avro and Confluent schemas have it (precision and scale from `[AvroDecimal]`). `GenerateModel` writes it, so such a schema comes back from the generated class; it gave `decimal` on `bytes`, another schema with other bytes. A value too large for the `fixed` throws an error that names it, and so does a precision larger than the `fixed` holds (4 digits for 2 bytes, 38 for 16), which Java and Schema Registry reject
-- `[AvroFixed(size, name, namespace)]` is public: a `byte[]` member as a named `fixed`, `["null", fixed]` for `byte[]?`
-- `[AvroType]` next to `[AvroUnion]` applies to the branch it fits (`timestamp-millis` to `DateTime`, not to a `string` next to it)
-- `null` in `[AvroUnion]` is the null branch at its position: `[AvroUnion(typeof(int), null)] int?` gives `["int", "null"]`, as in `user.avsc` of the Avro documentation. A class put `null` first, which is another schema (other fingerprint) and other bytes: headless data of `["int", "null"]` read with the schema of the class was garbage. `GenerateModel` writes it for such unions, so the generated class gives back the schema. It threw `ArgumentNullException` before, so nothing that worked changes
-- A collection member with `[AvroUnion]` keeps the annotation of its items: `[AvroUnion(typeof(string[]), null)] string?[]?` has items `["null", "string"]`. The branch of the member's type was built without it, so the items were `"string"` and a `null` item threw
-- An enum value in a union with a string branch goes to the enum branch; read into `object` with `[AvroUnion]` it is the enum again
-- The classes and enums of `[AvroUnion]` are also found by their `[DataContract(Name)]`: they were read back as `ExpandoObject` or text
-- `GenerateModel` handles `fixed` (also referred to by name), unions of any branches, arrays of arrays and of unions, maps of records defined in place, `error` types, C# keywords as names, string / `bool?` / enum / `NaN` defaults, multi-line docs, records of one name in two namespaces and a file of several schemas, where it generated code that did not compile or lost union branches
-- `string?` members of a class nested in another one are a union with `null` when the nullable context is on the outer class; they were taken as not nullable
-- `ExpandoObject` and `Json2Avro` reuse the compiled plan of a schema they have seen, instead of compiling one for every call
-- JSON objects and `ExpandoObject`s with one key holding different fields keep them: the records get names of their own. Items of a list with different nested objects keep all their fields
-- `Dictionary<string, object>`, `object` members, `List<object>` and `ExpandoObject` members take their schema from the values being written. A string in them threw, and a class lost its fields without an error. `List<object>` is written as one entry per item, like other lists
-- A value written against the empty schema of `object` throws instead of losing its fields (`SerializeHeadless(value, typeof(T))`)
-- A union takes the branch of exactly the value's type first: a `double` next to a `long` branch is not truncated, a `DateTime` next to a `date` branch keeps its time, a class goes to its own record, not to the first that looks like it
-- A dictionary, `ExpandoObject` or `JObject` written to a union of records goes to the record that takes all its keys, and throws when there is none
-- Fields of a dictionary written as a record are found by name, then by alias
-- `Serialize<object>(items, stream)` writes items of different types as a union; only an interface or an abstract class needs one runtime type
-- Unions of logical types (e.g. `date` and `timestamp-micros`) and of records of one name in different namespaces are parsed and read
-- A named type used in several places of a schema is defined once; a different type of a name taken already (e.g. nested enums `Order.Status` and `Shipment.Status`) gets the name with a number (`Status_2`) instead of a reference to the other type
-- Fix for `Avro2Json` of a union whose branches have one short name: it read the first of them
-- `Avro2Json(file, schema)` resolves the data to the given schema as a reader schema (defaults, skipped fields, promotions, aliases). The schema replaced the one in the header, so the bytes were read with a schema they were not written with: wrong values or an exception. With the schema of the header the output is the same as before; for data without a header the schema is still the writer schema
-- `Json2Avro` and `InferFromJson`: different values in a JSON array give a union; a number next to text was written as text
-- Text that looks like a date stays text in schema attributes and defaults
-- A reference cycle, also in an `ExpandoObject`, throws instead of ending the process or never returning
-- Schemas keep the attributes the specification does not define (e.g. `field-id`), logical types Avro does not know, and enum aliases. The canonical form and fingerprints are not affected
-- Optional licence declaration: `AvroConvert.License` or `AVROCONVERT_LICENSE`. SolTechnology.DataLake includes AvroConvert under its own licence and shows its own notice instead
-- Writing with a schema field missing in the type writes the field's default; the same for a key missing in a dictionary, `ExpandoObject` or `JObject` written as a record
-- Schema resolution promotes `string` ↔ `bytes`; field `order` and enum `default` are preserved
-- Dates and times in a `string` field are read and written as ISO 8601 text (`DateTime`, `DateTimeOffset`, `DateOnly`, `TimeOnly`, `TimeSpan`), like Chr.Avro writes them by default
-- `DateTime` reads and writes `date`, `TimeSpan` reads and writes `time-millis` / `time-micros` (the types of Apache.Avro `avrogen` classes)
-- `Json2Avro` and `InferFromJson` look at every array element, not only the first one
-- A failed serialization does not leave a data block that looks complete
-- Fix for a recursive record without a matching class read into `dynamic` or `ExpandoObject`: it ended the process with a stack overflow
-- Data nested too deep and schemas without an end throw instead of ending the process with a stack overflow
-- `Avro2Json` of data nested deep enough to be read but not written as JSON (about 1,200 levels on a 1 MB stack) throws instead of ending the process: the JSON is written with a stack check at every level
-- `Avro2JsonEncoding` takes about a quarter of the stack per level of nested data: 1,330 levels on a 1 MB stack instead of 348
-- Fix for `OpenDeserializer<ExpandoObject>` returning objects without fields
-- Fix for `GetSchema(path)` on read-only files and files open elsewhere
-- Fix for `Merge` losing data after the first block
-- Fix for `Merge` of objects written with another schema than `T`: the result keeps the schema they were written with; objects written with different schemas throw instead of giving unreadable data
-- Fix for `Merge` of files written with `CollectionMode = SingleArray`
-- Fix for field and record aliases on read: a renamed field (`[DataMember(Name)]` with the old name in the data) and a union record matched by alias
-- Fix for a union of records on read: the branch is chosen by name or alias first, then by the first record the data resolves into, the same rule as outside a union
-- Fix for nullable struct records (`Point?`)
-- Fix for `long` read into a `timestamp-*` field of the reader schema
-- Fix for `IncludeOnlyDataContractMembers` with `DateOnly`, `TimeOnly` and `TimeSpan` members
-- Fix for nullable members holding a generic record (with a schema given as JSON), a dictionary with non-string keys, or a record written under another name (anonymous type, `ExpandoObject`)
-- Fix for `GenerateModel` output differing between operating systems
-- Fix for `decimal` on `fixed`
-- Fix for defaults of logical type fields
-- Fix for one-element collection and nested collections (`List<List<T>>`)
-- Fix for reading an empty array with `OpenDeserializer`
+- Added support for `ExpandoObject` (#112), `DeserializeHeadless<dynamic>` (#107) and unions of records read into `object` / `dynamic` (#174)
+- Added reading records into `Dictionary<string, object>` (#197)
+- Added support for map keys convertible from string (`Dictionary<Uri, T>`) and dictionary types other than `Dictionary<,>`
+- Added `Serialize` overloads taking an `AvroSchema`, header `metadata` and `AvroConvert.GetMetadata` (#196)
+- Added `Deserialize(byte[], Type, options)`, `DeserializeHeadless<T>(ReadOnlySpan<byte>, …)`, `Json2Avro(json, options)`; `DeserializeHeadless` takes reader schema, options, `numberOfRows` and a runtime type
+- `[AvroFixed]` public: a `byte[]` as a named `fixed`; on a `decimal`, a `decimal` on `fixed`
+- `null` in `[AvroUnion]` sets the position of the null branch: `[AvroUnion(typeof(int), null)] int?` → `["int", "null"]`
+- `Avro2Json(file, schema)` resolves the data to the given schema as a reader schema
+- Values of type `object` (`Dictionary<string, object>`, `object` members, `List<object>`, `ExpandoObject`) take their schema from the written values
+- `Serialize<object>(items)` writes items of different types as a union
+- Union branch chosen by the exact type of the value first; a dictionary, `ExpandoObject` or `JObject` goes to the record that takes all its keys
+- Writing with a given schema fills fields missing in the value with their defaults
+- Schema resolution: `string` ↔ `bytes` promotion, field and record aliases, union records matched by name or alias
+- Schemas keep attributes the specification does not define (e.g. Iceberg `field-id`), unknown logical types and enum aliases
+- Reads files of Apache.Avro for C# with a logical type on a `fixed` or an `enum`
+- `DateTime` reads and writes `date`, `TimeSpan` `time-millis` / `time-micros` (Apache.Avro `avrogen` classes); dates in `string` fields as ISO 8601 text (Chr.Avro)
+- `GenerateModel` classes give back the source schema; supports `fixed`, unions of any branches, nested arrays and maps, C# keywords, defaults, several schemas in one file
+- Deep data, schemas without an end and reference cycles throw instead of ending the process with a stack overflow
+- Optional licence declaration: `AvroConvert.License` or `AVROCONVERT_LICENSE`
+- Fix for `Merge` losing data after the first block; `Merge` keeps the writer schema, rejects files with different schemas, reads `SingleArray` files
+- Fix for `OpenDeserializer<ExpandoObject>` and for empty arrays in `OpenDeserializer`
+- Fix for `GetSchema(path)` on read-only and locked files
+- Fix for one-element and nested collections (`List<List<T>>`)
 - Fix for `NamingPolicy` on deserialization
 - Fix for `MemoryStream` not disposed in `SerializeHeadless` (#163)
 - Dependencies: Newtonsoft.Json, IronSnappy, ZstdSharp.Port

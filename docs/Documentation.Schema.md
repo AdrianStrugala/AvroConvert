@@ -11,18 +11,15 @@
 ### Reading the schema of Avro data
 
 ```csharp
-string schema = AvroConvert.GetSchema(avroFile);              // byte[]
-string schema = AvroConvert.GetSchema(stream);                // Stream
-
+string json = AvroConvert.GetSchema(avroFile);                // byte[] or Stream
 AvroSchema schema = AvroSchema.FromAvro(avroFile);            // parsed, see AvroSchema below
 ```
 
 ### Generating a schema from C# types
 
 ```csharp
-string schema = AvroConvert.GenerateSchema(typeof(Order));
-string schema = AvroConvert.GenerateSchema(typeof(Order), new AvroConvertOptions { NamingPolicy = … });
 AvroSchema schema = AvroSchema.Create<Order>();
+string json = schema.Json;                                  // same as AvroConvert.GenerateSchema(typeof(Order))
 ```
 
 `Serialize` uses the same schema, so the options that affect it (`IncludeOnlyDataContractMembers`, `NamingPolicy`,
@@ -70,10 +67,9 @@ AvroConvert.GenerateSchema(typeof(SimpleTestClass));
 | `object` | needs `[AvroUnion(typeof(A), typeof(B))]` listing the possible types |
 | `decimal`, `Guid`, `DateTime`, `DateTimeOffset`, `DateOnly`, `TimeOnly`, `TimeSpan` | logical types, see [Logical types](#logical-types) |
 
-A reference type is nullable when it is declared with `?` in a nullable context or marked with `[NullableSchema]`;
-otherwise its schema has no `null` branch, and serializing `null` into it throws, as the Avro specification has no
-representation for it (`AvroConvertOptions.NullValueHandling = AvroNullValueHandling.WriteEmpty` writes `""`, an empty
-collection or `0` instead, like 3.x). Multidimensional arrays (`int[,]`) are not supported – use jagged arrays (`int[][]`).
+A reference type is nullable when declared with `?` in a nullable context or marked with `[NullableSchema]`. Writing
+`null` into a member that is not nullable throws (`NullValueHandling = WriteEmpty` writes an empty value, like 3.x).
+Multidimensional arrays (`int[,]`) are not supported – use jagged arrays (`int[][]`).
 
 #### Members and attributes
 
@@ -91,8 +87,8 @@ members.
 | `[NullableSchema]` | field type becomes `["null", T]` |
 | `[AvroDecimal(Precision, Scale)]` | precision and scale of a `decimal` |
 | `[AvroType(AvroTypeRepresentation…)]` | another Avro representation, e.g. `timestamp-millis` (see [Logical types](#logical-types)) |
-| `[AvroUnion(typeof(A), typeof(B))]` | union of the listed types for an `object` member (records, enums, primitives, arrays, maps); with `[AvroType]` the representation applies to the branch it fits, e.g. `timestamp-millis` to `typeof(DateTime)`. `null` in the list is the null branch at that position: `[AvroUnion(typeof(int), null)] int?` gives `["int", "null"]` instead of `["null", "int"]` (the order of the branches is part of the data) |
-| `[AvroFixed(Size, Name, Namespace)]` | a `byte[]` member as a named `fixed` (`["null", fixed]` for `byte[]?`); on a `decimal`, a `decimal` on that `fixed`, with the precision and scale of `[AvroDecimal]`; with `[AvroUnion]`, the `byte[]` branch, or else the `decimal` one |
+| `[AvroUnion(typeof(A), typeof(B))]` | union of the listed types for an `object` member; `null` in the list sets the position of the null branch: `[AvroUnion(typeof(int), null)] int?` → `["int", "null"]` |
+| `[AvroFixed(Size, Name, Namespace)]` | `byte[]` as a named `fixed`; on a `decimal`, a `decimal` on that `fixed` |
 
 ```csharp
 [DataContract(Name = "User", Namespace = "userspace")]
@@ -167,11 +163,14 @@ public class Event
 }
 ```
 
-Reading accepts every logical type of the Avro 1.12 specification, including `uuid` on `fixed(16)`, `decimal` on
-`fixed` and `big-decimal`. A class writes `decimal` on `fixed` with `[AvroFixed(16, "Money")]` and `[AvroDecimal]` on a
-`decimal` member; a value that needs more bytes than the `fixed` has throws, and so does a precision the `fixed`
-cannot hold (at most 4 digits for 2 bytes, 38 for 16). A logical type that is unknown or that annotates an unsupported underlying type (e.g.
-`timestamp-millis` on `string`) is ignored and the underlying type is used, as the specification requires.
+Reading accepts every logical type of the Avro 1.12 specification. An unknown logical type is ignored and the
+underlying type is used. `decimal` on `fixed`, as Java and Confluent schemas often have it:
+
+```csharp
+[AvroFixed(16, "Money")]
+[AvroDecimal(Precision = 20, Scale = 2)]
+public decimal Amount { get; set; }
+```
 
 A timestamp member declared as `long` holds the raw count since the epoch and is written and read as is. This keeps
 `*-nanos` values exact, which `DateTime` (100 ns resolution) cannot:
@@ -184,10 +183,8 @@ public long CreatedAtNanos { get; set; }
 `big-decimal` is currently implemented only by the Java and Rust Avro libraries (and AvroConvert); prefer `decimal`
 for data shared with other implementations.
 
-A schema written by another library may keep dates and times as plain `string` (Chr.Avro does it by default). Such
-fields are read into `DateTime`, `DateTimeOffset`, `DateOnly`, `TimeOnly` and `TimeSpan` from ISO 8601 text, and
-written back the same way: `"2026-10-28T12:34:56.7890000Z"`, `"PT1H30M"` (invariant culture). Schemas generated by
-AvroConvert keep the logical types above.
+Dates and times in a `string` field (Chr.Avro writes them so by default) are read and written as ISO 8601 text.
+`DateTime` also reads `date` and `TimeSpan` reads `time-millis` / `time-micros`, as in Apache.Avro `avrogen` classes.
 
 
 ### Generate model
@@ -220,25 +217,20 @@ public class User
 }
 ```
 
-Records (and `error` types) become classes and enums become enums (nested types are generated as separate classes);
-`["null", T]` and `[T, "null"]` become `T?`; arrays become `T[]` (an array of arrays `T[][]`), maps
-`Dictionary<string, T>`; `bytes` becomes `byte[]`, a `fixed` `byte[]` with `[AvroFixed]`. Logical types: `decimal` and
-`big-decimal` → `decimal`, `uuid` → `Guid`, `timestamp-*` and `local-timestamp-*` → `DateTime`, `date` → `DateOnly`,
-`time-*` → `TimeOnly`, `duration` → `TimeSpan`. Any other union becomes `object` with every branch in
-`[AvroUnion(typeof(A), typeof(string), typeof(long[]), …)]`, so the generated model reads every branch and writes each
-value back to its own branch. Defaults become `[DefaultValue]`; names that are C# keywords get `@`.
+| Avro | C# |
+|---|---|
+| `record`, `enum` | class, enum |
+| `["null", T]`, `[T, "null"]` | `T?` |
+| other unions | `object` with `[AvroUnion]` listing every branch |
+| `array`, `map` | `T[]`, `Dictionary<string, T>` |
+| `bytes`, `fixed` | `byte[]`, `byte[]` with `[AvroFixed]` |
+| `decimal`, `uuid`, `date` | `decimal`, `Guid`, `DateOnly` |
+| `timestamp-*`, `time-*`, `duration` | `DateTime`, `TimeOnly`, `TimeSpan` |
 
-The generated classes give back the same schema (`AvroSchema.Create<User>()`, same canonical form): `[DataContract]`
-keeps the namespace and the name, `[AvroType]`, `[AvroDecimal]` and `[AvroFixed]` keep what differs from the default
-mapping (e.g. `timestamp-millis`, `decimal(10,2)`, `fixed(16)`, `decimal` on `fixed`), and `null` in `[AvroUnion]` keeps the position of the
-null branch where a class would put it elsewhere (`["int", "null"]` without a default is `[AvroUnion(typeof(int), null)] int?`).
-A `"default": null` is not generated; `doc` is
-a comment and `[Description]`. The code starts with the `using` directives it needs, and with `#nullable enable annotations` when it has nullable types, so `string?` keeps its meaning in a project without `<Nullable>enable`. The exceptions: an `error` gives a `record`; in the items of an array or
-the values of a map, `decimal` on `fixed` is generated as `decimal` on `bytes` and `null` after the other branch
-(`"items": ["int", "null"]`) gives `null` first (these read and write the same data).
-
-`DateTime` also reads and writes `date`, and `TimeSpan` reads and writes `time-millis` / `time-micros`, so classes
-generated by Apache.Avro `avrogen` work with the same data.
+The classes give back the source schema (`AvroSchema.Create<User>()`): attributes keep names, namespaces, logical
+types, the position of `null` in unions and `doc` (`[Description]`). The code compiles as it is, also without
+`<Nullable>enable`. Exceptions: `error` becomes `record`; in array items and map values `null` goes first and `decimal`
+on `fixed` becomes `decimal` on `bytes`. These read and write the same data.
 
 ### AvroSchema
 
@@ -259,14 +251,9 @@ long   rabin     = schema.Fingerprint;                   // CRC-64-AVRO
 byte[] sha256    = schema.GetFingerprint(AvroFingerprintAlgorithm.Sha256);   // also Md5, Crc64Avro (8 bytes)
 ```
 
-The Parsing Canonical Form keeps only what defines the binary data: full names, types, fields, symbols, sizes – no doc,
-aliases, defaults or logical types, fixed attribute order, no whitespace. Two schemas with the same canonical form are
-equal (`Equals`, `GetHashCode`) and read and write identical bytes; the fingerprint identifies a schema version, e.g. as a
-key in a schema store.
-
-Attributes the Avro specification does not define are metadata of the schema: `Json` keeps them with their JSON types,
-wherever they are declared (records, fields, arrays, maps, enums, fixed, primitives, logical types), and the canonical
-form leaves them out. So do logical types Avro does not know, like Apache Iceberg's `map` on an array.
+The canonical form keeps only what defines the binary data (no doc, aliases, defaults or logical types). Schemas with
+the same canonical form are equal and read and write identical bytes. Attributes the specification does not define
+(e.g. Iceberg `field-id`) stay in `Json` and are left out of the canonical form.
 
 #### Writing with a given schema
 
@@ -301,10 +288,8 @@ foreach (var d in comparison.Differences)
     Console.WriteLine(d);   // e.g. "Order.lines[].price: decimal(10,2) → decimal(10,4) (breaking)"
 ```
 
-The comparison follows the schema resolution rules of the specification: records and enums match by name or alias,
-fields by name or alias; a field missing in the writer needs a default; an enum symbol unknown to the reader needs the
-reader's enum default; unions are matched branch by branch; `int`/`long`/`float`/`double` promote to wider types and
-`string`/`bytes` to each other. Each `SchemaDifference` carries its `Path`, `Kind`, `IsBreaking` and `Description`.
+The comparison follows the schema resolution rules of the specification. Each `SchemaDifference` has `Path`, `Kind`,
+`IsBreaking` and `Description`.
 
 #### Compatibility checks
 

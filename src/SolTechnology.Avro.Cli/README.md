@@ -3,7 +3,7 @@
 `avroconvert` on the command line, with the command names of Apache avro-tools (`induce`, `compile`, `tojson`, `getschema`, `canonical`, `fingerprint`), plus schema compatibility and Confluent Schema Registry checks for CI. Built on [AvroConvert](https://www.nuget.org/packages/AvroConvert).
 
 ```
-dotnet tool install --global SolTechnology.Avro.Cli --prerelease
+dotnet tool install --global SolTechnology.Avro.Cli
 ```
 
 ```

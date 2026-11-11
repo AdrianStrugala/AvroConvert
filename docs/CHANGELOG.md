@@ -1,4 +1,4 @@
-**v. 4.0.0 (preview)**
+**v. 4.0.0 (11.11.26)**
 
 Breaking changes:
 - Requires .NET 10; for .NET Framework and .NET 6–9 use 3.4.x (`release/3.x`, security and critical fixes)

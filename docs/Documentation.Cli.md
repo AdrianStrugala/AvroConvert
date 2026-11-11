@@ -3,7 +3,7 @@
 `avroconvert` is a .NET tool for the most common Avro jobs. The commands have the same names as in Apache [avro-tools](https://github.com/apache/avro/tree/main/lang/java/tools), so if you know `java -jar avro-tools.jar tojson`, you know `avroconvert tojson`. On top of that: schema compatibility and Schema Registry checks for CI.
 
 ```
-dotnet tool install --global SolTechnology.Avro.Cli --prerelease
+dotnet tool install --global SolTechnology.Avro.Cli
 avroconvert --help
 ```
 
@@ -95,7 +95,7 @@ avroconvert registry test --subject orders-value --assembly bin/Release/net10.0/
 A step in CI, before deploying a producer:
 
 ```yaml
-- run: dotnet tool install --global SolTechnology.Avro.Cli --prerelease
+- run: dotnet tool install --global SolTechnology.Avro.Cli
 - run: avroconvert registry test -s orders-value -a src/MyApp/bin/Release/net10.0/MyApp.dll -t MyApp.Contracts.Order
   env:
     SCHEMA_REGISTRY_URL: ${{ secrets.SCHEMA_REGISTRY_URL }}

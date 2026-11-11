@@ -1,6 +1,6 @@
 # SolTechnology.Avro.Kafka
 
-`dotnet add package SolTechnology.Avro.Kafka --prerelease`
+`dotnet add package SolTechnology.Avro.Kafka`
 
 Serialization itself is described in [Documentation.md](Documentation.md); schemas, `AvroSchema` and compatibility checks in
 [Documentation.Schema.md](Documentation.Schema.md).

@@ -1,6 +1,6 @@
 # SolTechnology.Avro.Http
 
-`dotnet add package SolTechnology.Avro.Http --prerelease`
+`dotnet add package SolTechnology.Avro.Http`
 
 Serialization itself is described in [Documentation.md](Documentation.md); options are in the
 [Options reference](Documentation.md#options-reference).

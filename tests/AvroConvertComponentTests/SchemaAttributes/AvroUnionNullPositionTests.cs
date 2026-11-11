@@ -40,6 +40,44 @@ namespace AvroConvertComponentTests.SchemaAttributes
             public object? Value { get; set; }
         }
 
+        public class CollectionsWithNullLast
+        {
+            [AvroUnion(typeof(string[]), null)]
+            public string?[]? Tags { get; set; }
+
+            [AvroUnion(typeof(System.Collections.Generic.Dictionary<string, string>), null)]
+            public System.Collections.Generic.Dictionary<string, string?>? Labels { get; set; }
+
+            [AvroUnion(typeof(string[]), null)]
+            public string[]? Plain { get; set; }
+        }
+
+        public class OtherBranchIsACollection
+        {
+            [AvroUnion(typeof(string[]), typeof(int))]
+            public object? Value { get; set; }
+        }
+
+        [Test]
+        public void Collection_in_a_union_keeps_the_annotation_of_its_items()
+        {
+            var schema = AvroSchema.Create<CollectionsWithNullLast>().Json;
+
+            schema.Should().Contain("{\"name\":\"Tags\",\"type\":[{\"type\":\"array\",\"items\":[\"null\",\"string\"]},\"null\"]}");
+            schema.Should().Contain("{\"name\":\"Labels\",\"type\":[{\"type\":\"map\",\"values\":[\"null\",\"string\"]},\"null\"]}");
+            schema.Should().Contain("{\"name\":\"Plain\",\"type\":[{\"type\":\"array\",\"items\":\"string\"},\"null\"]}");
+            AvroSchema.Create<OtherBranchIsACollection>().Json.Should().Contain("{\"type\":\"array\",\"items\":\"string\"},\"int\"]",
+                "the annotation of an object member says nothing about the items of a branch");
+        }
+
+        [Test]
+        public void Null_items_of_a_collection_in_a_union_round_trip([ValueSource(typeof(Formats), nameof(Formats.Core))] Format format)
+        {
+            var value = new CollectionsWithNullLast { Tags = new[] { null, "a" }, Labels = new() { ["x"] = null }, Plain = null };
+
+            RoundTrip.Run<CollectionsWithNullLast>(value, format).Should().BeEquivalentTo(value);
+        }
+
         [Test]
         public void Null_takes_the_position_it_has_in_the_attribute()
         {

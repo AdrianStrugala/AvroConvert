@@ -68,13 +68,38 @@ namespace AvroConvertComponentTests.Avro2Json
             AvroConvert.Avro2Json(file).Should().Be("[[5],[6]]");
         }
 
-        [Test]
-        public void Reader_schema_that_does_not_match_the_data_is_an_exception()
+        [TestCase(@"""string""")]
+        [TestCase(@"[""null"",""string""]")]
+        [TestCase(@"""null""")]
+        public void Reader_field_without_a_default_that_the_data_lacks_is_an_exception(string type)
         {
-            const string reader = @"{""type"":""record"",""name"":""Person"",""fields"":[{""name"":""missing"",""type"":""string""}]}";
+            // The specification: an error, also when the type allows null (as Apache Java does).
+            var reader = @"{""type"":""record"",""name"":""Person"",""fields"":[{""name"":""missing"",""type"":" + type + "}]}";
 
             Recorded.Exception(() => AvroConvert.Avro2Json(File(), AvroSchema.Parse(reader))).Should().NotBeNull(
                 "a field without a default that the data lacks cannot be read");
+        }
+
+        [Test]
+        public void Reader_field_with_a_null_default_that_the_data_lacks_is_null()
+        {
+            const string reader = @"{""type"":""record"",""name"":""Person"",""fields"":[{""name"":""age"",""type"":""int""}," +
+                                  @"{""name"":""missing"",""type"":[""null"",""string""],""default"":null}]}";
+
+            AvroConvert.Avro2Json(File(), AvroSchema.Parse(reader)).Should().Be("{\"age\":42,\"missing\":null}");
+        }
+
+        [Test]
+        public void Dynamic_reading_with_a_reader_schema_still_takes_null_for_a_nullable_field()
+        {
+            // Unchanged: Deserialize into dynamic or a dictionary is lenient, as it was.
+            const string writer = @"{""type"":""record"",""name"":""Person"",""fields"":[{""name"":""age"",""type"":""int""}]}";
+            const string reader = @"{""type"":""record"",""name"":""Person"",""fields"":[{""name"":""age"",""type"":""int""},{""name"":""b"",""type"":[""null"",""string""]}]}";
+            var headless = AvroConvert.SerializeHeadless(new Dictionary<string, object> { ["age"] = 1 }, AvroSchema.Parse(writer));
+
+            var result = AvroConvert.DeserializeHeadless<Dictionary<string, object>>(headless, AvroSchema.Parse(writer), AvroSchema.Parse(reader));
+
+            result["b"].Should().BeNull();
         }
 
         [Test]

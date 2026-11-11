@@ -860,9 +860,11 @@ namespace SolTechnology.Avro.AvroObjectServices.Read.Typed
                 return rf.DefaultValue == null ? null : Expression.Constant(FormatDefaultValue(rf.DefaultValue, memberType), memberType);
             }
 
-            bool nullable = clrNullable ||
+            // A reader schema given as it is (Avro2Json) follows the specification: without a default it is an error, whatever
+            // the type. For a class, a member that may be null takes null.
+            bool nullable = clrNullable || !_schemaData && (
                             rf.TypeSchema.Type == AvroType.Null ||
-                            rf.TypeSchema is UnionSchema union && union.Schemas.Any(s => s.Type == AvroType.Null);
+                            rf.TypeSchema is UnionSchema union && union.Schemas.Any(s => s.Type == AvroType.Null));
             if (nullable || _missingFieldHandling == AvroMissingFieldHandling.UseDefault)
             {
                 return null;

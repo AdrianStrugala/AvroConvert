@@ -9,7 +9,7 @@
 		<ToolCommandName>avroconvert</ToolCommandName>
 		<Authors>Adrian Strugala</Authors>
 		<Company>SolTechnology</Company>
-		<Version>4.0.1</Version>
+		<Version>4.0.0</Version>
 		<Description>AvroConvert on the command line, with Apache avro-tools command names: induce, compile, tojson, getschema, canonical, fingerprint; plus schema compatibility and Schema Registry checks for CI.</Description>
 		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
 		<PackageProjectUrl>https://soltechnology.dev/avroconvert/</PackageProjectUrl>

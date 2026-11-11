@@ -576,12 +576,15 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
 
             // [AvroType] next to [AvroUnion] is the representation of the branch it applies to (e.g. timestamp-millis of a DateTime),
             // not of every branch: a string next to it stays a string.
+            // The annotation of the member reaches the branch of its own type: [AvroUnion(typeof(string[]), null)] string?[]? has
+            // items ["null", "string"]. Other branches are not described by it (Describes) and stay as they are.
+            var memberNullability = MemberNullability(memberInfo);
             var fixedBranchType = result.Contains(typeof(byte[])) ? typeof(byte[]) : typeof(decimal);
             var unionSchemas = result.Select(type => type == null
                 ? new NullSchema()
                 : type == fixedBranchType && TryBuildFixedSchema(type, memberInfo, parentSchema) is { } fixedBranch
                     ? fixedBranch // [AvroFixed] next to [AvroUnion] is the byte[] branch, or else the decimal one
-                    : CreateNotNullableSchema(type, schemas, currentDepth + 1, memberInfo, TakesRepresentation(type) ? representation : null)).ToList();
+                    : CreateNotNullableSchema(type, schemas, currentDepth + 1, memberInfo, TakesRepresentation(type) ? representation : null, memberNullability)).ToList();
 
             var typeInfo = _resolver.ResolveType(memberType, memberInfo);
 

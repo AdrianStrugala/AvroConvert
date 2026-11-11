@@ -665,9 +665,25 @@ namespace SolTechnology.Avro.AvroObjectServices.BuildSchema
             }
 
             var decimalSchema = (DecimalSchema)BuildDecimalTypeSchema(typeof(decimal), memberInfo);
+            var maxPrecision = MaxDecimalPrecision(result.Size);
+            if (decimalSchema.Precision > maxPrecision)
+            {
+                // Java and Schema Registry reject such a schema, as the specification limits it.
+                throw new SerializationException(
+                    $"A fixed of {result.Size} bytes holds a decimal of at most {maxPrecision} digits, but the precision of '{memberInfo.Name}' is {decimalSchema.Precision}. " +
+                    $"Set [AvroDecimal(Precision = …)] to at most {maxPrecision}, or a larger size in [AvroFixed].");
+            }
+
             decimalSchema.BaseTypeSchema = fixedSchema;
             return decimalSchema;
         }
+
+        /// <summary>
+        /// Digits of precision a decimal on a fixed of <paramref name="size"/> bytes can hold, as the specification defines it:
+        /// floor(log10(2^(8 * size - 1) - 1)).
+        /// </summary>
+        private static int MaxDecimalPrecision(int size) =>
+            size <= 0 ? 0 : (System.Numerics.BigInteger.Pow(2, 8 * size - 1) - 1).ToString(CultureInfo.InvariantCulture).Length - 1;
 
         public List<RecordFieldSchema> BuildRecordFields(
             IEnumerable<MemberSerializationInfo> members,

@@ -169,7 +169,8 @@ public class Event
 
 Reading accepts every logical type of the Avro 1.12 specification, including `uuid` on `fixed(16)`, `decimal` on
 `fixed` and `big-decimal`. A class writes `decimal` on `fixed` with `[AvroFixed(16, "Money")]` and `[AvroDecimal]` on a
-`decimal` member; a value that needs more bytes than the `fixed` has throws. A logical type that is unknown or that annotates an unsupported underlying type (e.g.
+`decimal` member; a value that needs more bytes than the `fixed` has throws, and so does a precision the `fixed`
+cannot hold (at most 4 digits for 2 bytes, 38 for 16). A logical type that is unknown or that annotates an unsupported underlying type (e.g.
 `timestamp-millis` on `string`) is ignored and the underlying type is used, as the specification requires.
 
 A timestamp member declared as `long` holds the raw count since the epoch and is written and read as is. This keeps

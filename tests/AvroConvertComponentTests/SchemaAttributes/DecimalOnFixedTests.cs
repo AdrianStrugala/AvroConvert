@@ -79,6 +79,33 @@ namespace AvroConvertComponentTests.SchemaAttributes
             exception.Message.Should().Contain("needs 3 bytes").And.Contain("SchemaAttributes.Small] of 2 bytes");
         }
 
+        public class TooPrecise
+        {
+            [AvroFixed(2, "Small")]
+            [AvroDecimal(Precision = 5, Scale = 0)]
+            public decimal value { get; set; }
+        }
+
+        public class AtTheLimit
+        {
+            [AvroFixed(1, "One")]
+            [AvroDecimal(Precision = 2, Scale = 0)]
+            public decimal one { get; set; }
+
+            [AvroFixed(16, "Sixteen")]
+            [AvroDecimal(Precision = 38, Scale = 2)]
+            public decimal sixteen { get; set; }
+        }
+
+        [Test]
+        public void Precision_larger_than_the_fixed_holds_is_an_exception()
+        {
+            // The specification limits it to floor(log10(2^(8n-1) - 1)) digits: 4 for 2 bytes; Java rejects more.
+            Recorded.Exception(() => AvroSchema.Create<TooPrecise>()).Message.Should()
+                .Contain("A fixed of 2 bytes holds a decimal of at most 4 digits").And.Contain("'value' is 5");
+            Recorded.Exception(() => AvroSchema.Create<AtTheLimit>()).Should().BeNull("2 digits fit 1 byte and 38 fit 16");
+        }
+
         public class OnString
         {
             [AvroFixed(2, "Small")]

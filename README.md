@@ -11,12 +11,12 @@
 </p>
 
 <p align="center">
- <a href="https://github.com/AdrianStrugala/AvroConvert"><img src="https://img.shields.io/github/stars/AdrianStrugala/AvroConvert.svg?label=%E2%98%85%20Stars%20%E2%98%85&color=yellow&style=flat&logo=github"></a>
- <a href="https://soltechnology.dev/avroconvert/online/"><img src="https://img.shields.io/badge/AvroConvertOnline-Try%20Now-4C6A8A.svg?logo=google-chrome"></a>
+ <a href="https://github.com/AdrianStrugala/AvroConvert"><img src="https://img.shields.io/github/stars/AdrianStrugala/AvroConvert.svg?label=%E2%98%85%20Stars%20%E2%98%85&color=F59E0B&style=flat&logo=github&labelColor=0B1F33"></a>
+ <a href="https://soltechnology.dev/avroconvert/online/"><img src="https://img.shields.io/badge/AvroConvertOnline-Try%20Now-4C6A8A.svg?logo=google-chrome&labelColor=0B1F33"></a>
  <br>
- <a href="https://github.com/AdrianStrugala/AvroConvert/actions/workflows/build&test.yml"><img src="https://img.shields.io/github/actions/workflow/status/AdrianStrugala/AvroConvert/build%26test.yml?label=Build%26Test&logo=github"></a>
- <a href="./LICENSE.md"><img src="https://img.shields.io/badge/licence-free%20under%20%241M%20%C2%B7%20commercial-2F7D7A.svg?logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0iI2ZmZiI%2BPHBhdGggZD0iTTguNzUuNzVWMmguOTg1Yy4zMDQgMCAuNjAzLjA4Ljg2Ny4yMzFsMS4yOS43MzZjLjAzOC4wMjIuMDguMDMzLjEyNC4wMzNoMi4yMzRhLjc1Ljc1IDAgMCAxIDAgMS41aC0uNDI3bDIuMTExIDQuNjkyYS43NS43NSAwIDAgMS0uMTU0LjgzOGwtLjUzLS41My41MjkuNTMxLS4wMDEuMDAyLS4wMDIuMDAyLS4wMDYuMDA2LS4wMDYuMDA1LS4wMS4wMS0uMDQ1LjA0Yy0uMjEuMTc2LS40NDEuMzI3LS42ODYuNDVDMTQuNTU2IDEwLjc4IDEzLjg4IDExIDEzIDExYTQuNDk4IDQuNDk4IDAgMCAxLTIuMDIzLS40NTQgMy41NDQgMy41NDQgMCAwIDEtLjY4Ni0uNDVsLS4wNDUtLjA0LS4wMTYtLjAxNS0uMDA2LS4wMDYtLjAwNC0uMDA0di0uMDAxYS43NS43NSAwIDAgMS0uMTU0LS44MzhMMTIuMTc4IDQuNWgtLjE2MmMtLjMwNSAwLS42MDQtLjA3OS0uODY4LS4yMzFsLTEuMjktLjczNmEuMjQ1LjI0NSAwIDAgMC0uMTI0LS4wMzNIOC43NVYxM2gyLjVhLjc1Ljc1IDAgMCAxIDAgMS41aC02LjVhLjc1Ljc1IDAgMCAxIDAtMS41aDIuNVYzLjVoLS45ODRhLjI0NS4yNDUgMCAwIDAtLjEyNC4wMzNsLTEuMjg5LjczN2MtLjI2NS4xNS0uNTY0LjIzLS44NjkuMjNoLS4xNjJsMi4xMTIgNC42OTJhLjc1Ljc1IDAgMCAxLS4xNTQuODM4bC0uNTMtLjUzLjUyOS41MzEtLjAwMS4wMDItLjAwMi4wMDItLjAwNi4wMDYtLjAxNi4wMTUtLjA0NS4wNGMtLjIxLjE3Ni0uNDQxLjMyNy0uNjg2LjQ1QzQuNTU2IDEwLjc4IDMuODggMTEgMyAxMWE0LjQ5OCA0LjQ5OCAwIDAgMS0yLjAyMy0uNDU0IDMuNTQ0IDMuNTQ0IDAgMCAxLS42ODYtLjQ1bC0uMDQ1LS4wNC0uMDE2LS4wMTUtLjAwNi0uMDA2LS4wMDQtLjAwNHYtLjAwMWEuNzUuNzUgMCAwIDEtLjE1NC0uODM4TDIuMTc4IDQuNUgxLjc1YS43NS43NSAwIDAgMSAwLTEuNWgyLjIzNGEuMjQ5LjI0OSAwIDAgMCAuMTI1LS4wMzNsMS4yODgtLjczN2MuMjY1LS4xNS41NjQtLjIzLjg2OS0uMjNoLjk4NFYuNzVhLjc1Ljc1IDAgMCAxIDEuNSAwWm0yLjk0NSA4LjQ3N2MuMjg1LjEzNS43MTguMjczIDEuMzA1LjI3M3MxLjAyLS4xMzggMS4zMDUtLjI3M0wxMyA2LjMyN1ptLTEwIDBjLjI4NS4xMzUuNzE4LjI3MyAxLjMwNS4yNzNzMS4wMi0uMTM4IDEuMzA1LS4yNzNMMyA2LjMyN1oiLz48L3N2Zz4%3D"></a>
- <a href="https://www.nuget.org/packages/AvroConvert"><img src="https://img.shields.io/nuget/dt/AvroConvert.svg?label=NuGet%20Downloads&logo=nuget&color=blue"></a>
+ <a href="https://github.com/AdrianStrugala/AvroConvert/actions/workflows/build&test.yml"><img src="https://img.shields.io/github/actions/workflow/status/AdrianStrugala/AvroConvert/build%26test.yml?label=Build%26Test&logo=github&labelColor=0B1F33"></a>
+ <a href="./LICENSE.md"><img src="https://img.shields.io/badge/licence-free%20under%20%241M%20%C2%B7%20commercial-2F7D7A.svg?logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0iI2ZmZiI%2BPHBhdGggZD0iTTguNzUuNzVWMmguOTg1Yy4zMDQgMCAuNjAzLjA4Ljg2Ny4yMzFsMS4yOS43MzZjLjAzOC4wMjIuMDguMDMzLjEyNC4wMzNoMi4yMzRhLjc1Ljc1IDAgMCAxIDAgMS41aC0uNDI3bDIuMTExIDQuNjkyYS43NS43NSAwIDAgMS0uMTU0LjgzOGwtLjUzLS41My41MjkuNTMxLS4wMDEuMDAyLS4wMDIuMDAyLS4wMDYuMDA2LS4wMDYuMDA1LS4wMS4wMS0uMDQ1LjA0Yy0uMjEuMTc2LS40NDEuMzI3LS42ODYuNDVDMTQuNTU2IDEwLjc4IDEzLjg4IDExIDEzIDExYTQuNDk4IDQuNDk4IDAgMCAxLTIuMDIzLS40NTQgMy41NDQgMy41NDQgMCAwIDEtLjY4Ni0uNDVsLS4wNDUtLjA0LS4wMTYtLjAxNS0uMDA2LS4wMDYtLjAwNC0uMDA0di0uMDAxYS43NS43NSAwIDAgMS0uMTU0LS44MzhMMTIuMTc4IDQuNWgtLjE2MmMtLjMwNSAwLS42MDQtLjA3OS0uODY4LS4yMzFsLTEuMjktLjczNmEuMjQ1LjI0NSAwIDAgMC0uMTI0LS4wMzNIOC43NVYxM2gyLjVhLjc1Ljc1IDAgMCAxIDAgMS41aC02LjVhLjc1Ljc1IDAgMCAxIDAtMS41aDIuNVYzLjVoLS45ODRhLjI0NS4yNDUgMCAwIDAtLjEyNC4wMzNsLTEuMjg5LjczN2MtLjI2NS4xNS0uNTY0LjIzLS44NjkuMjNoLS4xNjJsMi4xMTIgNC42OTJhLjc1Ljc1IDAgMCAxLS4xNTQuODM4bC0uNTMtLjUzLjUyOS41MzEtLjAwMS4wMDItLjAwMi4wMDItLjAwNi4wMDYtLjAxNi4wMTUtLjA0NS4wNGMtLjIxLjE3Ni0uNDQxLjMyNy0uNjg2LjQ1QzQuNTU2IDEwLjc4IDMuODggMTEgMyAxMWE0LjQ5OCA0LjQ5OCAwIDAgMS0yLjAyMy0uNDU0IDMuNTQ0IDMuNTQ0IDAgMCAxLS42ODYtLjQ1bC0uMDQ1LS4wNC0uMDE2LS4wMTUtLjAwNi0uMDA2LS4wMDQtLjAwNHYtLjAwMWEuNzUuNzUgMCAwIDEtLjE1NC0uODM4TDIuMTc4IDQuNUgxLjc1YS43NS43NSAwIDAgMSAwLTEuNWgyLjIzNGEuMjQ5LjI0OSAwIDAgMCAuMTI1LS4wMzNsMS4yODgtLjczN2MuMjY1LS4xNS41NjQtLjIzLjg2OS0uMjNoLjk4NFYuNzVhLjc1Ljc1IDAgMCAxIDEuNSAwWm0yLjk0NSA4LjQ3N2MuMjg1LjEzNS43MTguMjczIDEuMzA1LjI3M3MxLjAyLS4xMzggMS4zMDUtLjI3M0wxMyA2LjMyN1ptLTEwIDBjLjI4NS4xMzUuNzE4LjI3MyAxLjMwNS4yNzNzMS4wMi0uMTM4IDEuMzA1LS4yNzNMMyA2LjMyN1oiLz48L3N2Zz4%3D&labelColor=0B1F33"></a>
+ <a href="https://www.nuget.org/packages/AvroConvert"><img src="https://img.shields.io/nuget/dt/AvroConvert.svg?label=NuGet%20Downloads&logo=nuget&color=blue&labelColor=0B1F33"></a>
 </p>
 <!-- /github-only -->
 
@@ -48,13 +48,9 @@ What it means for your services:
 
 ### Benchmark
 
-1 000 records (`User` with a nested `Contact` and two `Offering`s), serialized to and deserialized from `byte[]`. Apache.Avro with classes generated by `avrogen`:
+![AvroConvert vs Apache.Avro vs Newtonsoft.Json, 1 000 records: mean time and allocated memory](https://raw.githubusercontent.com/AdrianStrugala/AvroConvert/master/docs/benchmarks/readme.png)
 
-![AvroConvert vs Apache.Avro vs Newtonsoft.Json, 1 000 records](https://raw.githubusercontent.com/AdrianStrugala/AvroConvert/master/docs/benchmarks/readme.png)
-
-Memory allocated (serialize + deserialize): AvroConvert 962 KB, Apache.Avro 5 255 KB, Newtonsoft.Json 2 620 KB.
-
-Results for 1 and 20 000 records: [raw results](docs/benchmarks/2026-10-28-libraries-avroconvert-vs-apache-vs-newtonsoft.md) · `benchmarks/LibrariesBenchmark`
+Results for 1 and 20 000 records: [raw results](docs/benchmarks/2026-11-12-libraries-avroconvert-vs-apache-vs-newtonsoft.md) · `benchmarks/LibrariesBenchmark`
 
 ## Features
 
@@ -128,10 +124,10 @@ These amazing people have contributed to AvroConvert:
 
 ## Related Work  
 
-- [![](https://img.shields.io/badge/AvroConvertOnline-Try%20Now-blue.svg?logo=google-chrome)](https://soltechnology.dev/avroconvert/online/) – schema → C# model, Avro file viewer, JSON → Avro, schema compatibility checker, Kafka message decoder; runs in your browser
-- [![Nuget](https://img.shields.io/nuget/vpre/SolTechnology.Avro.Http?label=SolTechnology.Avro.Http&logo=nuget)](https://www.nuget.org/packages/SolTechnology.Avro.Http/) – Avro as the wire format between HTTP services: HttpClient, MVC and Minimal API
-- [![Nuget](https://img.shields.io/nuget/vpre/SolTechnology.Avro.Kafka?label=SolTechnology.Avro.Kafka&logo=nuget)](https://www.nuget.org/packages/SolTechnology.Avro.Kafka/) – Confluent Schema Registry serializers for plain .NET objects, interoperable with Java/Python/Go
-- [![Nuget](https://img.shields.io/nuget/vpre/SolTechnology.Avro.Cli?label=SolTechnology.Avro.Cli&logo=nuget)](https://www.nuget.org/packages/SolTechnology.Avro.Cli/) – `avroconvert` command line tool with the avro-tools commands (induce, compile, tojson, getschema, canonical, fingerprint), compatibility and Schema Registry checks for CI
+- [![](https://img.shields.io/badge/AvroConvertOnline-Try%20Now-blue.svg?logo=google-chrome&labelColor=0B1F33)](https://soltechnology.dev/avroconvert/online/) – schema → C# model, Avro file viewer, JSON → Avro, schema compatibility checker, Kafka message decoder; runs in your browser
+- [![Nuget](https://img.shields.io/nuget/vpre/SolTechnology.Avro.Http?label=SolTechnology.Avro.Http&logo=nuget&labelColor=0B1F33)](https://www.nuget.org/packages/SolTechnology.Avro.Http/) – Avro as the wire format between HTTP services: HttpClient, MVC and Minimal API
+- [![Nuget](https://img.shields.io/nuget/vpre/SolTechnology.Avro.Kafka?label=SolTechnology.Avro.Kafka&logo=nuget&labelColor=0B1F33)](https://www.nuget.org/packages/SolTechnology.Avro.Kafka/) – Confluent Schema Registry serializers for plain .NET objects, interoperable with Java/Python/Go
+- [![Nuget](https://img.shields.io/nuget/vpre/SolTechnology.Avro.Cli?label=SolTechnology.Avro.Cli&logo=nuget&labelColor=0B1F33)](https://www.nuget.org/packages/SolTechnology.Avro.Cli/) – `avroconvert` command line tool with the avro-tools commands (induce, compile, tojson, getschema, canonical, fingerprint), compatibility and Schema Registry checks for CI
 - [Avro API article](https://www.c-sharpcorner.com/blogs/avro-rest-api-as-the-evolution-of-json-based-communication-between-mic) 
 
 ---

@@ -1,3 +1,8 @@
+**v. 4.0.1 (unreleased)**
+
+- A commercial licence key covers AvroConvert only when it is issued for AvroConvert: its `product` is `avroconvert` or its `products` list contains it. A key for another SolTechnology product gives a notice. One key can list several products (bundles); `AvroLicense.Products` shows them
+- Removed the internal `LicenseCoveredBy` for SolTechnology.DataLake; a product that includes AvroConvert passes its licence through `AvroConvert.License`
+
 **v. 4.0.0 (11.11.26)**
 
 Breaking changes:

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Buffers.Text;
 using System.Globalization;
 using System.Linq;
@@ -24,6 +25,9 @@ namespace SolTechnology.Avro
     public sealed class AvroLicense
     {
         private const string KeyPrefix = "AVC1";
+
+        // Product name in the key payload. A key lists every product it covers, so one key can license a bundle.
+        internal const string ProductName = "avroconvert";
 
         // ECDSA P-256 public key (SubjectPublicKeyInfo) matching the private key used to issue licence keys.
         private const string SigningPublicKey = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE8g1QMibUwtAc1sYGvm9bGWrijoURey+6jWhCoDKaomwdlszB2ex9NyuWqd8jY6smbdSa90aFlf1LNs+bRkliVg==";
@@ -54,6 +58,15 @@ namespace SolTechnology.Avro
 
         /// <summary>True when the key signature was verified with the SolTechnology public key.</summary>
         public bool IsSignatureValid { get; private init; }
+
+        /// <summary>
+        /// SolTechnology products the key covers, e.g. <c>avroconvert</c>; a bundle key lists several. Empty for the free licences.
+        /// A commercial key covers AvroConvert only when the list contains <c>avroconvert</c>.
+        /// </summary>
+        public IReadOnlyList<string> Products { get; private init; } = Array.Empty<string>();
+
+        internal bool CoversAvroConvert =>
+            Kind != AvroLicenseKind.Commercial || Products.Contains(ProductName, StringComparer.OrdinalIgnoreCase);
 
         private AvroLicense(AvroLicenseKind kind)
         {
@@ -121,6 +134,10 @@ namespace SolTechnology.Avro
                 throw Malformed();
             }
 
+            var products = payload["products"] is JArray list
+                ? list.Values<string>().Where(p => !string.IsNullOrWhiteSpace(p)).ToArray()
+                : payload["product"] is JValue { Type: JTokenType.String } single ? new[] { (string)single } : Array.Empty<string>();
+
             DateOnly? validUntil = DateOnly.TryParseExact((string)payload["expires"], "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var d) ? d : null;
 
             bool signatureValid;
@@ -136,7 +153,8 @@ namespace SolTechnology.Avro
                 Licensee = licensee,
                 Plan = (string)payload["plan"],
                 ValidUntil = validUntil,
-                IsSignatureValid = signatureValid
+                IsSignatureValid = signatureValid,
+                Products = products
             };
 
             static ArgumentException Malformed() =>
@@ -155,7 +173,6 @@ namespace SolTechnology.Avro
     {
         private static AvroLicense _license;
         private static int _noticeShown;
-        private static string _coveredBy;
 
         /// <summary>
         /// Declares the licence this application relies on (see <see cref="AvroLicense"/>). Optional; when not set,
@@ -170,13 +187,6 @@ namespace SolTechnology.Avro
         /// <summary>Build date from AssemblyMetadata("ReleaseDate"); decides whether an ended subscription still covers this version.</summary>
         internal static DateOnly ReleaseDate { get; } = ReadReleaseDate();
 
-        /// <summary>
-        /// Called by a SolTechnology product that ships AvroConvert as its component, under the product's own licence
-        /// (e.g. SolTechnology.DataLake), before it uses AvroConvert. Without a declared licence there is no AvroConvert
-        /// notice then: the product shows its own. A declared licence is still checked. Global for the process, so it
-        /// also covers AvroConvert called directly next to the product.
-        /// </summary>
-        internal static void LicenseCoveredBy(string product) => Volatile.Write(ref _coveredBy, product);
 
         /// <summary>
         /// Checks the declared licence once per process, at the first call that needs it, and writes the notice to
@@ -189,8 +199,7 @@ namespace SolTechnology.Avro
                 return;
             }
 
-            var license = License;
-            var message = license == null && Volatile.Read(ref _coveredBy) != null ? null : LicenseNotice(license, ReleaseDate);
+            var message = LicenseNotice(License, ReleaseDate);
             if (Interlocked.Exchange(ref _noticeShown, 1) != 0 || message == null)
             {
                 return;
@@ -206,12 +215,8 @@ namespace SolTechnology.Avro
             }
         }
 
-        /// <summary>Allows tests to observe the notice again within the same process: not shown yet, no product covering the licence.</summary>
-        internal static void ResetLicenseNoticeForTesting()
-        {
-            Volatile.Write(ref _noticeShown, 0);
-            Volatile.Write(ref _coveredBy, null);
-        }
+        /// <summary>Allows tests to observe the notice again within the same process.</summary>
+        internal static void ResetLicenseNoticeForTesting() => Volatile.Write(ref _noticeShown, 0);
 
         internal static string LicenseNotice(AvroLicense license, DateOnly releaseDate)
         {
@@ -232,6 +237,13 @@ namespace SolTechnology.Avro
             {
                 return $"AvroConvert licence key {license.Id} ({license.Licensee}) could not be verified. " +
                        "Paste the key exactly as received by e-mail or contact contact@soltechnology.dev.";
+            }
+
+            if (!license.CoversAvroConvert)
+            {
+                var products = license.Products.Count == 0 ? "no product" : string.Join(", ", license.Products);
+                return $"AvroConvert licence key {license.Id} ({license.Licensee}) is for {products}, not for AvroConvert. " +
+                       "Use the AvroConvert licence key or contact contact@soltechnology.dev.";
             }
 
             if (license.ValidUntil is { } validUntil && validUntil < releaseDate)

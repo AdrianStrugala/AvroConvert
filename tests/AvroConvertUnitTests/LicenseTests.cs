@@ -36,7 +36,41 @@ namespace AvroConvertUnitTests
             license.Plan.Should().Be("business");
             license.ValidUntil.Should().Be(new DateOnly(2027, 10, 8));
             license.IsSignatureValid.Should().BeTrue();
+            license.Products.Should().Equal("avroconvert");
             license.ToString().Should().Be("Commercial (Acme Ltd., AVC-2026-7K3M9Q, valid until 2027-10-08)");
+            AvroConvert.LicenseNotice(license, new DateOnly(2026, 10, 8)).Should().BeNull();
+        }
+
+        [Test]
+        public void Parse_BundleKey_CoversAvroConvert()
+        {
+            var bundle = Payload.Replace("\"product\":\"avroconvert\"", "\"product\":\"datalake-iceberg\",\"products\":[\"datalake-iceberg\",\"avroconvert\"]");
+
+            var license = AvroLicense.Parse(IssueKey(bundle), PublicKey);
+
+            license.Products.Should().Equal("datalake-iceberg", "avroconvert");
+            AvroConvert.LicenseNotice(license, new DateOnly(2026, 10, 8)).Should().BeNull();
+        }
+
+        [TestCase("\"product\":\"datalake-iceberg\"", "is for datalake-iceberg, not for AvroConvert")]
+        [TestCase("\"product\":\"datalake-iceberg\",\"products\":[\"datalake-iceberg\"]", "is for datalake-iceberg, not for AvroConvert")]
+        [TestCase("\"plan\":\"none\"", "is for no product, not for AvroConvert")]
+        public void Parse_KeyForAnotherProduct_GivesNotice(string productJson, string notice)
+        {
+            var other = Payload.Replace("\"product\":\"avroconvert\"", productJson);
+
+            var license = AvroLicense.Parse(IssueKey(other), PublicKey);
+
+            license.IsSignatureValid.Should().BeTrue();
+            AvroConvert.LicenseNotice(license, new DateOnly(2026, 10, 8)).Should().Contain(notice);
+        }
+
+        [Test]
+        public void FreeLicences_CoverAvroConvertWithoutProducts()
+        {
+            AvroLicense.SmallBusiness.Products.Should().BeEmpty();
+            AvroConvert.LicenseNotice(AvroLicense.SmallBusiness, new DateOnly(2026, 10, 8)).Should().BeNull();
+            AvroConvert.LicenseNotice(AvroLicense.NonCommercial, new DateOnly(2026, 10, 8)).Should().BeNull();
         }
 
         [Test]
@@ -168,55 +202,6 @@ namespace AvroConvertUnitTests
             }
         }
 
-        [Test, NonParallelizable]
-        public void EnsureLicenseNotice_CoveredByProduct_WritesNothingWithoutDeclaration()
-        {
-            var previousLicense = AvroConvert.License;
-            var previousError = Console.Error;
-            var stderr = new System.IO.StringWriter();
-            try
-            {
-                AvroConvert.License = null;
-                Console.SetError(stderr);
-                AvroConvert.ResetLicenseNoticeForTesting();
-                AvroConvert.LicenseCoveredBy("SolTechnology.DataLake");
-
-                AvroConvert.EnsureLicenseNotice();
-
-                stderr.ToString().Should().BeEmpty();
-            }
-            finally
-            {
-                Console.SetError(previousError);
-                AvroConvert.License = previousLicense;
-                AvroConvert.ResetLicenseNoticeForTesting();
-            }
-        }
-
-        [Test, NonParallelizable]
-        public void EnsureLicenseNotice_CoveredByProduct_StillChecksDeclaredKey()
-        {
-            var previousLicense = AvroConvert.License;
-            var previousError = Console.Error;
-            var stderr = new System.IO.StringWriter();
-            try
-            {
-                AvroConvert.License = AvroLicense.Commercial(IssueKey(Payload));
-                Console.SetError(stderr);
-                AvroConvert.ResetLicenseNoticeForTesting();
-                AvroConvert.LicenseCoveredBy("SolTechnology.DataLake");
-
-                AvroConvert.EnsureLicenseNotice();
-
-                stderr.ToString().Should().Contain("could not be verified");
-            }
-            finally
-            {
-                Console.SetError(previousError);
-                AvroConvert.License = previousLicense;
-                AvroConvert.ResetLicenseNoticeForTesting();
-            }
-        }
 
         [Test, NonParallelizable]
         public void EnsureLicenseNotice_ChecksOncePerProcess()
